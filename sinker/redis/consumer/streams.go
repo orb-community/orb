@@ -18,8 +18,8 @@ const (
 	sinksPrefix = "sinks."
 	sinksUpdate = sinksPrefix + "update"
 	sinksCreate = sinksPrefix + "create"
-
-	exists = "BUSYGROUP Consumer Group name already exists"
+	sinksDelete = sinksPrefix + "remove"
+	exists      = "BUSYGROUP Consumer Group name already exists"
 )
 
 type Subscriber interface {
@@ -75,6 +75,13 @@ func (es eventStore) Subscribe(context context.Context) error {
 					break
 				}
 				err = es.handleSinksUpdate(context, rte)
+			case sinksDelete:
+				rte, derr := decodeSinksRemove(event)
+				if derr != nil {
+					err = derr
+					break
+				}
+				err = es.handleSinksRemove(context, rte)
 			}
 			if err != nil {
 				es.logger.Error("Failed to handle event", zap.String("operation", event["operation"].(string)), zap.Error(err))
@@ -122,6 +129,30 @@ func decodeSinksUpdate(event map[string]interface{}) (updateSinkEvent, error) {
 	}
 	val.config = metadata
 	return val, nil
+}
+
+func decodeSinksRemove(event map[string]interface{}) (updateSinkEvent, error) {
+	val := updateSinkEvent{
+		sinkID:    read(event, "sink_id", ""),
+		owner:     read(event, "owner", ""),
+		timestamp: time.Time{},
+	}
+	var metadata types.Metadata
+	if err := json.Unmarshal([]byte(read(event, "config", "")), &metadata); err != nil {
+		return updateSinkEvent{}, err
+	}
+	val.config = metadata
+	return val, nil
+}
+
+func (es eventStore) handleSinksRemove(_ context.Context, e updateSinkEvent) error {
+	if ok := es.configRepo.Exists(e.owner, e.sinkID); ok {
+		err := es.configRepo.Remove(e.owner, e.sinkID)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (es eventStore) handleSinksUpdate(_ context.Context, e updateSinkEvent) error {

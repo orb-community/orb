@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/ns1labs/orb/pkg/errors"
 	"gopkg.in/yaml.v2"
+	"strconv"
 	"strings"
 )
 
@@ -179,7 +180,9 @@ func GetDeploymentJson(sinkId, sinkUrl, sinkUsername, sinkPassword string) (stri
 
 // ReturnConfigYamlFromSink this is the main method, which will generate the YAML file from the
 func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig, sinkId, sinkUrl, sinkUsername, sinkPassword string) (string, error) {
-
+	if _, err := strconv.Atoi(sinkUsername); err != nil {
+		sinkUsername = "#$#" + sinkUsername
+	}
 	config := OtelConfigFile{
 		Receivers: Receivers{
 			Kafka: KafkaReceiver{
@@ -203,7 +206,7 @@ func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig, sinkId, sinkUrl
 		Exporters: Exporters{
 			PrometheusRemoteWrite: &PrometheusRemoteWriteExporterConfig{
 				Endpoint: sinkUrl,
-				auth: struct {
+				Auth: struct {
 					Authenticator string `json:"authenticator" yaml:"authenticator"`
 				}{Authenticator: "basicauth/exporter"},
 			},
@@ -233,9 +236,9 @@ func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig, sinkId, sinkUrl
 		return "", err
 	}
 	returnedString := "---\n" + string(marshal)
-	returnString := strings.Replace(returnedString, "\"", "", -1)
-	returnString = strings.Replace(returnedString, "\n", `\n`, -1)
-	return returnString, nil
+	s := strings.ReplaceAll(returnedString, "\"", "")
+	s = strings.ReplaceAll(s, "\n", `\n`)
+	return s, nil
 
 }
 
@@ -298,7 +301,7 @@ type Exporters struct {
 
 type PrometheusRemoteWriteExporterConfig struct {
 	Endpoint string `json:"endpoint" yaml:"endpoint"`
-	auth     struct {
+	Auth     struct {
 		Authenticator string `json:"authenticator" yaml:"authenticator"`
 	}
 }
