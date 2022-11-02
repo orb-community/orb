@@ -203,7 +203,7 @@ func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig, sinkId, sinkUrl
 		Exporters: Exporters{
 			PrometheusRemoteWrite: &PrometheusRemoteWriteExporterConfig{
 				Endpoint: sinkUrl,
-				auth: struct {
+				Auth: struct {
 					Authenticator string `json:"authenticator" yaml:"authenticator"`
 				}{Authenticator: "basicauth/exporter"},
 			},
@@ -298,7 +298,7 @@ type Exporters struct {
 
 type PrometheusRemoteWriteExporterConfig struct {
 	Endpoint string `json:"endpoint" yaml:"endpoint"`
-	auth     struct {
+	Auth     struct {
 		Authenticator string `json:"authenticator" yaml:"authenticator"`
 	}
 }
