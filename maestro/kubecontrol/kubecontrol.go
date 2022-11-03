@@ -4,10 +4,11 @@ import (
 	"bufio"
 	"context"
 	"fmt"
-	"go.uber.org/zap"
 	"os"
 	"os/exec"
 	"strings"
+
+	"go.uber.org/zap"
 )
 
 const namespace = "otelcollectors"
@@ -15,11 +16,13 @@ const namespace = "otelcollectors"
 var _ Service = (*deployService)(nil)
 
 type deployService struct {
-	logger *zap.Logger
+	logger          *zap.Logger
+	deploymentState map[string]bool
 }
 
 func NewService(logger *zap.Logger) Service {
-	return &deployService{logger: logger}
+	deploymentState := make(map[string]bool)
+	return &deployService{logger: logger, deploymentState: deploymentState}
 }
 
 type Service interface {
@@ -36,9 +39,20 @@ type Service interface {
 func (svc *deployService) collectorDeploy(_ context.Context, operation, sinkId, manifest string) error {
 
 	fileContent := []byte(manifest)
-
 	tmp := strings.Split(string(fileContent), "\n")
 	newContent := strings.Join(tmp[1:], "\n")
+
+	if operation == "apply" {
+		if value, ok := svc.deploymentState[sinkId]; ok && value {
+			svc.logger.Info("Already applied Sink ID=" + sinkId)
+			return nil
+		}
+	} else if operation == "delete" {
+		if value, ok := svc.deploymentState[sinkId]; ok && !value {
+			svc.logger.Info("Already deleted Sink ID=" + sinkId)
+			return nil
+		}
+	}
 
 	err := os.WriteFile("/tmp/otel-collector-"+sinkId+".json", []byte(newContent), 0644)
 	if err != nil {
@@ -73,6 +87,14 @@ func (svc *deployService) collectorDeploy(_ context.Context, operation, sinkId, 
 	if err != nil {
 		fmt.Printf("Error: %v \n", err)
 		svc.logger.Error("Collector Deploy Error", zap.Error(err))
+	}
+
+	if err == nil {
+		if operation == "apply" {
+			svc.deploymentState[sinkId] = true
+		} else if operation == "delete" {
+			svc.deploymentState[sinkId] = false
+		}
 	}
 
 	return nil

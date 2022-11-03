@@ -11,6 +11,7 @@ package maestro
 import (
 	"context"
 	"encoding/json"
+
 	"github.com/go-redis/redis/v8"
 	maestroconfig "github.com/ns1labs/orb/maestro/config"
 	"github.com/ns1labs/orb/maestro/kubecontrol"
