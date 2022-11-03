@@ -3,6 +3,7 @@ module github.com/ns1labs/orb
 go 1.19
 
 require (
+	github.com/andybalholm/brotli v1.0.4
 	github.com/aws/aws-sdk-go v1.44.114
 	github.com/eclipse/paho.mqtt.golang v1.4.1
 	github.com/fatih/structs v1.1.0
