@@ -7,6 +7,7 @@ import (
 	"github.com/ns1labs/orb/sinker/config"
 	"go.uber.org/zap"
 	"time"
+	"strings"
 )
 
 type BridgeService interface {
