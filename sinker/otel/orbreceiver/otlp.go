@@ -113,7 +113,7 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 			zap.String("protocol", msg.Protocol),
 			zap.Int64("created", msg.Created),
 			zap.String("publisher", msg.Publisher))
-		r.cfg.Logger.Info("received metric message, pushing to exporter")
+		r.cfg.Logger.Info("received metric message, pushing to kafka exporter")
 		decompressedPayload := decompressBrotli(msg.Payload)
 		mr, err := r.encoder.unmarshalMetricsRequest(decompressedPayload)
 		if err != nil {
@@ -126,13 +126,13 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 		agentPb, err := r.sinkerService.ExtractAgent(execCtx, msg.Channel)
 		if err != nil {
 			execCancelF()
-			r.cfg.Logger.Error("error during extracting agent information from fleet", zap.Error(err))
+			r.cfg.Logger.Info("No data extracting agent information from fleet, agentName=" + agentPb.AgentName)
 			return
 		}
 		sinkIds, err := r.sinkerService.GetSinkIdsFromAgentGroups(execCtx, agentPb.OwnerID, agentPb.AgentGroupIDs)
 		if err != nil {
 			execCancelF()
-			r.cfg.Logger.Error("error during extracting sinks information from policies", zap.Error(err))
+			r.cfg.Logger.Info("No data extracting sinks information from policies, sinks ID=" + strings.Join(sinkIds, ", "))
 			return
 		}
 		attributeCtx := context.WithValue(r.ctx, "agent_name", agentPb.AgentName)
