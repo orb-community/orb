@@ -64,7 +64,7 @@ type PolicyStateInfo struct {
 	Version         int32     `json:"version,omitempty"`
 	LastScrapeBytes int64     `json:"last_scrape_bytes,omitempty"`
 	LastScrapeTS    time.Time `json:"last_scrape_ts,omitempty"`
-	Backend         string    `json:"backend, omitempty"`
+	Backend         string    `json:"backend,omitempty"`
 }
 
 type GroupStateInfo struct {
