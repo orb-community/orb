@@ -20,7 +20,8 @@ type deployService struct {
 	deploymentState map[string]bool
 }
 
-func NewService(logger *zap.Logger, deploymentState map[string]bool) Service {
+func NewService(logger *zap.Logger) Service {
+	deploymentState := make(map[string]bool)
 	return &deployService{logger: logger, deploymentState: deploymentState}
 }
 
@@ -42,12 +43,12 @@ func (svc *deployService) collectorDeploy(_ context.Context, operation, sinkId, 
 	newContent := strings.Join(tmp[1:], "\n")
 
 	if operation == "apply" {
-		if svc.deploymentState[sinkId] == true {
+		if svc.deploymentState[sinkId] {
 			svc.logger.Info("Already applied Sink ID=" + sinkId)
 			return nil
 		}
 	} else if operation == "delete" {
-		if svc.deploymentState[sinkId] == false {
+		if !svc.deploymentState[sinkId] {
 			svc.logger.Info("Already deleted Sink ID=" + sinkId)
 			return nil
 		}

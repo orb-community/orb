@@ -36,8 +36,7 @@ type maestroService struct {
 }
 
 func NewMaestroService(logger *zap.Logger, redisClient *redis.Client, sinksGrpcClient sinkspb.SinkServiceClient, esCfg config.EsConfig) Service {
-	deploymentState := make(map[string]bool)
-	kubectr := kubecontrol.NewService(logger, deploymentState)
+	kubectr := kubecontrol.NewService(logger)
 	eventStore := rediscons1.NewEventStore(redisClient, kubectr, esCfg.Consumer, sinksGrpcClient, logger)
 	return &maestroService{
 		logger:      logger,
