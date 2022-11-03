@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"bytes"
 	"io/ioutil"
+	"strings"
 
 	"github.com/andybalholm/brotli"
 	"github.com/mainflux/mainflux/pkg/messaging"
