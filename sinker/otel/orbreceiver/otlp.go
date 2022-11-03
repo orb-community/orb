@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"bytes"
 	"io/ioutil"
-	"strings"
 
 	"github.com/andybalholm/brotli"
 	"github.com/mainflux/mainflux/pkg/messaging"
@@ -133,7 +132,7 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 		sinkIds, err := r.sinkerService.GetSinkIdsFromAgentGroups(execCtx, agentPb.OwnerID, agentPb.AgentGroupIDs)
 		if err != nil {
 			execCancelF()
-			r.cfg.Logger.Info("No data extracting sinks information from policies, sinks ID=" + strings.Join(sinkIds, ", "))
+			r.cfg.Logger.Info("No data extracting sinks information from policies, agentGroups ID=" + strings.Join(agentPb.AgentGroupIDs, ", "))
 			return
 		}
 		attributeCtx := context.WithValue(r.ctx, "agent_name", agentPb.AgentName)
