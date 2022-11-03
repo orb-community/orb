@@ -43,12 +43,12 @@ func (svc *deployService) collectorDeploy(_ context.Context, operation, sinkId, 
 	newContent := strings.Join(tmp[1:], "\n")
 
 	if operation == "apply" {
-		if svc.deploymentState[sinkId] {
+		if value, ok := svc.deploymentState[sinkId]; ok && value {
 			svc.logger.Info("Already applied Sink ID=" + sinkId)
 			return nil
 		}
 	} else if operation == "delete" {
-		if !svc.deploymentState[sinkId] {
+		if value, ok := svc.deploymentState[sinkId]; ok && !value {
 			svc.logger.Info("Already deleted Sink ID=" + sinkId)
 			return nil
 		}
