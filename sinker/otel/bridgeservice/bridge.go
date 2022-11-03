@@ -73,7 +73,7 @@ func (bs *SinkerOtelBridgeService) GetSinkIdsFromAgentGroups(ctx context.Context
 		OwnerID:  mfOwnerId,
 	})
 	if err != nil {
-		bs.logger.Error("unable to retrieve policies from agent groups", zap.Error(err))
+		bs.logger.Info("unable to retrieve policies from agent groups ID=" + strings.Join(agentGroupIds, ", "))
 		return nil, err
 	}
 	mapSinkIdPolicy := make(map[string]string)
