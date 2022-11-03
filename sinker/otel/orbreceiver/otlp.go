@@ -15,10 +15,13 @@
 package orbreceiver
 
 import (
+	"bytes"
 	"context"
 	"fmt"
-	"bytes"
 	"io/ioutil"
+	"strings"
+
+	"sync"
 
 	"github.com/andybalholm/brotli"
 	"github.com/mainflux/mainflux/pkg/messaging"
@@ -28,7 +31,6 @@ import (
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
 	"go.uber.org/zap"
-	"sync"
 )
 
 const OtelMetricsTopic = "otlp.*.m.>"
