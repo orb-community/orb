@@ -11,6 +11,7 @@ package maestro
 import (
 	"context"
 	"encoding/json"
+
 	"github.com/go-redis/redis/v8"
 	maestroconfig "github.com/ns1labs/orb/maestro/config"
 	"github.com/ns1labs/orb/maestro/kubecontrol"
@@ -35,7 +36,8 @@ type maestroService struct {
 }
 
 func NewMaestroService(logger *zap.Logger, redisClient *redis.Client, sinksGrpcClient sinkspb.SinkServiceClient, esCfg config.EsConfig) Service {
-	kubectr := kubecontrol.NewService(logger)
+	deploymentState := make(map[string]bool)
+	kubectr := kubecontrol.NewService(logger, deploymentState)
 	eventStore := rediscons1.NewEventStore(redisClient, kubectr, esCfg.Consumer, sinksGrpcClient, logger)
 	return &maestroService{
 		logger:      logger,
