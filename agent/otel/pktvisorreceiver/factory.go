@@ -43,6 +43,17 @@ func CreateDefaultSettings(logger *zap.Logger) component.ReceiverCreateSettings 
 	}
 }
 
+func CreateReceiverConfig(endpoint, metricsPath string) config.Receiver {
+	return &Config{
+		ReceiverSettings: config.NewReceiverSettings(config.NewComponentID(typeStr)),
+		TCPAddr: confignet.TCPAddr{
+			Endpoint: endpoint,
+		},
+		MetricsPath:        metricsPath,
+		CollectionInterval: defaultCollectionInterval,
+	}
+}
+
 func CreateDefaultConfig() config.Receiver {
 	return &Config{
 		ReceiverSettings: config.NewReceiverSettings(config.NewComponentID(typeStr)),
