@@ -99,6 +99,15 @@ func (gs *grpcServer) RetrieveDatasetsByGroups(ctx context.Context, req *pb.Data
 	return res.(*pb.DatasetsRes), nil
 }
 
+func (gs *grpcServer) RetrieveDatasetsByPolicy(ctx context.Context, req *pb.DatasetsByPolicyReq) (*pb.DatasetsRes, error) {
+	_, res, err := gs.retrieveDatasetsByPolicy.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, encodeError(err)
+	}
+
+	return res.(*pb.DatasetsRes), nil
+}
+
 func decodeRetrievePolicyRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(*pb.PolicyByIDReq)
 	return accessByIDReq{PolicyID: req.PolicyID, OwnerID: req.OwnerID}, nil
