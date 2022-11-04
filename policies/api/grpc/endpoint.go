@@ -116,3 +116,28 @@ func retrieveDatasetsByGroupsEndpoint(svc policies.Service) endpoint.Endpoint {
 		return datasetListRes{datasets: datasets}, nil
 	}
 }
+
+func retrieveDatasetsByPolicyEndpoint(svc policies.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(accessByPolicyReq)
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+
+		dsList, err := svc.ListDatasetsByPolicyName(ctx, req.PolicyName, req.OwnerID)
+		if err != nil {
+			return datasetListRes{}, err
+		}
+		datasets := make([]datasetRes, len(dsList))
+		for i, ds := range dsList {
+			datasets[i] = datasetRes{
+				id:           ds.ID,
+				agentGroupID: ds.AgentGroupID,
+				sinkIDs:      ds.SinkIDs,
+				policyID:     ds.PolicyID,
+			}
+		}
+
+		return datasetListRes{datasets: datasets}, nil
+	}
+}
