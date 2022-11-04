@@ -515,3 +515,17 @@ func (s policiesService) DuplicatePolicy(ctx context.Context, token string, poli
 
 	return policy, nil
 }
+
+func (s policiesService) ListDatasetsByPolicyName(ctx context.Context, policyName string, ownerID string) ([]Dataset, error) {
+	policy, err := s.repo.RetrievePolicyByName(ctx, policyName, ownerID)
+	if err != nil {
+		return []Dataset{}, err
+	}
+
+	datasets, err := s.repo.RetrieveDatasetsByPolicyID(ctx, policy.ID, ownerID)
+	if err != nil {
+		return []Dataset{}, err
+	}
+
+	return datasets, nil
+}

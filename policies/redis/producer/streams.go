@@ -11,12 +11,13 @@ package producer
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/go-redis/redis/v8"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/policies"
 	"github.com/ns1labs/orb/policies/backend"
 	"go.uber.org/zap"
-	"strings"
 )
 
 const (
@@ -38,6 +39,10 @@ type eventStore struct {
 
 func (e eventStore) ListDatasetsByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) ([]policies.Dataset, error) {
 	return e.svc.ListDatasetsByGroupIDInternal(ctx, groupIDs, ownerID)
+}
+
+func (e eventStore) ListDatasetsByPolicyName(ctx context.Context, policyName string, ownerID string) ([]policies.Dataset, error) {
+	return e.svc.ListDatasetsByPolicyName(ctx, policyName, ownerID)
 }
 
 func (e eventStore) ViewDatasetByIDInternal(ctx context.Context, ownerID string, datasetID string) (policies.Dataset, error) {

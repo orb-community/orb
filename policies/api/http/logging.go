@@ -6,9 +6,10 @@ package http
 
 import (
 	"context"
+	"time"
+
 	"github.com/ns1labs/orb/policies"
 	"go.uber.org/zap"
-	"time"
 )
 
 var _ policies.Service = (*loggingMiddleware)(nil)
@@ -30,6 +31,20 @@ func (l loggingMiddleware) ListDatasetsByGroupIDInternal(ctx context.Context, gr
 		}
 	}(time.Now())
 	return l.svc.ListDatasetsByGroupIDInternal(ctx, groupIDs, ownerID)
+}
+
+func (l loggingMiddleware) ListDatasetsByPolicyName(ctx context.Context, policyName string, ownerID string) (_ []policies.Dataset, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: list_datasets_by_policy_name_internal",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Info("method call: list_datasets_by_policy_name_internal",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.ListDatasetsByPolicyName(ctx, policyName, ownerID)
 }
 
 func (l loggingMiddleware) RemoveAllDatasetsByPolicyIDInternal(ctx context.Context, token string, policyID string) (err error) {
