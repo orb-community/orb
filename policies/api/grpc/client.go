@@ -169,7 +169,7 @@ func NewClient(tracer opentracing.Tracer, conn *grpc.ClientConn, timeout time.Du
 			svcName,
 			"RetrieveDatasetsByPolicy",
 			encodeRetrieveDatasetsByPolicyRequest,
-			decodePolicyListResponse,
+			decodeDatasetListResponse,
 			pb.DatasetsRes{},
 		).Endpoint()),
 	}
@@ -219,4 +219,14 @@ func decodePolicyListResponse(_ context.Context, grpcRes interface{}) (interface
 		policies[i] = policyInDSRes{id: p.GetId(), name: p.GetName(), data: p.GetData(), version: p.GetVersion(), backend: p.GetBackend(), datasetID: p.GetDatasetId(), agentGroupID: p.GetAgentGroupId()}
 	}
 	return policyInDSListRes{policies: policies}, nil
+}
+
+func decodeDatasetListResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
+	res := grpcRes.(*pb.DatasetsRes)
+	datasetList := make([]datasetRes, len(res.DatasetList))
+	for i, p := range res.DatasetList {
+		datasetList[i] = datasetRes{id: p.GetId(), agentGroupID: p.GetAgentGroupId(), policyID: p.GetPolicyId(), sinkIDs: p.GetSinkIds()GetSinkIds()}
+	}
+
+	return datasetListRes{datasets: datasetList}, nil
 }
