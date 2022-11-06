@@ -191,7 +191,4 @@ type Repository interface {
 
 	// RetrieveDatasetsByGroupID Retrieve dataset list by group id
 	RetrieveDatasetsByGroupID(ctx context.Context, groupIDs []string, ownerID string) ([]Dataset, error)
-
-	// RetrievePolicyByName Retrieve policy by name
-	RetrievePolicyByName(ctx context.Context, policyName string, ownerID string) (Policy, error)
 }

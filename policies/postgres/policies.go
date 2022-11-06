@@ -238,24 +238,6 @@ func (r policiesRepository) RetrievePolicyByID(ctx context.Context, policyID str
 
 	return toPolicy(dbp), nil
 }
-func (r policiesRepository) RetrievePolicyByName(ctx context.Context, policyName string, ownerID string) (policies.Policy, error) {
-	q := `SELECT id, name, description, mf_owner_id, orb_tags, backend, version, policy, ts_created, schema_version, ts_last_modified, policy_data, format 
-			FROM agent_policies WHERE name = $1 AND mf_owner_id = $2`
-
-	if policyName == "" || ownerID == "" {
-		return policies.Policy{}, errors.ErrMalformedEntity
-	}
-
-	var dbp dbPolicy
-	if err := r.db.QueryRowxContext(ctx, q, policyName, ownerID).StructScan(&dbp); err != nil {
-		if err == sql.ErrNoRows {
-			return policies.Policy{}, errors.Wrap(errors.ErrNotFound, err)
-		}
-		return policies.Policy{}, errors.Wrap(errors.ErrSelectEntity, err)
-	}
-
-	return toPolicy(dbp), nil
-}
 
 func (r policiesRepository) UpdateDataset(ctx context.Context, ownerID string, ds policies.Dataset) error {
 	q := `UPDATE datasets SET tags = :tags, sink_ids = :sink_ids, name = :name WHERE mf_owner_id = :mf_owner_id AND id = :id;`

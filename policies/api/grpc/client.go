@@ -164,7 +164,20 @@ func NewClient(tracer opentracing.Tracer, conn *grpc.ClientConn, timeout time.Du
 			decodeDatasetResponse,
 			pb.DatasetRes{},
 		).Endpoint()),
+		retrieveDatasetsByPolicy: kitot.TraceClient(tracer, "retrieve_datasets_by_policy")(kitgrpc.NewClient(
+			conn,
+			svcName,
+			"RetrieveDatasetsByPolicy",
+			encodeRetrieveDatasetsByPolicyRequest,
+			decodeDatasetListResponse,
+			pb.DatasetsRes{},
+		).Endpoint()),
 	}
+}
+
+func encodeRetrieveDatasetsByPolicyRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(accessByPolicyReq)
+	return &pb.DatasetsByPolicyReq{PolicyID: req.PolicyID, OwnerID: req.OwnerID}, nil
 }
 
 func encodeRetrievePolicyRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
@@ -206,4 +219,14 @@ func decodePolicyListResponse(_ context.Context, grpcRes interface{}) (interface
 		policies[i] = policyInDSRes{id: p.GetId(), name: p.GetName(), data: p.GetData(), version: p.GetVersion(), backend: p.GetBackend(), datasetID: p.GetDatasetId(), agentGroupID: p.GetAgentGroupId()}
 	}
 	return policyInDSListRes{policies: policies}, nil
+}
+
+func decodeDatasetListResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
+	res := grpcRes.(*pb.DatasetsRes)
+	datasetList := make([]datasetRes, len(res.DatasetList))
+	for i, p := range res.DatasetList {
+		datasetList[i] = datasetRes{id: p.GetId(), agentGroupID: p.GetAgentGroupId(), policyID: p.GetPolicyId(), sinkIDs: p.GetSinkIds()}
+	}
+
+	return datasetListRes{datasets: datasetList}, nil
 }
