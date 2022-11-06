@@ -5,7 +5,7 @@
     <parameters value="run -d -c $PROJECT_DIR$/localconfig/config.yaml" />
     <sudo value="true" />
     <kind value="FILE" />
-    <package value="github.com/ns1labs/orb" />
+    <package value="github.com/etaques/orb" />
     <directory value="$PROJECT_DIR$" />
     <filePath value="$PROJECT_DIR$/cmd/agent/main.go" />
     <output_directory value="$PROJECT_DIR$/build" />

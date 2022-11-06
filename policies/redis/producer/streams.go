@@ -14,9 +14,9 @@ import (
 	"strings"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/ns1labs/orb/pkg/errors"
-	"github.com/ns1labs/orb/policies"
-	"github.com/ns1labs/orb/policies/backend"
+	"github.com/etaques/orb/pkg/errors"
+	"github.com/etaques/orb/policies"
+	"github.com/etaques/orb/policies/backend"
 	"go.uber.org/zap"
 )
 

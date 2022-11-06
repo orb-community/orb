@@ -2,9 +2,9 @@ package consumer
 
 import (
 	"context"
-	"github.com/ns1labs/orb/maestro/kubecontrol"
-	"github.com/ns1labs/orb/pkg/types"
-	sinkspb "github.com/ns1labs/orb/sinks/pb"
+	"github.com/etaques/orb/maestro/kubecontrol"
+	"github.com/etaques/orb/pkg/types"
+	sinkspb "github.com/etaques/orb/sinks/pb"
 	"time"
 
 	"github.com/go-redis/redis/v8"

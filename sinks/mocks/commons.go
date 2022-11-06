@@ -10,7 +10,7 @@ package mocks
 
 import (
 	"fmt"
-	"github.com/ns1labs/orb/sinks"
+	"github.com/etaques/orb/sinks"
 	"sort"
 )
 

@@ -11,7 +11,7 @@ package db
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"github.com/ns1labs/orb/pkg/errors"
+	"github.com/etaques/orb/pkg/errors"
 )
 
 const (

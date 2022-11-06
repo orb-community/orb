@@ -11,13 +11,13 @@ package grpc_test
 import (
 	"context"
 	"fmt"
-	"github.com/ns1labs/orb/policies/pb"
+	"github.com/etaques/orb/policies/pb"
 	"testing"
 	"time"
 
 	"github.com/opentracing/opentracing-go/mocktracer"
 
-	policiesgrpc "github.com/ns1labs/orb/policies/api/grpc"
+	policiesgrpc "github.com/etaques/orb/policies/api/grpc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"

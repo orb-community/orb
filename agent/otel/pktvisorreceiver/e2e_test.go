@@ -3,7 +3,7 @@ package pktvisorreceiver_test
 import (
 	"context"
 	"fmt"
-	"github.com/ns1labs/orb/agent/otel/pktvisorreceiver"
+	"github.com/etaques/orb/agent/otel/pktvisorreceiver"
 	promconfig "github.com/prometheus/prometheus/config"
 	"go.opentelemetry.io/collector/config/confighttp"
 	"go.opentelemetry.io/collector/config/confignet"

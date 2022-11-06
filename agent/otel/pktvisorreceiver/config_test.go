@@ -1,8 +1,8 @@
 package pktvisorreceiver_test
 
 import (
-	"github.com/ns1labs/orb/agent/otel/otlpmqttexporter"
-	"github.com/ns1labs/orb/agent/otel/pktvisorreceiver"
+	"github.com/etaques/orb/agent/otel/otlpmqttexporter"
+	"github.com/etaques/orb/agent/otel/pktvisorreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

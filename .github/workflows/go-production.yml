@@ -384,7 +384,7 @@ jobs:
           git config --global user.email "${{secrets.GH_ORB_EMAIL}}"
           git config --global user.name "${{secrets.GH_ORB_USER}}"
           git config --global credential.helper cache
-          git clone -b main https://${{secrets.GH_ORB_USER}}:${{secrets.GH_ORB_ACCESS_TOKEN}}@github.com/ns1labs/orb-live.git
+          git clone -b main https://${{secrets.GH_ORB_USER}}:${{secrets.GH_ORB_ACCESS_TOKEN}}@github.com/etaques/orb-live.git
           cd orb-live
           rm -rf ui
           git add .
@@ -445,7 +445,7 @@ jobs:
           git config --global user.email "${{secrets.GH_ORB_EMAIL}}"
           git config --global user.name "${{secrets.GH_ORB_USER}}"
           git config --global credential.helper cache
-          git clone https://${{secrets.GH_ORB_USER}}:${{secrets.GH_ORB_ACCESS_TOKEN}}@github.com/ns1labs/orb-live-manifest.git
+          git clone https://${{secrets.GH_ORB_USER}}:${{secrets.GH_ORB_ACCESS_TOKEN}}@github.com/etaques/orb-live-manifest.git
           # Commit prd folder
           cd orb-live-manifest/prod
           mv values.yaml .template/values.old

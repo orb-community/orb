@@ -7,7 +7,7 @@ package pktvisor
 import (
 	"bytes"
 	"fmt"
-	"github.com/ns1labs/orb/agent/policies"
+	"github.com/etaques/orb/agent/policies"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 	"net/http"

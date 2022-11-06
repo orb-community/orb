@@ -3,7 +3,7 @@ package migration
 import (
 	"context"
 	"github.com/gofrs/uuid"
-	"github.com/ns1labs/orb/migrate/postgres"
+	"github.com/etaques/orb/migrate/postgres"
 	"go.uber.org/zap"
 	"time"
 )

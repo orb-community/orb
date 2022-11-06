@@ -12,7 +12,7 @@ import (
 	"context"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/mainflux/mainflux"
-	"github.com/ns1labs/orb/fleet"
+	"github.com/etaques/orb/fleet"
 	"google.golang.org/grpc"
 )
 

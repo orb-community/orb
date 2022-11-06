@@ -1,7 +1,7 @@
 /**
  * Base Sink Feature Interface
  *
- * [Sinks Architecture]{@link https://github.com/ns1labs/orb/wiki/Architecture:-Sinks}
+ * [Sinks Architecture]{@link https://github.com/etaques/orb/wiki/Architecture:-Sinks}
  */
 
 import { DynamicFormConfig } from 'app/common/interfaces/orb/dynamic.form.interface';

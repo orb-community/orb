@@ -1,7 +1,7 @@
 /**
  * Agent Policy / Handler Module Interface
  *
- * [Policies Architecture]{@link https://github.com/ns1labs/orb/wiki/Architecture:-Policies-and-Datasets}
+ * [Policies Architecture]{@link https://github.com/etaques/orb/wiki/Architecture:-Policies-and-Datasets}
  */
 
 /**

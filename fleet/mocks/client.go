@@ -10,7 +10,7 @@ package mocks
 
 import (
 	"context"
-	"github.com/ns1labs/orb/fleet/pb"
+	"github.com/etaques/orb/fleet/pb"
 	"google.golang.org/grpc"
 )
 

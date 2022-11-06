@@ -3,7 +3,7 @@ package config
 import (
 	"context"
 	"fmt"
-	"github.com/ns1labs/orb/pkg/errors"
+	"github.com/etaques/orb/pkg/errors"
 	"gopkg.in/yaml.v2"
 	"strings"
 )

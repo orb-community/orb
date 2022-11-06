@@ -10,9 +10,9 @@ import (
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/go-zoo/bone"
 	"github.com/mainflux/mainflux"
-	"github.com/ns1labs/orb/fleet"
-	"github.com/ns1labs/orb/fleet/backend"
-	"github.com/ns1labs/orb/pkg/types"
+	"github.com/etaques/orb/fleet"
+	"github.com/etaques/orb/fleet/backend"
+	"github.com/etaques/orb/pkg/types"
 	"github.com/opentracing/opentracing-go"
 )
 

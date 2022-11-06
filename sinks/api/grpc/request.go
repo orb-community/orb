@@ -9,7 +9,7 @@
 package grpc
 
 import (
-	"github.com/ns1labs/orb/sinks"
+	"github.com/etaques/orb/sinks"
 )
 
 type accessByIDReq struct {

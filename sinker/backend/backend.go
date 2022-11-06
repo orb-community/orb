@@ -5,9 +5,9 @@
 package backend
 
 import (
-	"github.com/ns1labs/orb/fleet"
-	"github.com/ns1labs/orb/fleet/pb"
-	"github.com/ns1labs/orb/sinker/prometheus"
+	"github.com/etaques/orb/fleet"
+	"github.com/etaques/orb/fleet/pb"
+	"github.com/etaques/orb/sinker/prometheus"
 )
 
 type Backend interface {

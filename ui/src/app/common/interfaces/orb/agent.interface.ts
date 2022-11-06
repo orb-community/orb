@@ -1,7 +1,7 @@
 /**
  * Agent Data Model Interface
  *
- * [Fleet Architecture]{@link https://github.com/ns1labs/orb/wiki/Architecture:-Fleet}
+ * [Fleet Architecture]{@link https://github.com/etaques/orb/wiki/Architecture:-Fleet}
  */
 
 import { OrbEntity } from 'app/common/interfaces/orb/orb.entity.interface';

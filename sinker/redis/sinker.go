@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-redis/redis/v8"
-	"github.com/ns1labs/orb/sinker"
-	"github.com/ns1labs/orb/sinker/config"
+	"github.com/etaques/orb/sinker"
+	"github.com/etaques/orb/sinker/config"
 	"go.uber.org/zap"
 	"strings"
 )

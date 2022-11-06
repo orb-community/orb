@@ -7,7 +7,7 @@ package backend
 import (
 	"context"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
-	"github.com/ns1labs/orb/agent/policies"
+	"github.com/etaques/orb/agent/policies"
 	"go.uber.org/zap"
 	"time"
 )

@@ -9,7 +9,7 @@
 package pktvisor
 
 import (
-	"github.com/ns1labs/orb/pkg/errors"
+	"github.com/etaques/orb/pkg/errors"
 )
 
 type viewResourceReq struct {

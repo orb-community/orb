@@ -15,7 +15,7 @@
       <env name="ORB_SINKS_GRPC_TIMEOUT" value="1s" />
     </envs>
     <kind value="FILE" />
-    <package value="github.com/ns1labs/orb" />
+    <package value="github.com/etaques/orb" />
     <directory value="$PROJECT_DIR$" />
     <filePath value="$PROJECT_DIR$/cmd/policies/main.go" />
     <output_directory value="$PROJECT_DIR$/build" />

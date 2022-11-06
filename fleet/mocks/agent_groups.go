@@ -8,8 +8,8 @@ package mocks
 import (
 	"context"
 	"github.com/gofrs/uuid"
-	"github.com/ns1labs/orb/fleet"
-	"github.com/ns1labs/orb/pkg/errors"
+	"github.com/etaques/orb/fleet"
+	"github.com/etaques/orb/pkg/errors"
 	"reflect"
 )
 

@@ -124,7 +124,7 @@ export class DatasetFromComponent implements OnInit {
         [
           Validators.required,
           Validators.pattern(
-            // https://github.com/ns1labs/orb/wiki/Architecture:-Common-Patterns#name-labels
+            // https://github.com/etaques/orb/wiki/Architecture:-Common-Patterns#name-labels
             // anything starting with alpha chars or underscore followed by any
             // number of alphanumeric chars, dash '-' or underscore '_'. e.g.:
             // valid: my_name, _name0, name__anything invalid: 0something, 000,

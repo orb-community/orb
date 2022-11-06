@@ -1,4 +1,4 @@
-# <a href="https://github.com/ns1labs/orb">Orb</a> UI
+# <a href="https://github.com/etaques/orb">Orb</a> UI
 
 > This wiki is targeted at developers looking to build the UI from source, to either
 > run it locally for development purposes or to create a custom UI docker image.
@@ -66,7 +66,7 @@ fs.inotify.max_user_watches=524288
 
 ## Entities Data examples
 
-See [data examples](https://github.com/ns1labs/orb/wiki/Orb-UI---Entities-Data-Examples) for examples of *Orb Entities*
+See [data examples](https://github.com/etaques/orb/wiki/Orb-UI---Entities-Data-Examples) for examples of *Orb Entities*
 to aid in UI design , form validation and related info.
 
 
@@ -75,4 +75,4 @@ to aid in UI design , form validation and related info.
 ## QA & Testing
 
 Quality Assurance & Test frameworks and scripts are still a *WORK IN PROGRESS*  
-Check our [Wiki](https://github.com/ns1labs/orb/wiki/UI-QA-Automation-Tags) for more information.
+Check our [Wiki](https://github.com/etaques/orb/wiki/UI-QA-Automation-Tags) for more information.

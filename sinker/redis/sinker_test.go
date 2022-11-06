@@ -3,9 +3,9 @@ package redis_test
 import (
 	"fmt"
 	"github.com/mainflux/mainflux/pkg/uuid"
-	"github.com/ns1labs/orb/pkg/errors"
-	config2 "github.com/ns1labs/orb/sinker/config"
-	"github.com/ns1labs/orb/sinker/redis"
+	"github.com/etaques/orb/pkg/errors"
+	config2 "github.com/etaques/orb/sinker/config"
+	"github.com/etaques/orb/sinker/redis"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"reflect"

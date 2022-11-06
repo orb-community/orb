@@ -10,7 +10,7 @@ package postgres
 
 import (
 	"fmt"
-	"github.com/ns1labs/orb/pkg/config"
+	"github.com/etaques/orb/pkg/config"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq" // required for SQL access

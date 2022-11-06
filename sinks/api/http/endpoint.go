@@ -11,9 +11,9 @@ package http
 import (
 	"context"
 	"github.com/go-kit/kit/endpoint"
-	"github.com/ns1labs/orb/pkg/types"
-	"github.com/ns1labs/orb/sinks"
-	"github.com/ns1labs/orb/sinks/backend"
+	"github.com/etaques/orb/pkg/types"
+	"github.com/etaques/orb/sinks"
+	"github.com/etaques/orb/sinks/backend"
 )
 
 var restrictiveKeyPrefixes = []string{backend.ConfigFeatureTypePassword}

@@ -12,11 +12,11 @@ import (
 
 	"github.com/fatih/structs"
 	"github.com/mitchellh/mapstructure"
-	"github.com/ns1labs/orb/fleet"
-	"github.com/ns1labs/orb/fleet/pb"
-	"github.com/ns1labs/orb/pkg/errors"
-	"github.com/ns1labs/orb/sinker/backend"
-	"github.com/ns1labs/orb/sinker/prometheus"
+	"github.com/etaques/orb/fleet"
+	"github.com/etaques/orb/fleet/pb"
+	"github.com/etaques/orb/pkg/errors"
+	"github.com/etaques/orb/sinker/backend"
+	"github.com/etaques/orb/sinker/prometheus"
 	"go.uber.org/zap"
 )
 

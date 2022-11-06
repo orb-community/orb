@@ -3,9 +3,9 @@ package consumer
 import (
 	"context"
 	"encoding/json"
-	"github.com/ns1labs/orb/maestro/config"
-	"github.com/ns1labs/orb/pkg/types"
-	sinkspb "github.com/ns1labs/orb/sinks/pb"
+	"github.com/etaques/orb/maestro/config"
+	"github.com/etaques/orb/pkg/types"
+	sinkspb "github.com/etaques/orb/sinks/pb"
 	"go.uber.org/zap"
 	"time"
 )

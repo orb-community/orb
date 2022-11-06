@@ -2,7 +2,7 @@ package pktvisor
 
 import (
 	"fmt"
-	"github.com/ns1labs/orb/sinker/prometheus"
+	"github.com/etaques/orb/sinker/prometheus"
 	"strconv"
 	"strings"
 	"time"

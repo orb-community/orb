@@ -7,7 +7,7 @@ package fleet
 import (
 	"context"
 	"database/sql/driver"
-	"github.com/ns1labs/orb/pkg/types"
+	"github.com/etaques/orb/pkg/types"
 	"time"
 )
 

@@ -16,9 +16,9 @@ import (
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/go-cmd/cmd"
 	"github.com/go-co-op/gocron"
-	"github.com/ns1labs/orb/agent/backend"
-	"github.com/ns1labs/orb/agent/config"
-	"github.com/ns1labs/orb/agent/policies"
+	"github.com/etaques/orb/agent/backend"
+	"github.com/etaques/orb/agent/config"
+	"github.com/etaques/orb/agent/policies"
 	"go.opentelemetry.io/collector/component"
 	"go.uber.org/zap"
 )

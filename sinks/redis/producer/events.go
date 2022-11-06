@@ -12,7 +12,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/ns1labs/orb/pkg/types"
+	"github.com/etaques/orb/pkg/types"
 )
 
 const (

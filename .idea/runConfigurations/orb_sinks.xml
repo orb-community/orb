@@ -11,7 +11,7 @@
       <env name="MF_AUTH_GRPC_URL" value="localhost:8181" />
     </envs>
     <kind value="FILE" />
-    <package value="github.com/ns1labs/orb" />
+    <package value="github.com/etaques/orb" />
     <directory value="$PROJECT_DIR$" />
     <filePath value="$PROJECT_DIR$/cmd/sinks/main.go" />
     <output_directory value="$PROJECT_DIR$/build" />

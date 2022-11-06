@@ -9,7 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/eclipse/paho.mqtt.golang"
-	"github.com/ns1labs/orb/fleet"
+	"github.com/etaques/orb/fleet"
 	"go.uber.org/zap"
 	"time"
 )
@@ -129,7 +129,7 @@ func (a *orbAgent) handleGroupRPCFromCore(client mqtt.Client, message mqtt.Messa
 }
 
 func (a *orbAgent) handleAgentStop(payload fleet.AgentStopRPCPayload) {
-	// TODO graceful stop agent https://github.com/ns1labs/orb/issues/466
+	// TODO graceful stop agent https://github.com/etaques/orb/issues/466
 	panic(fmt.Sprintf("control plane requested we terminate, reason: %s", payload.Reason))
 }
 

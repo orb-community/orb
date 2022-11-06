@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/jmoiron/sqlx"
-	"github.com/ns1labs/orb/migrate/postgres"
-	"github.com/ns1labs/orb/pkg/errors"
+	"github.com/etaques/orb/migrate/postgres"
+	"github.com/etaques/orb/pkg/errors"
 	"go.uber.org/zap"
 )
 

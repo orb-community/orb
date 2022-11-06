@@ -4,10 +4,10 @@
   "license": "MPL-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ns1labs/orb.git"
+    "url": "https://github.com/etaques/orb.git"
   },
   "bugs": {
-    "url": "https://github.com/ns1labs/orb/issues"
+    "url": "https://github.com/etaques/orb/issues"
   },
   "scripts": {
     "ng": "ng",

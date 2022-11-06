@@ -7,7 +7,7 @@ package sinker
 import (
 	"time"
 
-	"github.com/ns1labs/orb/sinker/config"
+	"github.com/etaques/orb/sinker/config"
 	"go.uber.org/zap"
 )
 

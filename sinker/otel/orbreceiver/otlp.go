@@ -25,8 +25,8 @@ import (
 
 	"github.com/andybalholm/brotli"
 	"github.com/mainflux/mainflux/pkg/messaging"
-	"github.com/ns1labs/orb/sinker/otel/bridgeservice"
-	"github.com/ns1labs/orb/sinker/otel/orbreceiver/internal/metrics"
+	"github.com/etaques/orb/sinker/otel/bridgeservice"
+	"github.com/etaques/orb/sinker/otel/orbreceiver/internal/metrics"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"

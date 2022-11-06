@@ -1,7 +1,7 @@
 /**
  * Agent Policy Data Model
  *
- * [Agent Policy Architecture]{@link https://github.com/ns1labs/orb/wiki/Architecture:-Policies-and-Datasets}
+ * [Agent Policy Architecture]{@link https://github.com/etaques/orb/wiki/Architecture:-Policies-and-Datasets}
  */
 
 import { OrbEntity } from 'app/common/interfaces/orb/orb.entity.interface';

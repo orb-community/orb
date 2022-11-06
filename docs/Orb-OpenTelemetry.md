@@ -2,7 +2,7 @@
 
 Orb Agent fetches information from Pktvisor using a receiver pktvisorreceiver in package that implements a customized receiver from opentelemetry.
 
-In the PR [1428](https://github.com/ns1labs/orb/pull/1428), the orb-agent has now the opentelemetry exporter that will, pass the otlp through MQTT, through the usual channels that orb-sinker receives the information.
+In the PR [1428](https://github.com/etaques/orb/pull/1428), the orb-agent has now the opentelemetry exporter that will, pass the otlp through MQTT, through the usual channels that orb-sinker receives the information.
 
 In a sequence Diagram as follows
 ```mermaid

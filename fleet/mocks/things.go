@@ -10,7 +10,7 @@ package mocks
 
 import (
 	"context"
-	"github.com/ns1labs/orb/fleet"
+	"github.com/etaques/orb/fleet"
 	"strconv"
 	"sync"
 

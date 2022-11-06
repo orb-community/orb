@@ -7,8 +7,8 @@ package pktvisor
 import (
 	"errors"
 	"github.com/ghodss/yaml"
-	"github.com/ns1labs/orb/pkg/types"
-	"github.com/ns1labs/orb/policies/backend"
+	"github.com/etaques/orb/pkg/types"
+	"github.com/etaques/orb/policies/backend"
 )
 
 var _ backend.Backend = (*pktvisorBackend)(nil)

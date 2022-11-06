@@ -1,7 +1,7 @@
 /**
  * Base Orb Entity Data Model Interface
  *
- * [Orb Base Entity]{@link https://github.com/ns1labs/orb/wiki/Architecture:-Common-Patterns}
+ * [Orb Base Entity]{@link https://github.com/etaques/orb/wiki/Architecture:-Common-Patterns}
  */
 
 /**

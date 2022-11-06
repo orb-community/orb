@@ -3,7 +3,7 @@ package grpc
 import (
 	"context"
 	"github.com/go-kit/kit/endpoint"
-	"github.com/ns1labs/orb/fleet"
+	"github.com/etaques/orb/fleet"
 )
 
 func retrieveAgentEndpoint(svc fleet.Service) endpoint.Endpoint {

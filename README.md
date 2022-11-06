@@ -2,7 +2,7 @@
 <img src="docs/images/OrbUIPreview.png" alt="Orb UI Preview" width="500"/>
 
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/ns1labs/orb.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/ns1labs/orb/alerts/)
-[![Go Report Card](https://goreportcard.com/badge/github.com/ns1labs/orb)](https://goreportcard.com/report/github.com/ns1labs/orb)
+[![Go Report Card](https://goreportcard.com/badge/github.com/etaques/orb)](https://goreportcard.com/report/github.com/etaques/orb)
 [![CodeCov](https://codecov.io/gh/ns1labs/orb/branch/develop/graph/badge.svg)](https://app.codecov.io/gh/ns1labs/orb/tree/develop)
 [![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/ns1labs/orb.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/ns1labs/orb/context:javascript)
 
@@ -64,9 +64,9 @@ making [open source, dynamic edge observability a reality](https://ns1.com/blog/
 ***
 
 * [Installation Instructions](https://orb.community/documentation/install/)
-* [View our Wiki](https://github.com/ns1labs/orb/wiki) for technical and architectural information
-* [File an issue](https://github.com/ns1labs/orb/issues/new)
-* Follow our [public work board](https://github.com/ns1labs/orb/projects/2)
-* Start a [Discussion](https://github.com/ns1labs/orb/discussions)
+* [View our Wiki](https://github.com/etaques/orb/wiki) for technical and architectural information
+* [File an issue](https://github.com/etaques/orb/issues/new)
+* Follow our [public work board](https://github.com/etaques/orb/projects/2)
+* Start a [Discussion](https://github.com/etaques/orb/discussions)
 * [Join us on Slack](https://join.slack.com/t/ns1labs/shared_invite/zt-qqsm5cb4-9fsq1xa~R3h~nX6W0sJzmA)
 * Send mail to [info@pktvisor.dev](mailto:info@pktvisor.dev)

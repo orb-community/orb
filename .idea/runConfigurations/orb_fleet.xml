@@ -14,7 +14,7 @@
       <env name="MF_SDK_THINGS_URL" value="http://localhost:8182" />
     </envs>
     <kind value="FILE" />
-    <package value="github.com/ns1labs/orb" />
+    <package value="github.com/etaques/orb" />
     <directory value="$PROJECT_DIR$" />
     <filePath value="$PROJECT_DIR$/cmd/fleet/main.go" />
     <output_directory value="$PROJECT_DIR$/build" />

@@ -13,11 +13,11 @@ import (
 	"encoding/json"
 
 	"github.com/go-redis/redis/v8"
-	maestroconfig "github.com/ns1labs/orb/maestro/config"
-	"github.com/ns1labs/orb/maestro/kubecontrol"
-	rediscons1 "github.com/ns1labs/orb/maestro/redis/consumer"
-	"github.com/ns1labs/orb/pkg/config"
-	sinkspb "github.com/ns1labs/orb/sinks/pb"
+	maestroconfig "github.com/etaques/orb/maestro/config"
+	"github.com/etaques/orb/maestro/kubecontrol"
+	rediscons1 "github.com/etaques/orb/maestro/redis/consumer"
+	"github.com/etaques/orb/pkg/config"
+	sinkspb "github.com/etaques/orb/sinks/pb"
 	"go.uber.org/zap"
 )
 

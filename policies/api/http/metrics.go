@@ -10,8 +10,8 @@ import (
 
 	"github.com/go-kit/kit/metrics"
 	"github.com/mainflux/mainflux"
-	"github.com/ns1labs/orb/pkg/errors"
-	"github.com/ns1labs/orb/policies"
+	"github.com/etaques/orb/pkg/errors"
+	"github.com/etaques/orb/policies"
 )
 
 var _ policies.Service = (*metricsMiddleware)(nil)

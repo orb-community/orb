@@ -11,7 +11,7 @@ package fleet
 import (
 	"context"
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
-	"github.com/ns1labs/orb/pkg/errors"
+	"github.com/etaques/orb/pkg/errors"
 	"go.uber.org/zap"
 	"reflect"
 	"strings"

@@ -9,9 +9,9 @@ import (
 	"crypto/tls"
 	"fmt"
 	"github.com/eclipse/paho.mqtt.golang"
-	"github.com/ns1labs/orb/agent/backend"
-	"github.com/ns1labs/orb/agent/config"
-	"github.com/ns1labs/orb/fleet"
+	"github.com/etaques/orb/agent/backend"
+	"github.com/etaques/orb/agent/config"
+	"github.com/etaques/orb/fleet"
 	"go.uber.org/zap"
 	"time"
 )

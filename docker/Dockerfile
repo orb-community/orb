@@ -3,7 +3,7 @@ ARG SVC
 ARG GOARCH
 ARG GOARM
 
-WORKDIR /go/src/github.com/ns1labs/orb
+WORKDIR /go/src/github.com/etaques/orb
 COPY . .
 RUN apk update \
     && apk add make

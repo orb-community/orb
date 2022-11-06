@@ -13,8 +13,8 @@ import (
 	"encoding/json"
 	"github.com/mainflux/mainflux"
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
-	"github.com/ns1labs/orb/fleet/backend"
-	"github.com/ns1labs/orb/pkg/errors"
+	"github.com/etaques/orb/fleet/backend"
+	"github.com/etaques/orb/pkg/errors"
 	"go.uber.org/zap"
 	"strings"
 )

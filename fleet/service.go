@@ -12,8 +12,8 @@ import (
 	"context"
 	"github.com/mainflux/mainflux"
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
-	"github.com/ns1labs/orb/pkg/errors"
-	"github.com/ns1labs/orb/pkg/types"
+	"github.com/etaques/orb/pkg/errors"
+	"github.com/etaques/orb/pkg/types"
 	"go.uber.org/zap"
 	"time"
 )

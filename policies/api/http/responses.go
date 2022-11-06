@@ -5,7 +5,7 @@
 package http
 
 import (
-	"github.com/ns1labs/orb/pkg/types"
+	"github.com/etaques/orb/pkg/types"
 	"net/http"
 	"time"
 )

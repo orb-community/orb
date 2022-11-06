@@ -2,9 +2,9 @@ package mocks
 
 import (
 	"context"
-	"github.com/ns1labs/orb/fleet"
-	"github.com/ns1labs/orb/pkg/errors"
-	"github.com/ns1labs/orb/pkg/types"
+	"github.com/etaques/orb/fleet"
+	"github.com/etaques/orb/pkg/errors"
+	"github.com/etaques/orb/pkg/types"
 	"time"
 )
 

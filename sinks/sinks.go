@@ -7,9 +7,9 @@ package sinks
 import (
 	"context"
 	"database/sql/driver"
-	"github.com/ns1labs/orb/pkg/errors"
-	"github.com/ns1labs/orb/pkg/types"
-	"github.com/ns1labs/orb/sinks/backend"
+	"github.com/etaques/orb/pkg/errors"
+	"github.com/etaques/orb/pkg/types"
+	"github.com/etaques/orb/sinks/backend"
 	"time"
 )
 

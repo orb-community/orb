@@ -15,11 +15,11 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/gofrs/uuid"
-	"github.com/ns1labs/orb/fleet/pb"
-	"github.com/ns1labs/orb/pkg/errors"
-	"github.com/ns1labs/orb/pkg/types"
-	"github.com/ns1labs/orb/policies/backend"
-	sinkpb "github.com/ns1labs/orb/sinks/pb"
+	"github.com/etaques/orb/fleet/pb"
+	"github.com/etaques/orb/pkg/errors"
+	"github.com/etaques/orb/pkg/types"
+	"github.com/etaques/orb/policies/backend"
+	sinkpb "github.com/etaques/orb/sinks/pb"
 )
 
 var (

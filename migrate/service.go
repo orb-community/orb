@@ -1,8 +1,8 @@
 package migrate
 
 import (
-	"github.com/ns1labs/orb/migrate/migration"
-	"github.com/ns1labs/orb/migrate/postgres"
+	"github.com/etaques/orb/migrate/migration"
+	"github.com/etaques/orb/migrate/postgres"
 	"go.uber.org/zap"
 )
 

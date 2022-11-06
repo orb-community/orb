@@ -12,7 +12,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/go-kit/kit/endpoint"
-	"github.com/ns1labs/orb/sinks"
+	"github.com/etaques/orb/sinks"
 )
 
 func retrieveSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {

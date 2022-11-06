@@ -12,8 +12,8 @@ import (
 	"context"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/ns1labs/orb/sinks"
-	"github.com/ns1labs/orb/sinks/backend"
+	"github.com/etaques/orb/sinks"
+	"github.com/etaques/orb/sinks/backend"
 	"go.uber.org/zap"
 )
 

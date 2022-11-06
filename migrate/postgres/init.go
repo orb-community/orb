@@ -10,7 +10,7 @@ package postgres
 
 import (
 	"fmt"
-	"github.com/ns1labs/orb/pkg/config"
+	"github.com/etaques/orb/pkg/config"
 	migrate "github.com/rubenv/sql-migrate"
 
 	"github.com/jmoiron/sqlx"

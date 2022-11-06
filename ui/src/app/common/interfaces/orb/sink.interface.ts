@@ -1,7 +1,7 @@
 /**
  * Sink Data Model Interface
  *
- * [Sinks Architecture]{@link https://github.com/ns1labs/orb/wiki/Architecture:-Sinks}
+ * [Sinks Architecture]{@link https://github.com/etaques/orb/wiki/Architecture:-Sinks}
  */
 
 import { PrometheusConfig } from 'app/common/interfaces/orb/sink/config/prometheus.config.interface';

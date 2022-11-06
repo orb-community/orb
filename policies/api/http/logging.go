@@ -8,7 +8,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/ns1labs/orb/policies"
+	"github.com/etaques/orb/policies"
 	"go.uber.org/zap"
 )
 

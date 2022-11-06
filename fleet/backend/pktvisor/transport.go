@@ -5,7 +5,7 @@ import (
 	kitot "github.com/go-kit/kit/tracing/opentracing"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/go-zoo/bone"
-	"github.com/ns1labs/orb/pkg/types"
+	"github.com/etaques/orb/pkg/types"
 	"github.com/opentracing/opentracing-go"
 	"net/http"
 	"strings"

@@ -11,7 +11,7 @@ package main
 import (
 	"context"
 	"fmt"
-	sinksgrpc "github.com/ns1labs/orb/sinks/api/grpc"
+	sinksgrpc "github.com/etaques/orb/sinks/api/grpc"
 	"github.com/opentracing/opentracing-go"
 	jconfig "github.com/uber/jaeger-client-go/config"
 	"google.golang.org/grpc"
@@ -25,8 +25,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/ns1labs/orb/maestro"
-	"github.com/ns1labs/orb/pkg/config"
+	"github.com/etaques/orb/maestro"
+	"github.com/etaques/orb/pkg/config"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 

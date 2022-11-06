@@ -2,9 +2,9 @@ package bridgeservice
 
 import (
 	"context"
-	fleetpb "github.com/ns1labs/orb/fleet/pb"
-	policiespb "github.com/ns1labs/orb/policies/pb"
-	"github.com/ns1labs/orb/sinker/config"
+	fleetpb "github.com/etaques/orb/fleet/pb"
+	policiespb "github.com/etaques/orb/policies/pb"
+	"github.com/etaques/orb/sinker/config"
 	"go.uber.org/zap"
 	"time"
 	"strings"

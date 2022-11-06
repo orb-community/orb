@@ -16,7 +16,7 @@ package orbreceiver // import "go.opentelemetry.io/collector/receiver/otlpreceiv
 
 import (
 	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
-	"github.com/ns1labs/orb/sinker/otel/bridgeservice"
+	"github.com/etaques/orb/sinker/otel/bridgeservice"
 	"go.uber.org/zap"
 
 	"go.opentelemetry.io/collector/config"
