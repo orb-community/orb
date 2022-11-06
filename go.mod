@@ -1,4 +1,4 @@
-module github.com/ns1labs/orb
+module github.com/etaques/orb
 
 go 1.19
 
