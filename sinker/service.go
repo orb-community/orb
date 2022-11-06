@@ -12,7 +12,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
 	fleetpb "github.com/ns1labs/orb/fleet/pb"
-	policiespb "github.com/ns1labs/orb/policies/pb"
+	policiespb "github.com/etaques/orb/policies/pb"
 	"github.com/ns1labs/orb/sinker/backend/pktvisor"
 	"github.com/ns1labs/orb/sinker/config"
 	"github.com/ns1labs/orb/sinker/otel"
