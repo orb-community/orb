@@ -47,3 +47,16 @@ func (req accessDatasetByIDReq) validate() error {
 	}
 	return nil
 }
+
+type accessByPolicyReq struct {
+	PolicyID string
+	OwnerID  string
+}
+
+func (req accessByPolicyReq) validate() error {
+	if req.PolicyID == "" || req.OwnerID == "" {
+		return policies.ErrMalformedEntity
+	}
+
+	return nil
+}

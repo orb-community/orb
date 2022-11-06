@@ -11,6 +11,7 @@ package grpc
 import (
 	"context"
 	"encoding/json"
+
 	"github.com/ns1labs/orb/policies"
 
 	"github.com/go-kit/kit/endpoint"
@@ -100,6 +101,31 @@ func retrieveDatasetsByGroupsEndpoint(svc policies.Service) endpoint.Endpoint {
 		}
 
 		dsList, err := svc.ListDatasetsByGroupIDInternal(ctx, req.GroupIDs, req.OwnerID)
+		if err != nil {
+			return datasetListRes{}, err
+		}
+		datasets := make([]datasetRes, len(dsList))
+		for i, ds := range dsList {
+			datasets[i] = datasetRes{
+				id:           ds.ID,
+				agentGroupID: ds.AgentGroupID,
+				sinkIDs:      ds.SinkIDs,
+				policyID:     ds.PolicyID,
+			}
+		}
+
+		return datasetListRes{datasets: datasets}, nil
+	}
+}
+
+func retrieveDatasetsByPolicyEndpoint(svc policies.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(accessByPolicyReq)
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+
+		dsList, err := svc.ListDatasetsByPolicyID(ctx, req.PolicyID, req.OwnerID)
 		if err != nil {
 			return datasetListRes{}, err
 		}

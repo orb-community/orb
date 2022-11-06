@@ -6,11 +6,12 @@ package http
 
 import (
 	"context"
+	"time"
+
 	"github.com/go-kit/kit/metrics"
 	"github.com/mainflux/mainflux"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/policies"
-	"time"
 )
 
 var _ policies.Service = (*metricsMiddleware)(nil)
@@ -37,6 +38,23 @@ func (m metricsMiddleware) ListDatasetsByGroupIDInternal(ctx context.Context, gr
 	}(time.Now())
 
 	return m.svc.ListDatasetsByGroupIDInternal(ctx, groupIDs, ownerID)
+}
+
+func (m metricsMiddleware) ListDatasetsByPolicyID(ctx context.Context, policyID string, ownerID string) ([]policies.Dataset, error) {
+	defer func(begin time.Time) {
+		labels := []string{
+			"method", "listDatasetsByPolicyID",
+			"owner_id", ownerID,
+			"policy_id", "",
+			"dataset_id", "",
+		}
+
+		m.counter.With(labels...).Add(1)
+		m.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
+
+	}(time.Now())
+
+	return m.svc.ListDatasetsByPolicyID(ctx, policyID, ownerID)
 }
 
 func (m metricsMiddleware) RemoveAllDatasetsByPolicyIDInternal(ctx context.Context, token string, policyID string) error {

@@ -11,6 +11,7 @@ package policies
 import (
 	"context"
 	"fmt"
+
 	"google.golang.org/grpc/status"
 
 	"github.com/gofrs/uuid"
@@ -514,4 +515,13 @@ func (s policiesService) DuplicatePolicy(ctx context.Context, token string, poli
 	policy.ID = id
 
 	return policy, nil
+}
+
+func (s policiesService) ListDatasetsByPolicyID(ctx context.Context, policyID string, ownerID string) ([]Dataset, error) {
+	datasets, err := s.repo.RetrieveDatasetsByPolicyID(ctx, policyID, ownerID)
+	if err != nil {
+		return []Dataset{}, err
+	}
+
+	return datasets, nil
 }

@@ -10,6 +10,7 @@ package grpc
 
 import (
 	"context"
+
 	"github.com/ns1labs/orb/policies"
 	"github.com/ns1labs/orb/policies/pb"
 
@@ -28,6 +29,7 @@ type grpcServer struct {
 	retrievePoliciesByGroups kitgrpc.Handler
 	retrieveDataset          kitgrpc.Handler
 	retrieveDatasetsByGroups kitgrpc.Handler
+	retrieveDatasetsByPolicy kitgrpc.Handler
 }
 
 // NewServer returns new PolicyServiceServer instance.
@@ -51,6 +53,11 @@ func NewServer(tracer opentracing.Tracer, svc policies.Service) pb.PolicyService
 		retrieveDatasetsByGroups: kitgrpc.NewServer(
 			kitot.TraceServer(tracer, "retrieve_datasets_by_groups")(retrieveDatasetsByGroupsEndpoint(svc)),
 			decodeRetrieveDatasetsByGroupRequest,
+			encodeDatasetListResponse,
+		),
+		retrieveDatasetsByPolicy: kitgrpc.NewServer(
+			kitot.TraceServer(tracer, "retrieve_datasets_by_policy")(retrieveDatasetsByPolicyEndpoint(svc)),
+			decodeRetrieveDatasetsByPolicyRequest,
 			encodeDatasetListResponse,
 		),
 	}
@@ -92,6 +99,15 @@ func (gs *grpcServer) RetrieveDatasetsByGroups(ctx context.Context, req *pb.Data
 	return res.(*pb.DatasetsRes), nil
 }
 
+func (gs *grpcServer) RetrieveDatasetsByPolicy(ctx context.Context, req *pb.DatasetsByPolicyReq) (*pb.DatasetsRes, error) {
+	_, res, err := gs.retrieveDatasetsByPolicy.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, encodeError(err)
+	}
+
+	return res.(*pb.DatasetsRes), nil
+}
+
 func decodeRetrievePolicyRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(*pb.PolicyByIDReq)
 	return accessByIDReq{PolicyID: req.PolicyID, OwnerID: req.OwnerID}, nil
@@ -113,6 +129,11 @@ func decodeRetrieveDatasetRequest(_ context.Context, grpcReq interface{}) (inter
 func decodeRetrieveDatasetsByGroupRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(*pb.DatasetsByGroupsReq)
 	return accessByGroupIDReq{GroupIDs: req.GroupIDs, OwnerID: req.OwnerID}, nil
+}
+
+func decodeRetrieveDatasetsByPolicyRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.DatasetsByPolicyReq)
+	return accessByPolicyReq{PolicyID: req.PolicyID, OwnerID: req.OwnerID}, nil
 }
 
 func encodePolicyResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
