@@ -176,7 +176,7 @@ func NewClient(tracer opentracing.Tracer, conn *grpc.ClientConn, timeout time.Du
 }
 
 func encodeRetrieveDatasetsByPolicyRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
-	req := grpcReq.(accessByIDReq)
+	req := grpcReq.(accessByPolicyReq)
 	return &pb.DatasetsByPolicyReq{PolicyID: req.PolicyID, OwnerID: req.OwnerID}, nil
 }
 
@@ -225,7 +225,7 @@ func decodeDatasetListResponse(_ context.Context, grpcRes interface{}) (interfac
 	res := grpcRes.(*pb.DatasetsRes)
 	datasetList := make([]datasetRes, len(res.DatasetList))
 	for i, p := range res.DatasetList {
-		datasetList[i] = datasetRes{id: p.GetId(), agentGroupID: p.GetAgentGroupId(), policyID: p.GetPolicyId(), sinkIDs: p.GetSinkIds()GetSinkIds()}
+		datasetList[i] = datasetRes{id: p.GetId(), agentGroupID: p.GetAgentGroupId(), policyID: p.GetPolicyId(), sinkIDs: p.GetSinkIds()}
 	}
 
 	return datasetListRes{datasets: datasetList}, nil
