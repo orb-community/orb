@@ -36,8 +36,8 @@ func (client grpcClient) RetrieveDatasetsByPolicy(ctx context.Context, in *pb.Da
 	defer cancel()
 
 	ar := accessByPolicyReq{
-		PolicyName: in.PolicyName,
-		OwnerID:    in.OwnerID,
+		PolicyID: in.PolicyID,
+		OwnerID:  in.OwnerID,
 	}
 	res, err := client.retrieveDatasetsByPolicy(ctx, ar)
 	if err != nil {

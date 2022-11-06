@@ -11,6 +11,7 @@ package grpc
 import (
 	"context"
 	"encoding/json"
+
 	"github.com/ns1labs/orb/policies"
 
 	"github.com/go-kit/kit/endpoint"
@@ -124,7 +125,7 @@ func retrieveDatasetsByPolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 			return nil, err
 		}
 
-		dsList, err := svc.ListDatasetsByPolicyName(ctx, req.PolicyName, req.OwnerID)
+		dsList, err := svc.ListDatasetsByPolicyID(ctx, req.PolicyID, req.OwnerID)
 		if err != nil {
 			return datasetListRes{}, err
 		}

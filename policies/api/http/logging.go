@@ -33,18 +33,18 @@ func (l loggingMiddleware) ListDatasetsByGroupIDInternal(ctx context.Context, gr
 	return l.svc.ListDatasetsByGroupIDInternal(ctx, groupIDs, ownerID)
 }
 
-func (l loggingMiddleware) ListDatasetsByPolicyName(ctx context.Context, policyName string, ownerID string) (_ []policies.Dataset, err error) {
+func (l loggingMiddleware) ListDatasetsByPolicyID(ctx context.Context, policyID string, ownerID string) (_ []policies.Dataset, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			l.logger.Warn("method call: list_datasets_by_policy_name_internal",
+			l.logger.Warn("method call: list_datasets_by_policy_id",
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Info("method call: list_datasets_by_policy_name_internal",
+			l.logger.Info("method call: list_datasets_by_policy_id",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
-	return l.svc.ListDatasetsByPolicyName(ctx, policyName, ownerID)
+	return l.svc.ListDatasetsByPolicyID(ctx, policyID, ownerID)
 }
 
 func (l loggingMiddleware) RemoveAllDatasetsByPolicyIDInternal(ctx context.Context, token string, policyID string) (err error) {

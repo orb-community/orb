@@ -133,7 +133,7 @@ func decodeRetrieveDatasetsByGroupRequest(_ context.Context, grpcReq interface{}
 
 func decodeRetrieveDatasetsByPolicyRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(*pb.DatasetsByPolicyReq)
-	return accessByPolicyReq{PolicyName: req.PolicyName, OwnerID: req.OwnerID}, nil
+	return accessByPolicyReq{PolicyID: req.PolicyID, OwnerID: req.OwnerID}, nil
 }
 
 func encodePolicyResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {

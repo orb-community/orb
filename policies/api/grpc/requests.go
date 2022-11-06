@@ -49,12 +49,12 @@ func (req accessDatasetByIDReq) validate() error {
 }
 
 type accessByPolicyReq struct {
-	PolicyName string
-	OwnerID    string
+	PolicyID string
+	OwnerID  string
 }
 
 func (req accessByPolicyReq) validate() error {
-	if req.PolicyName == "" || req.OwnerID == "" {
+	if req.PolicyID == "" || req.OwnerID == "" {
 		return policies.ErrMalformedEntity
 	}
 

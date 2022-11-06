@@ -126,7 +126,7 @@ type Service interface {
 	ListDatasetsByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) ([]Dataset, error)
 
 	// ListDatasetsByPolicyName gRPC version of retrieving list pf datasets belonging to specified policy
-	ListDatasetsByPolicyName(ctx context.Context, policyName string, ownerID string) ([]Dataset, error)
+	ListDatasetsByPolicyID(ctx context.Context, policyID string, ownerID string) ([]Dataset, error)
 }
 
 type Repository interface {

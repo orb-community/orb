@@ -32,7 +32,7 @@ message DatasetByIDReq {
 }
 
 message DatasetsByPolicyReq {
-  string policyName = 1;
+  string policyID = 1;
   string ownerID = 2;
 }
 
