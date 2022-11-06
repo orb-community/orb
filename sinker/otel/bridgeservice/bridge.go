@@ -2,18 +2,19 @@ package bridgeservice
 
 import (
 	"context"
+	"time"
+
 	fleetpb "github.com/etaques/orb/fleet/pb"
 	policiespb "github.com/etaques/orb/policies/pb"
 	"github.com/etaques/orb/sinker/config"
 	"go.uber.org/zap"
-	"time"
-	"strings"
 )
 
 type BridgeService interface {
 	ExtractAgent(ctx context.Context, channelID string) (*fleetpb.AgentInfoRes, error)
 	GetDataSetsFromAgentGroups(ctx context.Context, mfOwnerId string, agentGroupIds []string) (map[string]string, error)
 	NotifyActiveSink(ctx context.Context, mfOwnerId, sinkId, state, message string) error
+	GetSinkIdsFromPolicyID(ctx context.Context, mfOwnerId string, policyID string) (map[string]string, error)
 }
 
 func NewBridgeService(logger *zap.Logger,
@@ -68,26 +69,19 @@ func (bs *SinkerOtelBridgeService) ExtractAgent(ctx context.Context, channelID s
 	return agentPb, nil
 }
 
-func (bs *SinkerOtelBridgeService) GetSinkIdsFromAgentGroups(ctx context.Context, mfOwnerId string, agentGroupIds []string) (map[string]string, error) {
-	policiesRes, err := bs.policiesClient.RetrievePoliciesByGroups(ctx, &policiespb.PoliciesByGroupsReq{
-		GroupIDs: agentGroupIds,
+func (bs *SinkerOtelBridgeService) GetSinkIdsFromPolicyID(ctx context.Context, mfOwnerId string, policyID string) (map[string]string, error) {
+	// Here needs to retrieve datasets by policyID
+	datasetRes, err := bs.policiesClient.RetrieveDatasetsByPolicy(ctx, &policiespb.DatasetsByPolicyReq{
+		PolicyID: policyID,
 		OwnerID:  mfOwnerId,
 	})
 	if err != nil {
-		bs.logger.Info("unable to retrieve policies from agent groups ID=" + strings.Join(agentGroupIds, ", "))
+		bs.logger.Info("unable to retrieve datasets from policy")
 		return nil, err
 	}
 	mapSinkIdPolicy := make(map[string]string)
-	for _, policy := range policiesRes.Policies {
-		datasetRes, err := bs.policiesClient.RetrieveDataset(ctx, &policiespb.DatasetByIDReq{
-			DatasetID: policy.DatasetId,
-			OwnerID:   mfOwnerId,
-		})
-		if err != nil {
-			bs.logger.Error("unable to retrieve datasets from policy", zap.String("policy", policy.Name), zap.Error(err))
-			continue
-		}
-		for _, sinkId := range datasetRes.SinkIds {
+	for _, datasetList := range datasetRes.DatasetList {
+		for _, sinkId := range datasetList.SinkIds {
 			mapSinkIdPolicy[sinkId] = "active"
 		}
 	}

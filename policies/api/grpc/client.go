@@ -12,10 +12,10 @@ import (
 	"context"
 	"time"
 
+	"github.com/etaques/orb/policies/pb"
 	"github.com/go-kit/kit/endpoint"
 	kitot "github.com/go-kit/kit/tracing/opentracing"
 	kitgrpc "github.com/go-kit/kit/transport/grpc"
-	"github.com/etaques/orb/policies/pb"
 	opentracing "github.com/opentracing/opentracing-go"
 	"google.golang.org/grpc"
 )
@@ -164,7 +164,20 @@ func NewClient(tracer opentracing.Tracer, conn *grpc.ClientConn, timeout time.Du
 			decodeDatasetResponse,
 			pb.DatasetRes{},
 		).Endpoint()),
+		retrieveDatasetsByPolicy: kitot.TraceClient(tracer, "retrieve_datasets_by_policy")(kitgrpc.NewClient(
+			conn,
+			svcName,
+			"RetrieveDatasetsByPolicy",
+			encodeRetrieveDatasetsByPolicyRequest,
+			decodePolicyListResponse,
+			pb.DatasetsRes{},
+		).Endpoint()),
 	}
+}
+
+func encodeRetrieveDatasetsByPolicyRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(accessByIDReq)
+	return &pb.DatasetsByPolicyReq{PolicyID: req.PolicyID, OwnerID: req.OwnerID}, nil
 }
 
 func encodeRetrievePolicyRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
