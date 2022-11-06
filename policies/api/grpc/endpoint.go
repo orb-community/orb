@@ -12,7 +12,7 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/ns1labs/orb/policies"
+	"github.com/etaques/orb/policies"
 
 	"github.com/go-kit/kit/endpoint"
 )
