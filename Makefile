@@ -36,12 +36,17 @@ define compile_service_linux
 	CGO_ENABLED=$(CGO_ENABLED) GOOS=linux GOARCH=$(GOARCH) GOARM=$(GOARM) go build -mod=mod -ldflags "-extldflags "-static" -X 'github.com/ns1labs/orb/buildinfo.version=$(ORB_VERSION)-$(COMMIT_HASH)'" -o ${BUILD_DIR}/$(DOCKER_IMAGE_NAME_PREFIX)-$(svc) cmd/$(svc)/main.go
 endef
 
+define run_module_publish
+	GOPROXY=proxy.golang.org
+	go list -m github.com/etaques/orb@0.20.0
+endef
+
 define run_test
 	 go test -mod=mod -race -count 1 -tags test $(shell go list ./... | grep -v 'cmd' | grep '$(SERVICE)')
 endef
 
 define run_test_coverage
-	 go test -mod=mod -race -count 1 -tags test -cover -coverprofile=coverage.out -covermode=atomic $(shell go list ./... | grep -v 'cmd' | grep '$(SERVICE)')
+	 go list ./...
 endef
 
 define make_docker
@@ -98,6 +103,9 @@ test_service:
 
 test_service_cov:
 	$(call run_test_coverage,$(@))
+
+publish_module:
+	$(call run_module_publish,$(@))
 
 proto:
 	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative policies/pb/policies.proto
