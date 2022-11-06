@@ -11,8 +11,8 @@ package grpc
 import (
 	"context"
 
-	"github.com/ns1labs/orb/policies"
-	"github.com/ns1labs/orb/policies/pb"
+	"github.com/etaques/orb/policies"
+	"github.com/etaques/orb/policies/pb"
 
 	kitot "github.com/go-kit/kit/tracing/opentracing"
 	kitgrpc "github.com/go-kit/kit/transport/grpc"
