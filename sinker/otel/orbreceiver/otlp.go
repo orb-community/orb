@@ -159,7 +159,10 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 
 		// Extract policyID
 		policyID := r.extractAttribute(mr, "policy_id")
-		r.cfg.Logger.Info("Extracted policyID: " + policyID)
+		if policyID == "" {
+			r.cfg.Logger.Info("No data extracting policyID information from metrics request")
+			return
+		}
 
 		// Add tags in Context
 		execCtx, execCancelF := context.WithCancel(r.ctx)
