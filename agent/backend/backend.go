@@ -6,10 +6,11 @@ package backend
 
 import (
 	"context"
+	"time"
+
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/ns1labs/orb/agent/policies"
 	"go.uber.org/zap"
-	"time"
 )
 
 const (
@@ -57,6 +58,9 @@ type Backend interface {
 	Start(ctx context.Context, cancelFunc context.CancelFunc) error
 	Stop(ctx context.Context) error
 	FullReset(ctx context.Context) error
+
+	GetOtelEnabled() bool
+	RestartScrapeOpenTelemetry(policyID string, policyName string)
 
 	GetStartTime() time.Time
 	GetCapabilities() (map[string]interface{}, error)
