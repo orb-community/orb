@@ -64,14 +64,29 @@ type pktvisorBackend struct {
 	scraper          *gocron.Scheduler
 	policyRepo       policies.PolicyRepo
 
-	receiver component.MetricsReceiver
-	exporter component.MetricsExporter
+	receiver map[string]component.MetricsReceiver
+	exporter map[string]component.MetricsExporter
 
 	adminAPIHost     string
 	adminAPIPort     string
 	adminAPIProtocol string
 
 	scrapeOtel bool
+
+	// Go routine manager
+	RoutineMap     map[string]context.CancelFunc
+	RoutineChannel map[string]chan struct{}
+}
+
+func (p *pktvisorBackend) AddGoroutine(cancel context.CancelFunc, key string) {
+	p.RoutineMap[key] = cancel
+}
+
+func (p *pktvisorBackend) KillGoroutine(key string) {
+	cancel := p.RoutineMap[key]
+	if cancel != nil {
+		cancel()
+	}
 }
 
 func (p *pktvisorBackend) GetStartTime() time.Time {
@@ -119,6 +134,18 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 	p.cancelFunc = cancelFunc
 	p.ctx = ctx
 
+	if p.RoutineMap == nil {
+		p.RoutineMap = make(map[string]context.CancelFunc)
+	}
+
+	if p.receiver == nil {
+		p.receiver = make(map[string]component.MetricsReceiver)
+	}
+
+	if p.exporter == nil {
+		p.exporter = make(map[string]component.MetricsExporter)
+	}
+
 	_, err := exec.LookPath(p.binary)
 	if err != nil {
 		p.logger.Error("pktvisor startup error: binary not found", zap.Error(err))
@@ -135,8 +162,6 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 	if len(p.configFile) > 0 {
 		pvOptions = append(pvOptions, "--config", p.configFile)
 	}
-
-	// the macros should be properly configured to enable crashpad
 
 	// the macros should be properly configured to enable crashpad
 	// pvOptions = append(pvOptions, "--cp-token", PKTVISOR_CP_TOKEN)
@@ -242,16 +267,14 @@ func (p *pktvisorBackend) Stop(ctx context.Context) error {
 		p.logger.Error("pktvisor shutdown error", zap.Error(err))
 	}
 	p.scraper.Stop()
-
 	if p.scrapeOtel {
-		if p.exporter != nil {
-			_ = p.exporter.Shutdown(context.Background())
-		}
-		if p.receiver != nil {
-			_ = p.receiver.Shutdown(context.Background())
+		for key, cancelScrap := range p.RoutineMap {
+			if cancelScrap != nil {
+				cancelScrap()
+			}
+			p.logger.Info("Requested to stop scrap function policy: " + key)
 		}
 	}
-
 	p.logger.Info("pktvisor process stopped", zap.Int("pid", finalStatus.PID), zap.Int("exit_code", finalStatus.Exit))
 	return nil
 }

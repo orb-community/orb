@@ -153,63 +153,53 @@ func (p *pktvisorBackend) scrapeDefault() error {
 }
 
 func (p *pktvisorBackend) scrapeOpenTelemetry(ctx context.Context) {
+	exeCtx, execCancelF := context.WithCancel(ctx)
+	defer execCancelF()
+	policyID := ctx.Value("policy_id").(string)
 	go func() {
-		startExpCtx, cancelFunc := context.WithCancel(ctx)
-		var ok bool
 		var err error
-		for i := 1; i < 10; i++ {
+		var ok bool
+		for {
 			select {
-			case <-startExpCtx.Done():
-				p.exporter.Shutdown(startExpCtx)
-				p.receiver.Shutdown(startExpCtx)
-				cancelFunc()
-				return
 			case <-ctx.Done():
-				p.exporter.Shutdown(startExpCtx)
-				p.receiver.Shutdown(startExpCtx)
-				cancelFunc()
+				p.logger.Info("Requested to stop this go routine by context: " + policyID)
+				p.exporter[policyID].Shutdown(exeCtx)
+				p.receiver[policyID].Shutdown(exeCtx)
 				return
 			default:
 				if p.mqttClient != nil {
-					var errStartExp error
-					p.exporter, errStartExp = p.createOtlpMqttExporter(startExpCtx)
-					if errStartExp != nil {
-						p.logger.Error("failed to create a exporter", zap.Error(err))
-						return
-					}
+					if !ok {
+						var errStartExp error
+						p.exporter[policyID], errStartExp = p.createOtlpMqttExporter(exeCtx)
+						if errStartExp != nil {
+							p.logger.Error("failed to create a exporter", zap.Error(err))
+							return
+						}
 
-					p.receiver, err = p.createReceiver(startExpCtx, p.exporter, p.logger)
-					if err != nil {
-						p.logger.Error("failed to create a receiver", zap.Error(err))
-						return
-					}
+						p.receiver[policyID], err = p.createReceiver(exeCtx, p.exporter[policyID], p.logger)
+						if err != nil {
+							p.logger.Error("failed to create a receiver", zap.Error(err))
+							return
+						}
 
-					err = p.exporter.Start(startExpCtx, nil)
-					if err != nil {
-						p.logger.Error("otel mqtt exporter startup error", zap.Error(err))
-						return
-					}
+						err = p.exporter[policyID].Start(exeCtx, nil)
+						if err != nil {
+							p.logger.Error("otel mqtt exporter startup error", zap.Error(err))
+							return
+						}
 
-					err = p.receiver.Start(startExpCtx, nil)
-					if err != nil {
-						p.logger.Error("otel receiver startup error", zap.Error(err))
-						return
+						err = p.receiver[policyID].Start(exeCtx, nil)
+						if err != nil {
+							p.logger.Error("otel receiver startup error", zap.Error(err))
+							return
+						}
+						ok = true
 					}
-
-					ok = true
-					return
 				} else {
-					p.logger.Info("waiting until mqtt client is connected", zap.String("wait time", (time.Duration(i)*time.Second).String()))
-					time.Sleep(time.Duration(i) * time.Second)
+					p.logger.Info("waiting until mqtt client is connected")
 					continue
 				}
 			}
 		}
-		if !ok {
-			p.logger.Error("mqtt did not established a connection, stopping agent")
-			_ = p.Stop(startExpCtx)
-		}
-		cancelFunc()
-		return
 	}()
 }

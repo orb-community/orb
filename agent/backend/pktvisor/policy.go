@@ -51,6 +51,7 @@ func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData, updatePolicy boo
 
 	if p.scrapeOtel {
 		exeCtx, execCancelF := context.WithCancel(p.ctx)
+		p.AddGoroutine(execCancelF, data.ID)
 		attributeCtx := context.WithValue(exeCtx, "policy_id", data.ID)
 		attributeCtx = context.WithValue(attributeCtx, "policy_name", data.Name)
 		attributeCtx = context.WithValue(attributeCtx, "cancelFunc", execCancelF)
@@ -67,6 +68,9 @@ func (p *pktvisorBackend) RemovePolicy(data policies.PolicyData) error {
 	err := p.request(fmt.Sprintf("policies/%s", data.Name), &resp, http.MethodDelete, http.NoBody, "application/json", RemovePolicyTimeout)
 	if err != nil {
 		return err
+	}
+	if p.scrapeOtel {
+		p.KillGoroutine(data.ID)
 	}
 	return nil
 }

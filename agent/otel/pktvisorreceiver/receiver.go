@@ -23,6 +23,7 @@ type prometheusReceiverWrapper struct {
 	config             *Config
 	consumer           consumer.Metrics
 	prometheusReceiver component.MetricsReceiver
+	cancel             context.CancelFunc
 }
 
 // New returns a prometheusReceiverWrapper
@@ -38,20 +39,22 @@ func New(params component.ReceiverCreateSettings, cfg *Config, consumer consumer
 
 // Start creates and starts the prometheus receiver.
 func (prw *prometheusReceiverWrapper) Start(ctx context.Context, host component.Host) error {
+	exeCtx, execCancelF := context.WithCancel(ctx)
 	pFactory := prometheusreceiver.NewFactory()
 
-	pConfig, err := GetPrometheusConfig(prw.config, ctx)
+	pConfig, err := GetPrometheusConfig(prw.config, exeCtx)
 	if err != nil {
 		return fmt.Errorf("failed to create prometheus receiver config: %v", err)
 	}
 
-	pr, err := pFactory.CreateMetricsReceiver(ctx, prw.params, pConfig, prw.consumer)
+	pr, err := pFactory.CreateMetricsReceiver(exeCtx, prw.params, pConfig, prw.consumer)
 	if err != nil {
 		return fmt.Errorf("failed to create prometheus receiver: %v", err)
 	}
 
 	prw.prometheusReceiver = pr
-	return prw.prometheusReceiver.Start(ctx, host)
+	prw.cancel = execCancelF
+	return prw.prometheusReceiver.Start(exeCtx, host)
 }
 
 func GetPrometheusConfig(cfg *Config, ctx context.Context) (*prometheusreceiver.Config, error) {
@@ -110,5 +113,8 @@ func GetPrometheusConfig(cfg *Config, ctx context.Context) (*prometheusreceiver.
 
 // Shutdown stops the underlying Prometheus receiver.
 func (prw *prometheusReceiverWrapper) Shutdown(ctx context.Context) error {
+	if prw.cancel != nil {
+		prw.cancel()
+	}
 	return prw.prometheusReceiver.Shutdown(ctx)
 }
