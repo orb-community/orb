@@ -53,6 +53,7 @@ type pktvisorBackend struct {
 	statusChan      <-chan cmd.Status
 	startTime       time.Time
 	cancelFunc      context.CancelFunc
+	ctx             context.Context
 
 	// MQTT Config for OTEL MQTT Exporter
 	mqttConfig config.MQTTConfig
@@ -116,6 +117,7 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 	// because it is used by the automatic restart system for last attempt
 	p.startTime = time.Now()
 	p.cancelFunc = cancelFunc
+	p.ctx = ctx
 
 	_, err := exec.LookPath(p.binary)
 	if err != nil {
@@ -136,7 +138,7 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 
 	// the macros should be properly configured to enable crashpad
 
-        // the macros should be properly configured to enable crashpad
+	// the macros should be properly configured to enable crashpad
 	// pvOptions = append(pvOptions, "--cp-token", PKTVISOR_CP_TOKEN)
 	// pvOptions = append(pvOptions, "--cp-url", PKTVISOR_CP_URL)
 	// pvOptions = append(pvOptions, "--cp-path", PKTVISOR_CP_PATH)
@@ -222,9 +224,7 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 	p.scraper = gocron.NewScheduler(time.UTC)
 	p.scraper.StartAsync()
 
-	if p.scrapeOtel {
-		p.scrapeOpenTelemetry(ctx)
-	} else {
+	if !p.scrapeOtel {
 		if err := p.scrapeDefault(); err != nil {
 			return err
 		}
@@ -277,6 +277,7 @@ func (p *pktvisorBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo
 	for k, v := range otelConfig {
 		switch k {
 		case "Enable":
+			p.logger.Info("OpenTelemetry enabled")
 			p.scrapeOtel = v.(bool)
 		}
 	}

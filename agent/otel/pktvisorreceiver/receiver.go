@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	configutil "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
@@ -39,7 +40,7 @@ func New(params component.ReceiverCreateSettings, cfg *Config, consumer consumer
 func (prw *prometheusReceiverWrapper) Start(ctx context.Context, host component.Host) error {
 	pFactory := prometheusreceiver.NewFactory()
 
-	pConfig, err := GetPrometheusConfig(prw.config)
+	pConfig, err := GetPrometheusConfig(prw.config, ctx)
 	if err != nil {
 		return fmt.Errorf("failed to create prometheus receiver config: %v", err)
 	}
@@ -53,7 +54,7 @@ func (prw *prometheusReceiverWrapper) Start(ctx context.Context, host component.
 	return prw.prometheusReceiver.Start(ctx, host)
 }
 
-func GetPrometheusConfig(cfg *Config) (*prometheusreceiver.Config, error) {
+func GetPrometheusConfig(cfg *Config, ctx context.Context) (*prometheusreceiver.Config, error) {
 	var bearerToken string
 	if cfg.UseServiceAccount {
 		restConfig, err := rest.InClusterConfig()
@@ -65,7 +66,13 @@ func GetPrometheusConfig(cfg *Config) (*prometheusreceiver.Config, error) {
 			return nil, errors.New("bearer token was empty")
 		}
 	}
-
+	policyName := ctx.Value("policy_name").(string)
+	jobName := ""
+	if policyName != "" {
+		jobName = fmt.Sprintf("%s/%s", typeStr, policyName)
+	} else {
+		jobName = fmt.Sprintf("%s/%s", typeStr, cfg.Endpoint)
+	}
 	out := &prometheusreceiver.Config{}
 	httpConfig := configutil.HTTPClientConfig{}
 
@@ -76,7 +83,7 @@ func GetPrometheusConfig(cfg *Config) (*prometheusreceiver.Config, error) {
 	scrapeConfig := &config.ScrapeConfig{
 		ScrapeInterval:  model.Duration(cfg.CollectionInterval),
 		ScrapeTimeout:   model.Duration(cfg.CollectionInterval),
-		JobName:         fmt.Sprintf("%s/%s", typeStr, cfg.Endpoint),
+		JobName:         jobName,
 		HonorTimestamps: true,
 		Scheme:          scheme,
 

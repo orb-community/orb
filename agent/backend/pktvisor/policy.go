@@ -6,11 +6,13 @@ package pktvisor
 
 import (
 	"bytes"
+	"context"
 	"fmt"
+	"net/http"
+
 	"github.com/ns1labs/orb/agent/policies"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
-	"net/http"
 )
 
 func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData, updatePolicy bool) error {
@@ -45,6 +47,14 @@ func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData, updatePolicy boo
 	if err != nil {
 		p.logger.Warn("yaml policy application failure", zap.String("policy_id", data.ID), zap.ByteString("policy", policyYaml))
 		return err
+	}
+
+	if p.scrapeOtel {
+		exeCtx, execCancelF := context.WithCancel(p.ctx)
+		attributeCtx := context.WithValue(exeCtx, "policy_id", data.ID)
+		attributeCtx = context.WithValue(attributeCtx, "policy_name", data.Name)
+		attributeCtx = context.WithValue(attributeCtx, "cancelFunc", execCancelF)
+		p.scrapeOpenTelemetry(attributeCtx)
 	}
 
 	return nil

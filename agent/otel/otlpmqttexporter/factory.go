@@ -3,6 +3,7 @@ package otlpmqttexporter
 import (
 	"context"
 	"fmt"
+
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
@@ -90,7 +91,7 @@ func createTracesExporter(
 	set component.ExporterCreateSettings,
 	cfg config.Exporter,
 ) (component.TracesExporter, error) {
-	oce, err := newExporter(cfg, set)
+	oce, err := newExporter(cfg, set, ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +115,7 @@ func CreateMetricsExporter(
 	set component.ExporterCreateSettings,
 	cfg config.Exporter,
 ) (component.MetricsExporter, error) {
-	oce, err := newExporter(cfg, set)
+	oce, err := newExporter(cfg, set, ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +139,7 @@ func createLogsExporter(
 	set component.ExporterCreateSettings,
 	cfg config.Exporter,
 ) (component.LogsExporter, error) {
-	oce, err := newExporter(cfg, set)
+	oce, err := newExporter(cfg, set, ctx)
 	if err != nil {
 		return nil, err
 	}

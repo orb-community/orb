@@ -1,18 +1,20 @@
 package otlpmqttexporter
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
 	"errors"
 	"fmt"
-	mqtt "github.com/eclipse/paho.mqtt.golang"
-	"go.opentelemetry.io/collector/consumer/consumererror"
 	"net/http"
 	"net/url"
 	"runtime"
+	"strconv"
 	"time"
-	"bytes"
+
 	"github.com/andybalholm/brotli"
+	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"go.opentelemetry.io/collector/consumer/consumererror"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
@@ -34,9 +36,13 @@ type exporter struct {
 	settings   component.TelemetrySettings
 	// Default user-agent header.
 	userAgent string
+	// Policy handled by this exporter
+	policyID      string
+	policyName    string
+	cancelRoutine context.CancelFunc
 }
 
-func compressBrotli(data []byte) []byte {
+func (e *exporter) compressBrotli(data []byte) []byte {
 	var b bytes.Buffer
 	w := brotli.NewWriterLevel(&b, brotli.BestCompression)
 	w.Write(data)
@@ -45,9 +51,11 @@ func compressBrotli(data []byte) []byte {
 }
 
 // Crete new exporter.
-func newExporter(cfg config.Exporter, set component.ExporterCreateSettings) (*exporter, error) {
+func newExporter(cfg config.Exporter, set component.ExporterCreateSettings, ctx context.Context) (*exporter, error) {
 	oCfg := cfg.(*Config)
-
+	policyID := ctx.Value("policy_id").(string)
+	policyName := ctx.Value("policy_name").(string)
+	cancelFunc := ctx.Value("cancelFunc").(context.CancelFunc)
 	if oCfg.Address != "" {
 		_, err := url.Parse(oCfg.Address)
 		if err != nil {
@@ -60,10 +68,13 @@ func newExporter(cfg config.Exporter, set component.ExporterCreateSettings) (*ex
 
 	// Client construction is deferred to start
 	return &exporter{
-		config:    oCfg,
-		logger:    set.Logger,
-		userAgent: userAgent,
-		settings:  set.TelemetrySettings,
+		config:        oCfg,
+		logger:        set.Logger,
+		userAgent:     userAgent,
+		settings:      set.TelemetrySettings,
+		policyID:      policyID,
+		policyName:    policyName,
+		cancelRoutine: cancelFunc,
 	}, nil
 }
 
@@ -95,6 +106,40 @@ func (e *exporter) start(_ context.Context, _ component.Host) error {
 	return nil
 }
 
+// extract policy from metrics Request
+func (e *exporter) extractAttribute(metricsRequest pmetricotlp.Request, attribute string) string {
+	metrics := metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
+	for i := 0; i < metrics.Len(); i++ {
+		metricItem := metrics.At(i)
+		if metricItem.Name() == "dns_wire_packets_tcp" || metricItem.Name() == "packets_ipv4" || metricItem.Name() == "dhcp_wire_packets_ack" || metricItem.Name() == "flow_in_udp_bytes" {
+			p, _ := metricItem.Gauge().DataPoints().At(0).Attributes().Get(attribute)
+			if p.AsString() != "" {
+				return p.AsString()
+			}
+		}
+	}
+	return ""
+}
+
+// inject attribute on all metrics Request metrics
+func (e *exporter) injectAttribute(metricsRequest pmetricotlp.Request, attribute string, value string) pmetricotlp.Request {
+	metrics := metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
+	for i := 0; i < metrics.Len(); i++ {
+		metricItem := metrics.At(i)
+
+		if metricItem.Type().String() == "Gauge" {
+			metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).Gauge().DataPoints().At(0).Attributes().PutStr(attribute, value)
+		} else if metricItem.Type().String() == "Summary" {
+			metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).Summary().DataPoints().At(0).Attributes().PutStr(attribute, value)
+		} else if metricItem.Type().String() == "Histogram" {
+			metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).Histogram().DataPoints().At(0).Attributes().PutStr(attribute, value)
+		} else {
+			e.logger.Error("Unkwon metric type: " + metricItem.Type().String())
+		}
+	}
+	return metricsRequest
+}
+
 func (e *exporter) pushTraces(_ context.Context, _ ptrace.Traces) error {
 	return fmt.Errorf("not implemented")
 }
@@ -102,11 +147,23 @@ func (e *exporter) pushTraces(_ context.Context, _ ptrace.Traces) error {
 // pushMetrics Exports metrics
 func (e *exporter) pushMetrics(ctx context.Context, md pmetric.Metrics) error {
 	tr := pmetricotlp.NewRequestFromMetrics(md)
+	// inject policy ID attribute on metrics
+	tr = e.injectAttribute(tr, "policy_id", e.policyID)
+
 	request, err := tr.MarshalProto()
 	if err != nil {
 		defer ctx.Done()
 		return consumererror.NewPermanent(err)
 	}
+
+	//Extract policy name from metrics request
+	policy := e.extractAttribute(tr, "policy_id")
+	if policy == "" {
+		defer ctx.Done()
+		e.logger.Error("error on injected attribute")
+	}
+	e.logger.Info("Request metrics count: " + strconv.Itoa(md.MetricCount()) + ", Policy ID: " + policy)
+
 	err = e.export(ctx, e.config.MetricsTopic, request)
 	if err != nil {
 		defer ctx.Done()
@@ -120,7 +177,7 @@ func (e *exporter) pushLogs(_ context.Context, _ plog.Logs) error {
 }
 
 func (e *exporter) export(_ context.Context, metricsTopic string, request []byte) error {
-	compressedPayload := compressBrotli(request)
+	compressedPayload := e.compressBrotli(request)
 	if token := e.config.Client.Publish(metricsTopic, 1, false, compressedPayload); token.Wait() && token.Error() != nil {
 		e.logger.Error("error sending metrics RPC", zap.String("topic", metricsTopic), zap.Error(token.Error()))
 		return token.Error()

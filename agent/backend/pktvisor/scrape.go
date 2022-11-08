@@ -8,13 +8,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/ns1labs/orb/agent/otel/otlpmqttexporter"
 	"github.com/ns1labs/orb/agent/otel/pktvisorreceiver"
 	"github.com/ns1labs/orb/fleet"
 	"go.opentelemetry.io/collector/component"
 	"go.uber.org/zap"
-	"net/http"
-	"time"
 )
 
 const (
@@ -64,8 +65,10 @@ func (p *pktvisorBackend) createReceiver(ctx context.Context, exporter component
 	} else {
 		pktvisorEndpoint = fmt.Sprintf("%s:%s", p.adminAPIHost, p.adminAPIPort)
 	}
-	p.logger.Info("starting receiver with pktvisorEndpoint", zap.String("endpoint", pktvisorEndpoint), zap.String("metrics_url", defaultMetricsPath))
-	cfg := pktvisorreceiver.CreateReceiverConfig(pktvisorEndpoint, defaultMetricsPath)
+	policyName := ctx.Value("policy_name").(string)
+	metricsPath := "/api/v1/policies/" + policyName + "/metrics/prometheus"
+	p.logger.Info("starting receiver with pktvisorEndpoint", zap.String("endpoint", pktvisorEndpoint), zap.String("metrics_url", metricsPath))
+	cfg := pktvisorreceiver.CreateReceiverConfig(pktvisorEndpoint, metricsPath)
 	// Create the Prometheus receiver and pass in the previously created Prometheus exporter.
 	receiver, err := pktvisorreceiver.CreateMetricsReceiver(ctx, set, cfg, exporter)
 	if err != nil {
@@ -157,30 +160,37 @@ func (p *pktvisorBackend) scrapeOpenTelemetry(ctx context.Context) {
 		for i := 1; i < 10; i++ {
 			select {
 			case <-startExpCtx.Done():
+				p.exporter.Shutdown(startExpCtx)
+				p.receiver.Shutdown(startExpCtx)
+				cancelFunc()
+				return
+			case <-ctx.Done():
+				p.exporter.Shutdown(startExpCtx)
+				p.receiver.Shutdown(startExpCtx)
 				cancelFunc()
 				return
 			default:
 				if p.mqttClient != nil {
 					var errStartExp error
-					p.exporter, errStartExp = p.createOtlpMqttExporter(ctx)
+					p.exporter, errStartExp = p.createOtlpMqttExporter(startExpCtx)
 					if errStartExp != nil {
 						p.logger.Error("failed to create a exporter", zap.Error(err))
 						return
 					}
 
-					p.receiver, err = p.createReceiver(ctx, p.exporter, p.logger)
+					p.receiver, err = p.createReceiver(startExpCtx, p.exporter, p.logger)
 					if err != nil {
 						p.logger.Error("failed to create a receiver", zap.Error(err))
 						return
 					}
 
-					err = p.exporter.Start(ctx, nil)
+					err = p.exporter.Start(startExpCtx, nil)
 					if err != nil {
 						p.logger.Error("otel mqtt exporter startup error", zap.Error(err))
 						return
 					}
 
-					err = p.receiver.Start(ctx, nil)
+					err = p.receiver.Start(startExpCtx, nil)
 					if err != nil {
 						p.logger.Error("otel receiver startup error", zap.Error(err))
 						return
