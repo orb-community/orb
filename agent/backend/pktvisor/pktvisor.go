@@ -75,14 +75,14 @@ type pktvisorBackend struct {
 	routineMap map[string]context.CancelFunc
 }
 
-func (p *pktvisorBackend) AddScrapperProcess(ctx context.Context, cancel context.CancelFunc, policyID string, policyName string) {
+func (p *pktvisorBackend) AddScraperProcess(ctx context.Context, cancel context.CancelFunc, policyID string, policyName string) {
 	attributeCtx := context.WithValue(ctx, "policy_name", policyName)
 	attributeCtx = context.WithValue(attributeCtx, "policy_id", policyID)
 	p.scrapeOpenTelemetry(attributeCtx)
 	p.routineMap[policyID] = cancel
 }
 
-func (p *pktvisorBackend) KillScrapperProcess(policyID string) {
+func (p *pktvisorBackend) KillScraperProcess(policyID string) {
 	cancel := p.routineMap[policyID]
 	if cancel != nil {
 		cancel()
@@ -276,7 +276,7 @@ func (p *pktvisorBackend) Stop(ctx context.Context) error {
 	// Stop otel scraper goroutines
 	if p.scrapeOtel {
 		for key := range p.routineMap {
-			p.KillScrapperProcess(key)
+			p.KillScraperProcess(key)
 		}
 	}
 	p.logger.Info("pktvisor process stopped", zap.Int("pid", finalStatus.PID), zap.Int("exit_code", finalStatus.Exit))
