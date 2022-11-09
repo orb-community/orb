@@ -108,7 +108,7 @@ func (e *exporter) start(_ context.Context, _ component.Host) error {
 	return nil
 }
 
-// extract attribute from metricsRequest metrics
+// extractAttribute extract attribute from metricsRequest metrics
 func (e *exporter) extractAttribute(metricsRequest pmetricotlp.Request, attribute string) string {
 	metrics := metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
 	for i := 0; i < metrics.Len(); i++ {
@@ -138,7 +138,7 @@ func (e *exporter) injectAttribute(metricsRequest pmetricotlp.Request, attribute
 		} else if metricItem.Type().String() == "ExponentialHistogram" {
 			metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).ExponentialHistogram().DataPoints().At(0).Attributes().PutStr(attribute, value)
 		} else {
-			e.logger.Error("Unkwon metric type: " + metricItem.Type().String())
+			e.logger.Error("Unknown metric type: " + metricItem.Type().String())
 		}
 	}
 	return metricsRequest
