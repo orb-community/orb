@@ -41,8 +41,8 @@ func (e eventStore) ListDatasetsByGroupIDInternal(ctx context.Context, groupIDs 
 	return e.svc.ListDatasetsByGroupIDInternal(ctx, groupIDs, ownerID)
 }
 
-func (e eventStore) ListDatasetsByPolicyID(ctx context.Context, policyName string, ownerID string) ([]policies.Dataset, error) {
-	return e.svc.ListDatasetsByPolicyID(ctx, policyName, ownerID)
+func (e eventStore) ListDatasetsByPolicyIDInternalGRPC(ctx context.Context, policyName string, ownerID string) ([]policies.Dataset, error) {
+	return e.svc.ListDatasetsByPolicyIDInternalGRPC(ctx, policyName, ownerID)
 }
 
 func (e eventStore) ViewDatasetByIDInternal(ctx context.Context, ownerID string, datasetID string) (policies.Dataset, error) {

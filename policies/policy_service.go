@@ -517,7 +517,7 @@ func (s policiesService) DuplicatePolicy(ctx context.Context, token string, poli
 	return policy, nil
 }
 
-func (s policiesService) ListDatasetsByPolicyID(ctx context.Context, policyID string, ownerID string) ([]Dataset, error) {
+func (s policiesService) ListDatasetsByPolicyIDInternalGRPC(ctx context.Context, policyID string, ownerID string) ([]Dataset, error) {
 	datasets, err := s.repo.RetrieveDatasetsByPolicyID(ctx, policyID, ownerID)
 	if err != nil {
 		return []Dataset{}, err

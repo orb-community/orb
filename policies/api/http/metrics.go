@@ -40,12 +40,13 @@ func (m metricsMiddleware) ListDatasetsByGroupIDInternal(ctx context.Context, gr
 	return m.svc.ListDatasetsByGroupIDInternal(ctx, groupIDs, ownerID)
 }
 
-func (m metricsMiddleware) ListDatasetsByPolicyID(ctx context.Context, policyID string, ownerID string) ([]policies.Dataset, error) {
+func (m metricsMiddleware) ListDatasetsByPolicyIDInternalGRPC(ctx context.Context, policyID string, ownerID string) ([]policies.Dataset, error) {
 	defer func(begin time.Time) {
 		labels := []string{
-			"method", "listDatasetsByPolicyID",
+			"method", "listDatasetsByPolicyIDInternal",
 			"owner_id", ownerID,
-			"policy_id", "",
+			"policy_id", policyID,
+			"protocol", "grpc",
 			"dataset_id", "",
 		}
 
@@ -54,7 +55,7 @@ func (m metricsMiddleware) ListDatasetsByPolicyID(ctx context.Context, policyID 
 
 	}(time.Now())
 
-	return m.svc.ListDatasetsByPolicyID(ctx, policyID, ownerID)
+	return m.svc.ListDatasetsByPolicyIDInternalGRPC(ctx, policyID, ownerID)
 }
 
 func (m metricsMiddleware) RemoveAllDatasetsByPolicyIDInternal(ctx context.Context, token string, policyID string) error {
@@ -190,6 +191,7 @@ func (m metricsMiddleware) ListDatasetsByPolicyIDInternal(ctx context.Context, p
 			"method", "listDatasetsByPolicyIDInternal",
 			"owner_id", ownerID,
 			"policy_id", policyID,
+			"protocol", "http",
 			"dataset_id", "",
 		}
 
