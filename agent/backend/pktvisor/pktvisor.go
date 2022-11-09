@@ -64,16 +64,14 @@ type pktvisorBackend struct {
 	scraper          *gocron.Scheduler
 	policyRepo       policies.PolicyRepo
 
-	receiver map[string]component.MetricsReceiver
-	exporter map[string]component.MetricsExporter
-
 	adminAPIHost     string
 	adminAPIPort     string
 	adminAPIProtocol string
 
+	// OpenTelemetry management
 	scrapeOtel bool
-
-	// Go routine manager
+	receiver   map[string]component.MetricsReceiver
+	exporter   map[string]component.MetricsExporter
 	RoutineMap map[string]context.CancelFunc
 }
 
