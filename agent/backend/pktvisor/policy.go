@@ -51,11 +51,7 @@ func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData, updatePolicy boo
 
 	if p.scrapeOtel {
 		exeCtx, execCancelF := context.WithCancel(p.ctx)
-		p.AddScrapperProcess(execCancelF, data.ID)
-		attributeCtx := context.WithValue(exeCtx, "policy_id", data.ID)
-		attributeCtx = context.WithValue(attributeCtx, "policy_name", data.Name)
-		attributeCtx = context.WithValue(attributeCtx, "cancelFunc", execCancelF)
-		p.scrapeOpenTelemetry(attributeCtx)
+		p.AddScrapperProcess(exeCtx, execCancelF, data.ID, data.Name)
 	}
 
 	return nil

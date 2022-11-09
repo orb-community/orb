@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/ns1labs/orb/agent/otel/otlpmqttexporter"
@@ -156,10 +157,7 @@ func (p *pktvisorBackend) scrapeDefault() error {
 func (p *pktvisorBackend) RestartScrapeOpenTelemetry(policyID string, policyName string) {
 	p.KillScrapperProcess(policyID)
 	exeCtx, execCancelF := context.WithCancel(p.ctx)
-	p.AddScrapperProcess(execCancelF, policyID)
-	attributeCtx := context.WithValue(exeCtx, "policy_id", policyID)
-	attributeCtx = context.WithValue(attributeCtx, "policy_name", policyName)
-	p.scrapeOpenTelemetry(attributeCtx)
+	p.AddScrapperProcess(exeCtx, execCancelF, policyID, policyName)
 }
 
 // Starts Orb OpenTelemetry Collector goroutine
@@ -170,6 +168,7 @@ func (p *pktvisorBackend) scrapeOpenTelemetry(ctx context.Context) {
 	go func() {
 		var err error
 		var ok bool
+		count := 0
 		for {
 			select {
 			case <-ctx.Done():
@@ -208,8 +207,13 @@ func (p *pktvisorBackend) scrapeOpenTelemetry(ctx context.Context) {
 						ok = true
 					}
 				} else {
-					p.logger.Info("waiting until mqtt client is connected")
-					continue
+					count++
+					p.logger.Info("waiting until mqtt client is connected try " + strconv.Itoa(count) + " from 10")
+					time.Sleep(time.Second * 3)
+					if count == 10 {
+						execCancelF()
+						_ = p.Stop(exeCtx)
+					}
 				}
 			}
 		}
