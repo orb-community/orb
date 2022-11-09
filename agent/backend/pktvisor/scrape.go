@@ -154,9 +154,9 @@ func (p *pktvisorBackend) scrapeDefault() error {
 
 // Restarts Orb OpemTelemetry collector goroutine
 func (p *pktvisorBackend) RestartScrapeOpenTelemetry(policyID string, policyName string) {
-	p.KillGoroutine(policyID)
+	p.KillScrapperProcess(policyID)
 	exeCtx, execCancelF := context.WithCancel(p.ctx)
-	p.AddGoroutine(execCancelF, policyID)
+	p.AddScrapperProcess(execCancelF, policyID)
 	attributeCtx := context.WithValue(exeCtx, "policy_id", policyID)
 	attributeCtx = context.WithValue(attributeCtx, "policy_name", policyName)
 	p.scrapeOpenTelemetry(attributeCtx)

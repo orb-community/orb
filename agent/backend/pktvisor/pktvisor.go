@@ -75,11 +75,11 @@ type pktvisorBackend struct {
 	RoutineMap map[string]context.CancelFunc
 }
 
-func (p *pktvisorBackend) AddGoroutine(cancel context.CancelFunc, key string) {
+func (p *pktvisorBackend) AddScrapperProcess(cancel context.CancelFunc, key string) {
 	p.RoutineMap[key] = cancel
 }
 
-func (p *pktvisorBackend) KillGoroutine(key string) {
+func (p *pktvisorBackend) KillScrapperProcess(key string) {
 	cancel := p.RoutineMap[key]
 	if cancel != nil {
 		cancel()
