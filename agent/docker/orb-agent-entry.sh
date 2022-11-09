@@ -143,6 +143,10 @@ do
   # pid file dont exist
   if [ ! -f "/var/run/orb-agent.pid"  ]; then
     # running orb-agent in background
+    if [[ "$2" == '-c' ]]; then
+        # drop the pktvisor configuration file
+        ORB_BACKENDS_PKTVISOR_CONFIG_FILE=""
+    fi
     nohup /run-agent.sh "$@" &
     sleep 2
     if [ -d "/nohup.out" ]; then
