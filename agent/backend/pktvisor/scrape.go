@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/ns1labs/orb/agent/otel"
 	"net/http"
 	"strconv"
 	"time"
@@ -35,8 +36,9 @@ func (p *pktvisorBackend) scrapeMetrics(period uint) (map[string]interface{}, er
 
 func (p *pktvisorBackend) createOtlpMqttExporter(ctx context.Context) (component.MetricsExporter, error) {
 
+	bridgeService := otel.NewBridgeService(&p.policyRepo)
 	if p.mqttClient != nil {
-		cfg := otlpmqttexporter.CreateConfigClient(p.mqttClient, p.otlpMetricsTopic, p.pktvisorVersion)
+		cfg := otlpmqttexporter.CreateConfigClient(p.mqttClient, p.otlpMetricsTopic, p.pktvisorVersion, bridgeService)
 		set := otlpmqttexporter.CreateDefaultSettings(p.logger)
 		// Create the OTLP metrics exporter that'll receive and verify the metrics produced.
 		exporter, err := otlpmqttexporter.CreateMetricsExporter(ctx, set, cfg)
@@ -46,7 +48,7 @@ func (p *pktvisorBackend) createOtlpMqttExporter(ctx context.Context) (component
 		return exporter, nil
 	} else {
 		cfg := otlpmqttexporter.CreateConfig(p.mqttConfig.Address, p.mqttConfig.Id, p.mqttConfig.Key,
-			p.mqttConfig.ChannelID, p.pktvisorVersion, p.otlpMetricsTopic)
+			p.mqttConfig.ChannelID, p.pktvisorVersion, p.otlpMetricsTopic, bridgeService)
 		set := otlpmqttexporter.CreateDefaultSettings(p.logger)
 		// Create the OTLP metrics exporter that'll receive and verify the metrics produced.
 		exporter, err := otlpmqttexporter.CreateMetricsExporter(ctx, set, cfg)

@@ -152,7 +152,7 @@ func (e *exporter) pushTraces(_ context.Context, _ ptrace.Traces) error {
 func (e *exporter) pushMetrics(ctx context.Context, md pmetric.Metrics) error {
 	tr := pmetricotlp.NewRequestFromMetrics(md)
 
-	agentData, err := e.config.OrbAgentService.RetrieveAgentInfoByPolicyID(e.policyID)
+	agentData, err := e.config.OrbAgentService.RetrieveAgentInfoByPolicyName(e.policyName)
 	if err != nil {
 		defer ctx.Done()
 		return consumererror.NewPermanent(err)

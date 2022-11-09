@@ -3,6 +3,7 @@ package otlpmqttexporter
 import (
 	"context"
 	"fmt"
+	"github.com/ns1labs/orb/agent/otel"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"go.opentelemetry.io/collector/component"
@@ -34,7 +35,7 @@ func NewFactory() component.ExporterFactory {
 		component.WithMetricsExporter(CreateMetricsExporter, component.StabilityLevelAlpha))
 }
 
-func CreateConfig(addr, id, key, channel, pktvisor, metricsTopic string) config.Exporter {
+func CreateConfig(addr, id, key, channel, pktvisor, metricsTopic string, bridgeService otel.AgentBridgeService) config.Exporter {
 	return &Config{
 		ExporterSettings: config.NewExporterSettings(config.NewComponentID(typeStr)),
 		QueueSettings:    exporterhelper.NewDefaultQueueSettings(),
@@ -45,6 +46,7 @@ func CreateConfig(addr, id, key, channel, pktvisor, metricsTopic string) config.
 		Key:              key,
 		ChannelID:        channel,
 		PktVisorVersion:  pktvisor,
+		OrbAgentService:  bridgeService,
 	}
 }
 
@@ -64,7 +66,7 @@ func CreateDefaultConfig() config.Exporter {
 	}
 }
 
-func CreateConfigClient(client mqtt.Client, metricsTopic, pktvisor string) config.Exporter {
+func CreateConfigClient(client mqtt.Client, metricsTopic, pktvisor string, bridgeService otel.AgentBridgeService) config.Exporter {
 	return &Config{
 		ExporterSettings: config.NewExporterSettings(config.NewComponentID(typeStr)),
 		QueueSettings:    exporterhelper.NewDefaultQueueSettings(),
@@ -72,6 +74,7 @@ func CreateConfigClient(client mqtt.Client, metricsTopic, pktvisor string) confi
 		Client:           client,
 		MetricsTopic:     metricsTopic,
 		PktVisorVersion:  pktvisor,
+		OrbAgentService:  bridgeService,
 	}
 }
 

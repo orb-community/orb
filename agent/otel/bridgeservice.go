@@ -1,7 +1,12 @@
 package otel
 
+import (
+	"github.com/ns1labs/orb/agent/policies"
+	"strings"
+)
+
 type AgentBridgeService interface {
-	RetrieveAgentInfoByPolicyID(policyID string) (*AgentDataPerPolicy, error)
+	RetrieveAgentInfoByPolicyName(policyName string) (*AgentDataPerPolicy, error)
 }
 
 type AgentDataPerPolicy struct {
@@ -14,13 +19,28 @@ type AgentDataPerPolicy struct {
 var _ AgentBridgeService = (*bridgeService)(nil)
 
 type bridgeService struct {
+	policyRepo policies.PolicyRepo
+	OrbTags    string
+	AgentTags  string
 }
 
-func NewBridgeService() *bridgeService {
-	return &bridgeService{}
+func NewBridgeService(policyRepo *policies.PolicyRepo) *bridgeService {
+	return &bridgeService{
+		policyRepo: *policyRepo,
+		OrbTags:    "testing-orb",
+		AgentTags:  "testing-agent",
+	}
 }
 
-func (b bridgeService) RetrieveAgentInfoByPolicyID(policyID string) (*AgentDataPerPolicy, error) {
-
-	return nil, nil
+func (b *bridgeService) RetrieveAgentInfoByPolicyName(policyName string) (*AgentDataPerPolicy, error) {
+	pData, err := b.policyRepo.GetByName(policyName)
+	if err != nil {
+		return nil, err
+	}
+	return &AgentDataPerPolicy{
+		PolicyID:  pData.ID,
+		Datasets:  strings.Join(pData.GetDatasetIDs(), ","),
+		OrbTags:   b.OrbTags,
+		AgentTags: b.AgentTags,
+	}, nil
 }
