@@ -125,7 +125,7 @@ func retrieveDatasetsByPolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 			return nil, err
 		}
 
-		dsList, err := svc.ListDatasetsByPolicyID(ctx, req.PolicyID, req.OwnerID)
+		dsList, err := svc.ListDatasetsByPolicyIDInternalGRPC(ctx, req.PolicyID, req.OwnerID)
 		if err != nil {
 			return datasetListRes{}, err
 		}
