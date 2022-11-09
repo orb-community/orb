@@ -110,9 +110,9 @@ func decompressBrotli(data []byte) []byte {
 
 // extract policy from metrics Request
 func (r *OrbReceiver) extractAttribute(metricsRequest pmetricotlp.Request, attribute string) string {
-	metrics := metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
-	for i := 0; i < metrics.Len(); i++ {
-		metricItem := metrics.At(i)
+	metricSlice := metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
+	for i := 0; i < metricSlice.Len(); i++ {
+		metricItem := metricSlice.At(i)
 		if metricItem.Name() == "dns_wire_packets_tcp" || metricItem.Name() == "packets_ipv4" || metricItem.Name() == "dhcp_wire_packets_ack" || metricItem.Name() == "flow_in_udp_bytes" {
 			p, _ := metricItem.Gauge().DataPoints().At(0).Attributes().Get(attribute)
 			if p.AsString() != "" {
