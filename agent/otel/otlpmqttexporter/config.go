@@ -3,6 +3,7 @@ package otlpmqttexporter
 import (
 	"fmt"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/ns1labs/orb/agent/otel"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/exporter/exporterhelper"
 )
@@ -26,6 +27,7 @@ type Config struct {
 
 	// Specific for ORB Agent
 	PktVisorVersion string `mapstructure:"pktvisor_version"`
+	OrbAgentService otel.AgentBridgeService
 }
 
 var _ config.Exporter = (*Config)(nil)

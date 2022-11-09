@@ -9,6 +9,10 @@ import (
 	"go.uber.org/zap"
 )
 
+type OtelService interface {
+	GetDatasetFromPolicyID()
+}
+
 type PolicyRepo interface {
 	Exists(policyID string) bool
 	Get(policyID string) (PolicyData, error)

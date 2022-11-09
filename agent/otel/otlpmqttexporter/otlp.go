@@ -152,8 +152,16 @@ func (e *exporter) pushTraces(_ context.Context, _ ptrace.Traces) error {
 func (e *exporter) pushMetrics(ctx context.Context, md pmetric.Metrics) error {
 	tr := pmetricotlp.NewRequestFromMetrics(md)
 
+	agentData, err := e.config.OrbAgentService.RetrieveAgentInfoByPolicyID(e.policyID)
+	if err != nil {
+		defer ctx.Done()
+		return consumererror.NewPermanent(err)
+	}
 	// injecting policy ID attribute on metrics
 	tr = e.injectAttribute(tr, "policy_id", e.policyID)
+	tr = e.injectAttribute(tr, "dataset_ids", agentData.Datasets)
+	tr = e.injectAttribute(tr, "orb_tags", agentData.OrbTags)
+	tr = e.injectAttribute(tr, "agent_tags", agentData.AgentTags)
 
 	request, err := tr.MarshalProto()
 	if err != nil {
