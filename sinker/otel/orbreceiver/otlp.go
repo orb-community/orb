@@ -122,7 +122,7 @@ func (r *OrbReceiver) extractAttribute(metricsRequest pmetricotlp.Request, attri
 	return ""
 }
 
-// inject attribute on all metrics Request metrics
+// inject attribute on all metricsRequest metrics
 func (r *OrbReceiver) injectAttribute(metricsRequest pmetricotlp.Request, attribute string, value string) pmetricotlp.Request {
 	metrics := metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
 	for i := 0; i < metrics.Len(); i++ {
@@ -134,6 +134,8 @@ func (r *OrbReceiver) injectAttribute(metricsRequest pmetricotlp.Request, attrib
 			metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).Summary().DataPoints().At(0).Attributes().PutStr(attribute, value)
 		} else if metricItem.Type().String() == "Histogram" {
 			metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).Histogram().DataPoints().At(0).Attributes().PutStr(attribute, value)
+		} else if metricItem.Type().String() == "ExponentialHistogram" {
+			metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).ExponentialHistogram().DataPoints().At(0).Attributes().PutStr(attribute, value)
 		} else {
 			r.cfg.Logger.Error("Unkwon metric type: " + metricItem.Type().String())
 		}
