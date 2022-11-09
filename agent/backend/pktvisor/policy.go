@@ -51,7 +51,7 @@ func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData, updatePolicy boo
 
 	if p.scrapeOtel {
 		exeCtx, execCancelF := context.WithCancel(p.ctx)
-		p.AddScraperProcess(exeCtx, execCancelF, data.ID, data.Name)
+		p.addScraperProcess(exeCtx, execCancelF, data.ID, data.Name)
 	}
 
 	return nil
@@ -66,7 +66,7 @@ func (p *pktvisorBackend) RemovePolicy(data policies.PolicyData) error {
 		return err
 	}
 	if p.scrapeOtel {
-		p.KillScraperProcess(data.ID)
+		p.killScraperProcess(data.ID)
 	}
 	return nil
 }
