@@ -6,15 +6,14 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"github.com/andybalholm/brotli"
+	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"go.opentelemetry.io/collector/consumer/consumererror"
 	"net/http"
 	"net/url"
 	"runtime"
 	"strconv"
 	"time"
-
-	"github.com/andybalholm/brotli"
-	mqtt "github.com/eclipse/paho.mqtt.golang"
-	"go.opentelemetry.io/collector/consumer/consumererror"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
@@ -44,8 +43,14 @@ type exporter struct {
 func (e *exporter) compressBrotli(data []byte) []byte {
 	var b bytes.Buffer
 	w := brotli.NewWriterLevel(&b, brotli.BestCompression)
-	w.Write(data)
-	w.Close()
+	_, err := w.Write(data)
+	if err != nil {
+		return nil
+	}
+	err = w.Close()
+	if err != nil {
+		return nil
+	}
 	return b.Bytes()
 }
 
