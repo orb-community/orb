@@ -74,8 +74,7 @@ type pktvisorBackend struct {
 	scrapeOtel bool
 
 	// Go routine manager
-	RoutineMap     map[string]context.CancelFunc
-	RoutineChannel map[string]chan struct{}
+	RoutineMap map[string]context.CancelFunc
 }
 
 func (p *pktvisorBackend) AddGoroutine(cancel context.CancelFunc, key string) {
