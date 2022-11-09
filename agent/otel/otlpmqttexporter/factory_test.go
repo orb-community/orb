@@ -36,7 +36,10 @@ func TestCreateMetricsExporter(t *testing.T) {
 	cfg := factory.CreateDefaultConfig().(*Config)
 
 	set := componenttest.NewNopExporterCreateSettings()
-	oexp, err := factory.CreateMetricsExporter(context.Background(), set, cfg)
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, "policy_name", "test")
+	ctx = context.WithValue(ctx, "policy_id", "test")
+	oexp, err := factory.CreateMetricsExporter(ctx, set, cfg)
 	require.Nil(t, err)
 	require.NotNil(t, oexp)
 }
@@ -96,7 +99,7 @@ func TestCreateConfigClient(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := CreateConfigClient(tt.args.client, tt.args.metricsTopic, " 1.0")
+			got := CreateConfigClient(tt.args.client, tt.args.metricsTopic, " 1.0", nil)
 			assert.Equal(t, tt.want, got.Validate(), "expected %s but got %s", tt.want, got.Validate())
 		})
 	}
@@ -152,7 +155,7 @@ func TestCreateConfig(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(t, tt.want, CreateConfig(tt.args.addr, tt.args.id, tt.args.key, tt.args.channel, "1.0", "metricstopic"), "CreateConfig(%v, %v, %v, %v)", tt.args.addr, tt.args.id, tt.args.key, tt.args.channel)
+			assert.Equalf(t, tt.want, CreateConfig(tt.args.addr, tt.args.id, tt.args.key, tt.args.channel, "1.0", "metricstopic", nil), "CreateConfig(%v, %v, %v, %v)", tt.args.addr, tt.args.id, tt.args.key, tt.args.channel)
 		})
 	}
 }

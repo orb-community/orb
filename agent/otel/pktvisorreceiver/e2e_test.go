@@ -199,6 +199,8 @@ func TestEndToEndToPktvisor(t *testing.T) {
 			CollectionInterval: 1 * time.Second,
 		}
 		// 3.5 Create the Prometheus receiver and pass in the preivously created Prometheus exporter.
+		ctx = context.WithValue(ctx, "policy_name", "test")
+		ctx = context.WithValue(ctx, "policy_id", "test")
 		pConfig, err := pktvisorreceiver.GetPrometheusConfig(rcvCfg, ctx)
 		if err != nil {
 			t.Fatalf("failed to create prometheus receiver config: %v", err)
