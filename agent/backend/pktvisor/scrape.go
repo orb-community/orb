@@ -152,19 +152,30 @@ func (p *pktvisorBackend) scrapeDefault() error {
 	return nil
 }
 
+// Restarts Orb OpemTelemetry collector goroutine
+func (p *pktvisorBackend) RestartScrapeOpenTelemetry(policyID string, policyName string) {
+	p.KillGoroutine(policyID)
+	exeCtx, execCancelF := context.WithCancel(p.ctx)
+	p.AddGoroutine(execCancelF, policyID)
+	attributeCtx := context.WithValue(exeCtx, "policy_id", policyID)
+	attributeCtx = context.WithValue(attributeCtx, "policy_name", policyName)
+	p.scrapeOpenTelemetry(attributeCtx)
+}
+
+// Starts Orb OpenTelemetry Collector goroutine
 func (p *pktvisorBackend) scrapeOpenTelemetry(ctx context.Context) {
 	exeCtx, execCancelF := context.WithCancel(ctx)
-	defer execCancelF()
 	policyID := ctx.Value("policy_id").(string)
+	defer execCancelF()
 	go func() {
 		var err error
 		var ok bool
 		for {
 			select {
 			case <-ctx.Done():
-				p.logger.Info("Requested to stop this go routine by context: " + policyID)
 				p.exporter[policyID].Shutdown(exeCtx)
 				p.receiver[policyID].Shutdown(exeCtx)
+				p.logger.Info("stopped Orb OpenTelemetry collector policy: " + policyID)
 				return
 			default:
 				if p.mqttClient != nil {
@@ -193,6 +204,7 @@ func (p *pktvisorBackend) scrapeOpenTelemetry(ctx context.Context) {
 							p.logger.Error("otel receiver startup error", zap.Error(err))
 							return
 						}
+						p.logger.Info("started Orb OpenTelemetry collector policy: " + policyID)
 						ok = true
 					}
 				} else {

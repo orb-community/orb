@@ -86,21 +86,12 @@ func (p *pktvisorBackend) KillGoroutine(key string) {
 	cancel := p.RoutineMap[key]
 	if cancel != nil {
 		cancel()
+		delete(p.RoutineMap, key)
 	}
 }
 
 func (p *pktvisorBackend) GetOtelEnabled() bool {
 	return p.scrapeOtel
-}
-
-func (p *pktvisorBackend) RestartScrapeOpenTelemetry(policyID string, policyName string) {
-	p.KillGoroutine(policyID)
-	exeCtx, execCancelF := context.WithCancel(p.ctx)
-	p.AddGoroutine(execCancelF, policyID)
-	attributeCtx := context.WithValue(exeCtx, "policy_id", policyID)
-	attributeCtx = context.WithValue(attributeCtx, "policy_name", policyName)
-	attributeCtx = context.WithValue(attributeCtx, "cancelFunc", execCancelF)
-	p.scrapeOpenTelemetry(attributeCtx)
 }
 
 func (p *pktvisorBackend) GetStartTime() time.Time {

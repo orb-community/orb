@@ -37,9 +37,8 @@ type exporter struct {
 	// Default user-agent header.
 	userAgent string
 	// Policy handled by this exporter
-	policyID      string
-	policyName    string
-	cancelRoutine context.CancelFunc
+	policyID   string
+	policyName string
 }
 
 func (e *exporter) compressBrotli(data []byte) []byte {
@@ -55,7 +54,6 @@ func newExporter(cfg config.Exporter, set component.ExporterCreateSettings, ctx 
 	oCfg := cfg.(*Config)
 	policyID := ctx.Value("policy_id").(string)
 	policyName := ctx.Value("policy_name").(string)
-	cancelFunc := ctx.Value("cancelFunc").(context.CancelFunc)
 	if oCfg.Address != "" {
 		_, err := url.Parse(oCfg.Address)
 		if err != nil {
@@ -68,13 +66,12 @@ func newExporter(cfg config.Exporter, set component.ExporterCreateSettings, ctx 
 
 	// Client construction is deferred to start
 	return &exporter{
-		config:        oCfg,
-		logger:        set.Logger,
-		userAgent:     userAgent,
-		settings:      set.TelemetrySettings,
-		policyID:      policyID,
-		policyName:    policyName,
-		cancelRoutine: cancelFunc,
+		config:     oCfg,
+		logger:     set.Logger,
+		userAgent:  userAgent,
+		settings:   set.TelemetrySettings,
+		policyID:   policyID,
+		policyName: policyName,
 	}, nil
 }
 
@@ -106,7 +103,7 @@ func (e *exporter) start(_ context.Context, _ component.Host) error {
 	return nil
 }
 
-// extract policy from metrics Request
+// extract attribute from metricsRequest metrics
 func (e *exporter) extractAttribute(metricsRequest pmetricotlp.Request, attribute string) string {
 	metrics := metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
 	for i := 0; i < metrics.Len(); i++ {
@@ -121,7 +118,7 @@ func (e *exporter) extractAttribute(metricsRequest pmetricotlp.Request, attribut
 	return ""
 }
 
-// inject attribute on all metrics Request metrics
+// inject attribute on all metricsRequest metrics
 func (e *exporter) injectAttribute(metricsRequest pmetricotlp.Request, attribute string, value string) pmetricotlp.Request {
 	metrics := metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
 	for i := 0; i < metrics.Len(); i++ {
@@ -133,6 +130,8 @@ func (e *exporter) injectAttribute(metricsRequest pmetricotlp.Request, attribute
 			metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).Summary().DataPoints().At(0).Attributes().PutStr(attribute, value)
 		} else if metricItem.Type().String() == "Histogram" {
 			metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).Histogram().DataPoints().At(0).Attributes().PutStr(attribute, value)
+		} else if metricItem.Type().String() == "ExponentialHistogram" {
+			metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).ExponentialHistogram().DataPoints().At(0).Attributes().PutStr(attribute, value)
 		} else {
 			e.logger.Error("Unkwon metric type: " + metricItem.Type().String())
 		}
@@ -147,7 +146,8 @@ func (e *exporter) pushTraces(_ context.Context, _ ptrace.Traces) error {
 // pushMetrics Exports metrics
 func (e *exporter) pushMetrics(ctx context.Context, md pmetric.Metrics) error {
 	tr := pmetricotlp.NewRequestFromMetrics(md)
-	// inject policy ID attribute on metrics
+
+	// injecting policy ID attribute on metrics
 	tr = e.injectAttribute(tr, "policy_id", e.policyID)
 
 	request, err := tr.MarshalProto()
@@ -156,13 +156,7 @@ func (e *exporter) pushMetrics(ctx context.Context, md pmetric.Metrics) error {
 		return consumererror.NewPermanent(err)
 	}
 
-	//Extract policy name from metrics request
-	policy := e.extractAttribute(tr, "policy_id")
-	if policy == "" {
-		defer ctx.Done()
-		e.logger.Error("error on injected attribute")
-	}
-	e.logger.Info("Request metrics count: " + strconv.Itoa(md.MetricCount()) + ", Policy ID: " + policy)
+	e.logger.Info("request metrics count: " + strconv.Itoa(md.MetricCount()) + ", policyID: " + e.policyID)
 
 	err = e.export(ctx, e.config.MetricsTopic, request)
 	if err != nil {
