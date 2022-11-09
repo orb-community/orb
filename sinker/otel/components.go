@@ -2,6 +2,7 @@ package otel
 
 import (
 	"context"
+
 	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
 	"github.com/ns1labs/orb/sinker/otel/bridgeservice"
 	kafkaexporter "github.com/ns1labs/orb/sinker/otel/kafkafanoutexporter"

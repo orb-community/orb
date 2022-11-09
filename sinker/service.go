@@ -8,6 +8,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/go-kit/kit/metrics"
 	"github.com/go-redis/redis/v8"
 	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
@@ -20,7 +22,6 @@ import (
 	"github.com/ns1labs/orb/sinker/prometheus"
 	sinkspb "github.com/ns1labs/orb/sinks/pb"
 	"go.uber.org/zap"
-	"time"
 )
 
 const (

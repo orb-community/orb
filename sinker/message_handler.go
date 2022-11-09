@@ -6,6 +6,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/mainflux/mainflux/pkg/messaging"
 	"github.com/ns1labs/orb/fleet"
@@ -17,8 +20,6 @@ import (
 	"github.com/ns1labs/orb/sinker/prometheus"
 	pb3 "github.com/ns1labs/orb/sinks/pb"
 	"go.uber.org/zap"
-	"strings"
-	"time"
 )
 
 func (svc SinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, ownerID string, sinkID string) error {
