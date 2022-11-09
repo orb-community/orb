@@ -210,7 +210,7 @@ func (p *pktvisorBackend) scrapeOpenTelemetry(ctx context.Context) {
 					count++
 					p.logger.Info("waiting until mqtt client is connected try " + strconv.Itoa(count) + " from 10")
 					time.Sleep(time.Second * 3)
-					if count == 10 {
+					if count >= 10 {
 						execCancelF()
 						_ = p.Stop(exeCtx)
 					}
