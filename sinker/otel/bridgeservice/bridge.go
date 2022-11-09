@@ -2,6 +2,7 @@ package bridgeservice
 
 import (
 	"context"
+	"sort"
 	"time"
 
 	fleetpb "github.com/ns1labs/orb/fleet/pb"
@@ -70,8 +71,9 @@ func (bs *SinkerOtelBridgeService) ExtractAgent(ctx context.Context, channelID s
 }
 
 func (bs *SinkerOtelBridgeService) GetSinkIdsFromDatasetIDs(ctx context.Context, mfOwnerId string, datasetIDs []string) (map[string]string, error) {
-	// Here needs to retrieve datasets by policyID
+	// Here needs to retrieve datasets
 	mapSinkIdPolicy := make(map[string]string)
+	sort.Strings(datasetIDs)
 	for i := 0; i < len(datasetIDs); i++ {
 		datasetRes, err := bs.policiesClient.RetrieveDataset(ctx, &policiespb.DatasetByIDReq{
 			DatasetID: datasetIDs[i],
