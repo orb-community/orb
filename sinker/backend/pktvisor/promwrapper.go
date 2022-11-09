@@ -2,10 +2,11 @@ package pktvisor
 
 import (
 	"fmt"
-	"github.com/ns1labs/orb/sinker/prometheus"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/ns1labs/orb/sinker/prometheus"
 )
 
 type labelList []prometheus.Label

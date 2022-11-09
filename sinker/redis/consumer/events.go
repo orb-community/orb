@@ -9,8 +9,9 @@
 package consumer
 
 import (
-	"github.com/ns1labs/orb/pkg/types"
 	"time"
+
+	"github.com/ns1labs/orb/pkg/types"
 )
 
 type updateSinkEvent struct {

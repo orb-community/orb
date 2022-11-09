@@ -16,6 +16,7 @@ package orbreceiver // import "go.opentelemetry.io/collector/receiver/otlpreceiv
 
 import (
 	"context"
+
 	"github.com/ns1labs/orb/sinker/otel/orbreceiver/internal/sharedcomponent"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
