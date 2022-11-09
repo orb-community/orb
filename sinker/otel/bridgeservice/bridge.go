@@ -69,19 +69,19 @@ func (bs *SinkerOtelBridgeService) ExtractAgent(ctx context.Context, channelID s
 	return agentPb, nil
 }
 
-func (bs *SinkerOtelBridgeService) GetSinkIdsFromPolicyID(ctx context.Context, mfOwnerId string, policyID string) (map[string]string, error) {
+func (bs *SinkerOtelBridgeService) GetSinkIdsFromDatasetIDs(ctx context.Context, mfOwnerId string, datasetIDs []string) (map[string]string, error) {
 	// Here needs to retrieve datasets by policyID
-	datasetRes, err := bs.policiesClient.RetrieveDatasetsByPolicy(ctx, &policiespb.DatasetsByPolicyReq{
-		PolicyID: policyID,
-		OwnerID:  mfOwnerId,
-	})
-	if err != nil {
-		bs.logger.Info("unable to retrieve datasets from policy")
-		return nil, err
-	}
 	mapSinkIdPolicy := make(map[string]string)
-	for _, datasetList := range datasetRes.DatasetList {
-		for _, sinkId := range datasetList.SinkIds {
+	for i := 0; i < len(datasetIDs); i++ {
+		datasetRes, err := bs.policiesClient.RetrieveDataset(ctx, &policiespb.DatasetByIDReq{
+			DatasetID: datasetIDs[i],
+			OwnerID:   mfOwnerId,
+		})
+		if err != nil {
+			bs.logger.Info("unable to retrieve datasets from policy")
+			return nil, err
+		}
+		for _, sinkId := range datasetRes.SinkIds {
 			mapSinkIdPolicy[sinkId] = "active"
 		}
 	}

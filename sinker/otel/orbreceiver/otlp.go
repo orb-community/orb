@@ -19,6 +19,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"strings"
 
 	"sync"
 
@@ -160,9 +161,10 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 		}
 
 		// Extract policyID
-		policyID := r.extractAttribute(mr, "policy_id")
-		if policyID == "" {
-			r.cfg.Logger.Info("No data extracting policyID information from metrics request")
+		datasets := r.extractAttribute(mr, "dataset_ids")
+		datasetIDs := strings.Split(datasets, ",")
+		if datasets == "" {
+			r.cfg.Logger.Info("No data extracting datasetIDs information from metrics request")
 			return
 		}
 
@@ -175,10 +177,10 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 			r.cfg.Logger.Info("No data extracting agent information from fleet")
 			return
 		}
-		sinkIds, err := r.sinkerService.GetSinkIdsFromPolicyID(execCtx, agentPb.OwnerID, policyID)
+		sinkIds, err := r.sinkerService.GetSinkIdsFromDatasetIDs(execCtx, agentPb.OwnerID, datasetIDs)
 		if err != nil {
 			execCancelF()
-			r.cfg.Logger.Info("No data extracting sinks information from policies, policy ID=" + policyID)
+			r.cfg.Logger.Info("No data extracting sinks information from datasetIds = " + datasets)
 			return
 		}
 		attributeCtx := context.WithValue(r.ctx, "agent_name", agentPb.AgentName)
