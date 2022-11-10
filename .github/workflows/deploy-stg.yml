@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: github.event.inputs.branch_source
+          ref: ${{ github.event.inputs.branch_source }}
       - uses: dorny/paths-filter@v2
         id: filter
         with:
@@ -81,7 +81,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: github.event.inputs.branch_source
+          ref:  ${{ github.event.inputs.branch_source }}
           name: workspace
 
       - name: Run go report
@@ -111,7 +111,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: github.event.inputs.branch_source
+          ref: ${{ github.event.inputs.branch_source }}
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
@@ -147,7 +147,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: github.event.inputs.branch_source
+          ref: ${{ github.event.inputs.branch_source }}
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
@@ -183,7 +183,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: github.event.inputs.branch_source
+          ref: ${{ github.event.inputs.branch_source }}
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
@@ -219,7 +219,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: github.event.inputs.branch_source
+          ref: ${{ github.event.inputs.branch_source }}
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
@@ -255,7 +255,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: github.event.inputs.branch_source
+          ref: ${{ github.event.inputs.branch_source }}
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
@@ -292,7 +292,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: github.event.inputs.branch_source
+          ref: ${{ github.event.inputs.branch_source }}
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
@@ -330,7 +330,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: github.event.inputs.branch_source
+          ref: ${{ github.event.inputs.branch_source }}
       - name: Get short commit hash to a variable
         id: commit_hash
         run: |
@@ -387,7 +387,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: github.event.inputs.branch_source
+          ref: ${{ github.event.inputs.branch_source }}
       - name: Get short commit hash to a variable
         id: commit_hash
         run: |
@@ -416,7 +416,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: github.event.inputs.branch_source
+          ref: ${{ github.event.inputs.branch_source }}
       - name: Get short commit hash to a variable
         id: commit_hash
         run: |
@@ -445,7 +445,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: github.event.inputs.branch_source
+          ref: ${{ github.event.inputs.branch_source }}
       - name: Get short commit hash to a variable
         id: commit_hash
         run: |
@@ -474,7 +474,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: github.event.inputs.branch_source
+          ref: ${{ github.event.inputs.branch_source }}
       - name: Get short commit hash to a variable
         id: commit_hash
         run: |
@@ -503,7 +503,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: github.event.inputs.branch_source
+          ref: ${{ github.event.inputs.branch_source }}
       - name: Get short commit hash to a variable
         id: commit_hash
         run: |
@@ -531,7 +531,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: github.event.inputs.branch_source
+          ref: ${{ github.event.inputs.branch_source }}
       - uses: dorny/paths-filter@v2
         id: filter
         with:
@@ -564,7 +564,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: github.event.inputs.branch_source
+          ref: ${{ github.event.inputs.branch_source }}
       - name: Get short commit hash to a variable
         id: commit_hash
         run: |
@@ -615,7 +615,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: github.event.inputs.branch_source
+          ref: ${{ github.event.inputs.branch_source }}
 
       - name: Login to Docker Hub
         if: ${{ needs.prebuild.outputs.migrate == 'true' }}
@@ -650,7 +650,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: github.event.inputs.branch_source
+          ref: ${{ github.event.inputs.branch_source }}
 
       - name: Debug values
         run: |
