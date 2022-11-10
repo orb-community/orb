@@ -90,10 +90,6 @@ func (p *pktvisorBackend) killScraperProcess(policyID string) {
 	}
 }
 
-func (p *pktvisorBackend) GetOtelEnabled() bool {
-	return p.scrapeOtel
-}
-
 func (p *pktvisorBackend) GetStartTime() time.Time {
 	return p.startTime
 }
@@ -333,7 +329,9 @@ func (p *pktvisorBackend) FullReset(ctx context.Context) error {
 		}
 	}
 
+	// for each policy, restart the scraper
 	backendCtx, cancelFunc := context.WithCancel(context.WithValue(ctx, "routine", "pktvisor"))
+
 	// start it
 	if err := p.Start(backendCtx, cancelFunc); err != nil {
 		p.logger.Error("failed to start backend on restart procedure", zap.Error(err))

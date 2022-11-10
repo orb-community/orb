@@ -59,9 +59,6 @@ type Backend interface {
 	Stop(ctx context.Context) error
 	FullReset(ctx context.Context) error
 
-	GetOtelEnabled() bool
-	RestartScrapeOpenTelemetry(policyID string, policyName string)
-
 	GetStartTime() time.Time
 	GetCapabilities() (map[string]interface{}, error)
 	GetRunningStatus() (RunningStatus, string, error)

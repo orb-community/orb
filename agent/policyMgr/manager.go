@@ -96,14 +96,8 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 				a.logger.Error("failed to retrieve policy", zap.String("policy_id", payload.ID), zap.Error(err))
 				return
 			}
-			if currentPolicy.Version >= pd.Version && currentPolicy.State == policies.Running {
+			if currentPolicy.Version > pd.Version && currentPolicy.State == policies.Running {
 				a.logger.Info("a better version of this policy has already been applied, skipping", zap.String("policy_id", pd.ID), zap.String("policy_name", pd.Name), zap.String("attempted_version", fmt.Sprint(pd.Version)), zap.String("current_version", fmt.Sprint(currentPolicy.Version)))
-
-				// restart scrapper to this policy if otel enabled, due mqtt connection error on goroutine on fullReset
-				be := backend.GetBackend(payload.Backend)
-				if be.GetOtelEnabled() {
-					be.RestartScrapeOpenTelemetry(pd.ID, pd.Name)
-				}
 				return
 			} else {
 				updatePolicy = true
