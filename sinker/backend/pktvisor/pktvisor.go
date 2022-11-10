@@ -18,6 +18,7 @@ import (
 	"github.com/ns1labs/orb/sinker/backend"
 	"github.com/ns1labs/orb/sinker/prometheus"
 	"go.uber.org/zap"
+	"golang.org/x/exp/slices"
 )
 
 var _ backend.Backend = (*pktvisorBackend)(nil)
@@ -31,7 +32,9 @@ type metricAppendix struct {
 	agentID      string
 	policyID     string
 	policyName   string
+	deviceList   []string
 	deviceID     string
+	ifList       []string
 	deviceIF     string
 	handlerLabel string
 	format       string
@@ -66,12 +69,14 @@ func (p pktvisorBackend) ProcessMetrics(agent *pb.AgentInfoRes, agentID string, 
 		agentID:      agentID,
 		policyID:     data.PolicyID,
 		policyName:   data.PolicyName,
+		deviceList:   []string{},
 		deviceID:     "",
+		ifList:       []string{},
 		deviceIF:     "",
 		handlerLabel: "",
+		format:       "prom_sinker",
 		tags:         tags,
 		logger:       p.logger,
-		format:       "prom_sinker",
 	}
 	stats := make(map[string]StatSnapshot)
 	for handlerLabel, handlerData := range metrics {
@@ -209,10 +214,22 @@ func convertFlowToPromParticle(ctxt *metricAppendix, statsMap map[string]interfa
 
 			if label == "FlowDevices" {
 				label = strings.ReplaceAll(label, "Devices", "")
+				for mkey := range statsMap {
+					ctxt.deviceList = append(ctxt.deviceList, mkey)
+				}
 				ctxt.deviceID = key
 				convertFlowToPromParticle(ctxt, statistic, label, tsList)
 			} else if label == "FlowInterfaces" {
 				label = strings.ReplaceAll(label, "Interfaces", "")
+				for mkey := range statsMap {
+					ctxt.ifList = append(ctxt.ifList, mkey)
+				}
+				ctxt.deviceIF = ctxt.deviceID + "|" + key
+				convertFlowToPromParticle(ctxt, statistic, label, tsList)
+			} else if slices.Contains(ctxt.deviceList, key) {
+				ctxt.deviceID = key
+				convertFlowToPromParticle(ctxt, statistic, label, tsList)
+			} else if slices.Contains(ctxt.ifList, key) {
 				ctxt.deviceIF = ctxt.deviceID + "|" + key
 				convertFlowToPromParticle(ctxt, statistic, label, tsList)
 			} else {

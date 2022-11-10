@@ -30,6 +30,7 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
+	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
 	"go.uber.org/zap"
 )
 
@@ -107,6 +108,42 @@ func decompressBrotli(data []byte) []byte {
 	return []byte(s)
 }
 
+// extract policy from metrics Request
+func (r *OrbReceiver) extractAttribute(metricsRequest pmetricotlp.Request, attribute string) string {
+	metricSlice := metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
+	for i := 0; i < metricSlice.Len(); i++ {
+		metricItem := metricSlice.At(i)
+		if metricItem.Name() == "dns_wire_packets_tcp" || metricItem.Name() == "packets_ipv4" || metricItem.Name() == "dhcp_wire_packets_ack" || metricItem.Name() == "flow_in_udp_bytes" {
+			p, _ := metricItem.Gauge().DataPoints().At(0).Attributes().Get(attribute)
+			if p.AsString() != "" {
+				return p.AsString()
+			}
+		}
+	}
+	return ""
+}
+
+// inject attribute on all metricsRequest metrics
+func (r *OrbReceiver) injectAttribute(metricsRequest pmetricotlp.Request, attribute string, value string) pmetricotlp.Request {
+	metrics := metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
+	for i := 0; i < metrics.Len(); i++ {
+		metricItem := metrics.At(i)
+
+		if metricItem.Type().String() == "Gauge" {
+			metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).Gauge().DataPoints().At(0).Attributes().PutStr(attribute, value)
+		} else if metricItem.Type().String() == "Summary" {
+			metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).Summary().DataPoints().At(0).Attributes().PutStr(attribute, value)
+		} else if metricItem.Type().String() == "Histogram" {
+			metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).Histogram().DataPoints().At(0).Attributes().PutStr(attribute, value)
+		} else if metricItem.Type().String() == "ExponentialHistogram" {
+			metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).ExponentialHistogram().DataPoints().At(0).Attributes().PutStr(attribute, value)
+		} else {
+			r.cfg.Logger.Error("Unkwon metric type: " + metricItem.Type().String())
+		}
+	}
+	return metricsRequest
+}
+
 func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 	go func() {
 		r.cfg.Logger.Debug("received agent message",
@@ -122,19 +159,28 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 			r.cfg.Logger.Error("error during unmarshalling, skipping message", zap.Error(err))
 			return
 		}
+
+		// Extract policyID
+		datasets := r.extractAttribute(mr, "dataset_ids")
+		datasetIDs := strings.Split(datasets, ",")
+		if datasets == "" {
+			r.cfg.Logger.Info("No data extracting datasetIDs information from metrics request")
+			return
+		}
+
 		// Add tags in Context
 		execCtx, execCancelF := context.WithCancel(r.ctx)
 		defer execCancelF()
 		agentPb, err := r.sinkerService.ExtractAgent(execCtx, msg.Channel)
 		if err != nil {
 			execCancelF()
-			r.cfg.Logger.Info("No data extracting agent information from fleet, agentName=" + agentPb.AgentName)
+			r.cfg.Logger.Info("No data extracting agent information from fleet")
 			return
 		}
-		sinkIds, err := r.sinkerService.GetSinkIdsFromAgentGroups(execCtx, agentPb.OwnerID, agentPb.AgentGroupIDs)
+		sinkIds, err := r.sinkerService.GetSinkIdsFromDatasetIDs(execCtx, agentPb.OwnerID, datasetIDs)
 		if err != nil {
 			execCancelF()
-			r.cfg.Logger.Info("No data extracting sinks information from policies, agentGroups ID=" + strings.Join(agentPb.AgentGroupIDs, ", "))
+			r.cfg.Logger.Info("No data extracting sinks information from datasetIds = " + datasets)
 			return
 		}
 		attributeCtx := context.WithValue(r.ctx, "agent_name", agentPb.AgentName)

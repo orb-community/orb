@@ -2,18 +2,21 @@ package bridgeservice
 
 import (
 	"context"
+	"sort"
+	"time"
+  "strings"
+
 	fleetpb "github.com/ns1labs/orb/fleet/pb"
 	policiespb "github.com/ns1labs/orb/policies/pb"
 	"github.com/ns1labs/orb/sinker/config"
 	"go.uber.org/zap"
-	"strings"
-	"time"
 )
 
 type BridgeService interface {
 	ExtractAgent(ctx context.Context, channelID string) (*fleetpb.AgentInfoRes, error)
 	GetDataSetsFromAgentGroups(ctx context.Context, mfOwnerId string, agentGroupIds []string) (map[string]string, error)
 	NotifyActiveSink(ctx context.Context, mfOwnerId, sinkId, state, message string) error
+	GetSinkIdsFromPolicyID(ctx context.Context, mfOwnerId string, policyID string) (map[string]string, error)
 }
 
 func NewBridgeService(logger *zap.Logger,
@@ -68,24 +71,18 @@ func (bs *SinkerOtelBridgeService) ExtractAgent(ctx context.Context, channelID s
 	return agentPb, nil
 }
 
-func (bs *SinkerOtelBridgeService) GetSinkIdsFromAgentGroups(ctx context.Context, mfOwnerId string, agentGroupIds []string) (map[string]string, error) {
-	policiesRes, err := bs.policiesClient.RetrievePoliciesByGroups(ctx, &policiespb.PoliciesByGroupsReq{
-		GroupIDs: agentGroupIds,
-		OwnerID:  mfOwnerId,
-	})
-	if err != nil {
-		bs.logger.Info("unable to retrieve policies from agent groups ID=" + strings.Join(agentGroupIds, ", "))
-		return nil, err
-	}
+func (bs *SinkerOtelBridgeService) GetSinkIdsFromDatasetIDs(ctx context.Context, mfOwnerId string, datasetIDs []string) (map[string]string, error) {
+	// Here needs to retrieve datasets
 	mapSinkIdPolicy := make(map[string]string)
-	for _, policy := range policiesRes.Policies {
+	sort.Strings(datasetIDs)
+	for i := 0; i < len(datasetIDs); i++ {
 		datasetRes, err := bs.policiesClient.RetrieveDataset(ctx, &policiespb.DatasetByIDReq{
-			DatasetID: policy.DatasetId,
+			DatasetID: datasetIDs[i],
 			OwnerID:   mfOwnerId,
 		})
 		if err != nil {
-			bs.logger.Error("unable to retrieve datasets from policy", zap.String("policy", policy.Name), zap.Error(err))
-			continue
+			bs.logger.Info("unable to retrieve datasets from policy")
+			return nil, err
 		}
 		for _, sinkId := range datasetRes.SinkIds {
 			mapSinkIdPolicy[sinkId] = "active"

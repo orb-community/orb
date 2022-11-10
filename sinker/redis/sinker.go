@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
+
 	"github.com/go-redis/redis/v8"
 	"github.com/ns1labs/orb/sinker"
 	"github.com/ns1labs/orb/sinker/config"
 	"go.uber.org/zap"
-	"strings"
 )
 
 const (

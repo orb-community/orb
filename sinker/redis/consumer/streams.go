@@ -3,12 +3,13 @@ package consumer
 import (
 	"context"
 	"encoding/json"
+	"time"
+
 	"github.com/go-redis/redis/v8"
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/sinker"
 	"github.com/ns1labs/orb/sinker/config"
 	"go.uber.org/zap"
-	"time"
 )
 
 const (

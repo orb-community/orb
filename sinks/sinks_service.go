@@ -46,6 +46,10 @@ func (svc sinkService) CreateSink(ctx context.Context, token string, sink Sink) 
 		return Sink{}, errors.Wrap(ErrCreateSink, err)
 	}
 	sink.ID = id
+
+	// After creating, decrypt Metadata to send correct information to Redis
+	sink, err = svc.decryptMetadata(sink)
+
 	return sink, nil
 }
 
