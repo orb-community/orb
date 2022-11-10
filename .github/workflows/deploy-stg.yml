@@ -79,9 +79,9 @@ jobs:
     needs: prebuild
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
+          ref: github.event.inputs.branch_source
           name: workspace
 
       - name: Run go report
@@ -109,7 +109,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: prebuild
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          ref: github.event.inputs.branch_source
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
@@ -143,7 +145,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: prebuild
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          ref: github.event.inputs.branch_source
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
@@ -177,7 +181,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: prebuild
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          ref: github.event.inputs.branch_source
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
@@ -211,7 +217,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: prebuild
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          ref: github.event.inputs.branch_source
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
@@ -245,7 +253,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: prebuild
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          ref: github.event.inputs.branch_source
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
@@ -280,7 +290,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: prebuild
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          ref: github.event.inputs.branch_source
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
@@ -316,7 +328,9 @@ jobs:
       - test-agent
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          ref: github.event.inputs.branch_source
       - name: Get short commit hash to a variable
         id: commit_hash
         run: |
@@ -371,7 +385,9 @@ jobs:
       - test-fleet
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          ref: github.event.inputs.branch_source
       - name: Get short commit hash to a variable
         id: commit_hash
         run: |
@@ -398,7 +414,9 @@ jobs:
       - test-policies
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          ref: github.event.inputs.branch_source
       - name: Get short commit hash to a variable
         id: commit_hash
         run: |
@@ -425,7 +443,9 @@ jobs:
       - test-sinker
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          ref: github.event.inputs.branch_source
       - name: Get short commit hash to a variable
         id: commit_hash
         run: |
@@ -452,7 +472,9 @@ jobs:
       - test-sinks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          ref: github.event.inputs.branch_source
       - name: Get short commit hash to a variable
         id: commit_hash
         run: |
@@ -479,7 +501,9 @@ jobs:
       - test-maestro
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          ref: github.event.inputs.branch_source
       - name: Get short commit hash to a variable
         id: commit_hash
         run: |
@@ -505,7 +529,9 @@ jobs:
       - prebuild
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          ref: github.event.inputs.branch_source
       - uses: dorny/paths-filter@v2
         id: filter
         with:
@@ -536,7 +562,9 @@ jobs:
       - package-ui-dependencies
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          ref: github.event.inputs.branch_source
       - name: Get short commit hash to a variable
         id: commit_hash
         run: |
@@ -585,7 +613,9 @@ jobs:
       - package-ui
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          ref: github.event.inputs.branch_source
 
       - name: Login to Docker Hub
         if: ${{ needs.prebuild.outputs.migrate == 'true' }}
@@ -618,7 +648,9 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request'
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          ref: github.event.inputs.branch_source
 
       - name: Debug values
         run: |
