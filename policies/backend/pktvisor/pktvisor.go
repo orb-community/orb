@@ -28,7 +28,7 @@ func (p pktvisorBackend) convertFromYAML(policy string) (types.Metadata, error) 
 		return types.Metadata{}, err
 	}
 
-	if j.Input == nil || j.Handlers == nil || j.Kind == ""{
+	if j.Input == nil || j.Handlers == nil || j.Kind == "" {
 		return types.Metadata{}, errors.New("malformed yaml policy")
 	}
 

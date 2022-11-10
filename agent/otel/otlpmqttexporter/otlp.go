@@ -1,18 +1,18 @@
 package otlpmqttexporter
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"github.com/andybalholm/brotli"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"go.opentelemetry.io/collector/consumer/consumererror"
 	"net/http"
 	"net/url"
 	"runtime"
 	"time"
-	"bytes"
-	"github.com/andybalholm/brotli"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
