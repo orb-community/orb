@@ -9,7 +9,6 @@ import (
 var _ nats.PubSub = (*pubSubMock)(nil)
 
 type pubSubMock struct {
-
 }
 
 func NewPubSub(url, queue string, logger logger.Logger) (nats.PubSub, error) {

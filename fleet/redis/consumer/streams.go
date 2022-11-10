@@ -171,7 +171,7 @@ func (es eventStore) handleDatasetUpdate(ctx context.Context, e updateDatasetEve
 		if err != nil {
 			return err
 		}
-		
+
 		return es.commsService.NotifyGroupDatasetEdit(ctx, ag, e.id, e.policyID, e.ownerID, e.valid)
 	}
 
