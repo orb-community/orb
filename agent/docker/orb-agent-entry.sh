@@ -118,7 +118,10 @@ fi
 if [ "$PKTVISOR_PCAP_IFACE_DEFAULT" = 'mock' ]; then
   MAYBE_MOCK='pcap_source: mock'
 fi
-if [[ -n "${PKTVISOR_PCAP_IFACE_DEFAULT}" ]]; then
+if [[ -n "${PKTVISOR_PCAP_IFACE_DEFAULT}" || "${PKTVISOR_DNSTAP}" != 'true' && "${PKTVISOR_SFLOW}" != 'true' && "${PKTVISOR_NETFLOW}" != 'true' ]]; then
+  if [ "$PKTVISOR_PCAP_IFACE_DEFAULT" = '' ]; then
+    PKTVISOR_PCAP_IFACE_DEFAULT='auto'
+  fi
 (
 cat <<END
     default_pcap:
@@ -140,6 +143,10 @@ do
   # pid file dont exist
   if [ ! -f "/var/run/orb-agent.pid"  ]; then
     # running orb-agent in background
+    if [[ "$2" == '-c' || "$3" == '-c' ]]; then
+        # drop the pktvisor configuration file
+        ORB_BACKENDS_PKTVISOR_CONFIG_FILE=""
+    fi
     nohup /run-agent.sh "$@" &
     sleep 2
     if [ -d "/nohup.out" ]; then
