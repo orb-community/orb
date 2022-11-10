@@ -45,6 +45,7 @@ func (es eventStore) ViewSinkInternal(ctx context.Context, ownerID string, key s
 
 func (es eventStore) CreateSink(ctx context.Context, token string, s sinks.Sink) (sink sinks.Sink, err error) {
 	defer func() {
+
 		event := createSinkEvent{
 			sinkID: sink.ID,
 			owner:  sink.MFOwnerID,
