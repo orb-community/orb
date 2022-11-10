@@ -147,9 +147,9 @@ func TestGetAllSinkerConfig(t *testing.T) {
 		err     error
 	}{
 		"Get Config by existing sinker-key": {
-			size: 2,
+			size:    2,
 			ownerID: "test",
-			err:  nil,
+			err:     nil,
 		},
 	}
 

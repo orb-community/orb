@@ -6,8 +6,8 @@ import (
 	policiespb "github.com/ns1labs/orb/policies/pb"
 	"github.com/ns1labs/orb/sinker/config"
 	"go.uber.org/zap"
-	"time"
 	"strings"
+	"time"
 )
 
 type BridgeService interface {

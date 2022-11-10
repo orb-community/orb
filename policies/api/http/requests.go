@@ -191,9 +191,9 @@ func (req updateDatasetReq) validate() error {
 }
 
 type duplicatePolicyReq struct {
-	id          string
-	token       string
-	Name        string         `json:"name,omitempty"`
+	id    string
+	token string
+	Name  string `json:"name,omitempty"`
 }
 
 func (req duplicatePolicyReq) validate() error {
