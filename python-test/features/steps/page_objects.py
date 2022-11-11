@@ -378,7 +378,7 @@ class PolicyPage:
 
     @classmethod
     def policy_view_name(cls):
-        return "//label[@class='summary-accent' and text()='Name']//following-sibling::p"
+        return "//label[@class='summary-accent' and text()='Policy Name']//following-sibling::p"
 
     @classmethod
     def policy(cls, policy_name):
