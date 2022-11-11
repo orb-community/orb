@@ -4,7 +4,6 @@ import (
 	"context"
 	"sort"
 	"time"
-  "strings"
 
 	fleetpb "github.com/ns1labs/orb/fleet/pb"
 	policiespb "github.com/ns1labs/orb/policies/pb"
