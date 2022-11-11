@@ -53,31 +53,48 @@ type pktvisorBackend struct {
 	statusChan      <-chan cmd.Status
 	startTime       time.Time
 	cancelFunc      context.CancelFunc
+	ctx             context.Context
 
 	// MQTT Config for OTEL MQTT Exporter
 	mqttConfig config.MQTTConfig
 
-	mqttClient       mqtt.Client
+	mqttClient       *mqtt.Client
 	metricsTopic     string
 	otlpMetricsTopic string
 	scraper          *gocron.Scheduler
 	policyRepo       policies.PolicyRepo
 
-	receiver component.MetricsReceiver
-	exporter component.MetricsExporter
-
 	adminAPIHost     string
 	adminAPIPort     string
 	adminAPIProtocol string
 
+	// OpenTelemetry management
 	scrapeOtel bool
+	receiver   map[string]component.MetricsReceiver
+	exporter   map[string]component.MetricsExporter
+	routineMap map[string]context.CancelFunc
+}
+
+func (p *pktvisorBackend) addScraperProcess(ctx context.Context, cancel context.CancelFunc, policyID string, policyName string) {
+	attributeCtx := context.WithValue(ctx, "policy_name", policyName)
+	attributeCtx = context.WithValue(attributeCtx, "policy_id", policyID)
+	p.scrapeOpenTelemetry(attributeCtx)
+	p.routineMap[policyID] = cancel
+}
+
+func (p *pktvisorBackend) killScraperProcess(policyID string) {
+	cancel := p.routineMap[policyID]
+	if cancel != nil {
+		cancel()
+		delete(p.routineMap, policyID)
+	}
 }
 
 func (p *pktvisorBackend) GetStartTime() time.Time {
 	return p.startTime
 }
 
-func (p *pktvisorBackend) SetCommsClient(agentID string, client mqtt.Client, baseTopic string) {
+func (p *pktvisorBackend) SetCommsClient(agentID string, client *mqtt.Client, baseTopic string) {
 	p.mqttClient = client
 	metricsTopic := strings.Replace(baseTopic, "?", "be", 1)
 	otelMetricsTopic := strings.Replace(baseTopic, "?", "otlp", 1)
@@ -116,6 +133,19 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 	// because it is used by the automatic restart system for last attempt
 	p.startTime = time.Now()
 	p.cancelFunc = cancelFunc
+	p.ctx = ctx
+
+	if p.routineMap == nil {
+		p.routineMap = make(map[string]context.CancelFunc)
+	}
+
+	if p.receiver == nil {
+		p.receiver = make(map[string]component.MetricsReceiver)
+	}
+
+	if p.exporter == nil {
+		p.exporter = make(map[string]component.MetricsExporter)
+	}
 
 	_, err := exec.LookPath(p.binary)
 	if err != nil {
@@ -133,8 +163,6 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 	if len(p.configFile) > 0 {
 		pvOptions = append(pvOptions, "--config", p.configFile)
 	}
-
-	// the macros should be properly configured to enable crashpad
 
 	// the macros should be properly configured to enable crashpad
 	// pvOptions = append(pvOptions, "--cp-token", PKTVISOR_CP_TOKEN)
@@ -222,9 +250,7 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 	p.scraper = gocron.NewScheduler(time.UTC)
 	p.scraper.StartAsync()
 
-	if p.scrapeOtel {
-		p.scrapeOpenTelemetry(ctx)
-	} else {
+	if !p.scrapeOtel {
 		if err := p.scrapeDefault(); err != nil {
 			return err
 		}
@@ -243,15 +269,12 @@ func (p *pktvisorBackend) Stop(ctx context.Context) error {
 	}
 	p.scraper.Stop()
 
+	// Stop otel scraper goroutines
 	if p.scrapeOtel {
-		if p.exporter != nil {
-			_ = p.exporter.Shutdown(context.Background())
-		}
-		if p.receiver != nil {
-			_ = p.receiver.Shutdown(context.Background())
+		for key := range p.routineMap {
+			p.killScraperProcess(key)
 		}
 	}
-
 	p.logger.Info("pktvisor process stopped", zap.Int("pid", finalStatus.PID), zap.Int("exit_code", finalStatus.Exit))
 	return nil
 }
@@ -277,6 +300,7 @@ func (p *pktvisorBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo
 	for k, v := range otelConfig {
 		switch k {
 		case "Enable":
+			p.logger.Info("OpenTelemetry enabled")
 			p.scrapeOtel = v.(bool)
 		}
 	}
@@ -305,7 +329,9 @@ func (p *pktvisorBackend) FullReset(ctx context.Context) error {
 		}
 	}
 
+	// for each policy, restart the scraper
 	backendCtx, cancelFunc := context.WithCancel(context.WithValue(ctx, "routine", "pktvisor"))
+
 	// start it
 	if err := p.Start(backendCtx, cancelFunc); err != nil {
 		p.logger.Error("failed to start backend on restart procedure", zap.Error(err))

@@ -36,9 +36,11 @@ func TestReceiver(t *testing.T) {
 			if !tt.wantError {
 				require.NoError(t, err)
 				require.NotNil(t, r)
-
-				require.NoError(t, r.Start(context.Background(), componenttest.NewNopHost()))
-				require.NoError(t, r.Shutdown(context.Background()))
+				ctx := context.Background()
+				ctx = context.WithValue(ctx, "policy_name", "test")
+				ctx = context.WithValue(ctx, "policy_id", "test")
+				require.NoError(t, r.Start(ctx, componenttest.NewNopHost()))
+				require.NoError(t, r.Shutdown(ctx))
 				return
 			}
 
