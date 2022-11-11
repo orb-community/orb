@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"net/url"
 	"runtime"
-	"strconv"
 	"time"
 
 	"go.opentelemetry.io/collector/component"
@@ -169,8 +168,7 @@ func (e *exporter) pushMetrics(ctx context.Context, md pmetric.Metrics) error {
 		return consumererror.NewPermanent(err)
 	}
 
-	e.logger.Info("request metrics count: " + strconv.Itoa(md.MetricCount()) + ", policyID: " + e.policyID)
-
+	e.logger.Info("request metrics count per policyID", zap.String("policyID", e.policyID), zap.Int("metric_count", md.MetricCount()))
 	err = e.export(ctx, e.config.MetricsTopic, request)
 	if err != nil {
 		defer ctx.Done()
