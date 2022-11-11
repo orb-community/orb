@@ -4,13 +4,14 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"testing"
+	"time"
+
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/config"
 	"go.uber.org/zap"
-	"testing"
-	"time"
 
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config/configtest"
@@ -99,7 +100,8 @@ func TestCreateConfigClient(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := CreateConfigClient(tt.args.client, tt.args.metricsTopic, " 1.0", nil)
+			c := &tt.args.client
+			got := CreateConfigClient(c, tt.args.metricsTopic, " 1.0", nil)
 			assert.Equal(t, tt.want, got.Validate(), "expected %s but got %s", tt.want, got.Validate())
 		})
 	}

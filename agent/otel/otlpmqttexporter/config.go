@@ -2,6 +2,7 @@ package otlpmqttexporter
 
 import (
 	"fmt"
+
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/ns1labs/orb/agent/otel"
 	"go.opentelemetry.io/collector/config"
@@ -15,7 +16,7 @@ type Config struct {
 	exporterhelper.RetrySettings `mapstructure:"retry_on_failure"`
 
 	// Add Client directly to only re-use an existing connection - requires "github.com/eclipse/paho.mqtt.golang"
-	Client mqtt.Client
+	Client *mqtt.Client
 
 	// Configuration to connect to MQTT
 	Address      string `mapstructure:"address"`

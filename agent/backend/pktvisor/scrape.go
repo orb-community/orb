@@ -8,10 +8,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/ns1labs/orb/agent/otel"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/ns1labs/orb/agent/otel"
 
 	"github.com/ns1labs/orb/agent/otel/otlpmqttexporter"
 	"github.com/ns1labs/orb/agent/otel/pktvisorreceiver"
@@ -137,8 +138,8 @@ func (p *pktvisorBackend) scrapeDefault() error {
 			p.logger.Error("error marshalling metric rpc payload", zap.Error(err))
 			return
 		}
-
-		if token := p.mqttClient.Publish(p.metricsTopic, 1, false, body); token.Wait() && token.Error() != nil {
+		c := *p.mqttClient
+		if token := c.Publish(p.metricsTopic, 1, false, body); token.Wait() && token.Error() != nil {
 			p.logger.Error("error sending metrics RPC", zap.String("topic", p.metricsTopic), zap.Error(token.Error()))
 			return
 		}

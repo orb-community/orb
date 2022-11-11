@@ -6,13 +6,14 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"github.com/andybalholm/brotli"
-	mqtt "github.com/eclipse/paho.mqtt.golang"
-	"go.opentelemetry.io/collector/consumer/consumererror"
 	"net/http"
 	"net/url"
 	"runtime"
 	"time"
+
+	"github.com/andybalholm/brotli"
+	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"go.opentelemetry.io/collector/consumer/consumererror"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
@@ -101,7 +102,7 @@ func (e *exporter) start(_ context.Context, _ component.Host) error {
 		if token := client.Connect(); token.Wait() && token.Error() != nil {
 			return token.Error()
 		}
-		e.config.Client = client
+		e.config.Client = &client
 	}
 
 	return nil
@@ -201,7 +202,8 @@ func (e *exporter) pushLogs(_ context.Context, _ plog.Logs) error {
 
 func (e *exporter) export(_ context.Context, metricsTopic string, request []byte) error {
 	compressedPayload := e.compressBrotli(request)
-	if token := e.config.Client.Publish(metricsTopic, 1, false, compressedPayload); token.Wait() && token.Error() != nil {
+	c := *e.config.Client
+	if token := c.Publish(metricsTopic, 1, false, compressedPayload); token.Wait() && token.Error() != nil {
 		e.logger.Error("error sending metrics RPC", zap.String("topic", metricsTopic), zap.Error(token.Error()))
 		return token.Error()
 	}
