@@ -76,6 +76,59 @@ func (a *orbAgent) sendGroupMembershipRequest() error {
 	return nil
 }
 
+func (a *orbAgent) askOrbTags() error {
+	defer func() {
+		if a.tagsRequestTicker == nil {
+			a.tagsRequestTicker = time.NewTicker(retryRequestFixedTime * retryRequestDuration)
+		}
+		var ctx context.Context
+		ctx, a.groupRequestSucceeded = a.extendContext("retryAskOrbTags")
+		go func(ctx context.Context) {
+			defer a.tagsRequestTicker.Stop()
+			defer func(t time.Time) {
+				a.logger.Info("execution period of the re-request of retryAskOrbTags", zap.Duration("waiting_period", time.Now().Sub(t)))
+			}(time.Now())
+			lastT := time.Now()
+			for calls := 1; calls <= retryMaxAttempts; calls++ {
+				select {
+				case <-ctx.Done():
+					return
+				case t := <-a.tagsRequestTicker.C:
+					a.logger.Info("agent did not receive any tags from fleet, re-requesting", zap.Duration("waiting_period", lastT.Sub(t)))
+					duration := retryRequestFixedTime + (calls * retryDurationIncrPerAttempts)
+					a.tagsRequestTicker.Reset(time.Duration(duration) * retryRequestDuration)
+					err := a.sendOrbTagsRequest()
+					if err != nil {
+						a.logger.Error("failed to send orb tags request", zap.Error(err))
+						return
+					}
+				}
+			}
+		}(ctx)
+	}()
+	return a.sendOrbTagsRequest()
+}
+
+func (a *orbAgent) sendOrbTagsRequest() error {
+	a.logger.Debug("sending orb tags request")
+	payload := fleet.AgentOrbTagsReqRPCPayload{}
+
+	data := fleet.RPC{
+		SchemaVersion: fleet.CurrentRPCSchemaVersion,
+		Func:          fleet.AgentOrbTagsReqRPCFunc,
+		Payload:       payload,
+	}
+	body, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	if token := a.client.Publish(a.rpcToCoreTopic, 1, false, body); token.Wait() && token.Error() != nil {
+		return token.Error()
+	}
+	return nil
+}
+
 func (a *orbAgent) sendGroupMembershipReq() error {
 	defer a.retryGroupMembershipRequest()
 	return a.sendGroupMembershipRequest()

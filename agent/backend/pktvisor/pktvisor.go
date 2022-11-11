@@ -68,6 +68,10 @@ type pktvisorBackend struct {
 	adminAPIPort     string
 	adminAPIProtocol string
 
+	// added for Strings
+	agentTags string
+	orbTags   string
+
 	// OpenTelemetry management
 	scrapeOtel bool
 	receiver   map[string]component.MetricsReceiver

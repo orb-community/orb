@@ -14,6 +14,8 @@ type RPC struct {
 
 // Core -> Edge
 
+const TagsRPCFunc = ""
+
 const GroupMembershipRPCFunc = "group_membership"
 
 type GroupMembershipRPC struct {
@@ -117,6 +119,17 @@ const AgentPoliciesReqRPCFunc = "agent_policies_req"
 
 type AgentPoliciesReqRPCPayload struct {
 	// empty
+}
+
+const AgentOrbTagsReqRPCFunc = "agent_tags_req"
+
+type AgentOrbTagsReqRPCPayload struct {
+	// empty
+}
+
+type AgentTagsRPCPayload struct {
+	AgentName string            `json:"agent_name"`
+	OrbTags   map[string]string `json:"orb_tags"`
 }
 
 const AgentMetricsRPCFunc = "agent_metrics"

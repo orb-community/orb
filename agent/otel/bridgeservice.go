@@ -24,11 +24,11 @@ type bridgeService struct {
 	AgentTags  string
 }
 
-func NewBridgeService(policyRepo *policies.PolicyRepo) *bridgeService {
+func NewBridgeService(policyRepo *policies.PolicyRepo, orbTags, agentTags string) *bridgeService {
 	return &bridgeService{
 		policyRepo: *policyRepo,
-		OrbTags:    "testing-orb",
-		AgentTags:  "testing-agent",
+		OrbTags:    orbTags,
+		AgentTags:  agentTags,
 	}
 }
 
