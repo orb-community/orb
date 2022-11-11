@@ -118,6 +118,21 @@ func (e *exporter) extractAttribute(metricsRequest pmetricotlp.Request, attribut
 			if ok {
 				return p.AsString()
 			}
+		case pmetric.MetricTypeHistogram:
+			p, ok := metricItem.Histogram().DataPoints().At(0).Attributes().Get(attribute)
+			if ok {
+				return p.AsString()
+			}
+		case pmetric.MetricTypeSum:
+			p, ok := metricItem.Sum().DataPoints().At(0).Attributes().Get(attribute)
+			if ok {
+				return p.AsString()
+			}
+		case pmetric.MetricTypeExponentialHistogram:
+			p, ok := metricItem.ExponentialHistogram().DataPoints().At(0).Attributes().Get(attribute)
+			if ok {
+				return p.AsString()
+			}
 		}
 	}
 	return ""
@@ -128,16 +143,18 @@ func (e *exporter) injectAttribute(metricsRequest pmetricotlp.Request, attribute
 	metrics := metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
 	for i := 0; i < metrics.Len(); i++ {
 		metricItem := metrics.At(i)
-
-		if metricItem.Type().String() == "Gauge" {
-			metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).Gauge().DataPoints().At(0).Attributes().PutStr(attribute, value)
-		} else if metricItem.Type().String() == "Summary" {
-			metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).Summary().DataPoints().At(0).Attributes().PutStr(attribute, value)
-		} else if metricItem.Type().String() == "Histogram" {
-			metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).Histogram().DataPoints().At(0).Attributes().PutStr(attribute, value)
-		} else if metricItem.Type().String() == "ExponentialHistogram" {
+		switch metricItem.Type() {
+		case pmetric.MetricTypeExponentialHistogram:
 			metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).ExponentialHistogram().DataPoints().At(0).Attributes().PutStr(attribute, value)
-		} else {
+		case pmetric.MetricTypeGauge:
+			metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).Gauge().DataPoints().At(0).Attributes().PutStr(attribute, value)
+		case pmetric.MetricTypeHistogram:
+			metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).Histogram().DataPoints().At(0).Attributes().PutStr(attribute, value)
+		case pmetric.MetricTypeSum:
+			metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).Sum().DataPoints().At(0).Attributes().PutStr(attribute, value)
+		case pmetric.MetricTypeSummary:
+			metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).Summary().DataPoints().At(0).Attributes().PutStr(attribute, value)
+		default:
 			e.logger.Error("Unknown metric type: " + metricItem.Type().String())
 		}
 	}

@@ -58,7 +58,7 @@ type pktvisorBackend struct {
 	// MQTT Config for OTEL MQTT Exporter
 	mqttConfig config.MQTTConfig
 
-	mqttClient       mqtt.Client
+	mqttClient       *mqtt.Client
 	metricsTopic     string
 	otlpMetricsTopic string
 	scraper          *gocron.Scheduler
@@ -94,7 +94,7 @@ func (p *pktvisorBackend) GetStartTime() time.Time {
 	return p.startTime
 }
 
-func (p *pktvisorBackend) SetCommsClient(agentID string, client mqtt.Client, baseTopic string) {
+func (p *pktvisorBackend) SetCommsClient(agentID string, client *mqtt.Client, baseTopic string) {
 	p.mqttClient = client
 	metricsTopic := strings.Replace(baseTopic, "?", "be", 1)
 	otelMetricsTopic := strings.Replace(baseTopic, "?", "otlp", 1)
