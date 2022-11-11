@@ -19,8 +19,8 @@ export const STRINGS = {
   // Login Pages strings
   login: {
     presentation: {
-      description: 'An <a href="https://getorb.io" target="_blank">Open-Source</a> dynamic edge observability platform',
-      action: 'Unleash the power of small data with dynamic edge observability',
+      description: 'An <a href="https://getorb.io" target="_blank">Open-Source</a> dynamic network observability platform',
+      action: 'Unleash the power of small data with dynamic network observability',
     },
     form: {
       title: 'Log in or sign up',
