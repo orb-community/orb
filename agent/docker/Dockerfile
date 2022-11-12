@@ -17,6 +17,6 @@ COPY --from=builder /go/src/github.com/ns1labs/orb/agent/docker/orb-agent-entry.
 COPY --from=builder /go/src/github.com/ns1labs/orb/agent/docker/run-agent.sh /run-agent.sh
 COPY --from=builder /go/src/github.com/ns1labs/orb/agent/docker/run-agent.sh /run-agent-default.sh
 
-RUN chmod a+x /run-agent.sh
+RUN chmod a+x /run-agent.sh && chmod a+x /run-agent-default.sh
 
 ENTRYPOINT [ "/usr/local/bin/orb-agent-entry.sh" ]
