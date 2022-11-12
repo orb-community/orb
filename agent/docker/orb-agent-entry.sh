@@ -174,7 +174,6 @@ do
         nohup /run-agent.sh run $DEBUG -c /opt/orb/agent_default.yaml &
       fi
     fi
-    nohup /run-agent.sh "$@" &
     sleep 2
     if [ -d "/nohup.out" ]; then
        tail -f /nohup.out &
