@@ -60,7 +60,7 @@ if [ "${PKTVISOR_NETFLOW_PORT_DEFAULT}" = '' ]; then
   PKTVISOR_NETFLOW_PORT_DEFAULT='2055'
 fi
 if [ "${PKTVISOR_NETFLOW}" = 'true' ]; then
-echo "Setting default_netflow as handler"
+echo "Setting default_netflow as visor tap"
 (
 cat <<END
     default_netflow:
@@ -82,7 +82,7 @@ if [ "${PKTVISOR_SFLOW_PORT_DEFAULT}" = '' ]; then
   PKTVISOR_SFLOW_PORT_DEFAULT='6343'
 fi
 if [ "${PKTVISOR_SFLOW}" = 'true' ]; then
-echo "Setting default_sflow as handler"
+echo "Setting default_sflow as visor tap"
 (
 cat <<END
     default_sflow:
@@ -104,7 +104,7 @@ if [ "${PKTVISOR_DNSTAP_PORT_DEFAULT}" = '' ]; then
   PKTVISOR_DNSTAP_PORT_DEFAULT='6000'
 fi
 if [ "${PKTVISOR_DNSTAP}" = 'true' ]; then
-echo "Setting default_dnstap as handler"
+echo "Setting default_dnstap as visor tap"
 (
 cat <<END
     default_dnstap:
@@ -121,8 +121,8 @@ fi
 if [ "$PKTVISOR_PCAP_IFACE_DEFAULT" = 'mock' ]; then
   MAYBE_MOCK='pcap_source: mock'
 fi
-if [[ -n "${PKTVISOR_PCAP_IFACE_DEFAULT}" || "${PKTVISOR_DNSTAP}" != 'true' && "${PKTVISOR_SFLOW}" != 'true' && "${PKTVISOR_NETFLOW}" != 'true' ]]; then
-  echo "Setting default_pcap as handler"
+if [[ -n "${PKTVISOR_PCAP_IFACE_DEFAULT}" || "${PKTVISOR_PCAP}" == 'true' || "${PKTVISOR_DNSTAP}" != 'true' && "${PKTVISOR_SFLOW}" != 'true' && "${PKTVISOR_NETFLOW}" != 'true' ]]; then
+  echo "Setting default_pcap as visor tap"
   if [ "$PKTVISOR_PCAP_IFACE_DEFAULT" = '' ]; then
     PKTVISOR_PCAP_IFACE_DEFAULT='auto'
   fi
@@ -152,6 +152,7 @@ fi
 # check if debug mode is enabled
 DEBUG=''
 if [[ "$2" == '-d' ]]; then
+  echo "Debug mode enabled"
   DEBUG='-d'
 fi
 
