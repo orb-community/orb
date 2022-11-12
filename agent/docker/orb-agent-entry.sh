@@ -178,7 +178,7 @@ do
         if [[ "$2" == '-d' ]]; then
           DEBUG='-d'
         fi
-        nohup /run-agent.sh "run $DEBUG -c /opt/orb/agent_default.yaml" &
+        nohup /run-agent.sh run -c /opt/orb/agent_default.yaml $DEBUG &
       fi
     fi
     sleep 2
