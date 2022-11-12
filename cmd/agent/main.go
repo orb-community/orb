@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	defaultConfig = "/opt/orb/agent_default.yaml"
+	defaultConfig = "/opt/orb/agent.yaml"
 )
 
 var (
