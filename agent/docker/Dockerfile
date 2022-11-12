@@ -15,6 +15,7 @@ COPY --from=builder /tmp/build/orb-agent /usr/local/bin/orb-agent
 COPY --from=builder /go/src/github.com/ns1labs/orb/agent/docker/agent_default.yaml /etc/orb/agent_default.yaml
 COPY --from=builder /go/src/github.com/ns1labs/orb/agent/docker/orb-agent-entry.sh /usr/local/bin/orb-agent-entry.sh
 COPY --from=builder /go/src/github.com/ns1labs/orb/agent/docker/run-agent.sh /run-agent.sh
+COPY --from=builder /go/src/github.com/ns1labs/orb/agent/docker/run-agent.sh /run-agent-default.sh
 
 RUN chmod a+x /run-agent.sh
 
