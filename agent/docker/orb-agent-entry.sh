@@ -156,18 +156,22 @@ do
   if [ ! -f "/var/run/orb-agent.pid"  ]; then
     # running orb-agent in background
     if [[ "$2" == '-c' || "$3" == '-c' ]]; then
-        # drop the pktvisor configuration file
+      # if config file was passed, drop the built-in pktvisor configuration file
+      ORB_BACKENDS_PKTVISOR_CONFIG_FILE=""
+      nohup /run-agent.sh "$@" &
+    else
+      if [[ $CONFIG_FILE_EXISTS ]]; then
+        # if config file is mounted, drop the built-in pktvisor configuration file
         ORB_BACKENDS_PKTVISOR_CONFIG_FILE=""
         nohup /run-agent.sh "$@" &
-    else
-      if [[ CONFIG_FILE_EXISTS ]]; then
-          # drop the pktvisor configuration file
-          ORB_BACKENDS_PKTVISOR_CONFIG_FILE=""
-          nohup /run-agent.sh run -c /opt/orb/agent.yaml &
       else
-          # drop the pktvisor configuration file
-          ORB_BACKENDS_PKTVISOR_CONFIG_FILE=""
-          nohup /run-agent.sh run -c /opt/orb/agent_default.yaml &
+        # if none config file is set, use the built-in pktvisor configuration file and agent_default.yaml
+        # check if debug mode is enabled
+        DEBUG=''
+        if [[ "$2" == '-d' ]]; then
+          DEBUG='-d'
+        fi
+        nohup /run-agent.sh run $DEBUG -c /opt/orb/agent_default.yaml &
       fi
     fi
     nohup /run-agent.sh "$@" &
