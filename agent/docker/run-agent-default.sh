@@ -9,10 +9,10 @@ if [[ "$2" == '-d' ]]; then
 fi
 if [ $# -eq 0 ]; then
   echo "Running agent default configuration"
-  "$orb_agent_bin" run -c /opt/orb/agent_default.yaml &
+  "$orb_agent_bin" run '-c /opt/orb/agent_default.yaml' &
   echo $! > /var/run/orb-agent.pid
 else
   echo "Running agent default configuration with debug mode"
-  "$orb_agent_bin" run "$DEBUG" -c /opt/orb/agent_default.yaml &
+  "$orb_agent_bin" run "$DEBUG" '-c /opt/orb/agent_default.yaml' &
   echo $! > /var/run/orb-agent.pid
 fi
