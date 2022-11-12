@@ -149,6 +149,12 @@ else
   CONFIG_FILE_EXISTS=false
 fi
 
+# check if debug mode is enabled
+DEBUG=''
+if [[ "$2" == '-d' ]]; then
+  DEBUG='-d'
+fi
+
 # or specify pair of TAPNAME:IFACE
 # TODO allow multiple, split on comma
 # PKTVISOR_PCAP_IFACE_TAPS=default_pcap:en0
@@ -173,11 +179,6 @@ do
         # if none config file is set, use the built-in pktvisor configuration file and agent_default.yaml
         echo "Running with agent default config file and pktvisor built-in configuration"
         cp -rf /etc/orb/agent_default.yaml /opt/orb/agent_default.yaml
-        # check if debug mode is enabled
-        DEBUG=''
-        if [[ "$2" == '-d' ]]; then
-          DEBUG='-d'
-        fi
         nohup /run-agent.sh run -c /opt/orb/agent_default.yaml $DEBUG &
       fi
     fi
