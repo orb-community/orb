@@ -60,6 +60,7 @@ if [ "${PKTVISOR_NETFLOW_PORT_DEFAULT}" = '' ]; then
   PKTVISOR_NETFLOW_PORT_DEFAULT='2055'
 fi
 if [ "${PKTVISOR_NETFLOW}" = 'true' ]; then
+echo "Setting default_netflow as handler"
 (
 cat <<END
     default_netflow:
@@ -81,6 +82,7 @@ if [ "${PKTVISOR_SFLOW_PORT_DEFAULT}" = '' ]; then
   PKTVISOR_SFLOW_PORT_DEFAULT='6343'
 fi
 if [ "${PKTVISOR_SFLOW}" = 'true' ]; then
+echo "Setting default_sflow as handler"
 (
 cat <<END
     default_sflow:
@@ -102,6 +104,7 @@ if [ "${PKTVISOR_DNSTAP_PORT_DEFAULT}" = '' ]; then
   PKTVISOR_DNSTAP_PORT_DEFAULT='6000'
 fi
 if [ "${PKTVISOR_DNSTAP}" = 'true' ]; then
+echo "Setting default_dnstap as handler"
 (
 cat <<END
     default_dnstap:
@@ -119,6 +122,7 @@ if [ "$PKTVISOR_PCAP_IFACE_DEFAULT" = 'mock' ]; then
   MAYBE_MOCK='pcap_source: mock'
 fi
 if [[ -n "${PKTVISOR_PCAP_IFACE_DEFAULT}" || "${PKTVISOR_DNSTAP}" != 'true' && "${PKTVISOR_SFLOW}" != 'true' && "${PKTVISOR_NETFLOW}" != 'true' ]]; then
+  echo "Setting default_pcap as handler"
   if [ "$PKTVISOR_PCAP_IFACE_DEFAULT" = '' ]; then
     PKTVISOR_PCAP_IFACE_DEFAULT='auto'
   fi
