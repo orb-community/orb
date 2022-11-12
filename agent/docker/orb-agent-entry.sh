@@ -166,12 +166,7 @@ do
         nohup /run-agent.sh "$@" &
       else
         # if none config file is set, use the built-in pktvisor configuration file and agent_default.yaml
-        # check if debug mode is enabled
-        DEBUG=''
-        if [[ "$2" == '-d' ]]; then
-          DEBUG='-d'
-        fi
-        nohup /run-agent.sh run $DEBUG -c /opt/orb/agent_default.yaml &
+        nohup /run-agent-default.sh "$@" &
       fi
     fi
     sleep 2
