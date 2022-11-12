@@ -140,6 +140,10 @@ if [ -f "/opt/orb/agent.yaml" ]
 then
   echo "Contains agent.yaml config file"
   CONFIG_FILE_EXISTS=true
+else
+  echo "Not contains agent.yaml config file, setting default file"
+  CONFIG_FILE_EXISTS=false
+  cp -rf /etc/orb/agent_default.yaml /opt/orb/agent.yaml
 fi
 
 # or specify pair of TAPNAME:IFACE
