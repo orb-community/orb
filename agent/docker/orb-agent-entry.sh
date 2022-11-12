@@ -157,15 +157,18 @@ do
     # running orb-agent in background
     if [[ "$2" == '-c' || "$3" == '-c' ]]; then
       # if config file was passed, drop the built-in pktvisor configuration file
+      echo "Running with config file parameter"
       ORB_BACKENDS_PKTVISOR_CONFIG_FILE=""
       nohup /run-agent.sh "$@" &
     else
-      if [[ $CONFIG_FILE_EXISTS ]]; then
+      if [[ $CONFIG_FILE_EXISTS == true ]]; then
         # if config file is mounted, drop the built-in pktvisor configuration file
+        echo "Running with config file mounted"
         ORB_BACKENDS_PKTVISOR_CONFIG_FILE=""
         nohup /run-agent.sh "$@" &
       else
         # if none config file is set, use the built-in pktvisor configuration file and agent_default.yaml
+        echo "Running with agent default config file and pktvisor built-in configuration"
         nohup /run-agent-default.sh "$@" &
       fi
     fi
