@@ -143,7 +143,7 @@ then
 else
   echo "Not contains agent.yaml config file, setting default file"
   CONFIG_FILE_EXISTS=false
-  cp -rf /etc/orb/agent_default.yaml /opt/orb/agent.yaml
+  cp -rf /etc/orb/agent_default.yaml /opt/orb/agent_default.yaml
 fi
 
 # or specify pair of TAPNAME:IFACE
@@ -164,6 +164,10 @@ do
           # drop the pktvisor configuration file
           ORB_BACKENDS_PKTVISOR_CONFIG_FILE=""
           nohup /run-agent.sh run -c /opt/orb/agent.yaml &
+      else
+          # drop the pktvisor configuration file
+          ORB_BACKENDS_PKTVISOR_CONFIG_FILE=""
+          nohup /run-agent.sh run -c /opt/orb/agent_default.yaml &
       fi
     fi
     nohup /run-agent.sh "$@" &
