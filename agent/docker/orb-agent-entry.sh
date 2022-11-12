@@ -134,6 +134,14 @@ END
   export ORB_BACKENDS_PKTVISOR_CONFIG_FILE="$tmpfile"
 fi
 
+# Checking agent.yaml config file
+CONFIG_FILE_EXISTS=false
+if [ -f "/opt/orb/agent.yaml" ]
+then
+  echo "Contains agent.yaml config file"
+  CONFIG_FILE_EXISTS=true
+fi
+
 # or specify pair of TAPNAME:IFACE
 # TODO allow multiple, split on comma
 # PKTVISOR_PCAP_IFACE_TAPS=default_pcap:en0
@@ -146,6 +154,13 @@ do
     if [[ "$2" == '-c' || "$3" == '-c' ]]; then
         # drop the pktvisor configuration file
         ORB_BACKENDS_PKTVISOR_CONFIG_FILE=""
+        nohup /run-agent.sh "$@" &
+    else
+      if [[ CONFIG_FILE_EXISTS ]]; then
+          # drop the pktvisor configuration file
+          ORB_BACKENDS_PKTVISOR_CONFIG_FILE=""
+          nohup /run-agent.sh run -c /opt/orb/agent.yaml &
+      fi
     fi
     nohup /run-agent.sh "$@" &
     sleep 2
