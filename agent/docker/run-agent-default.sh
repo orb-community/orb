@@ -11,6 +11,6 @@ if [ $# -eq 0 ]; then
   "$orb_agent_bin" run -c /opt/orb/agent_default.yaml &
   echo $! > /var/run/orb-agent.pid
 else
-  "$orb_agent_bin" run $DEBUG -c /opt/orb/agent_default.yaml &
+  "$orb_agent_bin" run "$DEBUG" -c /opt/orb/agent_default.yaml &
   echo $! > /var/run/orb-agent.pid
 fi
