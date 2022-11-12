@@ -52,6 +52,17 @@ visor:
 END
 ) > "$tmpfile"
 
+# Checking agent.yaml config file
+CONFIG_FILE_EXISTS=false
+if [ -f "/opt/orb/agent.yaml" ]
+then
+  echo "Contains agent.yaml config file"
+  CONFIG_FILE_EXISTS=true
+else
+  echo "Not contains agent.yaml config file, setting default config file"
+  CONFIG_FILE_EXISTS=false
+fi
+
 # Check NetFlow TAP parameters
 if [ "${PKTVISOR_NETFLOW_BIND_ADDRESS}" = '' ]; then
   PKTVISOR_NETFLOW_BIND_ADDRESS='0.0.0.0'
@@ -138,24 +149,6 @@ END
   export ORB_BACKENDS_PKTVISOR_CONFIG_FILE="$tmpfile"
 fi
 
-# Checking agent.yaml config file
-CONFIG_FILE_EXISTS=false
-if [ -f "/opt/orb/agent.yaml" ]
-then
-  echo "Contains agent.yaml config file"
-  CONFIG_FILE_EXISTS=true
-else
-  echo "Not contains agent.yaml config file, setting default file"
-  CONFIG_FILE_EXISTS=false
-fi
-
-# check if debug mode is enabled
-DEBUG=''
-if [[ "$2" == '-d' ]]; then
-  echo "Debug mode enabled"
-  DEBUG='-d'
-fi
-
 # or specify pair of TAPNAME:IFACE
 # TODO allow multiple, split on comma
 # PKTVISOR_PCAP_IFACE_TAPS=default_pcap:en0
@@ -178,8 +171,14 @@ do
         nohup /run-agent.sh "$@" &
       else
         # if none config file is set, use the built-in pktvisor configuration file and agent_default.yaml
-        echo "Running with agent default config file and pktvisor built-in configuration"
-        cp -rf /etc/orb/agent_default.yaml /opt/orb/agent_default.yaml
+        echo "Running with default config file and pktvisor built-in configuration"
+        cp -rf /etc/orb/agent_default.yaml /opt/orb/agent_default.yaml        
+        # checking if debug mode is enabled
+        DEBUG=''
+        if [[ "$2" == '-d' ]]; then
+          echo "Debug mode enabled"
+          DEBUG='-d'
+        fi
         nohup /run-agent.sh run -c /opt/orb/agent_default.yaml $DEBUG &
       fi
     fi
