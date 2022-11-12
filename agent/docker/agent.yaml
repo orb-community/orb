@@ -7,4 +7,4 @@ orb:
   backends: 
     pktvisor: 
       binary: /usr/local/sbin/pktvisord
-      config_file: /etc/orb/agent.yaml
+      config_file: /opt/orb/agent.yaml
