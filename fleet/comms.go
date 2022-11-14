@@ -208,6 +208,38 @@ func (svc fleetCommsService) NotifyAgentNewGroupMembership(a Agent, ag AgentGrou
 
 }
 
+func (svc fleetCommsService) NotifyAgentTags(a Agent) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel()
+
+	a, err := svc.agentRepo.RetrieveByIDWithChannel(ctx, a.MFThingID, a.MFChannelID)
+	if err != nil {
+		return err
+	}
+	agentInformation := AgentTagsRPCPayload{
+		AgentName: a.Name.String(),
+		OrbTags:   a.OrbTags,
+	}
+
+	body, err := json.Marshal(agentInformation)
+	if err != nil {
+		return err
+	}
+
+	msg := messaging.Message{
+		Channel:   a.MFChannelID,
+		Subtopic:  RPCFromCoreTopic,
+		Publisher: publisher,
+		Payload:   body,
+		Created:   time.Now().UnixNano(),
+	}
+	if err := svc.agentPubSub.Publish(msg.Channel, msg); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (svc fleetCommsService) NotifyAgentAllDatasets(a Agent) error {
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
@@ -666,6 +698,11 @@ func (svc fleetCommsService) handleRPCToCore(thingID string, channelID string, p
 	case AgentPoliciesReqRPCFunc:
 		if err := svc.NotifyAgentAllDatasets(Agent{MFThingID: thingID, MFChannelID: channelID}); err != nil {
 			svc.logger.Error("notify agent policies failure", zap.Error(err))
+			return nil
+		}
+	case AgentOrbTagsReqRPCFunc:
+		if err := svc.NotifyAgentTags(Agent{MFThingID: thingID, MFChannelID: channelID}); err != nil {
+			svc.logger.Error("notify agent tags failture", zap.Error(err))
 			return nil
 		}
 	default:
