@@ -170,8 +170,7 @@ do
         nohup /run-agent.sh "$@" &
       else
         # if none config file is set, use the built-in pktvisor configuration file and agent_default.yaml
-        echo "Running with default config file and pktvisor built-in configuration"
-        cp -rf /etc/orb/agent_default.yaml /opt/orb/agent_default.yaml        
+        echo "Running with default config file and pktvisor built-in configuration"      
         # checking if debug mode is enabled
         DEBUG=''
         if [[ "$2" == '-d' ]]; then
