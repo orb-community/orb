@@ -198,7 +198,7 @@ func TestNotifyGroupPolicyRemoval(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		err := commsSVC.NotifyGroupPolicyRemoval(tc.agentGroup, tc.policyID, tc.policyName, tc.backend)
+		err := commsSVC.NotifyGroupPolicyRemoval(context.Background(), tc.agentGroup, tc.policyID, tc.policyName, tc.backend)
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
 	}
 }
@@ -263,7 +263,7 @@ func TestNotifyAgentAllDatasets(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		err := commsSVC.NotifyAgentAllDatasets(tc.agent)
+		err := commsSVC.NotifyAgentAllDatasets(context.Background(), tc.agent)
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
 	}
 }
@@ -396,7 +396,7 @@ func TestNotifyAgentGroupMembership(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		err := commsSVC.NotifyAgentGroupMemberships(tc.agent)
+		err := commsSVC.NotifyAgentGroupMemberships(context.Background(), tc.agent)
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
 	}
 }
@@ -439,7 +439,7 @@ func TestNotifyGroupDatasetRemoval(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		err := commsSVC.NotifyGroupDatasetRemoval(tc.agentGroup, tc.dsID, tc.policyID)
+		err := commsSVC.NotifyGroupDatasetRemoval(context.Background(), tc.agentGroup, tc.dsID, tc.policyID)
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
 	}
 }
@@ -469,7 +469,7 @@ func TestNotifyAgentStop(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		err := commsSVC.NotifyAgentStop(tc.agent, tc.reason)
+		err := commsSVC.NotifyAgentStop(context.Background(), tc.agent, tc.reason)
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
 	}
 }
@@ -514,7 +514,7 @@ func TestNotifyAgentNewGroupMembership(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		err := commsSVC.NotifyAgentNewGroupMembership(tc.agent, tc.agentGroup)
+		err := commsSVC.NotifyAgentNewGroupMembership(context.Background(), tc.agent, tc.agentGroup)
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
 	}
 }

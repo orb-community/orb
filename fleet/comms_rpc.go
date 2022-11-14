@@ -121,9 +121,9 @@ type AgentPoliciesReqRPCPayload struct {
 	// empty
 }
 
-const AgentOrbTagsReqRPCFunc = "agent_tags_req"
+const AgentOrbConfigReqRPCFunc = "agent_tags_req"
 
-type AgentOrbTagsReqRPCPayload struct {
+type AgentOrbConfigReqRPCPayload struct {
 	// empty
 }
 

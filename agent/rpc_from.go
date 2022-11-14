@@ -40,7 +40,7 @@ func (a *orbAgent) handleTags(ctx context.Context, r fleet.AgentTagsRPCPayload) 
 			a.logger.Error("failed to restart backend", zap.Error(err))
 		}
 	}
-	a.tagsRequestSucceeded()
+	a.configRequestSucceeded()
 }
 
 func (a *orbAgent) handleAgentPolicies(ctx context.Context, rpc []fleet.AgentPolicyRPCPayload, fullList bool) {
@@ -109,7 +109,7 @@ func (a *orbAgent) handleGroupRPCFromCore(client mqtt.Client, message mqtt.Messa
 
 		// dispatch
 		switch rpc.Func {
-		case fleet.AgentOrbTagsReqRPCFunc:
+		case fleet.AgentOrbConfigReqRPCFunc:
 			var r fleet.AgentTagsRPCPayload
 			if err := json.Unmarshal(message.Payload(), &r); err != nil {
 				a.logger.Error("error decoding agent tags message from core", zap.Error(fleet.ErrSchemaMalformed))

@@ -31,25 +31,25 @@ type AgentCommsService interface {
 	Stop() error
 
 	// NotifyAgentNewGroupMembership RPC Core -> Agent: Notify a specific Agent of new AgentGroup membership it now belongs to
-	NotifyAgentNewGroupMembership(a Agent, ag AgentGroup) error
+	NotifyAgentNewGroupMembership(ctx context.Context, a Agent, ag AgentGroup) error
 	// NotifyAgentGroupMemberships RPC Core -> Agent: Notify a specific Agent of all AgentGroup memberships it belongs to
-	NotifyAgentGroupMemberships(a Agent) error
+	NotifyAgentGroupMemberships(ctx context.Context, a Agent) error
 	// NotifyAgentAllDatasets RPC Core -> Agent: Notify Agent of all Policy it should currently run based on group membership and current Datasets
-	NotifyAgentAllDatasets(a Agent) error
+	NotifyAgentAllDatasets(ctx context.Context, a Agent) error
 	// NotifyAgentStop RPC Core -> Agent: Notify Agent that it should Stop (Send the message to Agent Channel)
-	NotifyAgentStop(agent Agent, reason string) error
+	NotifyAgentStop(ctx context.Context, agent Agent, reason string) error
 	// NotifyGroupNewDataset RPC Core -> Agent: Notify AgentGroup of a newly created Dataset, exposing a new Policy to run
 	NotifyGroupNewDataset(ctx context.Context, ag AgentGroup, datasetID string, policyID string, ownerID string) error
 	// NotifyGroupRemoval RPC core -> Agent: Notify AgentGroup that the group has been removed
 	NotifyGroupRemoval(ctx context.Context, ag AgentGroup) error
 	// NotifyGroupPolicyRemoval RPC core -> Agent: Notify AgentGroup that a Policy has been removed
-	NotifyGroupPolicyRemoval(ag AgentGroup, policyID string, policyName string, backend string) error
+	NotifyGroupPolicyRemoval(ctx context.Context, ag AgentGroup, policyID string, policyName string, backend string) error
 	// NotifyGroupDatasetRemoval RPC core -> Agent: Notify AgentGroup that a Dataset has been removed
-	NotifyGroupDatasetRemoval(ag AgentGroup, dsID string, policyID string) error
+	NotifyGroupDatasetRemoval(ctx context.Context, ag AgentGroup, dsID string, policyID string) error
 	// NotifyGroupPolicyUpdate RPC core -> Agent: Notify AgentGroup that a Policy has been updated
 	NotifyGroupPolicyUpdate(ctx context.Context, ag AgentGroup, policyID string, ownerID string) error
 	//NotifyAgentReset RPC core -> Agent: Notify Agent to reset the backend
-	NotifyAgentReset(agent Agent, fullReset bool, reason string) error
+	NotifyAgentReset(ctx context.Context, agent Agent, fullReset bool, reason string) error
 	// NotifyGroupDatasetEdit RPC core -> Agent: Notify Agent an already created Dataset goes invalid or valid
 	NotifyGroupDatasetEdit(ctx context.Context, ag AgentGroup, datasetID, policyID, ownerID string, valid bool) error
 }
@@ -176,7 +176,7 @@ func (svc fleetCommsService) NotifyGroupNewDataset(ctx context.Context, ag Agent
 	return nil
 }
 
-func (svc fleetCommsService) NotifyAgentNewGroupMembership(a Agent, ag AgentGroup) error {
+func (svc fleetCommsService) NotifyAgentNewGroupMembership(ctx context.Context, a Agent, ag AgentGroup) error {
 	payload := GroupMembershipRPCPayload{
 		Groups:   []GroupMembershipData{{GroupID: ag.ID, Name: ag.Name.String(), ChannelID: ag.MFChannelID}},
 		FullList: false,
@@ -208,7 +208,7 @@ func (svc fleetCommsService) NotifyAgentNewGroupMembership(a Agent, ag AgentGrou
 
 }
 
-func (svc fleetCommsService) NotifyAgentTags(a Agent) error {
+func (svc fleetCommsService) NotifyAgentConfig(ctx context.Context, a Agent) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
 
@@ -240,7 +240,7 @@ func (svc fleetCommsService) NotifyAgentTags(a Agent) error {
 	return nil
 }
 
-func (svc fleetCommsService) NotifyAgentAllDatasets(a Agent) error {
+func (svc fleetCommsService) NotifyAgentAllDatasets(ctx context.Context, a Agent) error {
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
@@ -321,9 +321,9 @@ func (svc fleetCommsService) NotifyAgentAllDatasets(a Agent) error {
 	return nil
 }
 
-func (svc fleetCommsService) NotifyAgentGroupMemberships(a Agent) error {
+func (svc fleetCommsService) NotifyAgentGroupMemberships(ctx context.Context, a Agent) error {
 
-	list, err := svc.agentGroupRepo.RetrieveAllByAgent(context.Background(), a)
+	list, err := svc.agentGroupRepo.RetrieveAllByAgent(ctx, a)
 	if err != nil {
 		return err
 	}
@@ -455,7 +455,7 @@ func (svc fleetCommsService) NotifyGroupPolicyUpdate(ctx context.Context, ag Age
 	return nil
 }
 
-func (svc fleetCommsService) NotifyGroupPolicyRemoval(ag AgentGroup, policyID string, policyName string, backend string) error {
+func (svc fleetCommsService) NotifyGroupPolicyRemoval(ctx context.Context, ag AgentGroup, policyID string, policyName string, backend string) error {
 
 	var payloads []AgentPolicyRPCPayload
 	payload := AgentPolicyRPCPayload{
@@ -493,7 +493,7 @@ func (svc fleetCommsService) NotifyGroupPolicyRemoval(ag AgentGroup, policyID st
 	return nil
 }
 
-func (svc fleetCommsService) NotifyGroupDatasetRemoval(ag AgentGroup, dsID string, policyID string) error {
+func (svc fleetCommsService) NotifyGroupDatasetRemoval(ctx context.Context, ag AgentGroup, dsID string, policyID string) error {
 
 	payload := DatasetRemovedRPCPayload{
 		DatasetID: dsID,
@@ -524,7 +524,7 @@ func (svc fleetCommsService) NotifyGroupDatasetRemoval(ag AgentGroup, dsID strin
 	return nil
 }
 
-func (svc fleetCommsService) NotifyAgentStop(agent Agent, reason string) error {
+func (svc fleetCommsService) NotifyAgentStop(ctx context.Context, agent Agent, reason string) error {
 	payload := AgentStopRPCPayload{Reason: reason}
 	data := RPC{
 		SchemaVersion: CurrentRPCSchemaVersion,
@@ -550,7 +550,7 @@ func (svc fleetCommsService) NotifyAgentStop(agent Agent, reason string) error {
 	return nil
 }
 
-func (svc fleetCommsService) NotifyAgentReset(agent Agent, fullReset bool, reason string) error {
+func (svc fleetCommsService) NotifyAgentReset(ctx context.Context, agent Agent, fullReset bool, reason string) error {
 	payload := AgentResetRPCPayload{
 		FullReset: fullReset,
 		Reason:    reason,
@@ -589,7 +589,7 @@ func NewFleetCommsService(logger *zap.Logger, policyClient pb.PolicyServiceClien
 	}
 }
 
-func (svc fleetCommsService) handleCapabilities(thingID string, channelID string, payload []byte) error {
+func (svc fleetCommsService) handleCapabilities(ctx context.Context, thingID string, channelID string, payload []byte) error {
 	var versionCheck SchemaVersionCheck
 	if err := json.Unmarshal(payload, &versionCheck); err != nil {
 		return ErrSchemaMalformed
@@ -611,7 +611,7 @@ func (svc fleetCommsService) handleCapabilities(thingID string, channelID string
 	agent.AgentMetadata["orb_agent"] = capabilities.OrbAgent
 	agent.AgentTags = capabilities.AgentTags
 
-	err = svc.checkVersion(buildinfo.GetMinAgentVersion(), capabilities.OrbAgent.Version, &agent)
+	err = svc.checkVersion(ctx, buildinfo.GetMinAgentVersion(), capabilities.OrbAgent.Version, &agent)
 	if err != nil {
 		return err
 	}
@@ -623,7 +623,7 @@ func (svc fleetCommsService) handleCapabilities(thingID string, channelID string
 	return nil
 }
 
-func (svc fleetCommsService) checkVersion(minVersion string, agentVersion string, agent *Agent) error {
+func (svc fleetCommsService) checkVersion(ctx context.Context, minVersion string, agentVersion string, agent *Agent) error {
 	mVersion, err := version.NewVersion(minVersion)
 	if err != nil {
 		return err
@@ -635,13 +635,16 @@ func (svc fleetCommsService) checkVersion(minVersion string, agentVersion string
 
 	var ag = *agent
 	if aVersion.LessThan(mVersion) {
-		svc.NotifyAgentStop(ag, fmt.Sprintf("The orb-agent version is too old to connect to the control plane. Minimum required version: {%s}", mVersion.String()))
+		err := svc.NotifyAgentStop(ctx, ag, fmt.Sprintf("The orb-agent version is too old to connect to the control plane. Minimum required version: {%s}", mVersion.String()))
+		if err != nil {
+			return err
+		}
 		agent.State = UpgradeRequired
 	}
 	return nil
 }
 
-func (svc fleetCommsService) handleHeartbeat(thingID string, channelID string, payload []byte) error {
+func (svc fleetCommsService) handleHeartbeat(ctx context.Context, thingID string, channelID string, payload []byte) error {
 	var versionCheck SchemaVersionCheck
 	if err := json.Unmarshal(payload, &versionCheck); err != nil {
 		return ErrSchemaMalformed
@@ -675,7 +678,7 @@ func (svc fleetCommsService) handleHeartbeat(thingID string, channelID string, p
 	return nil
 }
 
-func (svc fleetCommsService) handleRPCToCore(thingID string, channelID string, payload []byte) error {
+func (svc fleetCommsService) handleRPCToCore(ctx context.Context, thingID string, channelID string, payload []byte) error {
 	var versionCheck SchemaVersionCheck
 	if err := json.Unmarshal(payload, &versionCheck); err != nil {
 		return ErrSchemaMalformed
@@ -691,17 +694,17 @@ func (svc fleetCommsService) handleRPCToCore(thingID string, channelID string, p
 	// dispatch
 	switch rpc.Func {
 	case GroupMembershipReqRPCFunc:
-		if err := svc.NotifyAgentGroupMemberships(Agent{MFThingID: thingID, MFChannelID: channelID}); err != nil {
+		if err := svc.NotifyAgentGroupMemberships(ctx, Agent{MFThingID: thingID, MFChannelID: channelID}); err != nil {
 			svc.logger.Error("notify group membership failure", zap.Error(err))
 			return nil
 		}
 	case AgentPoliciesReqRPCFunc:
-		if err := svc.NotifyAgentAllDatasets(Agent{MFThingID: thingID, MFChannelID: channelID}); err != nil {
+		if err := svc.NotifyAgentAllDatasets(ctx, Agent{MFThingID: thingID, MFChannelID: channelID}); err != nil {
 			svc.logger.Error("notify agent policies failure", zap.Error(err))
 			return nil
 		}
-	case AgentOrbTagsReqRPCFunc:
-		if err := svc.NotifyAgentTags(Agent{MFThingID: thingID, MFChannelID: channelID}); err != nil {
+	case AgentOrbConfigReqRPCFunc:
+		if err := svc.NotifyAgentConfig(ctx, Agent{MFThingID: thingID, MFChannelID: channelID}); err != nil {
 			svc.logger.Error("notify agent tags failture", zap.Error(err))
 			return nil
 		}
@@ -748,17 +751,17 @@ func (svc fleetCommsService) handleMsgFromAgent(msg messaging.Message) error {
 		// dispatch
 		switch msg.Subtopic {
 		case CapabilitiesTopic:
-			if err := svc.handleCapabilities(msg.Publisher, msg.Channel, msg.Payload); err != nil {
+			if err := svc.handleCapabilities(ctx, msg.Publisher, msg.Channel, msg.Payload); err != nil {
 				svc.logger.Error("capabilities failure", zap.Error(err))
 				return
 			}
 		case HeartbeatsTopic:
-			if err := svc.handleHeartbeat(msg.Publisher, msg.Channel, msg.Payload); err != nil {
+			if err := svc.handleHeartbeat(ctx, msg.Publisher, msg.Channel, msg.Payload); err != nil {
 				svc.logger.Error("heartbeat failure", zap.Error(err))
 				return
 			}
 		case RPCToCoreTopic:
-			if err := svc.handleRPCToCore(msg.Publisher, msg.Channel, msg.Payload); err != nil {
+			if err := svc.handleRPCToCore(ctx, msg.Publisher, msg.Channel, msg.Payload); err != nil {
 				svc.logger.Error("RPC to core failure", zap.Error(err))
 				return
 			}

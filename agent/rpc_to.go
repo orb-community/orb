@@ -76,28 +76,28 @@ func (a *orbAgent) sendGroupMembershipRequest() error {
 	return nil
 }
 
-func (a *orbAgent) askOrbTags() error {
+func (a *orbAgent) askAgentConfig() error {
 	defer func() {
-		if a.tagsRequestTicker == nil {
-			a.tagsRequestTicker = time.NewTicker(retryRequestFixedTime * retryRequestDuration)
+		if a.configRequestTicker == nil {
+			a.configRequestTicker = time.NewTicker(retryRequestFixedTime * retryRequestDuration)
 		}
 		var ctx context.Context
-		ctx, a.groupRequestSucceeded = a.extendContext("retryAskOrbTags")
+		ctx, a.configRequestSucceeded = a.extendContext("retryAskAgentConfig")
 		go func(ctx context.Context) {
-			defer a.tagsRequestTicker.Stop()
+			defer a.configRequestTicker.Stop()
 			defer func(t time.Time) {
-				a.logger.Info("execution period of the re-request of retryAskOrbTags", zap.Duration("waiting_period", time.Now().Sub(t)))
+				a.logger.Info("execution period of the re-request of retryAskAgentConfig", zap.Duration("waiting_period", time.Now().Sub(t)))
 			}(time.Now())
 			lastT := time.Now()
 			for calls := 1; calls <= retryMaxAttempts; calls++ {
 				select {
 				case <-ctx.Done():
 					return
-				case t := <-a.tagsRequestTicker.C:
+				case t := <-a.configRequestTicker.C:
 					a.logger.Info("agent did not receive any tags from fleet, re-requesting", zap.Duration("waiting_period", lastT.Sub(t)))
 					duration := retryRequestFixedTime + (calls * retryDurationIncrPerAttempts)
-					a.tagsRequestTicker.Reset(time.Duration(duration) * retryRequestDuration)
-					err := a.sendOrbTagsRequest()
+					a.configRequestTicker.Reset(time.Duration(duration) * retryRequestDuration)
+					err := a.sendAgentConfigRequest()
 					if err != nil {
 						a.logger.Error("failed to send orb tags request", zap.Error(err))
 						return
@@ -106,16 +106,16 @@ func (a *orbAgent) askOrbTags() error {
 			}
 		}(ctx)
 	}()
-	return a.sendOrbTagsRequest()
+	return a.sendAgentConfigRequest()
 }
 
-func (a *orbAgent) sendOrbTagsRequest() error {
+func (a *orbAgent) sendAgentConfigRequest() error {
 	a.logger.Debug("sending orb tags request")
-	payload := fleet.AgentOrbTagsReqRPCPayload{}
+	payload := fleet.AgentOrbConfigReqRPCPayload{}
 
 	data := fleet.RPC{
 		SchemaVersion: fleet.CurrentRPCSchemaVersion,
-		Func:          fleet.AgentOrbTagsReqRPCFunc,
+		Func:          fleet.AgentOrbConfigReqRPCFunc,
 		Payload:       payload,
 	}
 	body, err := json.Marshal(data)

@@ -41,7 +41,7 @@ func (c commsMetricsMiddleware) Stop() error {
 	return c.svc.Stop()
 }
 
-func (c commsMetricsMiddleware) NotifyAgentNewGroupMembership(a Agent, ag AgentGroup) error {
+func (c commsMetricsMiddleware) NotifyAgentNewGroupMembership(ctx context.Context, a Agent, ag AgentGroup) error {
 	defer func(begin time.Time) {
 		labels := []string{
 			"method", "NotifyAgentNewGroupMembership",
@@ -57,10 +57,10 @@ func (c commsMetricsMiddleware) NotifyAgentNewGroupMembership(a Agent, ag AgentG
 
 	}(time.Now())
 
-	return c.svc.NotifyAgentNewGroupMembership(a, ag)
+	return c.svc.NotifyAgentNewGroupMembership(ctx, a, ag)
 }
 
-func (c commsMetricsMiddleware) NotifyAgentGroupMemberships(a Agent) error {
+func (c commsMetricsMiddleware) NotifyAgentGroupMemberships(ctx context.Context, a Agent) error {
 	defer func(begin time.Time) {
 		labels := []string{
 			"method", "NotifyAgentGroupMemberships",
@@ -75,10 +75,10 @@ func (c commsMetricsMiddleware) NotifyAgentGroupMemberships(a Agent) error {
 		c.requestLatency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
 
 	}(time.Now())
-	return c.svc.NotifyAgentGroupMemberships(a)
+	return c.svc.NotifyAgentGroupMemberships(ctx, a)
 }
 
-func (c commsMetricsMiddleware) NotifyAgentAllDatasets(a Agent) error {
+func (c commsMetricsMiddleware) NotifyAgentAllDatasets(ctx context.Context, a Agent) error {
 	defer func(begin time.Time) {
 		labels := []string{
 			"method", "NotifyAgentAllDatasets",
@@ -93,10 +93,10 @@ func (c commsMetricsMiddleware) NotifyAgentAllDatasets(a Agent) error {
 		c.requestLatency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
 
 	}(time.Now())
-	return c.svc.NotifyAgentAllDatasets(a)
+	return c.svc.NotifyAgentAllDatasets(ctx, a)
 }
 
-func (c commsMetricsMiddleware) NotifyAgentStop(agent Agent, reason string) error {
+func (c commsMetricsMiddleware) NotifyAgentStop(ctx context.Context, agent Agent, reason string) error {
 	defer func(begin time.Time) {
 		labels := []string{
 			"method", "NotifyAgentStop",
@@ -111,7 +111,7 @@ func (c commsMetricsMiddleware) NotifyAgentStop(agent Agent, reason string) erro
 		c.requestLatency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
 
 	}(time.Now())
-	return c.svc.NotifyAgentStop(agent, reason)
+	return c.svc.NotifyAgentStop(ctx, agent, reason)
 }
 
 func (c commsMetricsMiddleware) NotifyGroupNewDataset(ctx context.Context, ag AgentGroup, datasetID string, policyID string, ownerID string) error {
@@ -150,7 +150,7 @@ func (c commsMetricsMiddleware) NotifyGroupRemoval(ctx context.Context, ag Agent
 	return c.svc.NotifyGroupRemoval(ctx, ag)
 }
 
-func (c commsMetricsMiddleware) NotifyGroupPolicyRemoval(ag AgentGroup, policyID string, policyName string, backend string) error {
+func (c commsMetricsMiddleware) NotifyGroupPolicyRemoval(ctx context.Context, ag AgentGroup, policyID string, policyName string, backend string) error {
 	defer func(begin time.Time) {
 		labels := []string{
 			"method", "NotifyGroupPolicyRemoval",
@@ -165,10 +165,10 @@ func (c commsMetricsMiddleware) NotifyGroupPolicyRemoval(ag AgentGroup, policyID
 		c.requestLatency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
 
 	}(time.Now())
-	return c.svc.NotifyGroupPolicyRemoval(ag, policyID, policyName, backend)
+	return c.svc.NotifyGroupPolicyRemoval(ctx, ag, policyID, policyName, backend)
 }
 
-func (c commsMetricsMiddleware) NotifyGroupDatasetRemoval(ag AgentGroup, dsID string, policyID string) error {
+func (c commsMetricsMiddleware) NotifyGroupDatasetRemoval(ctx context.Context, ag AgentGroup, dsID string, policyID string) error {
 	defer func(begin time.Time) {
 		labels := []string{
 			"method", "NotifyGroupDatasetRemoval",
@@ -183,7 +183,7 @@ func (c commsMetricsMiddleware) NotifyGroupDatasetRemoval(ag AgentGroup, dsID st
 		c.requestLatency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
 
 	}(time.Now())
-	return c.svc.NotifyGroupDatasetRemoval(ag, dsID, policyID)
+	return c.svc.NotifyGroupDatasetRemoval(ctx, ag, dsID, policyID)
 }
 
 func (c commsMetricsMiddleware) NotifyGroupPolicyUpdate(ctx context.Context, ag AgentGroup, policyID string, ownerID string) error {
@@ -204,7 +204,7 @@ func (c commsMetricsMiddleware) NotifyGroupPolicyUpdate(ctx context.Context, ag 
 	return c.svc.NotifyGroupPolicyUpdate(ctx, ag, policyID, ownerID)
 }
 
-func (c commsMetricsMiddleware) NotifyAgentReset(agent Agent, fullReset bool, reason string) error {
+func (c commsMetricsMiddleware) NotifyAgentReset(ctx context.Context, agent Agent, fullReset bool, reason string) error {
 	defer func(begin time.Time) {
 		labels := []string{
 			"method", "NotifyAgentReset",
@@ -219,7 +219,7 @@ func (c commsMetricsMiddleware) NotifyAgentReset(agent Agent, fullReset bool, re
 		c.requestLatency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
 
 	}(time.Now())
-	return c.svc.NotifyAgentReset(agent, fullReset, reason)
+	return c.svc.NotifyAgentReset(ctx, agent, fullReset, reason)
 }
 
 func CommsMetricsMiddleware(svc AgentCommsService, counter metrics.Counter, latency metrics.Histogram) AgentCommsService {

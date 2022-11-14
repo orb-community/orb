@@ -60,8 +60,8 @@ type orbAgent struct {
 	// Retry Mechanism to ensure the Request is received
 	groupRequestTicker     *time.Ticker
 	groupRequestSucceeded  context.CancelFunc
-	tagsRequestTicker      *time.Ticker
-	tagsRequestSucceeded   context.CancelFunc
+	configRequestTicker    *time.Ticker
+	configRequestSucceeded context.CancelFunc
 	policyRequestTicker    *time.Ticker
 	policyRequestSucceeded context.CancelFunc
 
