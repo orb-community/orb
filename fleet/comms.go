@@ -38,6 +38,8 @@ type AgentCommsService interface {
 	NotifyAgentAllDatasets(ctx context.Context, a Agent) error
 	// NotifyAgentStop RPC Core -> Agent: Notify Agent that it should Stop (Send the message to Agent Channel)
 	NotifyAgentStop(ctx context.Context, agent Agent, reason string) error
+	// NotifyAgentConfig RPC Core -> Agent: Notify Agent of the configuration
+	NotifyAgentConfig(ctx context.Context, a Agent) error
 	// NotifyGroupNewDataset RPC Core -> Agent: Notify AgentGroup of a newly created Dataset, exposing a new Policy to run
 	NotifyGroupNewDataset(ctx context.Context, ag AgentGroup, datasetID string, policyID string, ownerID string) error
 	// NotifyGroupRemoval RPC core -> Agent: Notify AgentGroup that the group has been removed
@@ -216,12 +218,19 @@ func (svc fleetCommsService) NotifyAgentConfig(ctx context.Context, a Agent) err
 	if err != nil {
 		return err
 	}
-	agentInformation := AgentTagsRPCPayload{
+
+	agentInformation := AgentConfigRPCPayload{
 		AgentName: a.Name.String(),
 		OrbTags:   a.OrbTags,
 	}
 
-	body, err := json.Marshal(agentInformation)
+	rpcData := RPC{
+		SchemaVersion: CurrentRPCSchemaVersion,
+		Func:          AgentConfigRPCFunc,
+		Payload:       agentInformation,
+	}
+
+	body, err := json.Marshal(rpcData)
 	if err != nil {
 		return err
 	}

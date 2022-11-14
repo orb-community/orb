@@ -29,7 +29,7 @@ func (a *orbAgent) handleGroupMembership(rpc fleet.GroupMembershipRPCPayload) {
 	}
 }
 
-func (a *orbAgent) handleTags(ctx context.Context, r fleet.AgentTagsRPCPayload) {
+func (a *orbAgent) handleTags(ctx context.Context, r fleet.AgentConfigRPCPayload) {
 	a.logger.Info("retrieve tags from fleet", zap.Any("context", ctx))
 	a.orbTags = r.OrbTags
 	reason := "reconfigure after receive tags"
@@ -109,13 +109,6 @@ func (a *orbAgent) handleGroupRPCFromCore(client mqtt.Client, message mqtt.Messa
 
 		// dispatch
 		switch rpc.Func {
-		case fleet.AgentOrbConfigReqRPCFunc:
-			var r fleet.AgentTagsRPCPayload
-			if err := json.Unmarshal(message.Payload(), &r); err != nil {
-				a.logger.Error("error decoding agent tags message from core", zap.Error(fleet.ErrSchemaMalformed))
-				return
-			}
-			a.handleTags(ctx, r)
 		case fleet.AgentPolicyRPCFunc:
 			var r fleet.AgentPolicyRPC
 			if err := json.Unmarshal(message.Payload(), &r); err != nil {
@@ -246,6 +239,13 @@ func (a *orbAgent) handleRPCFromCore(client mqtt.Client, message mqtt.Message) {
 				return
 			}
 			a.handleAgentStop(r.Payload)
+		case fleet.AgentConfigRPCFunc:
+			var r fleet.AgentConfigRPCPayload
+			if err := json.Unmarshal(message.Payload(), &r); err != nil {
+				a.logger.Error("error decoding agent tags message from core", zap.Error(fleet.ErrSchemaMalformed))
+				return
+			}
+			a.handleTags(ctx, r)
 		case fleet.AgentResetRPCFunc:
 			var r fleet.AgentResetRPC
 			if err := json.Unmarshal(message.Payload(), &r); err != nil {
