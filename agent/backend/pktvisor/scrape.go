@@ -37,7 +37,7 @@ func (p *pktvisorBackend) scrapeMetrics(period uint) (map[string]interface{}, er
 
 func (p *pktvisorBackend) createOtlpMqttExporter(ctx context.Context) (component.MetricsExporter, error) {
 
-	bridgeService := otel.NewBridgeService(&p.policyRepo, p.orbTags, p.agentTags)
+	bridgeService := otel.NewBridgeService(&p.policyRepo, p.agentTags)
 	if p.mqttClient != nil {
 		cfg := otlpmqttexporter.CreateConfigClient(p.mqttClient, p.otlpMetricsTopic, p.pktvisorVersion, bridgeService)
 		set := otlpmqttexporter.CreateDefaultSettings(p.logger)
