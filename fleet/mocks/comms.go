@@ -14,11 +14,6 @@ type agentCommsServiceMock struct {
 	commsMock      map[string][]fleet.Agent
 }
 
-func (ac agentCommsServiceMock) NotifyAgentConfig(ctx context.Context, a fleet.Agent) error {
-	//TODO implement me
-	panic("implement me")
-}
-
 func (ac agentCommsServiceMock) NotifyGroupDatasetEdit(_ context.Context, _ fleet.AgentGroup, _, _, _ string, _ bool) error {
 	return nil
 }

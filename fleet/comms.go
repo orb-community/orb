@@ -38,8 +38,6 @@ type AgentCommsService interface {
 	NotifyAgentAllDatasets(ctx context.Context, a Agent) error
 	// NotifyAgentStop RPC Core -> Agent: Notify Agent that it should Stop (Send the message to Agent Channel)
 	NotifyAgentStop(ctx context.Context, agent Agent, reason string) error
-	// NotifyAgentConfig RPC Core -> Agent: Notify Agent of the configuration
-	NotifyAgentConfig(ctx context.Context, a Agent) error
 	// NotifyGroupNewDataset RPC Core -> Agent: Notify AgentGroup of a newly created Dataset, exposing a new Policy to run
 	NotifyGroupNewDataset(ctx context.Context, ag AgentGroup, datasetID string, policyID string, ownerID string) error
 	// NotifyGroupRemoval RPC core -> Agent: Notify AgentGroup that the group has been removed
@@ -208,45 +206,6 @@ func (svc fleetCommsService) NotifyAgentNewGroupMembership(ctx context.Context, 
 
 	return nil
 
-}
-
-func (svc fleetCommsService) NotifyAgentConfig(ctx context.Context, a Agent) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
-	defer cancel()
-
-	a, err := svc.agentRepo.RetrieveByIDWithChannel(ctx, a.MFThingID, a.MFChannelID)
-	if err != nil {
-		return err
-	}
-
-	agentInformation := AgentConfigRPCPayload{
-		AgentName: a.Name.String(),
-		OrbTags:   a.OrbTags,
-	}
-
-	rpcData := RPC{
-		SchemaVersion: CurrentRPCSchemaVersion,
-		Func:          AgentConfigRPCFunc,
-		Payload:       agentInformation,
-	}
-
-	body, err := json.Marshal(rpcData)
-	if err != nil {
-		return err
-	}
-
-	msg := messaging.Message{
-		Channel:   a.MFChannelID,
-		Subtopic:  RPCFromCoreTopic,
-		Publisher: publisher,
-		Payload:   body,
-		Created:   time.Now().UnixNano(),
-	}
-	if err := svc.agentPubSub.Publish(msg.Channel, msg); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (svc fleetCommsService) NotifyAgentAllDatasets(ctx context.Context, a Agent) error {
@@ -710,11 +669,6 @@ func (svc fleetCommsService) handleRPCToCore(ctx context.Context, thingID string
 	case AgentPoliciesReqRPCFunc:
 		if err := svc.NotifyAgentAllDatasets(ctx, Agent{MFThingID: thingID, MFChannelID: channelID}); err != nil {
 			svc.logger.Error("notify agent policies failure", zap.Error(err))
-			return nil
-		}
-	case AgentOrbConfigReqRPCFunc:
-		if err := svc.NotifyAgentConfig(ctx, Agent{MFThingID: thingID, MFChannelID: channelID}); err != nil {
-			svc.logger.Error("notify agent tags failture", zap.Error(err))
 			return nil
 		}
 	default:

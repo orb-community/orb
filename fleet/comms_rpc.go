@@ -105,14 +105,6 @@ type AgentResetRPC struct {
 	Payload       AgentResetRPCPayload `json:"payload"`
 }
 
-const AgentConfigRPCFunc = "agent_config"
-
-type AgentConfigRPC struct {
-	SchemaVersion bool   `json:"schema_version:"`
-	Func          string `json:"func"`
-	Payload       AgentConfigRPCPayload
-}
-
 // Edge -> Core
 
 const GroupMembershipReqRPCFunc = "group_membership_req"
@@ -125,17 +117,6 @@ const AgentPoliciesReqRPCFunc = "agent_policies_req"
 
 type AgentPoliciesReqRPCPayload struct {
 	// empty
-}
-
-const AgentOrbConfigReqRPCFunc = "agent_config_req"
-
-type AgentOrbConfigReqRPCPayload struct {
-	// empty
-}
-
-type AgentConfigRPCPayload struct {
-	AgentName string            `json:"agent_name"`
-	OrbTags   map[string]string `json:"orb_tags"`
 }
 
 const AgentMetricsRPCFunc = "agent_metrics"
