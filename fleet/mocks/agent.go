@@ -19,7 +19,7 @@ func (a agentRepositoryMock) SetStaleStatus(_ context.Context, _ time.Duration) 
 	return 0, nil
 }
 
-func (a agentRepositoryMock) RetrieveAgentInfoByChannelID(ctx context.Context, channelID string) (fleet.Agent, error) {
+func (a agentRepositoryMock) RetrieveAgentInfoByChannelID(_ context.Context, channelID string) (fleet.Agent, error) {
 	for _, ag := range a.agentsMock {
 		if ag.MFChannelID == channelID {
 			return ag, nil
@@ -28,12 +28,12 @@ func (a agentRepositoryMock) RetrieveAgentInfoByChannelID(ctx context.Context, c
 	return fleet.Agent{}, fleet.ErrNotFound
 }
 
-func (a agentRepositoryMock) RetrieveAgentMetadataByOwner(_ context.Context, ownerID string) ([]types.Metadata, error) {
+func (a agentRepositoryMock) RetrieveAgentMetadataByOwner(_ context.Context, _ string) ([]types.Metadata, error) {
 	var taps []types.Metadata
 	return taps, nil
 }
 
-func (a agentRepositoryMock) RetrieveByID(ctx context.Context, ownerID string, thingID string) (fleet.Agent, error) {
+func (a agentRepositoryMock) RetrieveByID(_ context.Context, ownerID string, thingID string) (fleet.Agent, error) {
 	if _, ok := a.agentsMock[thingID]; ok {
 		if a.agentsMock[thingID].MFOwnerID != ownerID {
 			return fleet.Agent{}, fleet.ErrNotFound
@@ -43,15 +43,15 @@ func (a agentRepositoryMock) RetrieveByID(ctx context.Context, ownerID string, t
 	return fleet.Agent{}, fleet.ErrNotFound
 }
 
-func (a agentRepositoryMock) RetrieveMatchingAgents(ctx context.Context, ownerID string, tags types.Tags) (types.Metadata, error) {
+func (a agentRepositoryMock) RetrieveMatchingAgents(_ context.Context, _ string, _ types.Tags) (types.Metadata, error) {
 	return nil, nil
 }
 
-func (a agentRepositoryMock) UpdateHeartbeatByIDWithChannel(ctx context.Context, agent fleet.Agent) error {
+func (a agentRepositoryMock) UpdateHeartbeatByIDWithChannel(_ context.Context, _ fleet.Agent) error {
 	panic("implement me")
 }
 
-func (a agentRepositoryMock) Save(ctx context.Context, agent fleet.Agent) error {
+func (a agentRepositoryMock) Save(_ context.Context, agent fleet.Agent) error {
 	for _, ag := range a.agentsMock {
 		if ag.Name == agent.Name && ag.MFOwnerID == agent.MFOwnerID {
 			return fleet.ErrConflict
@@ -62,7 +62,7 @@ func (a agentRepositoryMock) Save(ctx context.Context, agent fleet.Agent) error 
 	return nil
 }
 
-func (a agentRepositoryMock) UpdateAgentByID(ctx context.Context, ownerID string, agent fleet.Agent) error {
+func (a agentRepositoryMock) UpdateAgentByID(_ context.Context, ownerID string, agent fleet.Agent) error {
 	if _, ok := a.agentsMock[agent.MFThingID]; ok {
 		if a.agentsMock[agent.MFThingID].MFOwnerID != ownerID {
 			return fleet.ErrUpdateEntity
@@ -73,11 +73,11 @@ func (a agentRepositoryMock) UpdateAgentByID(ctx context.Context, ownerID string
 	return fleet.ErrNotFound
 }
 
-func (a agentRepositoryMock) UpdateDataByIDWithChannel(ctx context.Context, agent fleet.Agent) error {
+func (a agentRepositoryMock) UpdateDataByIDWithChannel(_ context.Context, _ fleet.Agent) error {
 	panic("implement me")
 }
 
-func (a agentRepositoryMock) RetrieveByIDWithChannel(ctx context.Context, thingID string, channelID string) (fleet.Agent, error) {
+func (a agentRepositoryMock) RetrieveByIDWithChannel(_ context.Context, thingID string, channelID string) (fleet.Agent, error) {
 	if _, ok := a.agentsMock[thingID]; ok {
 		if a.agentsMock[thingID].MFChannelID != channelID {
 			return fleet.Agent{}, fleet.ErrNotFound
@@ -87,9 +87,9 @@ func (a agentRepositoryMock) RetrieveByIDWithChannel(ctx context.Context, thingI
 	return fleet.Agent{}, fleet.ErrNotFound
 }
 
-func (a agentRepositoryMock) RetrieveAll(ctx context.Context, owner string, pm fleet.PageMetadata) (fleet.Page, error) {
-	first := uint64(pm.Offset)
-	last := first + uint64(pm.Limit)
+func (a agentRepositoryMock) RetrieveAll(_ context.Context, owner string, pm fleet.PageMetadata) (fleet.Page, error) {
+	first := pm.Offset
+	last := first + pm.Limit
 
 	var agents []fleet.Agent
 	id := uint64(0)
@@ -111,7 +111,7 @@ func (a agentRepositoryMock) RetrieveAll(ctx context.Context, owner string, pm f
 	return pageAgentGroup, nil
 }
 
-func (a agentRepositoryMock) RetrieveAllByAgentGroupID(ctx context.Context, owner string, agentGroupID string, onlinishOnly bool) ([]fleet.Agent, error) {
+func (a agentRepositoryMock) RetrieveAllByAgentGroupID(_ context.Context, owner string, agentGroupID string, _ bool) ([]fleet.Agent, error) {
 	if agentGroupID == "" || owner == "" {
 		return nil, errors.ErrMalformedEntity
 	}
@@ -128,7 +128,7 @@ func (a agentRepositoryMock) RetrieveAllByAgentGroupID(ctx context.Context, owne
 	return agents, nil
 }
 
-func (a agentRepositoryMock) Delete(ctx context.Context, ownerID, thingID string) error {
+func (a agentRepositoryMock) Delete(_ context.Context, ownerID, thingID string) error {
 	if _, ok := a.agentsMock[thingID]; ok {
 		if a.agentsMock[thingID].MFOwnerID == ownerID {
 			delete(a.agentsMock, thingID)

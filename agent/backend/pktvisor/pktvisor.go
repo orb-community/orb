@@ -68,6 +68,9 @@ type pktvisorBackend struct {
 	adminAPIPort     string
 	adminAPIProtocol string
 
+	// added for Strings
+	agentTags string
+
 	// OpenTelemetry management
 	scrapeOtel bool
 	receiver   map[string]component.MetricsReceiver
@@ -295,6 +298,9 @@ func (p *pktvisorBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo
 	}
 	if p.adminAPIPort, prs = config["api_port"]; !prs {
 		return errors.New("you must specify pktvisor admin API port")
+	}
+	if agentTags, ok := config["agent_tags"]; ok {
+		p.agentTags = agentTags
 	}
 
 	for k, v := range otelConfig {

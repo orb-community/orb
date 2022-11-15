@@ -108,7 +108,9 @@ func (a *orbAgent) startBackends(agentCtx context.Context) error {
 			return errors.New("specified backend does not exist: " + name)
 		}
 		be := backend.GetBackend(name)
-		if err := be.Configure(a.logger, a.policyManager.GetRepo(), configurationEntry, structs.Map(a.config.OrbAgent.Otel)); err != nil {
+		configuration := structs.Map(a.config.OrbAgent.Otel)
+		configuration["agent_tags"] = a.config.OrbAgent.Tags
+		if err := be.Configure(a.logger, a.policyManager.GetRepo(), configurationEntry, configuration); err != nil {
 			return err
 		}
 		backendCtx := context.WithValue(agentCtx, "routine", name)
@@ -233,6 +235,11 @@ func (a *orbAgent) RestartBackend(ctx context.Context, name string, reason strin
 	a.logger.Info("removing policies", zap.String("backend", name))
 	if err := a.policyManager.RemoveBackendPolicies(be, true); err != nil {
 		a.logger.Error("failed to remove policies", zap.String("backend", name), zap.Error(err))
+	}
+	configuration := structs.Map(a.config.OrbAgent.Otel)
+	configuration["agent_tags"] = a.config.OrbAgent.Tags
+	if err := be.Configure(a.logger, a.policyManager.GetRepo(), a.config.OrbAgent.Backends[name], configuration); err != nil {
+		return err
 	}
 	a.logger.Info("resetting backend", zap.String("backend", name))
 	if err := be.FullReset(ctx); err != nil {
