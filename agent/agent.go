@@ -238,7 +238,7 @@ func (a *orbAgent) RestartBackend(ctx context.Context, name string, reason strin
 	}
 	configuration := structs.Map(a.config.OrbAgent.Otel)
 	configuration["agent_tags"] = a.config.OrbAgent.Tags
-	if err := be.Configure(a.logger, a.policyManager.GetRepo(), a.config.OrbAgent.Backends["pktvisor"], configuration); err != nil {
+	if err := be.Configure(a.logger, a.policyManager.GetRepo(), a.config.OrbAgent.Backends[name], configuration); err != nil {
 		return err
 	}
 	a.logger.Info("resetting backend", zap.String("backend", name))
