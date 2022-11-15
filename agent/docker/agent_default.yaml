@@ -1,0 +1,10 @@
+version: "1.0"
+
+visor: 
+  taps:
+
+orb: 
+  backends: 
+    pktvisor: 
+      binary: /usr/local/sbin/pktvisord
+      config_file: /opt/orb/agent_default.yaml

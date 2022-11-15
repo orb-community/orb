@@ -17,6 +17,10 @@ type accessByIDReq struct {
 	OwnerID string
 }
 
+type sinksFilter struct {
+	isOtel string
+}
+
 func (req accessByIDReq) validate() error {
 	if req.SinkID == "" || req.OwnerID == "" {
 		return sinks.ErrMalformedEntity

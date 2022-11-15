@@ -37,6 +37,10 @@ type datasetRes struct {
 	sinkIDs      []string
 }
 
+type datasetListRes struct {
+	datasets []datasetRes
+}
+
 type emptyRes struct {
 	err error
 }

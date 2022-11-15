@@ -18,10 +18,11 @@ type ownerRes struct {
 }
 
 type agentInfoRes struct {
-	ownerID   string
-	agentName string
-	agentTags map[string]string
-	orbTags   map[string]string
+	ownerID       string
+	agentName     string
+	agentTags     map[string]string
+	orbTags       map[string]string
+	agentGroupIDs []string
 }
 
 type emptyRes struct {

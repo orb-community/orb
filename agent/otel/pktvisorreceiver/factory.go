@@ -2,10 +2,11 @@ package pktvisorreceiver
 
 import (
 	"context"
+	"time"
+
 	"go.opentelemetry.io/otel/metric/global"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
-	"time"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
@@ -40,6 +41,17 @@ func CreateDefaultSettings(logger *zap.Logger) component.ReceiverCreateSettings 
 			MeterProvider:  global.MeterProvider(),
 		},
 		BuildInfo: component.NewDefaultBuildInfo(),
+	}
+}
+
+func CreateReceiverConfig(endpoint, metricsPath string) config.Receiver {
+	return &Config{
+		ReceiverSettings: config.NewReceiverSettings(config.NewComponentID(typeStr)),
+		TCPAddr: confignet.TCPAddr{
+			Endpoint: endpoint,
+		},
+		MetricsPath:        metricsPath,
+		CollectionInterval: defaultCollectionInterval,
 	}
 }
 

@@ -165,7 +165,7 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
       },
       {
         prop: 'backend',
-        name: 'Type',
+        name: 'Backend',
         resizeable: false,
         minWidth: 120,
         flexGrow: 1,

@@ -362,7 +362,7 @@ func TestMultiSinkRetrieval(t *testing.T) {
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
-			page, err := sinkRepo.RetrieveAll(context.Background(), tc.owner, tc.pageMetadata)
+			page, err := sinkRepo.RetrieveAllByOwnerID(context.Background(), tc.owner, tc.pageMetadata)
 			require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
 			size := uint64(len(page.Sinks))
 			assert.Equal(t, tc.size, size, fmt.Sprintf("%s: expected size %d got %d", desc, tc.size, size))
