@@ -3,6 +3,8 @@ from utils import create_tags_set
 
 from taps import *
 
+default_path_config_file = "/opt/orb"
+
 
 class FleetAgent:
     def __init__(self):
@@ -11,7 +13,8 @@ class FleetAgent:
     @classmethod
     def config_file_of_orb_agent(cls, name, token, iface, orb_url, base_orb_mqtt, tap_name, tls_verify=True,
                                  auto_provision=True, orb_cloud_mqtt_id=None, orb_cloud_mqtt_key=None,
-                                 orb_cloud_mqtt_channel_id=None, input_type="pcap", input_tags='3', settings=None):
+                                 orb_cloud_mqtt_channel_id=None, input_type="pcap", input_tags='3', settings=None,
+                                 overwrite_default=False):
         assert_that(tls_verify, any_of(equal_to(True), equal_to(False)), "Unexpected value for tls_verify on "
                                                                          "agent pcap config file creation")
         assert_that(auto_provision, any_of(equal_to(True), equal_to(False)), "Unexpected value for auto_provision "
@@ -30,6 +33,10 @@ class FleetAgent:
         if input_tags is not None and input_tags != '0':
             tap_tags = create_tags_set(input_tags, tag_prefix='testtaptag', string_mode='lower')
             tap.add_tag(tap_name, tap_tags)
+        if overwrite_default is True:
+            pkt_name_file = "agent"
+        else:
+            pkt_name_file = name
         if auto_provision:
             agent = {
                 "version": "1.0",
@@ -40,7 +47,7 @@ class FleetAgent:
                     "backends": {
                         "pktvisor": {
                             "binary": "/usr/local/sbin/pktvisord",
-                            "config_file": f"/usr/local/orb/{name}.yaml"
+                            "config_file": f"{default_path_config_file}/{pkt_name_file}.yaml"
                         }
                     },
                     "tls": {
@@ -74,7 +81,7 @@ class FleetAgent:
                     "backends": {
                         "pktvisor": {
                             "binary": "/usr/local/sbin/pktvisord",
-                            "config_file": f"/usr/local/orb/{name}.yaml"
+                            "config_file": f"{default_path_config_file}/{pkt_name_file}.yaml"
                         }
                     },
                     "tls": {
