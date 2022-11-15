@@ -236,17 +236,17 @@ func (a *orbAgent) RestartBackend(ctx context.Context, name string, reason strin
 	if err := a.policyManager.RemoveBackendPolicies(be, true); err != nil {
 		a.logger.Error("failed to remove policies", zap.String("backend", name), zap.Error(err))
 	}
+	configuration := structs.Map(a.config.OrbAgent.Otel)
+	configuration["agent_tags"] = a.config.OrbAgent.Tags
+	if err := be.Configure(a.logger, a.policyManager.GetRepo(), a.config.OrbAgent.Backends["pktvisor"], configuration); err != nil {
+		return err
+	}
 	a.logger.Info("resetting backend", zap.String("backend", name))
 	if err := be.FullReset(ctx); err != nil {
 		a.backendState[name].LastError = fmt.Sprintf("failed to reset backend: %v", err)
 		a.logger.Error("failed to reset backend", zap.String("backend", name), zap.Error(err))
 	}
 	be.SetCommsClient(a.config.OrbAgent.Cloud.MQTT.Id, &a.client, fmt.Sprintf("%s/?/%s", a.baseTopic, name))
-	configuration := structs.Map(a.config.OrbAgent.Otel)
-	configuration["agent_tags"] = a.config.OrbAgent.Tags
-	if err := be.Configure(a.logger, a.policyManager.GetRepo(), a.config.OrbAgent.Backends["pktvisor"], configuration); err != nil {
-		return err
-	}
 	err := a.sendAgentPoliciesReq()
 	if err != nil {
 		a.logger.Error("failed to send agent policies request", zap.Error(err))
