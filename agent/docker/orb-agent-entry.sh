@@ -21,7 +21,6 @@ if [ -f "asn.mmdb.gz" ]; then
   gzip -d asn.mmdb.gz
   gzip -d city.mmdb.gz
 fi
-cd /
 #
 
 # orb agent binary location. by default, matches orb-agent container (see Dockerfile)
@@ -52,6 +51,17 @@ visor:
 END
 ) > "$tmpfile"
 
+# Checking agent.yaml config file
+CONFIG_FILE_EXISTS=false
+if [ -f "/opt/orb/agent.yaml" ]
+then
+  echo "Contains agent.yaml config file"
+  CONFIG_FILE_EXISTS=true
+else
+  echo "Not contains agent.yaml config file, setting default config file"
+  CONFIG_FILE_EXISTS=false
+fi
+
 # Check NetFlow TAP parameters
 if [ "${PKTVISOR_NETFLOW_BIND_ADDRESS}" = '' ]; then
   PKTVISOR_NETFLOW_BIND_ADDRESS='0.0.0.0'
@@ -60,6 +70,7 @@ if [ "${PKTVISOR_NETFLOW_PORT_DEFAULT}" = '' ]; then
   PKTVISOR_NETFLOW_PORT_DEFAULT='2055'
 fi
 if [ "${PKTVISOR_NETFLOW}" = 'true' ]; then
+echo "Setting default_netflow as visor tap"
 (
 cat <<END
     default_netflow:
@@ -81,6 +92,7 @@ if [ "${PKTVISOR_SFLOW_PORT_DEFAULT}" = '' ]; then
   PKTVISOR_SFLOW_PORT_DEFAULT='6343'
 fi
 if [ "${PKTVISOR_SFLOW}" = 'true' ]; then
+echo "Setting default_sflow as visor tap"
 (
 cat <<END
     default_sflow:
@@ -102,6 +114,7 @@ if [ "${PKTVISOR_DNSTAP_PORT_DEFAULT}" = '' ]; then
   PKTVISOR_DNSTAP_PORT_DEFAULT='6000'
 fi
 if [ "${PKTVISOR_DNSTAP}" = 'true' ]; then
+echo "Setting default_dnstap as visor tap"
 (
 cat <<END
     default_dnstap:
@@ -118,7 +131,8 @@ fi
 if [ "$PKTVISOR_PCAP_IFACE_DEFAULT" = 'mock' ]; then
   MAYBE_MOCK='pcap_source: mock'
 fi
-if [[ -n "${PKTVISOR_PCAP_IFACE_DEFAULT}" || "${PKTVISOR_DNSTAP}" != 'true' && "${PKTVISOR_SFLOW}" != 'true' && "${PKTVISOR_NETFLOW}" != 'true' ]]; then
+if [[ -n "${PKTVISOR_PCAP_IFACE_DEFAULT}" || "${PKTVISOR_PCAP}" == 'true' || "${PKTVISOR_DNSTAP}" != 'true' && "${PKTVISOR_SFLOW}" != 'true' && "${PKTVISOR_NETFLOW}" != 'true' ]]; then
+  echo "Setting default_pcap as visor tap"
   if [ "$PKTVISOR_PCAP_IFACE_DEFAULT" = '' ]; then
     PKTVISOR_PCAP_IFACE_DEFAULT='auto'
   fi
@@ -144,10 +158,28 @@ do
   if [ ! -f "/var/run/orb-agent.pid"  ]; then
     # running orb-agent in background
     if [[ "$2" == '-c' || "$3" == '-c' ]]; then
-        # drop the pktvisor configuration file
+      # if config file was passed, drop the built-in pktvisor configuration file
+      echo "Running with config file parameter"
+      ORB_BACKENDS_PKTVISOR_CONFIG_FILE=""
+      nohup /run-agent.sh "$@" &
+    else
+      if [[ $CONFIG_FILE_EXISTS == true ]]; then
+        # if config file is mounted, drop the built-in pktvisor configuration file
+        echo "Running with config file mounted"
         ORB_BACKENDS_PKTVISOR_CONFIG_FILE=""
+        nohup /run-agent.sh "$@" &
+      else
+        # if none config file is set, use the built-in pktvisor configuration file and agent_default.yaml
+        echo "Running with default config file and pktvisor built-in configuration"      
+        # checking if debug mode is enabled
+        DEBUG=''
+        if [[ "$2" == '-d' ]]; then
+          echo "Debug mode enabled"
+          DEBUG='-d'
+        fi
+        nohup /run-agent.sh run -c /opt/orb/agent_default.yaml $DEBUG &
+      fi
     fi
-    nohup /run-agent.sh "$@" &
     sleep 2
     if [ -d "/nohup.out" ]; then
        tail -f /nohup.out &

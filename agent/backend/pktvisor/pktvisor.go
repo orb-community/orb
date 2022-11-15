@@ -306,8 +306,10 @@ func (p *pktvisorBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo
 	for k, v := range otelConfig {
 		switch k {
 		case "Enable":
-			p.logger.Info("OpenTelemetry enabled")
 			p.scrapeOtel = v.(bool)
+			if v.(bool) {
+				p.logger.Info("OpenTelemetry enabled")
+			}
 		}
 	}
 

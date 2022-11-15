@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"net/url"
 	"runtime"
+	"sort"
+	"strings"
 	"time"
 
 	"github.com/andybalholm/brotli"
@@ -110,29 +112,48 @@ func (e *exporter) start(_ context.Context, _ component.Host) error {
 
 // extractAttribute extract attribute from metricsRequest metrics
 func (e *exporter) extractAttribute(metricsRequest pmetricotlp.Request, attribute string) string {
-	metrics := metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
-	for i := 0; i < metrics.Len(); i++ {
-		metricItem := metrics.At(i)
-		switch metricItem.Type() {
-		case pmetric.MetricTypeGauge:
-			p, ok := metricItem.Gauge().DataPoints().At(0).Attributes().Get(attribute)
-			if ok {
-				return p.AsString()
-			}
-		case pmetric.MetricTypeHistogram:
-			p, ok := metricItem.Histogram().DataPoints().At(0).Attributes().Get(attribute)
-			if ok {
-				return p.AsString()
-			}
-		case pmetric.MetricTypeSum:
-			p, ok := metricItem.Sum().DataPoints().At(0).Attributes().Get(attribute)
-			if ok {
-				return p.AsString()
-			}
-		case pmetric.MetricTypeExponentialHistogram:
-			p, ok := metricItem.ExponentialHistogram().DataPoints().At(0).Attributes().Get(attribute)
-			if ok {
-				return p.AsString()
+	if metricsRequest.Metrics().ResourceMetrics().Len() > 0 {
+		if metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().Len() > 0 {
+			metrics := metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
+			for i := 0; i < metrics.Len(); i++ {
+				metricItem := metrics.At(i)
+				switch metricItem.Type() {
+				case pmetric.MetricTypeGauge:
+					if metricItem.Gauge().DataPoints().Len() > 0 {
+						p, ok := metricItem.Gauge().DataPoints().At(0).Attributes().Get(attribute)
+						if ok {
+							return p.AsString()
+						}
+					}
+				case pmetric.MetricTypeHistogram:
+					if metricItem.Histogram().DataPoints().Len() > 0 {
+						p, ok := metricItem.Histogram().DataPoints().At(0).Attributes().Get(attribute)
+						if ok {
+							return p.AsString()
+						}
+					}
+				case pmetric.MetricTypeSum:
+					if metricItem.Sum().DataPoints().Len() > 0 {
+						p, ok := metricItem.Sum().DataPoints().At(0).Attributes().Get(attribute)
+						if ok {
+							return p.AsString()
+						}
+					}
+				case pmetric.MetricTypeSummary:
+					if metricItem.Summary().DataPoints().Len() > 0 {
+						p, ok := metricItem.Summary().DataPoints().At(0).Attributes().Get(attribute)
+						if ok {
+							return p.AsString()
+						}
+					}
+				case pmetric.MetricTypeExponentialHistogram:
+					if metricItem.ExponentialHistogram().DataPoints().Len() > 0 {
+						p, ok := metricItem.ExponentialHistogram().DataPoints().At(0).Attributes().Get(attribute)
+						if ok {
+							return p.AsString()
+						}
+					}
+				}
 			}
 		}
 	}
@@ -175,9 +196,14 @@ func (e *exporter) pushMetrics(ctx context.Context, md pmetric.Metrics) error {
 		defer ctx.Done()
 		return consumererror.NewPermanent(err)
 	}
+	// sort datasetIDs to send always on same order
+	datasetIDs := strings.Split(agentData.Datasets, ",")
+	sort.Strings(datasetIDs)
+	datasets := strings.Join(datasetIDs, ",")
+
 	// injecting policy ID attribute on metrics
 	tr = e.injectAttribute(tr, "policy_id", e.policyID)
-	tr = e.injectAttribute(tr, "dataset_ids", agentData.Datasets)
+	tr = e.injectAttribute(tr, "dataset_ids", datasets)
 	tr = e.injectAttribute(tr, "agent_tags", agentData.AgentTags)
 
 	request, err := tr.MarshalProto()

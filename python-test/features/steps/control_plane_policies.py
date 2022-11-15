@@ -581,8 +581,12 @@ def make_policy_json(name, handler_label, handler, description=None, tap="defaul
     if exclude_noerror is not None:
         assert_that(exclude_noerror.lower(), any_of(equal_to("false"), equal_to("true")),
                     "Unexpected value for exclude no error filter")
+        exclude_noerror = eval(exclude_noerror.title())
     assert_that(handler, any_of(equal_to("dns"), equal_to("dhcp"), equal_to("net")), "Unexpected handler for policy")
     assert_that(name, not_none(), "Unable to create policy without name")
+
+    if only_qname_suffix is not None:
+        only_qname_suffix = only_qname_suffix.split(",")
 
     json_request = {"name": name,
                     "description": description,
