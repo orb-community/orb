@@ -14,11 +14,6 @@ type commsMetricsMiddleware struct {
 	svc            AgentCommsService
 }
 
-func (c commsMetricsMiddleware) NotifyAgentConfig(ctx context.Context, a Agent) error {
-	//TODO implement me
-	panic("implement me")
-}
-
 func (c commsMetricsMiddleware) NotifyGroupDatasetEdit(ctx context.Context, ag AgentGroup, datasetID, policyID, ownerID string, valid bool) error {
 	defer func(begin time.Time) {
 		labels := []string{
