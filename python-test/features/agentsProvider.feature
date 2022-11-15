@@ -179,3 +179,52 @@ Scenario: Edit agent using an already existent name (conflict)
         And that an agent with 1 orb tag(s) already exists and is online
     When edit the agent name using an already existent one
     Then the error message on response is entity already exists
+
+@smoke
+Scenario: Run agent with dnstap, pcap, sflow, netflow env vars
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And a new agent is created with 1 orb tag(s)
+    When the agent container is started on an available port and use ALL env vars
+        And the agent status is online
+    Then created agent has taps: dnstap, pcap, sflow, netflow
+
+
+@smoke
+Scenario: Run agent with dnstap env vars
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And a new agent is created with 1 orb tag(s)
+    When the agent container is started on an available port and use dnstap env vars
+        And the agent status is online
+    Then created agent has taps: dnstap
+
+
+@smoke
+Scenario: Run agent with pcap env vars
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And a new agent is created with 1 orb tag(s)
+    When the agent container is started on an available port and use pcap env vars
+        And the agent status is online
+    Then created agent has taps: pcap
+
+
+@smoke
+Scenario: Run agent with sflow env vars
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And a new agent is created with 1 orb tag(s)
+    When the agent container is started on an available port and use sflow env vars
+        And the agent status is online
+    Then created agent has taps: sflow
+
+
+@smoke
+Scenario: Run agent with netflow env vars
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And a new agent is created with 1 orb tag(s)
+    When the agent container is started on an available port and use netflow env vars
+        And the agent status is online
+    Then created agent has taps: netflow
