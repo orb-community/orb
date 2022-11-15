@@ -15,7 +15,6 @@ import (
 	"github.com/ns1labs/orb/sinks"
 	"github.com/ns1labs/orb/sinks/pb"
 	"github.com/opentracing/opentracing-go"
-	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -23,36 +22,19 @@ import (
 var _ pb.SinkServiceServer = (*grpcServer)(nil)
 
 type grpcServer struct {
-	logger *zap.Logger
 	pb.UnimplementedSinkServiceServer
 	retrieveSink    kitgrpc.Handler
 	passwordService sinks.PasswordService
-	retrieveSinks   kitgrpc.Handler
 }
 
-func NewServer(tracer opentracing.Tracer, svc sinks.SinkService, logger *zap.Logger) pb.SinkServiceServer {
+func NewServer(tracer opentracing.Tracer, svc sinks.SinkService) pb.SinkServiceServer {
 	return &grpcServer{
-		logger: logger,
 		retrieveSink: kitgrpc.NewServer(
 			kitot.TraceServer(tracer, "retrieve_sink")(retrieveSinkEndpoint(svc)),
 			decodeRetrieveSinkRequest,
 			encodeSinkResponse,
 		),
-		retrieveSinks: kitgrpc.NewServer(
-			kitot.TraceServer(tracer, "retrieve_sinks")(retrieveSinksEndpoint(svc)),
-			decodeRetrieveSinksRequest,
-			encodeSinksResponse,
-		),
 	}
-}
-
-func (gs *grpcServer) RetrieveSinks(ctx context.Context, req *pb.SinksFilterReq) (*pb.SinksRes, error) {
-	_, res, err := gs.retrieveSinks.ServeGRPC(ctx, req)
-	if err != nil {
-		return nil, encodeError(err)
-	}
-
-	return res.(*pb.SinksRes), nil
 }
 
 func (gs *grpcServer) RetrieveSink(ctx context.Context, req *pb.SinkByIDReq) (*pb.SinkRes, error) {
@@ -62,31 +44,6 @@ func (gs *grpcServer) RetrieveSink(ctx context.Context, req *pb.SinkByIDReq) (*p
 	}
 
 	return res.(*pb.SinkRes), nil
-}
-
-func decodeRetrieveSinksRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
-	req := grpcReq.(*pb.SinksFilterReq)
-	return sinksFilter{isOtel: req.OtelEnabled}, nil
-}
-
-func encodeSinksResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
-	res := grpcRes.(sinksRes)
-	sList := make([]*pb.SinkRes, len(res.sinks))
-	for i, sink := range res.sinks {
-		sList[i] = &pb.SinkRes{
-			Id:          sink.id,
-			Name:        sink.name,
-			Description: sink.description,
-			Tags:        sink.tags,
-			State:       sink.state,
-			Error:       sink.error,
-			Backend:     sink.backend,
-			Config:      sink.config,
-		}
-	}
-	return &pb.SinksRes{
-		Sinks: sList,
-	}, nil
 }
 
 func decodeRetrieveSinkRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {

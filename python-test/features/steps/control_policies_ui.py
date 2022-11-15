@@ -50,23 +50,6 @@ def create_new_policy_through_UI(context, kwargs):
                                                                    " button")
         assert_that(button_was_clicked, equal_to(True), "Unable to click on advanced options expander button")
         input_text_by_xpath(PolicyPage.host_spec(), params["host_specification"], context.driver)
-    if params["pcap_source"] is not None:
-        advanced_options_button = WebDriverWait(context.driver, time_webdriver_wait).until(
-            EC.presence_of_element_located((By.XPATH, PolicyPage.advanced_options_expander())))
-        if advanced_options_button.get_attribute("aria-expanded") == "false":
-            button_was_clicked = button_click_by_xpath(PolicyPage.advanced_options_expander(),
-                                                       context.driver, "Unable to click on advanced options expander"
-                                                                       " button")
-            assert_that(button_was_clicked, equal_to(True), "Unable to click on advanced options expander button")
-        WebDriverWait(context.driver, time_webdriver_wait).until(
-            EC.presence_of_element_located((By.XPATH, PolicyPage.pcap_source())))
-        button_was_clicked = button_click_by_xpath(PolicyPage.pcap_source_selector_button(),
-                                                   context.driver, "Unable to click on pcap source selector button")
-        assert_that(button_was_clicked, equal_to(True), "Unable to click on pcap source selector button")
-        pcap_sources_options = get_selector_options(context.driver)
-        chosen_pcap_source = [val for key, val in pcap_sources_options.items() if params["pcap_source"] in key]
-        if len(chosen_pcap_source) == 1:
-            chosen_pcap_source[0].click()
     if params["bpf_filter_expression"] is not None:
         input_text_by_xpath(PolicyPage.filter_expression(), params["bpf_filter_expression"], context.driver)
     button_was_clicked = button_click_by_xpath(UtilButton.next_button(),

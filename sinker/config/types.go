@@ -15,7 +15,6 @@ type SinkConfig struct {
 	Url             string          `json:"remote_host"`
 	User            string          `json:"username"`
 	Password        string          `json:"password"`
-	Opentelemetry   string          `json:"opentelemetry"`
 	State           PrometheusState `json:"state,omitempty"`
 	Msg             string          `json:"msg,omitempty"`
 	LastRemoteWrite time.Time       `json:"last_remote_write,omitempty"`
@@ -48,8 +47,8 @@ func (p PrometheusState) String() string {
 	return promStateMap[p]
 }
 
-func (p *PrometheusState) SetFromString(value string) error {
-	*p = promStateRevMap[value]
+func (p *PrometheusState) Scan(value interface{}) error {
+	*p = promStateRevMap[string(value.([]byte))]
 	return nil
 }
 

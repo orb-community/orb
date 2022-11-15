@@ -33,15 +33,6 @@ func (s *Metadata) RestrictKeys(predicate func(string) bool) {
 	}
 }
 
-func (s *Metadata) IsApplicable(filterFunc func(string, interface{}) bool) bool {
-	for key, value := range *s {
-		if filterFunc(key, value) {
-			return true
-		}
-	}
-	return false
-}
-
 func (s *Metadata) FilterMap(predicateFunc func(string) bool, mapFunc func(string, interface{}) (string, interface{})) {
 	for key, value := range *s {
 		if predicateFunc(key) {

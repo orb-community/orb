@@ -268,7 +268,7 @@ func startGRPCServer(svc sinks.SinkService, tracer opentracing.Tracer, cfg confi
 		logger.Info(fmt.Sprintf("gRPC service started using http on port %s", cfg.Port))
 		server = grpc.NewServer()
 	}
-	pb.RegisterSinkServiceServer(server, sinksgrpc.NewServer(tracer, svc, logger))
+	pb.RegisterSinkServiceServer(server, sinksgrpc.NewServer(tracer, svc))
 	reflection.Register(server)
 	errs <- server.Serve(listener)
 }

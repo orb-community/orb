@@ -317,20 +317,12 @@ class PolicyPage:
         return "//nb-select[@data-orb-qa-id='taps']//button[@class='select-button placeholder']"
 
     @classmethod
-    def pcap_source_selector_button(cls):
-        return "//button[@class='select-button placeholder' and text()='e.g.: libpcap']"
-
-    @classmethod
     def advanced_options_expander(cls):
         return "//nb-accordion-item-header[contains(@class, 'policy-advanced-options')]"
 
     @classmethod
     def host_spec(cls):
         return "//input[contains(@placeholder, '10.0.1.0')]"
-
-    @classmethod
-    def pcap_source(cls):
-        return "//label[text()= 'Packet Capture Engine']"
 
     @classmethod
     def filter_expression(cls):

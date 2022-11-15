@@ -109,8 +109,6 @@ type AgentService interface {
 	ResetAgent(ct context.Context, token string, agentID string) error
 	// GetPolicyState get all policies state per agent in a formatted way from a given existent agent
 	GetPolicyState(ctx context.Context, agent Agent) (map[string]interface{}, error)
-	// ViewAgentMatchingGroupsByIDInternal Groups this Agent currently belongs to, according to matching agent and group tags
-	ViewAgentMatchingGroupsByIDInternal(ctx context.Context, agentID string, ownerID string) (MatchingGroups, error)
 }
 
 type AgentRepository interface {

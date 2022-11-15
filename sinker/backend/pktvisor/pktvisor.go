@@ -18,7 +18,6 @@ import (
 	"github.com/ns1labs/orb/sinker/backend"
 	"github.com/ns1labs/orb/sinker/prometheus"
 	"go.uber.org/zap"
-	"golang.org/x/exp/slices"
 )
 
 var _ backend.Backend = (*pktvisorBackend)(nil)
@@ -27,17 +26,14 @@ type pktvisorBackend struct {
 	logger *zap.Logger
 }
 
-type metricAppendix struct {
+type context struct {
 	agent        *pb.AgentInfoRes
 	agentID      string
 	policyID     string
 	policyName   string
-	deviceList   []string
 	deviceID     string
-	ifList       []string
 	deviceIF     string
 	handlerLabel string
-	format       string
 	tags         map[string]string
 	logger       *zap.Logger
 }
@@ -64,17 +60,14 @@ func (p pktvisorBackend) ProcessMetrics(agent *pb.AgentInfoRes, agentID string, 
 		tags[k] = v
 	}
 
-	appendix := metricAppendix{
+	context := context{
 		agent:        agent,
 		agentID:      agentID,
 		policyID:     data.PolicyID,
 		policyName:   data.PolicyName,
-		deviceList:   []string{},
 		deviceID:     "",
-		ifList:       []string{},
 		deviceIF:     "",
 		handlerLabel: "",
-		format:       "prom_sinker",
 		tags:         tags,
 		logger:       p.logger,
 	}
@@ -122,10 +115,10 @@ func (p pktvisorBackend) ProcessMetrics(agent *pb.AgentInfoRes, agentID string, 
 			stats[handlerLabel] = sTmp
 		}
 	}
-	return parseToProm(&appendix, stats), nil
+	return parseToProm(&context, stats), nil
 }
 
-func parseToProm(ctxt *metricAppendix, statsMap map[string]StatSnapshot) prometheus.TSList {
+func parseToProm(ctxt *context, statsMap map[string]StatSnapshot) prometheus.TSList {
 	var finalTs = prometheus.TSList{}
 	for handlerLabel, stats := range statsMap {
 		var tsList = prometheus.TSList{}
@@ -141,7 +134,7 @@ func parseToProm(ctxt *metricAppendix, statsMap map[string]StatSnapshot) prometh
 	return finalTs
 }
 
-func convertToPromParticle(ctxt *metricAppendix, statsMap map[string]interface{}, label string, tsList *prometheus.TSList) {
+func convertToPromParticle(ctxt *context, statsMap map[string]interface{}, label string, tsList *prometheus.TSList) {
 	for key, value := range statsMap {
 		switch statistic := value.(type) {
 		case map[string]interface{}:
@@ -205,7 +198,7 @@ func convertToPromParticle(ctxt *metricAppendix, statsMap map[string]interface{}
 	}
 }
 
-func convertFlowToPromParticle(ctxt *metricAppendix, statsMap map[string]interface{}, label string, tsList *prometheus.TSList) {
+func convertFlowToPromParticle(ctxt *context, statsMap map[string]interface{}, label string, tsList *prometheus.TSList) {
 	for key, value := range statsMap {
 		switch statistic := value.(type) {
 		case map[string]interface{}:
@@ -214,22 +207,10 @@ func convertFlowToPromParticle(ctxt *metricAppendix, statsMap map[string]interfa
 
 			if label == "FlowDevices" {
 				label = strings.ReplaceAll(label, "Devices", "")
-				for mkey := range statsMap {
-					ctxt.deviceList = append(ctxt.deviceList, mkey)
-				}
 				ctxt.deviceID = key
 				convertFlowToPromParticle(ctxt, statistic, label, tsList)
 			} else if label == "FlowInterfaces" {
 				label = strings.ReplaceAll(label, "Interfaces", "")
-				for mkey := range statsMap {
-					ctxt.ifList = append(ctxt.ifList, mkey)
-				}
-				ctxt.deviceIF = ctxt.deviceID + "|" + key
-				convertFlowToPromParticle(ctxt, statistic, label, tsList)
-			} else if slices.Contains(ctxt.deviceList, key) {
-				ctxt.deviceID = key
-				convertFlowToPromParticle(ctxt, statistic, label, tsList)
-			} else if slices.Contains(ctxt.ifList, key) {
 				ctxt.deviceIF = ctxt.deviceID + "|" + key
 				convertFlowToPromParticle(ctxt, statistic, label, tsList)
 			} else {
@@ -280,7 +261,7 @@ func convertFlowToPromParticle(ctxt *metricAppendix, statsMap map[string]interfa
 	}
 }
 
-func makePromParticle(ctxt *metricAppendix, label string, k string, v interface{}, tsList *prometheus.TSList, quantile bool, name string) *prometheus.TSList {
+func makePromParticle(ctxt *context, label string, k string, v interface{}, tsList *prometheus.TSList, quantile bool, name string) *prometheus.TSList {
 	mapQuantiles := make(map[string]string)
 	mapQuantiles["P50"] = "0.5"
 	mapQuantiles["P90"] = "0.9"
@@ -373,7 +354,7 @@ func makePromParticle(ctxt *metricAppendix, label string, k string, v interface{
 	return tsList
 }
 
-func handleParticleError(ctxt *metricAppendix, err error) {
+func handleParticleError(ctxt *context, err error) {
 	ctxt.logger.Error("failed to set prometheus element", zap.Error(err))
 }
 

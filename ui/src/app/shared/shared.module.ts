@@ -24,7 +24,6 @@ import {
   NbInputModule,
   NbListModule,
   NbSelectModule,
-  NbTabsetModule,
   NbTooltipModule,
 } from '@nebular/theme';
 import { NgxDatatableModule } from '@swimlane/ngx-datatable';
@@ -63,7 +62,6 @@ import { PrettyYamlPipe } from './pipes/pretty-yaml.pipe';
 import { ToMillisecsPipe } from './pipes/time.pipe';
 import { PollControlComponent } from './components/poll-control/poll-control.component';
 import {EmptyInputDirective} from 'app/shared/directives/empty-input.directive';
-import { AgentBackendsComponent } from './components/orb/agent/agent-backends/agent-backends.component';
 
 @NgModule({
   imports: [
@@ -96,7 +94,6 @@ import { AgentBackendsComponent } from './components/orb/agent/agent-backends/ag
     MatCheckboxModule,
     MatToolbarModule,
     NbAutocompleteModule,
-    NbTabsetModule,
   ],
   declarations: [
     ConfirmationComponent,
@@ -111,7 +108,6 @@ import { AgentBackendsComponent } from './components/orb/agent/agent-backends/ag
     ValidTagInputDirective,
     PrettyJsonPipe,
     AgentInformationComponent,
-    AgentBackendsComponent,
     AgentCapabilitiesComponent,
     AgentPoliciesDatasetsComponent,
     AgentGroupsComponent,
@@ -148,7 +144,6 @@ import { AgentBackendsComponent } from './components/orb/agent/agent-backends/ag
     PrettyJsonPipe,
     TagControlComponent,
     AgentInformationComponent,
-    AgentBackendsComponent,
     AgentCapabilitiesComponent,
     AgentPoliciesDatasetsComponent,
     AgentGroupsComponent,

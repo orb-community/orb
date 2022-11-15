@@ -17,6 +17,7 @@ import (
 )
 
 func (a *orbAgent) connect(ctx context.Context, config config.MQTTConfig) (mqtt.Client, error) {
+
 	opts := mqtt.NewClientOptions().AddBroker(config.Address).SetClientID(config.Id)
 	opts.SetUsername(config.Id)
 	opts.SetPassword(config.Key)
@@ -26,8 +27,6 @@ func (a *orbAgent) connect(ctx context.Context, config config.MQTTConfig) (mqtt.
 	})
 	opts.SetConnectionLostHandler(func(client mqtt.Client, err error) {
 		a.logger.Error("connection to mqtt lost", zap.Error(err))
-		a.logger.Info("reconnecting....")
-		client.Connect()
 	})
 	opts.SetPingTimeout(5 * time.Second)
 	opts.SetAutoReconnect(false)
@@ -79,7 +78,7 @@ func (a *orbAgent) connect(ctx context.Context, config config.MQTTConfig) (mqtt.
 func (a *orbAgent) requestReconnection(ctx context.Context, client mqtt.Client, config config.MQTTConfig) {
 	a.nameAgentRPCTopics(config.ChannelID)
 	for name, be := range a.backends {
-		be.SetCommsClient(config.Id, &client, fmt.Sprintf("%s/?/%s", a.baseTopic, name))
+		be.SetCommsClient(config.Id, client, fmt.Sprintf("%s/?/%s", a.baseTopic, name))
 	}
 
 	if token := client.Subscribe(a.rpcFromCoreTopic, 1, a.handleRPCFromCore); token.Wait() && token.Error() != nil {

@@ -18,10 +18,6 @@ var _ pb.SinkServiceClient = (*grpcClient)(nil)
 
 type grpcClient struct{}
 
-func (client grpcClient) RetrieveSinks(ctx context.Context, in *pb.SinksFilterReq, opts ...grpc.CallOption) (*pb.SinksRes, error) {
-	return &pb.SinksRes{}, nil
-}
-
 func (client grpcClient) RetrieveSink(ctx context.Context, in *pb.SinkByIDReq, opts ...grpc.CallOption) (*pb.SinkRes, error) {
 	return &pb.SinkRes{}, nil
 }

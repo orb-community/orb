@@ -34,42 +34,6 @@ type policiesRepository struct {
 	logger *zap.Logger
 }
 
-func (r policiesRepository) RetrieveDatasetsByGroupID(ctx context.Context, groupIDs []string, ownerID string) ([]policies.Dataset, error) {
-	q := `SELECT id, agent_group_id, sink_ids, agent_policy_id
-			FROM datasets
-			WHERE valid = TRUE AND agent_group_id IN (?) AND mf_owner_id = ?`
-
-	if len(groupIDs) == 0 || ownerID == "" {
-		return nil, errors.ErrMalformedEntity
-	}
-
-	query, args, err := sqlx.In(q, groupIDs, ownerID)
-	if err != nil {
-		return nil, err
-	}
-
-	query = r.db.Rebind(query)
-
-	rows, err := r.db.QueryxContext(ctx, query, args...)
-	if err != nil {
-		return nil, errors.Wrap(errors.ErrSelectEntity, err)
-	}
-	defer rows.Close()
-
-	var items []policies.Dataset
-	for rows.Next() {
-		dbth := dbDataset{MFOwnerID: ownerID}
-		if err := rows.StructScan(&dbth); err != nil {
-			return nil, errors.Wrap(errors.ErrSelectEntity, err)
-		}
-
-		th := toDataset(dbth)
-		items = append(items, policies.Dataset{ID: th.ID, PolicyID: th.PolicyID, SinkIDs: th.SinkIDs, AgentGroupID: th.AgentGroupID})
-	}
-
-	return items, nil
-}
-
 func (r policiesRepository) DeletePolicy(ctx context.Context, ownerID string, policyID string) error {
 	if ownerID == "" || policyID == "" {
 		return policies.ErrMalformedEntity

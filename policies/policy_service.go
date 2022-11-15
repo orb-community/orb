@@ -34,13 +34,6 @@ var (
 	ErrNotifyAgentGroupChannel = errors.New("failed to notify agent group channel")
 )
 
-func (s policiesService) ListDatasetsByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) ([]Dataset, error) {
-	if len(groupIDs) == 0 || ownerID == "" {
-		return nil, ErrMalformedEntity
-	}
-	return s.repo.RetrieveDatasetsByGroupID(ctx, groupIDs, ownerID)
-}
-
 func (s policiesService) ListPolicies(ctx context.Context, token string, pm PageMetadata) (Page, error) {
 	ownerID, err := s.identify(token)
 	if err != nil {

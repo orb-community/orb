@@ -1,4 +1,4 @@
-package config
+package maestro
 
 import (
 	"context"
@@ -179,6 +179,7 @@ func GetDeploymentJson(sinkId, sinkUrl, sinkUsername, sinkPassword string) (stri
 
 // ReturnConfigYamlFromSink this is the main method, which will generate the YAML file from the
 func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig, sinkId, sinkUrl, sinkUsername, sinkPassword string) (string, error) {
+
 	config := OtelConfigFile{
 		Receivers: Receivers{
 			Kafka: KafkaReceiver{
@@ -202,7 +203,7 @@ func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig, sinkId, sinkUrl
 		Exporters: Exporters{
 			PrometheusRemoteWrite: &PrometheusRemoteWriteExporterConfig{
 				Endpoint: sinkUrl,
-				Auth: struct {
+				auth: struct {
 					Authenticator string `json:"authenticator" yaml:"authenticator"`
 				}{Authenticator: "basicauth/exporter"},
 			},
@@ -232,9 +233,7 @@ func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig, sinkId, sinkUrl
 		return "", err
 	}
 	returnedString := "---\n" + string(marshal)
-	s := strings.ReplaceAll(returnedString, "\"", "")
-	s = strings.ReplaceAll(s, "\n", `\n`)
-	return s, nil
+	return returnedString, nil
 
 }
 
@@ -297,7 +296,7 @@ type Exporters struct {
 
 type PrometheusRemoteWriteExporterConfig struct {
 	Endpoint string `json:"endpoint" yaml:"endpoint"`
-	Auth     struct {
+	auth     struct {
 		Authenticator string `json:"authenticator" yaml:"authenticator"`
 	}
 }

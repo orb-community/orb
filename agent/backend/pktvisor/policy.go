@@ -6,13 +6,11 @@ package pktvisor
 
 import (
 	"bytes"
-	"context"
 	"fmt"
-	"net/http"
-
 	"github.com/ns1labs/orb/agent/policies"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
+	"net/http"
 )
 
 func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData, updatePolicy bool) error {
@@ -49,11 +47,6 @@ func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData, updatePolicy boo
 		return err
 	}
 
-	if p.scrapeOtel {
-		exeCtx, execCancelF := context.WithCancel(p.ctx)
-		p.addScraperProcess(exeCtx, execCancelF, data.ID, data.Name)
-	}
-
 	return nil
 
 }
@@ -64,9 +57,6 @@ func (p *pktvisorBackend) RemovePolicy(data policies.PolicyData) error {
 	err := p.request(fmt.Sprintf("policies/%s", data.Name), &resp, http.MethodDelete, http.NoBody, "application/json", RemovePolicyTimeout)
 	if err != nil {
 		return err
-	}
-	if p.scrapeOtel {
-		p.killScraperProcess(data.ID)
 	}
 	return nil
 }

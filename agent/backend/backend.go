@@ -6,11 +6,10 @@ package backend
 
 import (
 	"context"
-	"time"
-
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/ns1labs/orb/agent/policies"
 	"go.uber.org/zap"
+	"time"
 )
 
 const (
@@ -53,7 +52,7 @@ func (s RunningStatus) String() string {
 
 type Backend interface {
 	Configure(*zap.Logger, policies.PolicyRepo, map[string]string, map[string]interface{}) error
-	SetCommsClient(string, *mqtt.Client, string)
+	SetCommsClient(string, mqtt.Client, string)
 	Version() (string, error)
 	Start(ctx context.Context, cancelFunc context.CancelFunc) error
 	Stop(ctx context.Context) error

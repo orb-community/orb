@@ -2,12 +2,11 @@ package consumer
 
 import (
 	"context"
-	"github.com/ns1labs/orb/maestro/kubecontrol"
 	"github.com/ns1labs/orb/pkg/types"
-	sinkspb "github.com/ns1labs/orb/sinks/pb"
 	"time"
 
 	"github.com/go-redis/redis/v8"
+	"github.com/ns1labs/orb/maestro"
 	"go.uber.org/zap"
 )
 
@@ -28,27 +27,23 @@ const (
 )
 
 type Subscriber interface {
-	CreateDeploymentEntry(ctx context.Context, sinkId, sinkUrl, sinkUsername, sinkPassword string) error
-	GetDeploymentEntryFromSinkId(ctx context.Context, sinkId string) (string, error)
 	SubscribeSinks(context context.Context) error
 	SubscribeSinker(context context.Context) error
 }
 
 type eventStore struct {
-	kubecontrol kubecontrol.Service
-	sinksClient sinkspb.SinkServiceClient
-	client      *redis.Client
-	esconsumer  string
-	logger      *zap.Logger
+	maestroService maestro.MaestroService
+	client         *redis.Client
+	esconsumer     string
+	logger         *zap.Logger
 }
 
-func NewEventStore(client *redis.Client, kubecontrol kubecontrol.Service, esconsumer string, sinksClient sinkspb.SinkServiceClient, logger *zap.Logger) Subscriber {
+func NewEventStore(maestroService maestro.MaestroService, client *redis.Client, esconsumer string, logger *zap.Logger) Subscriber {
 	return eventStore{
-		kubecontrol: kubecontrol,
-		client:      client,
-		sinksClient: sinksClient,
-		esconsumer:  esconsumer,
-		logger:      logger,
+		maestroService: maestroService,
+		client:         client,
+		esconsumer:     esconsumer,
+		logger:         logger,
 	}
 }
 
@@ -72,7 +67,7 @@ func (es eventStore) SubscribeSinker(context context.Context) error {
 
 		for _, msg := range streams[0].Messages {
 			event := msg.Values
-			es.logger.Info("debugging event received", zap.Any("event", event))
+
 			var err error
 			switch event["operation"] {
 			case sinkerUpdate:
@@ -111,29 +106,23 @@ func (es eventStore) SubscribeSinks(context context.Context) error {
 		for _, msg := range streams[0].Messages {
 			event := msg.Values
 
-			es.logger.Info("debugging event", zap.Any("sink_event", event))
-			rte, err := decodeSinksEvent(event, event["operation"].(string))
-			if err != nil {
-				es.logger.Error("error decoding sinks event", zap.Any("operation", event["operation"]), zap.Any("sink_event", event), zap.Error(err))
-				break
-			}
+			var err error
 			switch event["operation"] {
 			case sinksCreate:
-				if v, ok := rte.config["opentelemetry"]; ok && v.(string) == "enabled" {
-					err = es.handleSinksCreateCollector(context, rte) //should create collector
-				}
+				rte := decodeSinksUpdate(event)
+				err = es.handleSinksCreateCollector(context, rte) //should create collector
 
 			case sinksUpdate:
-				if v, ok := rte.config["opentelemetry"]; ok && v.(string) == "enabled" {
-					err = es.handleSinksUpdateCollector(context, rte) //should create collector
-				}
+				rte := decodeSinksUpdate(event)
+				err = es.handleSinksUpdateCollector(context, rte) //should create collector
 
 			case sinksDelete:
+				rte := decodeSinksUpdate(event)
 				err = es.handleSinksDeleteCollector(context, rte) //should delete collector
 
 			}
 			if err != nil {
-				es.logger.Error("Failed to handle sinks event", zap.Any("operation", event["operation"]), zap.Error(err))
+				es.logger.Error("Failed to handle sinks event", zap.String("operation", event["operation"].(string)), zap.Error(err))
 				break
 			}
 			es.client.XAck(context, streamSinks, group, msg.ID)
@@ -141,28 +130,21 @@ func (es eventStore) SubscribeSinks(context context.Context) error {
 	}
 }
 
-// handleSinkerDeleteCollector Delete collector
+// Delete collector
 func (es eventStore) handleSinkerDeleteCollector(ctx context.Context, event sinkerUpdateEvent) error {
 	es.logger.Info("Received maestro DELETE event from sinker, sink state=" + event.state + ", , Sink ID=" + event.sinkID + ", Owner ID=" + event.ownerID)
-	deployment, err := es.GetDeploymentEntryFromSinkId(ctx, event.sinkID)
-	if err != nil {
-		return err
-	}
-	err = es.kubecontrol.DeleteOtelCollector(ctx, event.sinkID, deployment)
+	err := es.maestroService.DeleteOtelCollector(ctx, event.sinkID)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-// handleSinkerCreateCollector Create collector
+// Create collector
 func (es eventStore) handleSinkerCreateCollector(ctx context.Context, event sinkerUpdateEvent) error {
 	es.logger.Info("Received maestro CREATE event from sinker, sink state=" + event.state + ", Sink ID=" + event.sinkID + ", Owner ID=" + event.ownerID)
-	deploymentEntry, err := es.GetDeploymentEntryFromSinkId(ctx, event.sinkID)
-	if err != nil {
-		return err
-	}
-	err = es.kubecontrol.CreateOtelCollector(ctx, event.sinkID, deploymentEntry)
+
+	err := es.maestroService.CreateOtelCollector(ctx, event.sinkID, event.state, event.ownerID)
 	if err != nil {
 		return err
 	}

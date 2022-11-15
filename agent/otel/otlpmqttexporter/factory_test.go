@@ -4,22 +4,23 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"testing"
-	"time"
-
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/config"
 	"go.uber.org/zap"
+	"testing"
+	"time"
 
 	"go.opentelemetry.io/collector/component/componenttest"
+	"go.opentelemetry.io/collector/config/configtest"
 )
 
 func TestCreateDefaultConfig(t *testing.T) {
 	factory := NewFactory()
 	cfg := factory.CreateDefaultConfig()
 	assert.NotNil(t, cfg, "failed to create default config")
+	assert.NoError(t, configtest.CheckConfigStruct(cfg))
 	testedCfg, ok := factory.CreateDefaultConfig().(*Config)
 	assert.True(t, ok)
 	assert.Equal(t, "localhost:1883", testedCfg.Address, "default address is localhost")
@@ -35,10 +36,7 @@ func TestCreateMetricsExporter(t *testing.T) {
 	cfg := factory.CreateDefaultConfig().(*Config)
 
 	set := componenttest.NewNopExporterCreateSettings()
-	ctx := context.Background()
-	ctx = context.WithValue(ctx, "policy_name", "test")
-	ctx = context.WithValue(ctx, "policy_id", "test")
-	oexp, err := factory.CreateMetricsExporter(ctx, set, cfg)
+	oexp, err := factory.CreateMetricsExporter(context.Background(), set, cfg)
 	require.Nil(t, err)
 	require.NotNil(t, oexp)
 }
@@ -98,8 +96,7 @@ func TestCreateConfigClient(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := &tt.args.client
-			got := CreateConfigClient(c, tt.args.metricsTopic, " 1.0", nil)
+			got := CreateConfigClient(tt.args.client, tt.args.metricsTopic, " 1.0")
 			assert.Equal(t, tt.want, got.Validate(), "expected %s but got %s", tt.want, got.Validate())
 		})
 	}
@@ -155,7 +152,7 @@ func TestCreateConfig(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(t, tt.want, CreateConfig(tt.args.addr, tt.args.id, tt.args.key, tt.args.channel, "1.0", "metricstopic", nil), "CreateConfig(%v, %v, %v, %v)", tt.args.addr, tt.args.id, tt.args.key, tt.args.channel)
+			assert.Equalf(t, tt.want, CreateConfig(tt.args.addr, tt.args.id, tt.args.key, tt.args.channel, "1.0", "metricstopic"), "CreateConfig(%v, %v, %v, %v)", tt.args.addr, tt.args.id, tt.args.key, tt.args.channel)
 		})
 	}
 }

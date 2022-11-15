@@ -18,7 +18,3 @@ type sinkRes struct {
 	backend     string
 	config      []byte
 }
-
-type sinksRes struct {
-	sinks []sinkRes
-}

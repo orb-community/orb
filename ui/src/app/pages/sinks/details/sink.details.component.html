@@ -1,4 +1,4 @@
-<nb-card size="large" class="nb-card-large">
+<nb-card size="large" class="nb-card-medium">
   <nb-card-header>
     {{strings.details.header}}
     <button nbButton
@@ -49,12 +49,6 @@
             </mat-chip>
           </mat-chip-list>
         </div>
-      </div>
-    </div>
-    <div class="row" *ngIf="sink?.state === _sinkStates.error">
-      <div class="col-12 d-flex flex-column align-items-start">
-        <p class="ns1red">Error</p>
-        <p>{{sink.error}}</p>
       </div>
     </div>
   </nb-card-body>

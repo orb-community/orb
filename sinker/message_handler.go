@@ -6,9 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
-	"time"
-
 	"github.com/google/uuid"
 	"github.com/mainflux/mainflux/pkg/messaging"
 	"github.com/ns1labs/orb/fleet"
@@ -20,9 +17,11 @@ import (
 	"github.com/ns1labs/orb/sinker/prometheus"
 	pb3 "github.com/ns1labs/orb/sinks/pb"
 	"go.uber.org/zap"
+	"strings"
+	"time"
 )
 
-func (svc SinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, ownerID string, sinkID string) error {
+func (svc sinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, ownerID string, sinkID string) error {
 	cfgRepo, err := svc.sinkerCache.Get(ownerID, sinkID)
 	if err != nil {
 		svc.logger.Error("unable to retrieve the sink config", zap.Error(err))
@@ -74,7 +73,7 @@ func (svc SinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, owner
 	return nil
 }
 
-func (svc SinkerService) encodeBase64(user string, password string) string {
+func (svc sinkerService) encodeBase64(user string, password string) string {
 	defer func(t time.Time) {
 		svc.logger.Debug("encodeBase64 took", zap.String("execution", time.Since(t).String()))
 	}(time.Now())
@@ -82,7 +81,7 @@ func (svc SinkerService) encodeBase64(user string, password string) string {
 	return fmt.Sprintf("Basic %s", sEnc)
 }
 
-func (svc SinkerService) handleMetrics(ctx context.Context, agentID string, channelID string, subtopic string, payload []byte) error {
+func (svc sinkerService) handleMetrics(agentID string, channelID string, subtopic string, payload []byte) error {
 
 	// find backend to send it to
 	beName := strings.Split(subtopic, ".")
@@ -114,9 +113,9 @@ func (svc SinkerService) handleMetrics(ctx context.Context, agentID string, chan
 		return fleet.ErrSchemaMalformed
 	}
 
-	agentPb, err2 := svc.ExtractAgent(ctx, channelID)
-	if err2 != nil {
-		return err2
+	agentPb, err := svc.fleetClient.RetrieveAgentInfoByChannelID(context.Background(), &pb.AgentInfoByChannelIDReq{Channel: channelID})
+	if err != nil {
+		return err
 	}
 
 	agentName, _ := types.NewIdentifier(agentPb.AgentName)
@@ -160,15 +159,7 @@ func (svc SinkerService) handleMetrics(ctx context.Context, agentID string, chan
 	return nil
 }
 
-func (svc SinkerService) ExtractAgent(ctx context.Context, channelID string) (*pb.AgentInfoRes, error) {
-	agentPb, err := svc.fleetClient.RetrieveAgentInfoByChannelID(ctx, &pb.AgentInfoByChannelIDReq{Channel: channelID})
-	if err != nil {
-		return nil, err
-	}
-	return agentPb, nil
-}
-
-func (svc SinkerService) SinkPolicy(agent fleet.Agent, metricsPayload fleet.AgentMetricsRPCPayload, datasetSinkIDs map[string]bool, tsList []prometheus.TimeSeries) {
+func (svc sinkerService) SinkPolicy(agent fleet.Agent, metricsPayload fleet.AgentMetricsRPCPayload, datasetSinkIDs map[string]bool, tsList []prometheus.TimeSeries) {
 	sinkIDList := make([]string, len(datasetSinkIDs))
 	i := 0
 	for k := range datasetSinkIDs {
@@ -203,7 +194,7 @@ func (svc SinkerService) SinkPolicy(agent fleet.Agent, metricsPayload fleet.Agen
 	}
 }
 
-func (svc SinkerService) GetSinks(agent fleet.Agent, agentMetricsRPCPayload fleet.AgentMetricsRPCPayload, datasetSinkIDs map[string]bool) error {
+func (svc sinkerService) GetSinks(agent fleet.Agent, agentMetricsRPCPayload fleet.AgentMetricsRPCPayload, datasetSinkIDs map[string]bool) error {
 	for _, ds := range agentMetricsRPCPayload.Datasets {
 		if ds == "" {
 			svc.logger.Error("malformed agent RPC: empty dataset", zap.String("agent_id", agent.MFThingID), zap.String("owner_id", agent.MFOwnerID))
@@ -246,7 +237,7 @@ func (svc SinkerService) GetSinks(agent fleet.Agent, agentMetricsRPCPayload flee
 	return nil
 }
 
-func (svc SinkerService) handleMsgFromAgent(msg messaging.Message) error {
+func (svc sinkerService) handleMsgFromAgent(msg messaging.Message) error {
 	inputContext := context.WithValue(context.Background(), "trace-id", uuid.NewString())
 	go func(ctx context.Context) {
 		defer func(t time.Time) {
@@ -280,7 +271,7 @@ func (svc SinkerService) handleMsgFromAgent(msg messaging.Message) error {
 			return
 		}
 
-		if err := svc.handleMetrics(ctx, msg.Publisher, msg.Channel, msg.Subtopic, msg.Payload); err != nil {
+		if err := svc.handleMetrics(msg.Publisher, msg.Channel, msg.Subtopic, msg.Payload); err != nil {
 			svc.logger.Error("metrics processing failure", zap.Any("trace-id", ctx.Value("trace-id")), zap.Error(err))
 			return
 		}

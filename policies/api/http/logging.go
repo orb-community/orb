@@ -18,20 +18,6 @@ type loggingMiddleware struct {
 	svc    policies.Service
 }
 
-func (l loggingMiddleware) ListDatasetsByGroupIDInternal(ctx context.Context, groupIDs []string, ownerID string) (_ []policies.Dataset, err error) {
-	defer func(begin time.Time) {
-		if err != nil {
-			l.logger.Warn("method call: list_datasets_by_group_id_internal",
-				zap.Error(err),
-				zap.Duration("duration", time.Since(begin)))
-		} else {
-			l.logger.Info("method call: list_datasets_by_group_id_internal",
-				zap.Duration("duration", time.Since(begin)))
-		}
-	}(time.Now())
-	return l.svc.ListDatasetsByGroupIDInternal(ctx, groupIDs, ownerID)
-}
-
 func (l loggingMiddleware) RemoveAllDatasetsByPolicyIDInternal(ctx context.Context, token string, policyID string) (err error) {
 	defer func(begin time.Time) {
 		if err != nil {

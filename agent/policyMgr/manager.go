@@ -6,7 +6,6 @@ package manager
 
 import (
 	"fmt"
-
 	"github.com/jmoiron/sqlx"
 	"github.com/ns1labs/orb/agent/backend"
 	"github.com/ns1labs/orb/agent/config"
