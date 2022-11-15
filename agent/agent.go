@@ -60,16 +60,11 @@ type orbAgent struct {
 	// Retry Mechanism to ensure the Request is received
 	groupRequestTicker     *time.Ticker
 	groupRequestSucceeded  context.CancelFunc
-	configRequestTicker    *time.Ticker
-	configRequestSucceeded context.CancelFunc
 	policyRequestTicker    *time.Ticker
 	policyRequestSucceeded context.CancelFunc
 
 	// AgentGroup channels sent from core
 	groupsInfos map[string]GroupInfo
-
-	// OrbTags
-	orbTags map[string]string
 
 	policyManager manager.PolicyManager
 }
@@ -114,7 +109,6 @@ func (a *orbAgent) startBackends(agentCtx context.Context) error {
 		}
 		be := backend.GetBackend(name)
 		configuration := structs.Map(a.config.OrbAgent.Otel)
-		configuration["orb_tags"] = a.orbTags
 		configuration["agent_tags"] = a.config.OrbAgent.Tags
 		if err := be.Configure(a.logger, a.policyManager.GetRepo(), configurationEntry, configuration); err != nil {
 			return err
@@ -249,7 +243,6 @@ func (a *orbAgent) RestartBackend(ctx context.Context, name string, reason strin
 	}
 	be.SetCommsClient(a.config.OrbAgent.Cloud.MQTT.Id, &a.client, fmt.Sprintf("%s/?/%s", a.baseTopic, name))
 	configuration := structs.Map(a.config.OrbAgent.Otel)
-	configuration["orb_tags"] = a.orbTags
 	configuration["agent_tags"] = a.config.OrbAgent.Tags
 	if err := be.Configure(a.logger, a.policyManager.GetRepo(), a.config.OrbAgent.Backends["pktvisor"], configuration); err != nil {
 		return err

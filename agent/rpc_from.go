@@ -29,20 +29,6 @@ func (a *orbAgent) handleGroupMembership(rpc fleet.GroupMembershipRPCPayload) {
 	}
 }
 
-func (a *orbAgent) handleTags(ctx context.Context, r fleet.AgentConfigRPCPayload) {
-	a.logger.Info("retrieve config from fleet", zap.Any("context", ctx))
-	a.orbTags = r.OrbTags
-	reason := "reconfigure after receive config"
-	for name := range a.backends {
-		a.logger.Info("restarting backend", zap.String("backend", name), zap.String("reason", reason))
-		err := a.RestartBackend(ctx, name, reason)
-		if err != nil {
-			a.logger.Error("failed to restart backend", zap.Error(err))
-		}
-	}
-	a.configRequestSucceeded()
-}
-
 func (a *orbAgent) handleAgentPolicies(ctx context.Context, rpc []fleet.AgentPolicyRPCPayload, fullList bool) {
 	if fullList {
 		policies, err := a.policyManager.GetRepo().GetAll()
@@ -239,13 +225,6 @@ func (a *orbAgent) handleRPCFromCore(client mqtt.Client, message mqtt.Message) {
 				return
 			}
 			a.handleAgentStop(r.Payload)
-		case fleet.AgentConfigRPCFunc:
-			var r fleet.AgentConfigRPCPayload
-			if err := json.Unmarshal(message.Payload(), &r); err != nil {
-				a.logger.Error("error decoding agent tags message from core", zap.Error(fleet.ErrSchemaMalformed))
-				return
-			}
-			a.handleTags(ctx, r)
 		case fleet.AgentResetRPCFunc:
 			var r fleet.AgentResetRPC
 			if err := json.Unmarshal(message.Payload(), &r); err != nil {
