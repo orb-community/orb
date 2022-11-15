@@ -198,13 +198,13 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 			return
 		}
 
-		// Extract policyID
+		// Extract Datasets
 		datasets := r.extractAttribute(mr, "dataset_ids")
-		datasetIDs := strings.Split(datasets, ",")
 		if datasets == "" {
 			r.cfg.Logger.Info("No data extracting datasetIDs information from metrics request")
 			return
 		}
+		datasetIDs := strings.Split(datasets, ",")
 
 		// Add tags in Context
 		execCtx, execCancelF := context.WithCancel(r.ctx)
