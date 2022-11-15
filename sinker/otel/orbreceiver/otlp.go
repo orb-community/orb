@@ -30,6 +30,7 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
 	"go.uber.org/zap"
 )
@@ -101,22 +102,57 @@ func (r *OrbReceiver) registerMetricsConsumer(mc consumer.Metrics) error {
 	return nil
 }
 
-func decompressBrotli(data []byte) []byte {
+func (r *OrbReceiver) decompressBrotli(data []byte) []byte {
 	rdata := bytes.NewReader(data)
-	r := brotli.NewReader(rdata)
-	s, _ := ioutil.ReadAll(r)
+	rec := brotli.NewReader(rdata)
+	s, _ := ioutil.ReadAll(rec)
 	return []byte(s)
 }
 
-// extract policy from metrics Request
+// extractAttribute extract attribute from metricsRequest metrics
 func (r *OrbReceiver) extractAttribute(metricsRequest pmetricotlp.Request, attribute string) string {
-	metricSlice := metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
-	for i := 0; i < metricSlice.Len(); i++ {
-		metricItem := metricSlice.At(i)
-		if metricItem.Name() == "dns_wire_packets_tcp" || metricItem.Name() == "packets_ipv4" || metricItem.Name() == "dhcp_wire_packets_ack" || metricItem.Name() == "flow_in_udp_bytes" {
-			p, _ := metricItem.Gauge().DataPoints().At(0).Attributes().Get(attribute)
-			if p.AsString() != "" {
-				return p.AsString()
+	if metricsRequest.Metrics().ResourceMetrics().Len() > 0 {
+		if metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().Len() > 0 {
+			metrics := metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
+			for i := 0; i < metrics.Len(); i++ {
+				metricItem := metrics.At(i)
+				switch metricItem.Type() {
+				case pmetric.MetricTypeGauge:
+					if metricItem.Gauge().DataPoints().Len() > 0 {
+						p, ok := metricItem.Gauge().DataPoints().At(0).Attributes().Get(attribute)
+						if ok {
+							return p.AsString()
+						}
+					}
+				case pmetric.MetricTypeHistogram:
+					if metricItem.Histogram().DataPoints().Len() > 0 {
+						p, ok := metricItem.Histogram().DataPoints().At(0).Attributes().Get(attribute)
+						if ok {
+							return p.AsString()
+						}
+					}
+				case pmetric.MetricTypeSum:
+					if metricItem.Sum().DataPoints().Len() > 0 {
+						p, ok := metricItem.Sum().DataPoints().At(0).Attributes().Get(attribute)
+						if ok {
+							return p.AsString()
+						}
+					}
+				case pmetric.MetricTypeSummary:
+					if metricItem.Summary().DataPoints().Len() > 0 {
+						p, ok := metricItem.Summary().DataPoints().At(0).Attributes().Get(attribute)
+						if ok {
+							return p.AsString()
+						}
+					}
+				case pmetric.MetricTypeExponentialHistogram:
+					if metricItem.ExponentialHistogram().DataPoints().Len() > 0 {
+						p, ok := metricItem.ExponentialHistogram().DataPoints().At(0).Attributes().Get(attribute)
+						if ok {
+							return p.AsString()
+						}
+					}
+				}
 			}
 		}
 	}
@@ -128,17 +164,19 @@ func (r *OrbReceiver) injectAttribute(metricsRequest pmetricotlp.Request, attrib
 	metrics := metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
 	for i := 0; i < metrics.Len(); i++ {
 		metricItem := metrics.At(i)
-
-		if metricItem.Type().String() == "Gauge" {
-			metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).Gauge().DataPoints().At(0).Attributes().PutStr(attribute, value)
-		} else if metricItem.Type().String() == "Summary" {
-			metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).Summary().DataPoints().At(0).Attributes().PutStr(attribute, value)
-		} else if metricItem.Type().String() == "Histogram" {
-			metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).Histogram().DataPoints().At(0).Attributes().PutStr(attribute, value)
-		} else if metricItem.Type().String() == "ExponentialHistogram" {
+		switch metricItem.Type() {
+		case pmetric.MetricTypeExponentialHistogram:
 			metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).ExponentialHistogram().DataPoints().At(0).Attributes().PutStr(attribute, value)
-		} else {
-			r.cfg.Logger.Error("Unkwon metric type: " + metricItem.Type().String())
+		case pmetric.MetricTypeGauge:
+			metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).Gauge().DataPoints().At(0).Attributes().PutStr(attribute, value)
+		case pmetric.MetricTypeHistogram:
+			metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).Histogram().DataPoints().At(0).Attributes().PutStr(attribute, value)
+		case pmetric.MetricTypeSum:
+			metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).Sum().DataPoints().At(0).Attributes().PutStr(attribute, value)
+		case pmetric.MetricTypeSummary:
+			metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).Summary().DataPoints().At(0).Attributes().PutStr(attribute, value)
+		default:
+			r.cfg.Logger.Error("Unknown metric type: " + metricItem.Type().String())
 		}
 	}
 	return metricsRequest
@@ -153,7 +191,7 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 			zap.Int64("created", msg.Created),
 			zap.String("publisher", msg.Publisher))
 		r.cfg.Logger.Info("received metric message, pushing to kafka exporter")
-		decompressedPayload := decompressBrotli(msg.Payload)
+		decompressedPayload := r.decompressBrotli(msg.Payload)
 		mr, err := r.encoder.unmarshalMetricsRequest(decompressedPayload)
 		if err != nil {
 			r.cfg.Logger.Error("error during unmarshalling, skipping message", zap.Error(err))
