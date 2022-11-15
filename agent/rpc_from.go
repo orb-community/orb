@@ -30,9 +30,9 @@ func (a *orbAgent) handleGroupMembership(rpc fleet.GroupMembershipRPCPayload) {
 }
 
 func (a *orbAgent) handleTags(ctx context.Context, r fleet.AgentConfigRPCPayload) {
-	a.logger.Info("retrieve tags from fleet", zap.Any("context", ctx))
+	a.logger.Info("retrieve config from fleet", zap.Any("context", ctx))
 	a.orbTags = r.OrbTags
-	reason := "reconfigure after receive tags"
+	reason := "reconfigure after receive config"
 	for name := range a.backends {
 		a.logger.Info("restarting backend", zap.String("backend", name), zap.String("reason", reason))
 		err := a.RestartBackend(ctx, name, reason)

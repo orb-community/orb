@@ -98,6 +98,11 @@ func (a *orbAgent) requestReconnection(ctx context.Context, client mqtt.Client, 
 	if err != nil {
 		a.logger.Error("failed to send group membership request", zap.Error(err))
 	}
+
+	err = a.sendAgentConfigRequest()
+	if err != nil {
+		a.logger.Error("failed to send agent config request", zap.Error(err))
+	}
 }
 
 func (a *orbAgent) nameAgentRPCTopics(channelId string) {
