@@ -31,6 +31,48 @@ type sinksRepository struct {
 	logger *zap.Logger
 }
 
+func (s sinksRepository) SearchAllSinks(ctx context.Context, filter sinks.Filter) ([]sinks.Sink, error) {
+	q := `SELECT id, name, mf_owner_id, description, tags, state, coalesce(error, '') as error, backend, metadata, ts_created FROM sinks`
+	params := map[string]interface{}{}
+	if filter.StateFilter != "" {
+		q += `WHERE state == :state`
+		params["state"] = filter.StateFilter
+	}
+
+	rows, err := s.db.NamedQueryContext(ctx, q, params)
+	if err != nil {
+		return nil, errors.Wrap(errors.ErrSelectEntity, err)
+	}
+	defer rows.Close()
+
+	items := make([]sinks.Sink, 0)
+	for rows.Next() {
+		dbSink := dbSink{}
+		if err := rows.StructScan(&dbSink); err != nil {
+			return nil, errors.Wrap(errors.ErrSelectEntity, err)
+		}
+
+		sink, err := toSink(dbSink)
+		if err != nil {
+			return nil, errors.Wrap(errors.ErrSelectEntity, err)
+		}
+		// metadataFilters will apply only after Fetching in metadata, due to struct
+		filterFunc := func(key string, value interface{}) bool {
+			if key == sinks.MetadataLabelOtel {
+				if value.(string) == filter.OpenTelemetry {
+					return true
+				}
+			}
+			return false
+		}
+		if sink.Config.IsApplicable(filterFunc) {
+			items = append(items, sink)
+		}
+	}
+
+	return items, err
+}
+
 func (s sinksRepository) Save(ctx context.Context, sink sinks.Sink) (string, error) {
 	q := `INSERT INTO sinks (name, mf_owner_id, metadata, description, backend, tags, state, error)         
 			  VALUES (:name, :mf_owner_id, :metadata, :description, :backend, :tags, :state, :error) RETURNING id`
@@ -99,7 +141,7 @@ func (s sinksRepository) Update(ctx context.Context, sink sinks.Sink) error {
 	return nil
 }
 
-func (s sinksRepository) RetrieveAll(ctx context.Context, owner string, pm sinks.PageMetadata) (sinks.Page, error) {
+func (s sinksRepository) RetrieveAllByOwnerID(ctx context.Context, owner string, pm sinks.PageMetadata) (sinks.Page, error) {
 	name, nameQuery := getNameQuery(pm.Name)
 	orderQuery := getOrderQuery(pm.Order)
 	dirQuery := getDirQuery(pm.Dir)

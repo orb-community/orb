@@ -3,17 +3,18 @@ package pktvisorreceiver_test
 import (
 	"context"
 	"fmt"
-	"github.com/ns1labs/orb/agent/otel/pktvisorreceiver"
-	promconfig "github.com/prometheus/prometheus/config"
-	"go.opentelemetry.io/collector/config/confighttp"
-	"go.opentelemetry.io/collector/config/confignet"
-	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"testing"
 	"time"
+
+	"github.com/ns1labs/orb/agent/otel/pktvisorreceiver"
+	promconfig "github.com/prometheus/prometheus/config"
+	"go.opentelemetry.io/collector/config/confighttp"
+	"go.opentelemetry.io/collector/config/confignet"
+	"gopkg.in/yaml.v3"
 
 	promexporter "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver"
@@ -198,7 +199,9 @@ func TestEndToEndToPktvisor(t *testing.T) {
 			CollectionInterval: 1 * time.Second,
 		}
 		// 3.5 Create the Prometheus receiver and pass in the preivously created Prometheus exporter.
-		pConfig, err := pktvisorreceiver.GetPrometheusConfig(rcvCfg)
+		ctx = context.WithValue(ctx, "policy_name", "test")
+		ctx = context.WithValue(ctx, "policy_id", "test")
+		pConfig, err := pktvisorreceiver.GetPrometheusConfig(rcvCfg, ctx)
 		if err != nil {
 			t.Fatalf("failed to create prometheus receiver config: %v", err)
 		}

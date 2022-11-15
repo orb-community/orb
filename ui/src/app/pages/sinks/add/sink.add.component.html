@@ -76,7 +76,7 @@
             <hr/>
             <nb-form-field>
               <div>
-                <label class="font-weight-bold">Sink Type</label>
+                <label class="font-weight-bold">Sink Backend</label>
                 <span class="required">*</span>
               </div>
               <nb-select (selectedChange)="onSinkTypeSelected($event)"
@@ -125,12 +125,12 @@
             </div>
           </ng-template>
           <form [formGroup]="secondFormGroup">
-            <nb-form-field *ngFor="let control of selectedSinkSetting;let i = index; first as isFirst">
-              <div>
+            <ng-container *ngFor="let control of selectedSinkSetting;let i = index; first as isFirst">
+              <ng-container *ngIf="control.prop !== 'opentelemetry'">
                 <label class="font-weight-bold">{{control.label}}</label>
                 <span *ngIf="control.required" class="required">*</span>
-              </div>
-              <div [ngSwitch]="control.input">
+              </ng-container>
+              <ng-container [ngSwitch]="control.input">
                 <input *ngSwitchCase="'text'"
                        [attr.data-orb-qa-id]="control.prop"
                        [autofocus]="isFirst"
@@ -162,10 +162,14 @@
                              [attr.data-orb-qa-id]="type"
                              [value]="type">{{ type }}</nb-option>
                 </nb-select>
-
-              </div>
-              <hr/>
-            </nb-form-field>
+                <nb-checkbox *ngSwitchCase="'checkbox'"
+                             [attr.data-orb-qa-id]="control.prop"
+                             [formControlName]="control.prop"
+                             fullWidth="true">
+                  {{control.label}}
+                </nb-checkbox>
+              </ng-container>
+            </ng-container>
             <div *ngIf="secondFormGroup" class="d-flex justify-content-end">
               <button [disabled]="!secondFormGroup?.valid"
                       class="next-button"

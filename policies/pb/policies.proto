@@ -7,10 +7,16 @@ service PolicyService {
   rpc RetrievePolicy(PolicyByIDReq) returns (PolicyRes) {}
   rpc RetrievePoliciesByGroups(PoliciesByGroupsReq) returns (PolicyInDSListRes) {}
   rpc RetrieveDataset(DatasetByIDReq) returns (DatasetRes) {}
+  rpc RetrieveDatasetsByGroups(DatasetsByGroupsReq) returns (DatasetsRes) {}
 }
 
 message PolicyByIDReq {
   string policyID = 1;
+  string ownerID = 2;
+}
+
+message DatasetsByGroupsReq {
+  repeated string groupIDs = 1;
   string ownerID = 2;
 }
 
@@ -51,4 +57,8 @@ message DatasetRes {
   string agent_group_id = 2;
   string policy_id = 3;
   repeated string sink_ids = 4;
+}
+
+message DatasetsRes {
+  repeated DatasetRes datasetList = 1;
 }

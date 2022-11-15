@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
+
 	"github.com/go-redis/redis/v8"
 	"github.com/ns1labs/orb/sinker"
 	"github.com/ns1labs/orb/sinker/config"
 	"go.uber.org/zap"
-	"strings"
 )
 
 const (
@@ -84,8 +85,8 @@ func (s *sinkerCache) Edit(config config.SinkConfig) error {
 	return nil
 }
 
-func (s *sinkerCache) 	GetAllOwners() ([]string, error){
-	iter := s.client.Scan(context.Background(), 0, fmt.Sprintf("%s-*",keyPrefix), 0).Iterator()
+func (s *sinkerCache) GetAllOwners() ([]string, error) {
+	iter := s.client.Scan(context.Background(), 0, fmt.Sprintf("%s-*", keyPrefix), 0).Iterator()
 	var owners []string
 	for iter.Next(context.Background()) {
 		keys := strings.Split(strings.TrimPrefix(iter.Val(), fmt.Sprintf("%s-", keyPrefix)), ":")
@@ -101,7 +102,7 @@ func (s *sinkerCache) 	GetAllOwners() ([]string, error){
 }
 
 func (s *sinkerCache) GetAll(ownerID string) ([]config.SinkConfig, error) {
-	iter := s.client.Scan(context.Background(), 0, fmt.Sprintf("%s-%s:*",keyPrefix, ownerID), 0).Iterator()
+	iter := s.client.Scan(context.Background(), 0, fmt.Sprintf("%s-%s:*", keyPrefix, ownerID), 0).Iterator()
 	var configs []config.SinkConfig
 	for iter.Next(context.Background()) {
 		keys := strings.Split(strings.TrimPrefix(iter.Val(), fmt.Sprintf("%s-", keyPrefix)), ":")
