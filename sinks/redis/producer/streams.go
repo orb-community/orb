@@ -30,11 +30,6 @@ type eventStore struct {
 	logger *zap.Logger
 }
 
-// ListSinksInternal will only call following service
-func (es eventStore) ListSinksInternal(ctx context.Context, filter sinks.Filter) ([]sinks.Sink, error) {
-	return es.svc.ListSinksInternal(ctx, filter)
-}
-
 func (es eventStore) ChangeSinkStateInternal(ctx context.Context, sinkID string, msg string, ownerID string, state sinks.State) error {
 	return es.svc.ChangeSinkStateInternal(ctx, sinkID, msg, ownerID, state)
 }
@@ -45,7 +40,6 @@ func (es eventStore) ViewSinkInternal(ctx context.Context, ownerID string, key s
 
 func (es eventStore) CreateSink(ctx context.Context, token string, s sinks.Sink) (sink sinks.Sink, err error) {
 	defer func() {
-
 		event := createSinkEvent{
 			sinkID: sink.ID,
 			owner:  sink.MFOwnerID,

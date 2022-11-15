@@ -23,11 +23,6 @@ type metricsMiddleware struct {
 	svc     sinks.SinkService
 }
 
-// ListSinksInternal Will not count metrics since it is internal-service only rpc
-func (m metricsMiddleware) ListSinksInternal(ctx context.Context, filter sinks.Filter) (sinks []sinks.Sink, err error) {
-	return m.svc.ListSinksInternal(ctx, filter)
-}
-
 func (m metricsMiddleware) ChangeSinkStateInternal(ctx context.Context, sinkID string, msg string, ownerID string, state sinks.State) error {
 	defer func(begin time.Time) {
 		labels := []string{

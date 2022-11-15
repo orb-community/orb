@@ -21,21 +21,6 @@ type mockPoliciesRepository struct {
 	gdb            map[string][]policies.PolicyInDataset
 }
 
-func (m *mockPoliciesRepository) RetrieveDatasetsByGroupID(ctx context.Context, groupIDs []string, ownerID string) ([]policies.Dataset, error) {
-	var datasetList []policies.Dataset
-	for _, d := range m.ddb {
-		if d.MFOwnerID == ownerID {
-			for _, groupID := range groupIDs {
-				if groupID == d.AgentGroupID {
-					datasetList = append(datasetList, d)
-				}
-			}
-		}
-	}
-
-	return datasetList, nil
-}
-
 func (m *mockPoliciesRepository) ActivateDatasetByID(ctx context.Context, datasetID string, ownerID string) error {
 	for _, ds := range m.ddb {
 		if ds.MFOwnerID == ownerID {

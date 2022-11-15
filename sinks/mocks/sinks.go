@@ -26,10 +26,6 @@ type sinkRepositoryMock struct {
 	sinksMock map[string]sinks.Sink
 }
 
-func (s *sinkRepositoryMock) SearchAllSinks(ctx context.Context, filter sinks.Filter) ([]sinks.Sink, error) {
-	return nil, nil
-}
-
 func (s *sinkRepositoryMock) UpdateSinkState(ctx context.Context, sinkID string, msg string, ownerID string, state sinks.State) error {
 	return nil
 }
@@ -86,7 +82,7 @@ func (s *sinkRepositoryMock) Update(ctx context.Context, sink sinks.Sink) (err e
 	return sinks.ErrNotFound
 }
 
-func (s *sinkRepositoryMock) RetrieveAllByOwnerID(ctx context.Context, owner string, pm sinks.PageMetadata) (sinks.Page, error) {
+func (s *sinkRepositoryMock) RetrieveAll(ctx context.Context, owner string, pm sinks.PageMetadata) (sinks.Page, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 

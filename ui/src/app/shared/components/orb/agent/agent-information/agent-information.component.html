@@ -5,13 +5,15 @@
       <div class="col-6">
         <label>Agent Name</label>
         <p>{{ agent?.name }}</p>
-
+        <label>Backend</label>
+        <p>{{ getAgentBackend() }}</p>
       </div>
       <div class="col-6">
         <div class="float-right">
           <label>Agent Version</label>
           <p>{{ getAgentVersion() }}</p>
-
+          <label>Backend Version</label>
+          <p>{{ getAgentBackendVersion() }}</p>
         </div>
       </div>
       <div class="col-12">
@@ -26,7 +28,7 @@
       </div>
     </div>
     <ngx-combined-tag [agent]="agent"></ngx-combined-tag>
-    
+    <hr>
     <div class="block">
       <button (click)="resetAgent()"
               [disabled]="isResetting || agent?.state === 'new' || agent?.state === 'offline'"

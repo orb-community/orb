@@ -99,7 +99,6 @@ func (a *orbAgent) sendSingleHeartbeat(ctx context.Context, t time.Time, agentsS
 				Datasets:        pd.GetDatasetIDs(),
 				LastScrapeTS:    pd.LastScrapeTS,
 				LastScrapeBytes: pd.LastScrapeBytes,
-				Backend:         pd.Backend,
 			}
 		}
 	} else {

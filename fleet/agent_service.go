@@ -298,12 +298,3 @@ func (svc fleetService) GetPolicyState(ctx context.Context, agent Agent) (map[st
 
 	return policyState, nil
 }
-
-func (svc fleetService) ViewAgentMatchingGroupsByIDInternal(ctx context.Context, agentID string, ownerID string) (MatchingGroups, error) {
-	matchingGroups, err := svc.agentGroupRepository.RetrieveMatchingGroups(ctx, ownerID, agentID)
-	if err != nil {
-		return MatchingGroups{}, err
-	}
-
-	return matchingGroups, nil
-}

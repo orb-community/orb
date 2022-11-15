@@ -28,9 +28,9 @@ func TestMain(m *testing.M) {
 
 	if err := pool.Retry(func() error {
 		redisClient = redis.NewClient(&redis.Options{
-			Addr:     fmt.Sprintf("localhost:%s", container.GetPort("6379/tcp")),
+			Addr: fmt.Sprintf("localhost:%s", container.GetPort("6379/tcp")),
 			Password: "",
-			DB:       0,
+			DB: 0,
 		})
 		return redisClient.Ping(context.Background()).Err()
 	}); err != nil {

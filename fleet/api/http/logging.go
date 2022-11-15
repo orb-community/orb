@@ -18,20 +18,6 @@ type loggingMiddleware struct {
 	svc    fleet.Service
 }
 
-func (l loggingMiddleware) ViewAgentMatchingGroupsByIDInternal(ctx context.Context, agentID string, ownerID string) (matchingGroups fleet.MatchingGroups, err error) {
-	defer func(begin time.Time) {
-		if err != nil {
-			l.logger.Warn("method call: view_agent_matching_groups_by_id_internal",
-				zap.Error(err),
-				zap.Duration("duration", time.Since(begin)))
-		} else {
-			l.logger.Info("method call: view_agent_matching_groups_by_idinternal",
-				zap.Duration("duration", time.Since(begin)))
-		}
-	}(time.Now())
-	return l.svc.ViewAgentMatchingGroupsByIDInternal(ctx, agentID, ownerID)
-}
-
 func (l loggingMiddleware) ResetAgent(ct context.Context, token string, agentID string) (err error) {
 	defer func(begin time.Time) {
 		if err != nil {

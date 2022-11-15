@@ -16,15 +16,21 @@ ignore_ssl_and_certificate_errors = configs.get('ignore_ssl_and_certificate_erro
 
 
 @step('the agent container is started on an {status_port} port')
-def run_local_agent_container(context, status_port, **kwargs):
-    env_vars = create_agent_env_vars_set(context.agent['id'], context.agent['channel_id'], context.agent_key,
-                                         ignore_ssl_and_certificate_errors)
-    env_vars.update(kwargs)
+def run_local_agent_container(context, status_port):
     assert_that(status_port, any_of(equal_to("available"), equal_to("unavailable")), "Unexpected value for port")
     availability = {"available": True, "unavailable": False}
+    orb_address = configs.get('orb_address')
+    interface = configs.get('orb_agent_interface', 'mock')
     agent_docker_image = configs.get('agent_docker_image', 'ns1labs/orb-agent')
     image_tag = ':' + configs.get('agent_docker_tag', 'latest')
     agent_image = agent_docker_image + image_tag
+    env_vars = {"ORB_CLOUD_ADDRESS": orb_address,
+                "ORB_CLOUD_MQTT_ID": context.agent['id'],
+                "ORB_CLOUD_MQTT_CHANNEL_ID": context.agent['channel_id'],
+                "ORB_CLOUD_MQTT_KEY": context.agent_key,
+                "PKTVISOR_PCAP_IFACE_DEFAULT": interface}
+    if ignore_ssl_and_certificate_errors == 'true':
+        env_vars["ORB_TLS_VERIFY"] = "false"
 
     context.port = return_port_to_run_docker_container(context, availability[status_port])
 
@@ -40,29 +46,8 @@ def run_local_agent_container(context, status_port, **kwargs):
     else:
         log = f"unable to bind to localhost:{context.port}"
     agent_started, logs = get_logs_and_check(context.container_id, log, element_to_check="log")
-    assert_that(agent_started, equal_to(True),
-                f"Log {log} not found on agent logs. Agent Name: {context.agent['name']}."
-                f"\n Logs:{logs}")
-
-
-@step('the agent container is started on an {status_port} port and use {agent_tap} env vars')
-def run_local_agents_with_extra_env_vars(context, status_port, agent_tap):
-    agent_tap = agent_tap.upper()
-    assert_that(agent_tap, any_of("PCAP", "NETFLOW", "SFLOW", "DNSTAP", "ALL"))
-    vars_by_input = {
-        "PCAP": {"PKTVISOR_PCAP_IFACE_DEFAULT": configs.get("orb_agent_interface", "auto")},
-        "NETFLOW": {"PKTVISOR_NETFLOW": "true", "PKTVISOR_NETFLOW_PORT_DEFAULT": 9995},
-        "SFLOW": {"PKTVISOR_SFLOW": "true", "PKTVISOR_SFLOW_PORT_DEFAULT": 9994},
-        "DNSTAP": {"PKTVISOR_DNSTAP": "true", "PKTVISOR_DNSTAP_PORT_DEFAULT": 9990}
-    }
-    if agent_tap == "ALL":
-        vars_by_input["ALL"] = dict()
-        vars_by_input["ALL"].update(vars_by_input["PCAP"])
-        vars_by_input["ALL"].update(vars_by_input["NETFLOW"])
-        vars_by_input["ALL"].update(vars_by_input["SFLOW"])
-        vars_by_input["ALL"].update(vars_by_input["DNSTAP"])
-
-    run_local_agent_container(context, status_port, **vars_by_input[agent_tap])
+    assert_that(agent_started, equal_to(True), f"Log {log} not found on agent logs. Agent Name: {context.agent['name']}."
+                                               f"\n Logs:{logs}")
 
 
 @step('the container logs that were output after {condition} contain the message "{text_to_match}" within'
@@ -74,7 +59,7 @@ def check_agent_logs_considering_timestamp(context, condition, text_to_match, ti
     else:
         considered_timestamp = context.considered_timestamp
     text_found, logs = get_logs_and_check(context.container_id, text_to_match, considered_timestamp,
-                                          timeout=time_to_wait)
+                                    timeout=time_to_wait)
     assert_that(text_found, is_(True), f"Message {text_to_match} was not found in the agent logs!. \n\n"
                                        f"Container logs: {json.dumps(logs, indent=4)}")
 
@@ -127,11 +112,8 @@ def run_container_using_ui_command(context, status_port):
     assert_that(status_port, any_of(equal_to("available"), equal_to("unavailable")), "Unexpected value for port")
     availability = {"available": True, "unavailable": False}
     context.port = return_port_to_run_docker_container(context, availability[status_port])
-    include_otel_env_var = configs.get("include_otel_env_var")
-    enable_otel = configs.get("enable_otel")
     context.container_id = run_local_agent_from_terminal(context.agent_provisioning_command,
-                                                         ignore_ssl_and_certificate_errors, str(context.port),
-                                                         include_otel_env_var, enable_otel)
+                                                         ignore_ssl_and_certificate_errors, str(context.port))
     assert_that(context.container_id, is_not((none())), f"Agent container was not run")
     rename_container(context.container_id, LOCAL_AGENT_CONTAINER_NAME + context.agent['name'][-5:])
     if context.container_id not in context.containers_id.keys():
@@ -174,30 +156,6 @@ def remove_all_orb_agent_test_containers(context):
         test_container = container.name.startswith(LOCAL_AGENT_CONTAINER_NAME)
         if test_container is True:
             container.remove(force=True)
-
-
-def create_agent_env_vars_set(agent_id, agent_channel_id, agent_mqtt_key, ignore_tls_verify):
-    """
-    Create the set of environmental variables to be passed to the agent
-    :param agent_id: id of the agent
-    :param agent_channel_id: id of the agent channel
-    :param agent_mqtt_key: mqtt key to connect the agent
-    :param ignore_tls_verify: ignore process to verify tls
-    :return: set of environmental variables
-    """
-    orb_address = configs.get('orb_address')
-    include_otel_env_var = configs.get("include_otel_env_var")
-    enable_otel = configs.get("enable_otel")
-    env_vars = {"ORB_CLOUD_MQTT_ID": agent_id,
-                "ORB_CLOUD_MQTT_CHANNEL_ID": agent_channel_id,
-                "ORB_CLOUD_MQTT_KEY": agent_mqtt_key}
-    if orb_address != "orb.live":
-        env_vars["ORB_CLOUD_ADDRESS"] = orb_address
-    if ignore_tls_verify == 'true':
-        env_vars["ORB_TLS_VERIFY"] = "false"
-    if include_otel_env_var == "true":
-        env_vars["ORB_OTEL_ENABLE"] = enable_otel
-    return env_vars
 
 
 def run_agent_container(container_image, env_vars, container_name, time_to_wait=5):
@@ -283,13 +241,11 @@ def check_logs_contain_log(logs, expected_log, event, start_time=0):
     return event.is_set()
 
 
-def run_local_agent_from_terminal(command, ignore_ssl_and_certificate_errors, pktvisor_port,
-                                  include_otel_env_var="false", enable_otel="false"):
+def run_local_agent_from_terminal(command, ignore_ssl_and_certificate_errors, pktvisor_port):
     """
     :param (str) command: docker command to provision an agent
     :param (bool) ignore_ssl_and_certificate_errors: True if orb address doesn't have a valid certificate.
     :param (str or int) pktvisor_port: Port on which pktvisor should run
-    :param (str): if 'true', ORB_OTEL_ENABLE env ver is included on command provisioning of the agent
     :return: agent container ID
     """
     command = command.replace("\\\n", " ")
@@ -297,8 +253,6 @@ def run_local_agent_from_terminal(command, ignore_ssl_and_certificate_errors, pk
     if ignore_ssl_and_certificate_errors == 'true':
         args.insert(-1, "-e")
         args.insert(-1, "ORB_TLS_VERIFY=false")
-    if include_otel_env_var == "true":
-        args.insert(-1, f"ORB_OTEL_ENABLE={enable_otel}")
     if pktvisor_port != 'default':
         args.insert(-1, "-e")
         args.insert(-1, f"ORB_BACKENDS_PKTVISOR_API_PORT={pktvisor_port}")
@@ -365,28 +319,20 @@ def get_logs_and_check(container_id, expected_message, start_time=0, element_to_
     return text_found, logs
 
 
-def run_agent_config_file(agent_name, only_file=False, config_file_path="/opt/orb", time_to_wait=5):
+def run_agent_config_file(agent_name, time_to_wait=5):
     """
     Run an agent container using an agent config file
 
     :param agent_name: name of the orb agent
-    :param only_file: is true copy only the file. If false, copy the directory
-    :param config_file_path: path to agent config file
     :param time_to_wait: seconds that threading must wait after run the agent
     :return: agent container id
     """
     agent_docker_image = configs.get('agent_docker_image', 'ns1labs/orb-agent')
     agent_image = f"{agent_docker_image}:{configs.get('agent_docker_tag', 'latest')}"
     local_orb_path = configs.get("local_orb_path")
-    if only_file is True:
-        volume = f"{local_orb_path}/{agent_name}.yaml:{config_file_path}/{agent_name}.yaml"
-    else:
-        volume = f"{local_orb_path}:{config_file_path}/"
-    agent_command = f"{config_file_path}/{agent_name}.yaml"
-    if agent_name == "agent":
-        command = f"docker run -d -v {volume} --net=host {agent_image}"
-    else:
-        command = f"docker run -d -v {volume} --net=host {agent_image} run -c {agent_command}"
+    volume = f"{local_orb_path}:/usr/local/orb/"
+    agent_command = f"/usr/local/orb/{agent_name}.yaml"
+    command = f"docker run -d -v {volume} --net=host {agent_image} run -c {agent_command}"
     args = shlex.split(command)
     terminal_running = subprocess.Popen(args, stdout=subprocess.PIPE)
     subprocess_return = terminal_running.stdout.read().decode()

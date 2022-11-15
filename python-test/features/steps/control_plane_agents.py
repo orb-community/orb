@@ -14,7 +14,6 @@ import json
 import psutil
 import os
 import signal
-from deepdiff import DeepDiff
 
 configs = TestConfig.configs()
 agent_name_prefix = "test_agent_name_"
@@ -84,63 +83,6 @@ def check_agent_status(context, status):
                 f"Agent did not get '{status}' after {str(timeout)} seconds, but was '{agent_status}'."
                 f"Agent: {json.dumps(context.agent, indent=4)}."
                 f"Agent logs: {logs}.")
-
-
-@step("created agent has taps: {taps}")
-def verify_agent_taps(context, taps):
-    agent = get_agent(context.token, context.agent['id'])
-    agent_taps = agent["agent_metadata"]["backends"]["pktvisor"]["data"]["taps"]
-    default_taps = {
-        "DNSTAP": {
-            "default_dnstap": {
-                "config": {
-                    "tcp": "0.0.0.0:9990"
-                },
-                "input_type": "dnstap",
-                "interface": "visor.module.input/1.0",
-                "tags": None
-            }},
-        "NETFLOW": {
-            "default_netflow": {
-                "config": {
-                    "bind": "0.0.0.0",
-                    "flow_type": "netflow",
-                    "port": 9995
-                },
-                "input_type": "flow",
-                "interface": "visor.module.input/1.0",
-                "tags": None
-            }},
-        "PCAP": {
-            "default_pcap": {
-                "config": {
-                    "iface": configs.get("orb_agent_interface", "auto")
-                },
-                "input_type": "pcap",
-                "interface": "visor.module.input/1.0",
-                "tags": None
-            }},
-        "SFLOW": {
-            "default_sflow": {
-                "config": {
-                    "bind": "0.0.0.0",
-                    "flow_type": "sflow",
-                    "port": 9994
-                },
-                "input_type": "flow",
-                "interface": "visor.module.input/1.0",
-                "tags": None
-            }}
-    }
-
-    taps = taps.split(", ")
-    for tap in taps:
-        default_agent_tap = default_taps.get(tap.upper())
-        default_agent_tap_value = list(default_agent_tap.values())[0]
-        agent_tap = agent_taps.get(list(default_agent_tap.keys())[0])
-        diff = DeepDiff(default_agent_tap_value, agent_tap, exclude_paths={"root['len'], root['tags']"})
-        assert_that(diff, equal_to({}), f"Tap {tap} is different from expected one. Agent: {agent}\n"
-                                        f"Default tap: {default_agent_tap}")
 
 
 @then('cleanup agents')
@@ -290,17 +232,10 @@ def check_agent_exists_on_backend(token, agent_name, event=None):
 
 
 @step("an agent(input_type:{input_type}, settings: {settings}) is {provision} via a configuration file on port {port} "
-      "with {agent_tags} agent tags and has status {status}. [Overwrite default: {overwrite_default}. Paste only "
-      "file: {paste_only_file}]")
-def provision_agent_using_config_file(context, input_type, settings, provision, port, agent_tags, status, overwrite_default, paste_only_file):
+      "with {agent_tags} agent tags and has status {status}")
+def provision_agent_using_config_file(context, input_type, settings, provision, port, agent_tags, status):
     assert_that(provision, any_of(equal_to("self-provisioned"), equal_to("provisioned")), "Unexpected provision "
                                                                                           "attribute")
-    overwrite_default = overwrite_default.title()
-    paste_only_file = paste_only_file.title()
-    assert_that(overwrite_default, any_of("True", "False"), "Unexpected value for overwrite_default parameter.")
-    assert_that(paste_only_file, any_of("True", "False"), "Unexpected value for overwrite_default parameter.")
-    overwrite_default = eval(overwrite_default)
-    paste_only_file = eval(paste_only_file)
     settings = json.loads(settings)
     if ("tcp" in settings.keys() and settings["tcp"].split(":")[1] == "available_port") or (
             "port" in settings.keys() and settings["port"] == "available_port"):
@@ -329,7 +264,7 @@ def provision_agent_using_config_file(context, input_type, settings, provision, 
         orb_cloud_mqtt_channel_id = None
         agent_name = f"{agent_name_prefix}{random_string(10)}"
 
-    interface = configs.get('orb_agent_interface', 'auto')
+    interface = configs.get('orb_agent_interface', 'mock')
     orb_url = configs.get('orb_url')
     base_orb_address = configs.get('orb_address')
     port = return_port_to_run_docker_container(context, True)
@@ -345,11 +280,11 @@ def provision_agent_using_config_file(context, input_type, settings, provision, 
                                                                                    auto_provision, orb_cloud_mqtt_id,
                                                                                    orb_cloud_mqtt_key,
                                                                                    orb_cloud_mqtt_channel_id,
-                                                                                   settings, overwrite_default)
+                                                                                   settings)
     for key, value in context.tap.items():
         if 'tags' in value.keys():
             context.tap_tags.update({key: value['tags']})
-    context.container_id = run_agent_config_file(context.agent_file_name, paste_only_file)
+    context.container_id = run_agent_config_file(agent_name)
     if context.container_id not in context.containers_id.keys():
         context.containers_id[context.container_id] = str(port)
     log = f"web server listening on localhost:{port}"
@@ -757,7 +692,7 @@ def get_groups_to_which_agent_is_matching(token, agent_id, groups_matching_ids, 
 def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base_orb_address, port,
                              existing_agent_groups, tap_name, input_type="pcap", input_tags='3', auto_provision="true",
                              orb_cloud_mqtt_id=None, orb_cloud_mqtt_key=None, orb_cloud_mqtt_channel_id=None,
-                             settings=None, overwrite_default=False):
+                             settings=None):
     """
     Create a file .yaml with configs of the agent that will be provisioned
 
@@ -777,7 +712,6 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
     :param (str) orb_cloud_mqtt_key: agent mqtt key.
     :param (str) orb_cloud_mqtt_channel_id: agent mqtt channel id.
     :param (str) settings: settings of input
-    :param (bool) overwrite_default: if True saves the agent as "agent.yaml". If false, save it with agent name.
     :return: path to the directory where the agent config file was created
     """
     assert_that(auto_provision, any_of(equal_to("true"), equal_to("false")), "Unexpected value for auto_provision "
@@ -800,8 +734,7 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
                                                                      orb_cloud_mqtt_key=orb_cloud_mqtt_key,
                                                                      orb_cloud_mqtt_channel_id=orb_cloud_mqtt_channel_id,
                                                                      input_type=input_type, input_tags=input_tags,
-                                                                     settings=settings,
-                                                                     overwrite_default=overwrite_default)
+                                                                     settings=settings)
     else:
         mqtt_url = "tls://" + base_orb_address + ":8883"
         agent_config_file, tap = FleetAgent.config_file_of_orb_agent(agent_name, token, iface, orb_url, mqtt_url,
@@ -811,15 +744,12 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
                                                                      orb_cloud_mqtt_key=orb_cloud_mqtt_key,
                                                                      orb_cloud_mqtt_channel_id=orb_cloud_mqtt_channel_id,
                                                                      input_type=input_type, input_tags=input_tags,
-                                                                     settings=settings,
-                                                                     overwrite_default=overwrite_default)
+                                                                     settings=settings)
     agent_config_file = yaml.load(agent_config_file, Loader=SafeLoader)
     agent_config_file['orb'].update(tags)
     agent_config_file['orb']['backends']['pktvisor'].update({"api_port": f"{port}"})
     agent_config_file = yaml.dump(agent_config_file)
     dir_path = configs.get("local_orb_path")
-    if overwrite_default is True:
-        agent_name = "agent"
     with open(f"{dir_path}/{agent_name}.yaml", "w+") as f:
         f.write(agent_config_file)
     return agent_name, tags, tap

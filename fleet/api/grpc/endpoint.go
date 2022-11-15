@@ -69,23 +69,7 @@ func retrieveAgentInfoByChannelIDEndpoint(svc fleet.Service) endpoint.Endpoint {
 			return nil, err
 		}
 
-		matchingGroups, err := svc.ViewAgentMatchingGroupsByIDInternal(ctx, agent.MFThingID, agent.MFOwnerID)
-		if err != nil {
-			return nil, err
-		}
-
-		var groupIDs []string
-		for _, group := range matchingGroups.Groups {
-			groupIDs = append(groupIDs, group.GroupID)
-		}
-
-		res := agentInfoRes{
-			ownerID:       agent.MFOwnerID,
-			agentName:     agent.Name.String(),
-			agentTags:     agent.AgentTags,
-			orbTags:       agent.OrbTags,
-			agentGroupIDs: groupIDs,
-		}
+		res := agentInfoRes{ownerID: agent.MFOwnerID, agentName: agent.Name.String(), agentTags: agent.AgentTags, orbTags: agent.OrbTags}
 		return res, nil
 	}
 }

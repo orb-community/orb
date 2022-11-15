@@ -229,7 +229,7 @@ kind: collection`;
       description: [description, [
         Validators.maxLength(64),
       ]],
-      backend: [{ backend }, [Validators.required]],
+      backend: [{ backend, disabled: backend !== '' }, [Validators.required]],
     });
     this.tapFG = this._formBuilder.group({
       selected_tap: [tap, Validators.required],

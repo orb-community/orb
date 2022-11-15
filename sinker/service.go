@@ -8,8 +8,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
-
 	"github.com/go-kit/kit/metrics"
 	"github.com/go-redis/redis/v8"
 	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
@@ -18,10 +16,10 @@ import (
 	"github.com/ns1labs/orb/sinker/backend/pktvisor"
 	"github.com/ns1labs/orb/sinker/config"
 	"github.com/ns1labs/orb/sinker/otel"
-	"github.com/ns1labs/orb/sinker/otel/bridgeservice"
 	"github.com/ns1labs/orb/sinker/prometheus"
 	sinkspb "github.com/ns1labs/orb/sinks/pb"
 	"go.uber.org/zap"
+	"time"
 )
 
 const (
@@ -42,7 +40,7 @@ type Service interface {
 	Stop() error
 }
 
-type SinkerService struct {
+type sinkerService struct {
 	pubSub          mfnats.PubSub
 	otel            bool
 	otelCancelFunct context.CancelFunc
@@ -69,7 +67,7 @@ type SinkerService struct {
 	asyncContext        context.Context
 }
 
-func (svc SinkerService) Start() error {
+func (svc sinkerService) Start() error {
 	svc.asyncContext, svc.cancelAsyncContext = context.WithCancel(context.WithValue(context.Background(), "routine", "async"))
 	if !svc.otel {
 		topic := fmt.Sprintf("channels.*.%s", BackendMetricsTopic)
@@ -92,11 +90,10 @@ func (svc SinkerService) Start() error {
 	return nil
 }
 
-func (svc SinkerService) startOtel(ctx context.Context) error {
+func (svc sinkerService) startOtel(ctx context.Context) error {
 	if svc.otel {
 		var err error
-		bridgeService := bridgeservice.NewBridgeService(svc.logger, svc.sinkerCache, svc.policiesClient, svc.fleetClient)
-		svc.otelCancelFunct, err = otel.StartOtelComponents(ctx, &bridgeService, svc.logger, svc.otelKafkaUrl, svc.pubSub)
+		svc.otelCancelFunct, err = otel.StartOtelComponents(ctx, svc.logger, svc.otelKafkaUrl, svc.pubSub)
 		if err != nil {
 			svc.logger.Error("error during StartOtelComponents", zap.Error(err))
 			return err
@@ -105,7 +102,7 @@ func (svc SinkerService) startOtel(ctx context.Context) error {
 	return nil
 }
 
-func (svc SinkerService) Stop() error {
+func (svc sinkerService) Stop() error {
 	if svc.otel {
 		otelTopic := fmt.Sprintf("channels.*.%s", OtelMetricsTopic)
 		if err := svc.pubSub.Unsubscribe(otelTopic); err != nil {
@@ -143,7 +140,7 @@ func New(logger *zap.Logger,
 ) Service {
 
 	pktvisor.Register(logger)
-	return &SinkerService{
+	return &sinkerService{
 		logger:              logger,
 		pubSub:              pubSub,
 		esclient:            esclient,

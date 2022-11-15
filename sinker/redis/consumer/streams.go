@@ -3,13 +3,12 @@ package consumer
 import (
 	"context"
 	"encoding/json"
-	"time"
-
 	"github.com/go-redis/redis/v8"
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/sinker"
 	"github.com/ns1labs/orb/sinker/config"
 	"go.uber.org/zap"
+	"time"
 )
 
 const (
@@ -18,9 +17,8 @@ const (
 
 	sinksPrefix = "sinks."
 	sinksUpdate = sinksPrefix + "update"
-	sinksCreate = sinksPrefix + "create"
-	sinksDelete = sinksPrefix + "remove"
-	exists      = "BUSYGROUP Consumer Group name already exists"
+
+	exists = "BUSYGROUP Consumer Group name already exists"
 )
 
 type Subscriber interface {
@@ -57,18 +55,6 @@ func (es eventStore) Subscribe(context context.Context) error {
 
 			var err error
 			switch event["operation"] {
-			case sinksCreate:
-				rte, derr := decodeSinksCreate(event)
-				if derr != nil {
-					err = derr
-					break
-				}
-				err = es.handleSinksCreate(context, rte)
-				if err != nil {
-					es.logger.Error("Failed to handle event", zap.String("operation", event["operation"].(string)), zap.Error(err))
-					break
-				}
-				es.client.XAck(context, stream, group, msg.ID)
 			case sinksUpdate:
 				rte, derr := decodeSinksUpdate(event)
 				if derr != nil {
@@ -76,13 +62,6 @@ func (es eventStore) Subscribe(context context.Context) error {
 					break
 				}
 				err = es.handleSinksUpdate(context, rte)
-			case sinksDelete:
-				rte, derr := decodeSinksRemove(event)
-				if derr != nil {
-					err = derr
-					break
-				}
-				err = es.handleSinksRemove(context, rte)
 			}
 			if err != nil {
 				es.logger.Error("Failed to handle event", zap.String("operation", event["operation"].(string)), zap.Error(err))
@@ -104,20 +83,6 @@ func NewEventStore(sinkerService sinker.Service, configRepo config.ConfigRepo, c
 	}
 }
 
-func decodeSinksCreate(event map[string]interface{}) (updateSinkEvent, error) {
-	val := updateSinkEvent{
-		sinkID:    read(event, "sink_id", ""),
-		owner:     read(event, "owner", ""),
-		timestamp: time.Time{},
-	}
-	var metadata types.Metadata
-	if err := json.Unmarshal([]byte(read(event, "config", "")), &metadata); err != nil {
-		return updateSinkEvent{}, err
-	}
-	val.config = metadata
-	return val, nil
-}
-
 func decodeSinksUpdate(event map[string]interface{}) (updateSinkEvent, error) {
 	val := updateSinkEvent{
 		sinkID:    read(event, "sink_id", ""),
@@ -130,30 +95,6 @@ func decodeSinksUpdate(event map[string]interface{}) (updateSinkEvent, error) {
 	}
 	val.config = metadata
 	return val, nil
-}
-
-func decodeSinksRemove(event map[string]interface{}) (updateSinkEvent, error) {
-	val := updateSinkEvent{
-		sinkID:    read(event, "sink_id", ""),
-		owner:     read(event, "owner", ""),
-		timestamp: time.Time{},
-	}
-	var metadata types.Metadata
-	if err := json.Unmarshal([]byte(read(event, "config", "")), &metadata); err != nil {
-		return updateSinkEvent{}, err
-	}
-	val.config = metadata
-	return val, nil
-}
-
-func (es eventStore) handleSinksRemove(_ context.Context, e updateSinkEvent) error {
-	if ok := es.configRepo.Exists(e.owner, e.sinkID); ok {
-		err := es.configRepo.Remove(e.owner, e.sinkID)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 func (es eventStore) handleSinksUpdate(_ context.Context, e updateSinkEvent) error {
@@ -178,38 +119,12 @@ func (es eventStore) handleSinksUpdate(_ context.Context, e updateSinkEvent) err
 			sinkConfig.OwnerID = e.owner
 		}
 
-		err = es.configRepo.Edit(sinkConfig)
-		if err != nil {
-			return err
-		}
+		es.configRepo.Edit(sinkConfig)
 	} else {
 		cfg.SinkID = e.sinkID
 		cfg.OwnerID = e.owner
-		err = es.configRepo.Add(cfg)
-		if err != nil {
-			return err
-		}
+		es.configRepo.Add(cfg)
 	}
-	return nil
-}
-
-func (es eventStore) handleSinksCreate(_ context.Context, e updateSinkEvent) error {
-	data, err := json.Marshal(e.config)
-	if err != nil {
-		return err
-	}
-	var cfg config.SinkConfig
-	if err := json.Unmarshal(data, &cfg); err != nil {
-		return err
-	}
-	cfg.SinkID = e.sinkID
-	cfg.OwnerID = e.owner
-	cfg.State = config.Unknown
-	err = es.configRepo.Add(cfg)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 

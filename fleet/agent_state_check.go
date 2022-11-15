@@ -23,6 +23,7 @@ func (svc *fleetService) checkState(t time.Time) {
 	}
 }
 
+
 func (svc *fleetService) checkAgents() {
 	svc.checkState(time.Now())
 	for {

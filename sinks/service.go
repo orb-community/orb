@@ -44,11 +44,11 @@ type sinkService struct {
 	passwordService PasswordService
 }
 
-func (svc sinkService) identify(token string) (string, error) {
+func (s sinkService) identify(token string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	res, err := svc.auth.Identify(ctx, &mainflux.Token{Value: token})
+	res, err := s.auth.Identify(ctx, &mainflux.Token{Value: token})
 	if err != nil {
 		return "", errors.Wrap(errors.ErrUnauthorizedAccess, err)
 	}

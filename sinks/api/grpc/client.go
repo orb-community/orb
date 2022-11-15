@@ -15,7 +15,6 @@ import (
 	kitgrpc "github.com/go-kit/kit/transport/grpc"
 	"github.com/ns1labs/orb/sinks/pb"
 	"github.com/opentracing/opentracing-go"
-	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"time"
 )
@@ -23,43 +22,11 @@ import (
 var _ pb.SinkServiceClient = (*grpcClient)(nil)
 
 type grpcClient struct {
-	logger        *zap.Logger
-	timeout       time.Duration
-	retrieveSink  endpoint.Endpoint
-	retrieveSinks endpoint.Endpoint
+	timeout      time.Duration
+	retrieveSink endpoint.Endpoint
 }
 
-func (client grpcClient) RetrieveSinks(ctx context.Context, in *pb.SinksFilterReq, _ ...grpc.CallOption) (*pb.SinksRes, error) {
-	ctx, cancel := context.WithTimeout(ctx, client.timeout)
-	defer cancel()
-
-	sinksFilter := sinksFilter{
-		isOtel: in.OtelEnabled,
-	}
-
-	res, err := client.retrieveSinks(ctx, sinksFilter)
-	if err != nil {
-		client.logger.Error("error during retrieve sinks", zap.Error(err))
-		return nil, err
-	}
-	ir := res.(sinksRes)
-	sinkList := make([]*pb.SinkRes, len(ir.sinks))
-	for i, sinkResponse := range ir.sinks {
-		sinkList[i] = &pb.SinkRes{
-			Id:          sinkResponse.id,
-			Name:        sinkResponse.name,
-			Description: sinkResponse.description,
-			Tags:        sinkResponse.tags,
-			State:       sinkResponse.state,
-			Error:       sinkResponse.error,
-			Backend:     sinkResponse.backend,
-			Config:      sinkResponse.config,
-		}
-	}
-	return &pb.SinksRes{Sinks: sinkList}, nil
-}
-
-func (client grpcClient) RetrieveSink(ctx context.Context, in *pb.SinkByIDReq, _ ...grpc.CallOption) (*pb.SinkRes, error) {
+func (client grpcClient) RetrieveSink(ctx context.Context, in *pb.SinkByIDReq, opts ...grpc.CallOption) (*pb.SinkRes, error) {
 	ctx, cancel := context.WithTimeout(ctx, client.timeout)
 	defer cancel()
 
@@ -86,11 +53,10 @@ func (client grpcClient) RetrieveSink(ctx context.Context, in *pb.SinkByIDReq, _
 	}, nil
 }
 
-func NewClient(tracer opentracing.Tracer, conn *grpc.ClientConn, timeout time.Duration, logger *zap.Logger) pb.SinkServiceClient {
+func NewClient(tracer opentracing.Tracer, conn *grpc.ClientConn, timeout time.Duration) pb.SinkServiceClient {
 	svcName := "sinks.SinkService"
 
 	return &grpcClient{
-		logger:  logger,
 		timeout: timeout,
 		retrieveSink: kitot.TraceClient(tracer, "retrieve_sink")(kitgrpc.NewClient(
 			conn,
@@ -100,38 +66,7 @@ func NewClient(tracer opentracing.Tracer, conn *grpc.ClientConn, timeout time.Du
 			decodeSinkResponse,
 			pb.SinkRes{},
 		).Endpoint()),
-		retrieveSinks: kitot.TraceClient(tracer, "retrieve_sinks_internal")(kitgrpc.NewClient(
-			conn,
-			svcName,
-			"RetrieveSinks",
-			encodeRetrieveSinksRequest,
-			decodeSinksResponse,
-			pb.SinksRes{},
-		).Endpoint()),
 	}
-}
-
-func encodeRetrieveSinksRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
-	req := grpcReq.(sinksFilter)
-	return &pb.SinksFilterReq{OtelEnabled: req.isOtel}, nil
-}
-
-func decodeSinksResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
-	res := grpcRes.(*pb.SinksRes)
-	sinkList := make([]sinkRes, len(res.Sinks))
-	for i, sink := range res.Sinks {
-		sinkList[i] = sinkRes{
-			id:          sink.Id,
-			name:        sink.Name,
-			description: sink.Description,
-			tags:        sink.Tags,
-			state:       sink.State,
-			error:       sink.Error,
-			backend:     sink.Backend,
-			config:      sink.Config,
-		}
-	}
-	return sinksRes{sinks: sinkList}, nil
 }
 
 func encodeRetrieveSinkRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
