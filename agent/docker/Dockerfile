@@ -10,8 +10,9 @@ RUN mkdir /tmp/build && CGO_ENABLED=1 make agent_bin && mv build/orb-agent /tmp/
 
 FROM ns1labs/pktvisor:${PKTVISOR_TAG}
 
+RUN mkdir /opt/orb
 COPY --from=builder /tmp/build/orb-agent /usr/local/bin/orb-agent
-COPY --from=builder /go/src/github.com/ns1labs/orb/agent/docker/agent.yaml /etc/orb/agent.yaml
+COPY --from=builder /go/src/github.com/ns1labs/orb/agent/docker/agent_default.yaml /opt/orb/agent_default.yaml
 COPY --from=builder /go/src/github.com/ns1labs/orb/agent/docker/orb-agent-entry.sh /usr/local/bin/orb-agent-entry.sh
 COPY --from=builder /go/src/github.com/ns1labs/orb/agent/docker/run-agent.sh /run-agent.sh
 
