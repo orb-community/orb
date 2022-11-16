@@ -26,10 +26,7 @@ import (
 // Test with mocked server
 func TestEndToEndSummarySupport(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
-
-		if testing.Short() {
-			t.Skip("This test can take a couple of seconds")
-		}
+		t.Skip("This test can take a couple of seconds")
 
 		//1. Create the Prometheus scrape endpoint.
 		waitForScrape := make(chan bool, 1)
