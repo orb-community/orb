@@ -171,7 +171,7 @@ type PeriodPayload struct {
 type FlowPayload struct {
 	Devices map[string]struct {
 		RecordsFiltered         int64       `mapstructure:"records_filtered"`
-		RecordsTotal            int64       `mapstructure:"records_total"`
+		RecordsFlows            int64       `mapstructure:"records_flows"`
 		TopInInterfacesBytes    []NameCount `mapstructure:"top_in_interfaces_bytes"`
 		TopInInterfacesPackets  []NameCount `mapstructure:"top_in_interfaces_packets"`
 		TopOutInterfacesBytes   []NameCount `mapstructure:"top_out_interfaces_bytes"`
