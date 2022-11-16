@@ -12,7 +12,6 @@ type AgentBridgeService interface {
 type AgentDataPerPolicy struct {
 	PolicyID  string
 	Datasets  string
-	OrbTags   string
 	AgentTags string
 }
 
@@ -20,15 +19,13 @@ var _ AgentBridgeService = (*bridgeService)(nil)
 
 type bridgeService struct {
 	policyRepo policies.PolicyRepo
-	OrbTags    string
 	AgentTags  string
 }
 
-func NewBridgeService(policyRepo *policies.PolicyRepo) *bridgeService {
+func NewBridgeService(policyRepo *policies.PolicyRepo, agentTags string) *bridgeService {
 	return &bridgeService{
 		policyRepo: *policyRepo,
-		OrbTags:    "testing-orb",
-		AgentTags:  "testing-agent",
+		AgentTags:  agentTags,
 	}
 }
 
@@ -40,7 +37,6 @@ func (b *bridgeService) RetrieveAgentInfoByPolicyName(policyName string) (*Agent
 	return &AgentDataPerPolicy{
 		PolicyID:  pData.ID,
 		Datasets:  strings.Join(pData.GetDatasetIDs(), ","),
-		OrbTags:   b.OrbTags,
 		AgentTags: b.AgentTags,
 	}, nil
 }
