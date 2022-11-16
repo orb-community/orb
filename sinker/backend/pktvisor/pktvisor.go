@@ -218,6 +218,7 @@ func convertFlowToPromParticle(ctxt *metricAppendix, statsMap map[string]interfa
 					ctxt.deviceList = append(ctxt.deviceList, mkey)
 				}
 				ctxt.deviceID = key
+				ctxt.deviceIF = ""
 				convertFlowToPromParticle(ctxt, statistic, label, tsList)
 			} else if label == "FlowInterfaces" {
 				label = strings.ReplaceAll(label, "Interfaces", "")
