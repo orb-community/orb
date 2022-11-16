@@ -180,7 +180,7 @@ func (e *exporter) pushMetrics(ctx context.Context, md pmetric.Metrics) error {
 	tr = e.injectAttribute(tr, "dataset_ids", agentData.Datasets)
 	tr = e.injectAttribute(tr, "orb_tags", agentData.OrbTags)
 	tr = e.injectAttribute(tr, "agent_tags", agentData.AgentTags)
-
+	e.logger.Info("scraped metrics for policy", zap.String("policy", e.policyName), zap.String("policy_id", e.policyID))
 	request, err := tr.MarshalProto()
 	if err != nil {
 		defer ctx.Done()
