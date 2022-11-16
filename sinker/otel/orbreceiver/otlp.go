@@ -237,8 +237,9 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 		}
 		datasetIDs := strings.Split(datasets, ",")
 		
-		// Delete datasetsIDs from metricsRequest
+		// Delete datasets_ids and policy_ids from metricsRequest
 		mr = r.deleteAttribute(mr, "dataset_ids")
+		mr = r.deleteAttribute(mr, "policy_ids")
 
 		// Add tags in Context
 		execCtx, execCancelF := context.WithCancel(r.ctx)
