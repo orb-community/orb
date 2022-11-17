@@ -1011,7 +1011,7 @@ Scenario: Edit sink with password and use valid one
         And 4 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
 
-@smoke
+@sanity
 Scenario: Check policies status when agent backend stop running
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -1029,7 +1029,7 @@ Scenario: Check policies status when agent backend stop running
     Then this agent's heartbeat shows that 5 policies are applied and all has status unknown
 
 
-@smoke
+@sanity
 Scenario: Check backend status when agent backend stop running
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -1040,7 +1040,7 @@ Scenario: Check backend status when agent backend stop running
         And pktvisor error is failed to retrieve backend status: signal: killed
 
 
-@smoke
+@sanity
 Scenario: Check auto reset after pktvisor stop running
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -1060,7 +1060,7 @@ Scenario: Check auto reset after pktvisor stop running
         And this agent's heartbeat shows that 10 policies are applied and all has status running
 
 
-@smoke
+@sanity
 Scenario: Check new policies applied after pktvisor stop running
     Given the Orb user has a registered account
         And the Orb user logs in
