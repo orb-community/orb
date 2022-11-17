@@ -251,6 +251,11 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 			return
 		}
 		mr = r.injectAttribute(mr, "agent", agentPb.AgentName)
+		var orbTags string
+		for k, v := range agentPb.OrbTags {
+			orbTags += fmt.Sprintf("%s;%s", k, v)
+		}
+		mr = r.injectAttribute(mr, "orb_tags", orbTags)
 		sinkIds, err := r.sinkerService.GetSinkIdsFromDatasetIDs(execCtx, agentPb.OwnerID, datasetIDs)
 		if err != nil {
 			execCancelF()
