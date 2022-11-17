@@ -14,9 +14,23 @@ class FleetAgent:
     def config_file_of_orb_agent(cls, name, token, iface, orb_url, base_orb_mqtt, tap_name, tls_verify=True,
                                  auto_provision=True, orb_cloud_mqtt_id=None, orb_cloud_mqtt_key=None,
                                  orb_cloud_mqtt_channel_id=None, input_type="pcap", input_tags='3', settings=None,
-                                 overwrite_default=False):
-        assert_that(tls_verify, any_of(equal_to(True), equal_to(False)), "Unexpected value for tls_verify on "
-                                                                         "agent pcap config file creation")
+                                 include_otel_env_var=False, enable_otel=False, overwrite_default=False):
+        if isinstance(include_otel_env_var, str):
+            assert_that(include_otel_env_var.lower(), any_of("true", "false"), "Unexpected value for "
+                                                                               "'include_otel_env_var'.")
+            include_otel_env_var = eval(include_otel_env_var.title())
+        else:
+            assert_that(include_otel_env_var, any_of(False, True), "Unexpected value for 'include_otel_env_var'")
+        if isinstance(enable_otel, str):
+            assert_that(enable_otel.lower(), any_of("true", "false"), "Unexpected value for "
+                                                                      "'enable_otel'.")
+            enable_otel = eval(enable_otel.title())
+        else:
+            assert_that(enable_otel, any_of(False, True), "Unexpected value for 'enable_otel'")
+
+            assert_that(tls_verify, any_of(equal_to(True), equal_to(False)), "Unexpected value for tls_verify on "
+                                                                             "agent pcap config file creation")
+
         assert_that(auto_provision, any_of(equal_to(True), equal_to(False)), "Unexpected value for auto_provision "
                                                                              "on agent pcap config file creation")
         assert_that(input_type, any_of(equal_to("pcap"), equal_to("flow"), equal_to("dnstap")),
@@ -68,6 +82,8 @@ class FleetAgent:
                     }
                 }
             }
+            if include_otel_env_var is True:
+                agent['orb']['otel'] = {"enable": enable_otel}
         else:
             assert_that(orb_cloud_mqtt_id, not_(is_(None)), "orb_cloud_mqtt_id must have a valid value")
             assert_that(orb_cloud_mqtt_channel_id, not_(is_(None)), "orb_cloud_mqtt_channel_id must have a valid value")
@@ -104,5 +120,7 @@ class FleetAgent:
                     }
                 }
             }
+            if include_otel_env_var is True:
+                agent['orb']['otel'] = {"enable": enable_otel}
         agent = yaml.dump(agent)
         return agent, tap.taps
