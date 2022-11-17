@@ -234,8 +234,8 @@ type FlowPayload struct {
 			TopOutDstIpsAndPortPackets []NameCount `mapstructure:"top_out_dst_ips_and_port_packets"`
 			TopConversationsBytes      []NameCount `mapstructure:"top_conversations_bytes"`
 			TopConversationsPackets    []NameCount `mapstructure:"top_conversations_packets"`
-			TopGeoLocBytes             []NameCount `mapstructure:"top_geoLoc_bytes"`
-			TopGeoLocPackets           []NameCount `mapstructure:"top_geoLoc_packets"`
+			TopGeoLocBytes             []NameCount `mapstructure:"top_geo_loc_bytes"`
+			TopGeoLocPackets           []NameCount `mapstructure:"top_geo_loc_packets"`
 			TopAsnBytes                []NameCount `mapstructure:"top_ASN_bytes"`
 			TopAsnPackets              []NameCount `mapstructure:"top_ASN_packets"`
 		} `mapstructure:"interfaces"`
