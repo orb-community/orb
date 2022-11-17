@@ -182,6 +182,37 @@ func (r *OrbReceiver) injectAttribute(metricsRequest pmetricotlp.Request, attrib
 	return metricsRequest
 }
 
+// delete attribute on all metricsRequest metrics
+func (r *OrbReceiver) deleteAttribute(metricsRequest pmetricotlp.Request, attribute string) pmetricotlp.Request {
+	if metricsRequest.Metrics().ResourceMetrics().Len() > 0 {
+		if metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().Len() > 0 {
+			metrics := metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
+			for i := 0; i < metrics.Len(); i++ {
+				metricItem := metrics.At(i)
+				switch metricItem.Type() {
+				case pmetric.MetricTypeExponentialHistogram:
+					metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).ExponentialHistogram().DataPoints().At(0).Attributes().Remove(attribute)
+				case pmetric.MetricTypeGauge:
+					metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).Gauge().DataPoints().At(0).Attributes().Remove(attribute)
+				case pmetric.MetricTypeHistogram:
+					metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).Histogram().DataPoints().At(0).Attributes().Remove(attribute)
+				case pmetric.MetricTypeSum:
+					metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).Sum().DataPoints().At(0).Attributes().Remove(attribute)
+				case pmetric.MetricTypeSummary:
+					metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).Summary().DataPoints().At(0).Attributes().Remove(attribute)
+				default:
+					r.cfg.Logger.Error("Unknown metric type: " + metricItem.Type().String())
+				}
+			}
+		} else {
+			r.cfg.Logger.Error("Unable to delete attribute, ScopeMetrics length 0")
+		}
+	} else {
+		r.cfg.Logger.Error("Unable to delete attribute, ResourceMetrics length 0")
+	}
+	return metricsRequest
+}
+
 func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 	go func() {
 		r.cfg.Logger.Debug("received agent message",
@@ -205,6 +236,10 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 			return
 		}
 		datasetIDs := strings.Split(datasets, ",")
+		
+		// Delete datasets_ids and policy_ids from metricsRequest
+		mr = r.deleteAttribute(mr, "dataset_ids")
+		mr = r.deleteAttribute(mr, "policy_ids")
 
 		// Add tags in Context
 		execCtx, execCancelF := context.WithCancel(r.ctx)

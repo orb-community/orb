@@ -3477,14 +3477,14 @@ func TestFlowConversion(t *testing.T) {
 				},
 			},
 		},
-		"FlowPayloadRecordsTotal": {
+		"FlowPayloadRecordsFlows": {
 			data: []byte(`
 				{
 					"policy_flow": {
 						"flow": {
 							"devices":{
 								"192.168.4.7": {
-									"records_total": 8
+									"records_flows": 8
 								}
 							}
 						}
@@ -3493,7 +3493,7 @@ func TestFlowConversion(t *testing.T) {
 			expected: prometheus.TimeSeries{
 				Labels: append(prependLabel(commonLabels, prometheus.Label{
 					Name:  "__name__",
-					Value: "flow_records_total",
+					Value: "flow_records_flows",
 				})),
 				Datapoint: prometheus.Datapoint{
 					Value: 8,
