@@ -236,7 +236,7 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 			return
 		}
 		datasetIDs := strings.Split(datasets, ",")
-		
+
 		// Delete datasets_ids and policy_ids from metricsRequest
 		mr = r.deleteAttribute(mr, "dataset_ids")
 		mr = r.deleteAttribute(mr, "policy_ids")
@@ -250,6 +250,12 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 			r.cfg.Logger.Info("No data extracting agent information from fleet")
 			return
 		}
+		mr = r.injectAttribute(mr, "agent", agentPb.AgentName)
+		var orbTags string
+		for k, v := range agentPb.OrbTags {
+			orbTags += fmt.Sprintf("%s;%s", k, v)
+		}
+		mr = r.injectAttribute(mr, "orb_tags", orbTags)
 		sinkIds, err := r.sinkerService.GetSinkIdsFromDatasetIDs(execCtx, agentPb.OwnerID, datasetIDs)
 		if err != nil {
 			execCancelF()
