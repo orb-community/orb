@@ -152,9 +152,7 @@ jvm_gc_collection_seconds_sum{gc="G1 Old Generation",} 0.0`
 
 func TestEndToEndToPktvisor(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
-		if testing.Short() {
-			t.Skip("This test can take a couple of seconds")
-		}
+		t.Skip("This test can take a couple of seconds")
 
 		defaultEndpoint := container.GetHostPort("10853/tcp")
 
