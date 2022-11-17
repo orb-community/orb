@@ -118,7 +118,7 @@ jobs:
       - name: Test docker
 #        if: ${{ needs.prebuild.outputs.agent == 'true' }}
         run: |
-          sudo docker ps -a
+          docker ps -a
 
       - name: Go unit tests
 #        if: ${{ needs.prebuild.outputs.agent == 'true' }}
