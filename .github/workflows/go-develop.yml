@@ -115,6 +115,11 @@ jobs:
         with:
           go-version: 1.19
 
+      - name: Test docker
+#        if: ${{ needs.prebuild.outputs.agent == 'true' }}
+        run: |
+          sudo docker ps -a
+
       - name: Go unit tests
 #        if: ${{ needs.prebuild.outputs.agent == 'true' }}
         run: |
