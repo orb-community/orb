@@ -167,15 +167,25 @@ func (e *exporter) injectAttribute(metricsRequest pmetricotlp.Request, attribute
 		metricItem := metrics.At(i)
 		switch metricItem.Type() {
 		case pmetric.MetricTypeExponentialHistogram:
-			metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).ExponentialHistogram().DataPoints().At(0).Attributes().PutStr(attribute, value)
+			for i := 0; i < metricItem.ExponentialHistogram().DataPoints().Len(); i++ {
+				metricItem.ExponentialHistogram().DataPoints().At(i).Attributes().PutStr(attribute, value)
+			}
 		case pmetric.MetricTypeGauge:
-			metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).Gauge().DataPoints().At(0).Attributes().PutStr(attribute, value)
+			for i := 0; i < metricItem.Gauge().DataPoints().Len(); i++ {
+				metricItem.Gauge().DataPoints().At(i).Attributes().PutStr(attribute, value)
+			}
 		case pmetric.MetricTypeHistogram:
-			metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).Histogram().DataPoints().At(0).Attributes().PutStr(attribute, value)
+			for i := 0; i < metricItem.Histogram().DataPoints().Len(); i++ {
+				metricItem.Gauge().DataPoints().At(i).Attributes().PutStr(attribute, value)
+			}
 		case pmetric.MetricTypeSum:
-			metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).Sum().DataPoints().At(0).Attributes().PutStr(attribute, value)
+			for i := 0; i < metricItem.Sum().DataPoints().Len(); i++ {
+				metricItem.Gauge().DataPoints().At(i).Attributes().PutStr(attribute, value)
+			}
 		case pmetric.MetricTypeSummary:
-			metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).Summary().DataPoints().At(0).Attributes().PutStr(attribute, value)
+			for i := 0; i < metricItem.Summary().DataPoints().Len(); i++ {
+				metricItem.Gauge().DataPoints().At(i).Attributes().PutStr(attribute, value)
+			}
 		default:
 			e.logger.Error("Unknown metric type: " + metricItem.Type().String())
 		}
@@ -204,7 +214,11 @@ func (e *exporter) pushMetrics(ctx context.Context, md pmetric.Metrics) error {
 	// injecting policy ID attribute on metrics
 	tr = e.injectAttribute(tr, "policy_id", e.policyID)
 	tr = e.injectAttribute(tr, "dataset_ids", datasets)
-	tr = e.injectAttribute(tr, "agent_tags", agentData.AgentTags)
+	// Insert pivoted agentTags
+	for key, value := range agentData.AgentTags {
+		tr = e.injectAttribute(tr, key, value)
+	}
+
 	e.logger.Info("scraped metrics for policy", zap.String("policy", e.policyName), zap.String("policy_id", e.policyID))
 	request, err := tr.MarshalProto()
 	if err != nil {
