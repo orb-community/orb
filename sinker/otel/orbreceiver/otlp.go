@@ -166,15 +166,25 @@ func (r *OrbReceiver) injectAttribute(metricsRequest pmetricotlp.Request, attrib
 		metricItem := metrics.At(i)
 		switch metricItem.Type() {
 		case pmetric.MetricTypeExponentialHistogram:
-			metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).ExponentialHistogram().DataPoints().At(0).Attributes().PutStr(attribute, value)
+			for i := 0; i < metricItem.ExponentialHistogram().DataPoints().Len(); i++ {
+				metricItem.ExponentialHistogram().DataPoints().At(i).Attributes().PutStr(attribute, value)
+			}
 		case pmetric.MetricTypeGauge:
-			metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).Gauge().DataPoints().At(0).Attributes().PutStr(attribute, value)
+			for i := 0; i < metricItem.Gauge().DataPoints().Len(); i++ {
+				metricItem.Gauge().DataPoints().At(i).Attributes().PutStr(attribute, value)
+			}
 		case pmetric.MetricTypeHistogram:
-			metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).Histogram().DataPoints().At(0).Attributes().PutStr(attribute, value)
+			for i := 0; i < metricItem.Histogram().DataPoints().Len(); i++ {
+				metricItem.Gauge().DataPoints().At(i).Attributes().PutStr(attribute, value)
+			}
 		case pmetric.MetricTypeSum:
-			metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).Sum().DataPoints().At(0).Attributes().PutStr(attribute, value)
+			for i := 0; i < metricItem.Sum().DataPoints().Len(); i++ {
+				metricItem.Gauge().DataPoints().At(i).Attributes().PutStr(attribute, value)
+			}
 		case pmetric.MetricTypeSummary:
-			metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).Summary().DataPoints().At(0).Attributes().PutStr(attribute, value)
+			for i := 0; i < metricItem.Summary().DataPoints().Len(); i++ {
+				metricItem.Gauge().DataPoints().At(i).Attributes().PutStr(attribute, value)
+			}
 		default:
 			r.cfg.Logger.Error("Unknown metric type: " + metricItem.Type().String())
 		}
@@ -191,15 +201,25 @@ func (r *OrbReceiver) deleteAttribute(metricsRequest pmetricotlp.Request, attrib
 				metricItem := metrics.At(i)
 				switch metricItem.Type() {
 				case pmetric.MetricTypeExponentialHistogram:
-					metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).ExponentialHistogram().DataPoints().At(0).Attributes().Remove(attribute)
+					for i := 0; i < metricItem.ExponentialHistogram().DataPoints().Len(); i++ {
+						metricItem.ExponentialHistogram().DataPoints().At(0).Attributes().Remove(attribute)
+					}
 				case pmetric.MetricTypeGauge:
-					metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).Gauge().DataPoints().At(0).Attributes().Remove(attribute)
+					for i := 0; i < metricItem.Gauge().DataPoints().Len(); i++ {
+						metricItem.ExponentialHistogram().DataPoints().At(0).Attributes().Remove(attribute)
+					}
 				case pmetric.MetricTypeHistogram:
-					metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).Histogram().DataPoints().At(0).Attributes().Remove(attribute)
+					for i := 0; i < metricItem.Histogram().DataPoints().Len(); i++ {
+						metricItem.ExponentialHistogram().DataPoints().At(0).Attributes().Remove(attribute)
+					}
 				case pmetric.MetricTypeSum:
-					metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).Sum().DataPoints().At(0).Attributes().Remove(attribute)
+					for i := 0; i < metricItem.Sum().DataPoints().Len(); i++ {
+						metricItem.ExponentialHistogram().DataPoints().At(0).Attributes().Remove(attribute)
+					}
 				case pmetric.MetricTypeSummary:
-					metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(i).Summary().DataPoints().At(0).Attributes().Remove(attribute)
+					for i := 0; i < metricItem.Summary().DataPoints().Len(); i++ {
+						metricItem.ExponentialHistogram().DataPoints().At(0).Attributes().Remove(attribute)
+					}
 				default:
 					r.cfg.Logger.Error("Unknown metric type: " + metricItem.Type().String())
 				}
