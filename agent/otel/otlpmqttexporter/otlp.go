@@ -204,7 +204,11 @@ func (e *exporter) pushMetrics(ctx context.Context, md pmetric.Metrics) error {
 	// injecting policy ID attribute on metrics
 	tr = e.injectAttribute(tr, "policy_id", e.policyID)
 	tr = e.injectAttribute(tr, "dataset_ids", datasets)
-	tr = e.injectAttribute(tr, "agent_tags", agentData.AgentTags)
+	// Insert pivoted agentTags
+	for key, value := range agentData.AgentTags {
+		tr = e.injectAttribute(tr, key, value)
+	}
+
 	e.logger.Info("scraped metrics for policy", zap.String("policy", e.policyName), zap.String("policy_id", e.policyID))
 	request, err := tr.MarshalProto()
 	if err != nil {
