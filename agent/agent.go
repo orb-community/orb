@@ -118,7 +118,7 @@ func (a *orbAgent) startBackends(agentCtx context.Context) error {
 		if a.config.OrbAgent.Cloud.MQTT.Id != "" {
 			backendCtx = context.WithValue(backendCtx, "agent_id", a.config.OrbAgent.Cloud.MQTT.Id)
 		} else {
-			backendCtx = context.WithValue(backendCtx, "agent_id", "auto-provisioning-whithout-id")
+			backendCtx = context.WithValue(backendCtx, "agent_id", "auto-provisioning-without-id")
 		}
 		if err := be.Start(context.WithCancel(backendCtx)); err != nil {
 			return err
