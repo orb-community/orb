@@ -175,15 +175,15 @@ func (r *OrbReceiver) injectAttribute(metricsRequest pmetricotlp.Request, attrib
 			}
 		case pmetric.MetricTypeHistogram:
 			for i := 0; i < metricItem.Histogram().DataPoints().Len(); i++ {
-				metricItem.Gauge().DataPoints().At(i).Attributes().PutStr(attribute, value)
+				metricItem.Histogram().DataPoints().At(i).Attributes().PutStr(attribute, value)
 			}
 		case pmetric.MetricTypeSum:
 			for i := 0; i < metricItem.Sum().DataPoints().Len(); i++ {
-				metricItem.Gauge().DataPoints().At(i).Attributes().PutStr(attribute, value)
+				metricItem.Sum().DataPoints().At(i).Attributes().PutStr(attribute, value)
 			}
 		case pmetric.MetricTypeSummary:
 			for i := 0; i < metricItem.Summary().DataPoints().Len(); i++ {
-				metricItem.Gauge().DataPoints().At(i).Attributes().PutStr(attribute, value)
+				metricItem.Summary().DataPoints().At(i).Attributes().PutStr(attribute, value)
 			}
 		default:
 			r.cfg.Logger.Error("Unknown metric type: " + metricItem.Type().String())
