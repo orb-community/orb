@@ -19,7 +19,6 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"sort"
 	"strings"
 
 	"sync"
@@ -241,6 +240,7 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 		// Delete datasets_ids and policy_ids from metricsRequest
 		mr = r.deleteAttribute(mr, "dataset_ids")
 		mr = r.deleteAttribute(mr, "policy_id")
+		mr = r.deleteAttribute(mr, "instance")
 
 		// Add tags in Context
 		execCtx, execCancelF := context.WithCancel(r.ctx)
@@ -252,16 +252,12 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 			return
 		}
 		mr = r.injectAttribute(mr, "agent", agentPb.AgentName)
-		var orbTags string
-		keys := make([]string, 0, len(agentPb.OrbTags))
-		for k := range agentPb.OrbTags {
-			keys = append(keys, k)
+		mr = r.injectAttribute(mr, "instance", agentPb.AgentName)
+		for k, v := range agentPb.OrbTags {
+			mr = r.injectAttribute(mr, k, v)
 		}
-		sort.Strings(keys)
-		for _, k := range keys {
-			orbTags += fmt.Sprintf("%s;%s;", k, agentPb.OrbTags[k])
-		}
-		mr = r.injectAttribute(mr, "orb_tags", orbTags)
+		mr = r.injectAttribute(mr, "agent_groups", strings.Join(agentPb.AgentGroupIDs, ";"))
+		mr = r.injectAttribute(mr, "agent_ownerID", agentPb.OwnerID)
 		sinkIds, err := r.sinkerService.GetSinkIdsFromDatasetIDs(execCtx, agentPb.OwnerID, datasetIDs)
 		if err != nil {
 			execCancelF()
