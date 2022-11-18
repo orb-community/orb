@@ -241,6 +241,7 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 		// Delete datasets_ids and policy_ids from metricsRequest
 		mr = r.deleteAttribute(mr, "dataset_ids")
 		mr = r.deleteAttribute(mr, "policy_id")
+		mr = r.deleteAttribute(mr, "instance")
 
 		// Add tags in Context
 		execCtx, execCancelF := context.WithCancel(r.ctx)
@@ -262,6 +263,8 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 			orbTags += fmt.Sprintf("%s;%s;", k, agentPb.OrbTags[k])
 		}
 		mr = r.injectAttribute(mr, "orb_tags", orbTags)
+		mr = r.injectAttribute(mr, "agent_groups", strings.Join(agentPb.AgentGroupIDs, ";"))
+		mr = r.injectAttribute(mr, "agent_ownerID", agentPb.OwnerID)
 		sinkIds, err := r.sinkerService.GetSinkIdsFromDatasetIDs(execCtx, agentPb.OwnerID, datasetIDs)
 		if err != nil {
 			execCancelF()
