@@ -19,7 +19,6 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"sort"
 	"strings"
 
 	"sync"
@@ -254,13 +253,8 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 		}
 		mr = r.injectAttribute(mr, "agent", agentPb.AgentName)
 		mr = r.injectAttribute(mr, "instance", agentPb.AgentName)
-		keys := make([]string, 0, len(agentPb.OrbTags))
-		for k := range agentPb.OrbTags {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
-		for _, k := range keys {
-			mr = r.injectAttribute(mr, k, agentPb.OrbTags[k])
+		for k, v := range agentPb.OrbTags {
+			mr = r.injectAttribute(mr, k, v)
 		}
 		mr = r.injectAttribute(mr, "agent_groups", strings.Join(agentPb.AgentGroupIDs, ";"))
 		mr = r.injectAttribute(mr, "agent_ownerID", agentPb.OwnerID)
