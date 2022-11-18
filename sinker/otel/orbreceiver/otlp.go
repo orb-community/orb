@@ -253,6 +253,7 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 			return
 		}
 		mr = r.injectAttribute(mr, "agent", agentPb.AgentName)
+		mr = r.injectAttribute(mr, "instance", agentPb.AgentName)
 		var orbTags string
 		keys := make([]string, 0, len(agentPb.OrbTags))
 		for k := range agentPb.OrbTags {
