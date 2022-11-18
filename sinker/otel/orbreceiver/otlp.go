@@ -254,16 +254,14 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 		}
 		mr = r.injectAttribute(mr, "agent", agentPb.AgentName)
 		mr = r.injectAttribute(mr, "instance", agentPb.AgentName)
-		var orbTags string
 		keys := make([]string, 0, len(agentPb.OrbTags))
 		for k := range agentPb.OrbTags {
 			keys = append(keys, k)
 		}
 		sort.Strings(keys)
 		for _, k := range keys {
-			orbTags += fmt.Sprintf("%s;%s;", k, agentPb.OrbTags[k])
+			mr = r.injectAttribute(mr, k, agentPb.OrbTags[k])
 		}
-		mr = r.injectAttribute(mr, "orb_tags", orbTags)
 		mr = r.injectAttribute(mr, "agent_groups", strings.Join(agentPb.AgentGroupIDs, ";"))
 		mr = r.injectAttribute(mr, "agent_ownerID", agentPb.OwnerID)
 		sinkIds, err := r.sinkerService.GetSinkIdsFromDatasetIDs(execCtx, agentPb.OwnerID, datasetIDs)
