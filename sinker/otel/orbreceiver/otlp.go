@@ -19,6 +19,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"sort"
 	"strings"
 
 	"sync"
@@ -252,8 +253,13 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 		}
 		mr = r.injectAttribute(mr, "agent", agentPb.AgentName)
 		var orbTags string
-		for k, v := range agentPb.OrbTags {
-			orbTags += fmt.Sprintf("%s;%s;", k, v)
+		keys := make([]string, 0, len(agentPb.OrbTags))
+		for k := range agentPb.OrbTags {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		for _, k := range keys {
+			orbTags += fmt.Sprintf("%s;%s;", k, agentPb.OrbTags[k])
 		}
 		mr = r.injectAttribute(mr, "orb_tags", orbTags)
 		sinkIds, err := r.sinkerService.GetSinkIdsFromDatasetIDs(execCtx, agentPb.OwnerID, datasetIDs)
