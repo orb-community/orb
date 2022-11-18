@@ -18,7 +18,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"strings"
 
 	"sync"
@@ -105,7 +105,7 @@ func (r *OrbReceiver) registerMetricsConsumer(mc consumer.Metrics) error {
 func (r *OrbReceiver) decompressBrotli(data []byte) []byte {
 	rdata := bytes.NewReader(data)
 	rec := brotli.NewReader(rdata)
-	s, _ := ioutil.ReadAll(rec)
+	s, _ := io.ReadAll(rec)
 	return []byte(s)
 }
 
@@ -113,9 +113,9 @@ func (r *OrbReceiver) decompressBrotli(data []byte) []byte {
 func (r *OrbReceiver) extractAttribute(metricsRequest pmetricotlp.Request, attribute string) string {
 	if metricsRequest.Metrics().ResourceMetrics().Len() > 0 {
 		if metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().Len() > 0 {
-			metrics := metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
-			for i := 0; i < metrics.Len(); i++ {
-				metricItem := metrics.At(i)
+			metricsList := metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
+			for i := 0; i < metricsList.Len(); i++ {
+				metricItem := metricsList.At(i)
 				switch metricItem.Type() {
 				case pmetric.MetricTypeGauge:
 					if metricItem.Gauge().DataPoints().Len() > 0 {
@@ -161,9 +161,9 @@ func (r *OrbReceiver) extractAttribute(metricsRequest pmetricotlp.Request, attri
 
 // inject attribute on all metricsRequest metrics
 func (r *OrbReceiver) injectAttribute(metricsRequest pmetricotlp.Request, attribute string, value string) pmetricotlp.Request {
-	metrics := metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
-	for i := 0; i < metrics.Len(); i++ {
-		metricItem := metrics.At(i)
+	metricsList := metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
+	for i := 0; i < metricsList.Len(); i++ {
+		metricItem := metricsList.At(i)
 		switch metricItem.Type() {
 		case pmetric.MetricTypeExponentialHistogram:
 			for i := 0; i < metricItem.ExponentialHistogram().DataPoints().Len(); i++ {
@@ -196,9 +196,9 @@ func (r *OrbReceiver) injectAttribute(metricsRequest pmetricotlp.Request, attrib
 func (r *OrbReceiver) deleteAttribute(metricsRequest pmetricotlp.Request, attribute string) pmetricotlp.Request {
 	if metricsRequest.Metrics().ResourceMetrics().Len() > 0 {
 		if metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().Len() > 0 {
-			metrics := metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
-			for i := 0; i < metrics.Len(); i++ {
-				metricItem := metrics.At(i)
+			metricsList := metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
+			for i := 0; i < metricsList.Len(); i++ {
+				metricItem := metricsList.At(i)
 				switch metricItem.Type() {
 				case pmetric.MetricTypeExponentialHistogram:
 					for i := 0; i < metricItem.ExponentialHistogram().DataPoints().Len(); i++ {
@@ -206,19 +206,19 @@ func (r *OrbReceiver) deleteAttribute(metricsRequest pmetricotlp.Request, attrib
 					}
 				case pmetric.MetricTypeGauge:
 					for i := 0; i < metricItem.Gauge().DataPoints().Len(); i++ {
-						metricItem.ExponentialHistogram().DataPoints().At(0).Attributes().Remove(attribute)
+						metricItem.Gauge().DataPoints().At(0).Attributes().Remove(attribute)
 					}
 				case pmetric.MetricTypeHistogram:
 					for i := 0; i < metricItem.Histogram().DataPoints().Len(); i++ {
-						metricItem.ExponentialHistogram().DataPoints().At(0).Attributes().Remove(attribute)
+						metricItem.Histogram().DataPoints().At(0).Attributes().Remove(attribute)
 					}
 				case pmetric.MetricTypeSum:
 					for i := 0; i < metricItem.Sum().DataPoints().Len(); i++ {
-						metricItem.ExponentialHistogram().DataPoints().At(0).Attributes().Remove(attribute)
+						metricItem.Sum().DataPoints().At(0).Attributes().Remove(attribute)
 					}
 				case pmetric.MetricTypeSummary:
 					for i := 0; i < metricItem.Summary().DataPoints().Len(); i++ {
-						metricItem.ExponentialHistogram().DataPoints().At(0).Attributes().Remove(attribute)
+						metricItem.Summary().DataPoints().At(0).Attributes().Remove(attribute)
 					}
 				default:
 					r.cfg.Logger.Error("Unknown metric type: " + metricItem.Type().String())
@@ -287,7 +287,7 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 		attributeCtx = context.WithValue(attributeCtx, "orb_tags", agentPb.OrbTags)
 		attributeCtx = context.WithValue(attributeCtx, "agent_groups", agentPb.AgentGroupIDs)
 		attributeCtx = context.WithValue(attributeCtx, "agent_ownerID", agentPb.OwnerID)
-		for sinkId, _ := range sinkIds {
+		for sinkId := range sinkIds {
 			err := r.cfg.SinkerService.NotifyActiveSink(r.ctx, agentPb.OwnerID, sinkId, "active", "")
 			if err != nil {
 				r.cfg.Logger.Error("error notifying sink active, changing state, skipping sink", zap.String("sink-id", sinkId), zap.Error(err))
