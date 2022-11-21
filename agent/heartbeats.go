@@ -54,7 +54,7 @@ func (a *orbAgent) sendSingleHeartbeat(ctx context.Context, t time.Time, agentsS
 				if a.config.OrbAgent.Cloud.MQTT.Id != "" {
 					ctx = context.WithValue(ctx, "agent_id", a.config.OrbAgent.Cloud.MQTT.Id)
 				} else {
-					ctx = context.WithValue(ctx, "agent_id", "unknown_agent_id")
+					ctx = context.WithValue(ctx, "agent_id", "auto-provisioning-without-id")
 				}
 				err := a.RestartBackend(ctx, name, "failed during heartbeat")
 				if err != nil {

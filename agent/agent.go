@@ -286,7 +286,7 @@ func (a *orbAgent) RestartAll(ctx context.Context, reason string) error {
 	if a.config.OrbAgent.Cloud.MQTT.Id != "" {
 		ctx = context.WithValue(ctx, "agent_id", a.config.OrbAgent.Cloud.MQTT.Id)
 	} else {
-		ctx = context.WithValue(ctx, "agent_id", "unknown_agent_id")
+		ctx = context.WithValue(ctx, "agent_id", "auto-provisioning-without-id")
 	}
 	a.logger.Info("restarting all backends", zap.String("reason", reason))
 	for name := range a.backends {
