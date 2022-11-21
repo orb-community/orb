@@ -165,6 +165,7 @@ func (e *exporter) injectAttribute(metricsRequest pmetricotlp.Request, attribute
 	metrics := metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
 	for i := 0; i < metrics.Len(); i++ {
 		metricItem := metrics.At(i)
+
 		switch metricItem.Type() {
 		case pmetric.MetricTypeExponentialHistogram:
 			for i := 0; i < metricItem.ExponentialHistogram().DataPoints().Len(); i++ {
@@ -176,15 +177,15 @@ func (e *exporter) injectAttribute(metricsRequest pmetricotlp.Request, attribute
 			}
 		case pmetric.MetricTypeHistogram:
 			for i := 0; i < metricItem.Histogram().DataPoints().Len(); i++ {
-				metricItem.Gauge().DataPoints().At(i).Attributes().PutStr(attribute, value)
+				metricItem.Histogram().DataPoints().At(i).Attributes().PutStr(attribute, value)
 			}
 		case pmetric.MetricTypeSum:
 			for i := 0; i < metricItem.Sum().DataPoints().Len(); i++ {
-				metricItem.Gauge().DataPoints().At(i).Attributes().PutStr(attribute, value)
+				metricItem.Sum().DataPoints().At(i).Attributes().PutStr(attribute, value)
 			}
 		case pmetric.MetricTypeSummary:
 			for i := 0; i < metricItem.Summary().DataPoints().Len(); i++ {
-				metricItem.Gauge().DataPoints().At(i).Attributes().PutStr(attribute, value)
+				metricItem.Summary().DataPoints().At(i).Attributes().PutStr(attribute, value)
 			}
 		default:
 			e.logger.Error("Unknown metric type: " + metricItem.Type().String())
