@@ -51,6 +51,11 @@ func (a *orbAgent) sendSingleHeartbeat(ctx context.Context, t time.Time, agentsS
 			besi.Error = a.backendState[name].LastError
 			if time.Now().Sub(be.GetStartTime()) >= RestartTimeMin {
 				a.logger.Info("attempting backend restart due to failed status during heartbeat")
+				if a.config.OrbAgent.Cloud.MQTT.Id != "" {
+					ctx = context.WithValue(ctx, "agent_id", a.config.OrbAgent.Cloud.MQTT.Id)
+				} else {
+					ctx = context.WithValue(ctx, "agent_id", "unknown_agent_id")
+				}
 				err := a.RestartBackend(ctx, name, "failed during heartbeat")
 				if err != nil {
 					a.logger.Error("failed to restart backend", zap.Error(err), zap.String("backend", name))
