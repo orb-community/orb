@@ -650,6 +650,23 @@ def delete_agent(token, agent_id):
                 + agent_id + ' failed with status=' + str(response.status_code))
 
 
+@threading_wait_until
+def wait_until_agent_being_created(token, name, tags, expected_status_code=201, event=None):
+    json_request = {"name": name, "orb_tags": tags, "validate_only": False}
+    headers_request = {'Content-type': 'application/json', 'Accept': '*/*',
+                       'Authorization': f'Bearer {token}'}
+
+    response = requests.post(orb_url + '/api/v1/agents', json=json_request, headers=headers_request)
+    try:
+        response_json = response.json()
+    except ValueError:
+        response_json = ValueError
+    if response.status_code == expected_status_code:
+        event.set()
+        return response, response_json
+    return response, response_json
+
+
 def create_agent(token, name, tags, expected_status_code=201):
     """
     Creates an agent in Orb control plane
@@ -660,16 +677,7 @@ def create_agent(token, name, tags, expected_status_code=201):
     :param expected_status_code: status code to be returned on response
     :returns: (dict) a dictionary containing the created agent data
     """
-
-    json_request = {"name": name, "orb_tags": tags, "validate_only": False}
-    headers_request = {'Content-type': 'application/json', 'Accept': '*/*',
-                       'Authorization': f'Bearer {token}'}
-
-    response = requests.post(orb_url + '/api/v1/agents', json=json_request, headers=headers_request)
-    try:
-        response_json = response.json()
-    except ValueError:
-        response_json = ValueError
+    response, response_json = wait_until_agent_being_created(token, name, tags, expected_status_code, wait_time=1)
     assert_that(response.status_code, equal_to(expected_status_code),
                 'Request to create agent failed with status=' + str(response.status_code) + ":" + str(response_json))
 
@@ -791,6 +799,8 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
         tags = {"tags": all_used_tags}
     else:
         tags = {"tags": create_tags_set(agent_tags)}
+    include_otel_env_var = configs.get('include_otel_env_var')
+    enable_otel = configs.get('enable_otel')
     if configs.get('ignore_ssl_and_certificate_errors', 'false').lower() == 'true':
         mqtt_url = f"{base_orb_address}:1883"
         agent_config_file, tap = FleetAgent.config_file_of_orb_agent(agent_name, token, iface, orb_url, mqtt_url,
@@ -801,6 +811,8 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
                                                                      orb_cloud_mqtt_channel_id=orb_cloud_mqtt_channel_id,
                                                                      input_type=input_type, input_tags=input_tags,
                                                                      settings=settings,
+                                                                     include_otel_env_var=include_otel_env_var,
+                                                                     enable_otel=enable_otel,
                                                                      overwrite_default=overwrite_default)
     else:
         mqtt_url = "tls://" + base_orb_address + ":8883"
@@ -812,6 +824,8 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
                                                                      orb_cloud_mqtt_channel_id=orb_cloud_mqtt_channel_id,
                                                                      input_type=input_type, input_tags=input_tags,
                                                                      settings=settings,
+                                                                     include_otel_env_var=include_otel_env_var,
+                                                                     enable_otel=enable_otel,
                                                                      overwrite_default=overwrite_default)
     agent_config_file = yaml.load(agent_config_file, Loader=SafeLoader)
     agent_config_file['orb'].update(tags)

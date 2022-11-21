@@ -33,7 +33,14 @@ def create_sink(context):
     endpoint = context.remote_prometheus_endpoint
     username = context.prometheus_username
     password = context.prometheus_key
-    context.sink = create_new_sink(token, sink_label_name, endpoint, username, password)
+    include_otel_env_var = configs.get("include_otel_env_var")
+    enable_otel = configs.get("enable_otel")
+    otel_map = {"true": "enabled", "false": "disabled"}
+    if include_otel_env_var == "true":
+        context.sink = create_new_sink(token, sink_label_name, endpoint, username, password,
+                                       include_otel=include_otel_env_var, otel=otel_map[enable_otel])
+    else:
+        context.sink = create_new_sink(token, sink_label_name, endpoint, username, password)
     local_orb_path = configs.get("local_orb_path")
     sink_schema_path = local_orb_path + "/python-test/features/steps/schemas/sink_schema.json"
     is_schema_valid = validate_json(context.sink, sink_schema_path)
@@ -47,8 +54,16 @@ def create_sink_with_conflict_name(context):
     endpoint = context.remote_prometheus_endpoint
     username = context.prometheus_username
     password = context.prometheus_key
-    context.error_message = create_new_sink(token, context.sink['name'], endpoint, username, password,
-                                            expected_status_code=409)
+    include_otel_env_var = configs.get("include_otel_env_var")
+    enable_otel = configs.get("enable_otel")
+    otel_map = {"true": "enabled", "false": "disabled"}
+    if include_otel_env_var == "true":
+        context.error_message = create_new_sink(token, context.sink['name'], endpoint, username, password,
+                                                include_otel=include_otel_env_var, otel=otel_map[enable_otel],
+                                                expected_status_code=409)
+    else:
+        context.error_message = create_new_sink(token, context.sink['name'], endpoint, username, password,
+                                                expected_status_code=409)
 
 
 @step("the name of last Sink is edited using an already existent one")
@@ -101,8 +116,16 @@ def create_invalid_sink(context, credential):
     prometheus_credentials = {'endpoint': context.remote_prometheus_endpoint, 'username': context.prometheus_username,
                               'password': context.prometheus_key}
     prometheus_credentials[credential] = prometheus_credentials[credential][:-2]
-    context.sink = create_new_sink(token, sink_label_name, prometheus_credentials['endpoint'],
-                                   prometheus_credentials['username'], prometheus_credentials['password'])
+    include_otel_env_var = configs.get("include_otel_env_var")
+    enable_otel = configs.get("enable_otel")
+    otel_map = {"true": "enabled", "false": "disabled"}
+    if include_otel_env_var == "true":
+        context.sink = create_new_sink(token, sink_label_name, prometheus_credentials['endpoint'],
+                                       prometheus_credentials['username'], prometheus_credentials['password'],
+                                       include_otel=include_otel_env_var, otel=otel_map[enable_otel])
+    else:
+        context.sink = create_new_sink(token, sink_label_name, prometheus_credentials['endpoint'],
+                                       prometheus_credentials['username'], prometheus_credentials['password'])
     local_orb_path = configs.get("local_orb_path")
     sink_schema_path = local_orb_path + "/python-test/features/steps/schemas/sink_schema.json"
     is_schema_valid = validate_json(context.sink, sink_schema_path)
@@ -158,7 +181,8 @@ def clean_sinks(context):
 
 
 def create_new_sink(token, name_label, remote_host, username, password, description=None, tag_key='',
-                    tag_value=None, backend_type="prometheus", expected_status_code=201):
+                    tag_value=None, backend_type="prometheus", include_otel="false", otel="disabled",
+                    expected_status_code=201):
     """
 
     Creates a new sink in Orb control plane
@@ -172,12 +196,19 @@ def create_new_sink(token, name_label, remote_host, username, password, descript
     :param (str) tag_key: the key of the tag to be added to this sink. Default: ''
     :param (str) tag_value: the value of the tag to be added to this sink. Default: None
     :param (str) backend_type: type of backend used to send metrics. Default: prometheus
+    :param (str) include_otel: if true it include 'opentelemetry' on sink's configs
+    :param (str) otel: the value to be used on 'opentelemetry' config
     :param (int) expected_status_code: status code expected as response
     :return: (dict) a dictionary containing the created sink data
     """
+    assert_that(include_otel, any_of("true", "false"), "Unexpected value for 'include_otel' on sinks creation")
+    if include_otel == "true":
+        sink_configs = {"remote_host": remote_host, "username": username, "password": password, "opentelemetry": otel}
+    else:
+        sink_configs = {"remote_host": remote_host, "username": username, "password": password}
     json_request = {"name": name_label, "description": description, "tags": {tag_key: tag_value},
                     "backend": backend_type, "validate_only": False,
-                    "config": {"remote_host": remote_host, "username": username, "password": password}}
+                    "config": sink_configs}
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*',
                        'Authorization': f'Bearer {token}'}
 

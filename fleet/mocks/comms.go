@@ -14,27 +14,27 @@ type agentCommsServiceMock struct {
 	commsMock      map[string][]fleet.Agent
 }
 
-func (ac agentCommsServiceMock) NotifyGroupDatasetEdit(ctx context.Context, ag fleet.AgentGroup, datasetID, policyID, ownerID string, valid bool) error {
+func (ac agentCommsServiceMock) NotifyGroupDatasetEdit(_ context.Context, _ fleet.AgentGroup, _, _, _ string, _ bool) error {
 	return nil
 }
 
-func (ac agentCommsServiceMock) NotifyAgentReset(agent fleet.Agent, fullReset bool, reason string) error {
+func (ac agentCommsServiceMock) NotifyAgentReset(_ context.Context, _ fleet.Agent, _ bool, _ string) error {
 	return nil
 }
 
-func (ac agentCommsServiceMock) NotifyAgentStop(agent fleet.Agent, reason string) error {
+func (ac agentCommsServiceMock) NotifyAgentStop(_ context.Context, _ fleet.Agent, _ string) error {
 	return nil
 }
 
-func (ac agentCommsServiceMock) NotifyGroupPolicyRemoval(ag fleet.AgentGroup, policyID string, policyName string, backend string) error {
+func (ac agentCommsServiceMock) NotifyGroupPolicyRemoval(_ context.Context, _ fleet.AgentGroup, _ string, _ string, _ string) error {
 	return nil
 }
 
-func (ac agentCommsServiceMock) NotifyGroupPolicyUpdate(ctx context.Context, ag fleet.AgentGroup, policyID string, ownerID string) error {
+func (ac agentCommsServiceMock) NotifyGroupPolicyUpdate(_ context.Context, _ fleet.AgentGroup, _ string, _ string) error {
 	return nil
 }
 
-func (ac agentCommsServiceMock) NotifyGroupDatasetRemoval(ag fleet.AgentGroup, dsID string, policyID string) error {
+func (ac agentCommsServiceMock) NotifyGroupDatasetRemoval(_ context.Context, _ fleet.AgentGroup, _ string, _ string) error {
 	return nil
 }
 
@@ -54,8 +54,8 @@ func (ac agentCommsServiceMock) Stop() error {
 	return nil
 }
 
-func (ac agentCommsServiceMock) NotifyAgentNewGroupMembership(a fleet.Agent, ag fleet.AgentGroup) error {
-	aGroups, err := ac.aGroupRepoMock.RetrieveAllAgentGroupsByOwner(context.Background(), ag.MFOwnerID, fleet.PageMetadata{Limit: 1})
+func (ac agentCommsServiceMock) NotifyAgentNewGroupMembership(ctx context.Context, a fleet.Agent, ag fleet.AgentGroup) error {
+	aGroups, err := ac.aGroupRepoMock.RetrieveAllAgentGroupsByOwner(ctx, ag.MFOwnerID, fleet.PageMetadata{Limit: 1})
 	if err != nil {
 		return err
 	}
@@ -69,8 +69,8 @@ func (ac agentCommsServiceMock) NotifyAgentNewGroupMembership(a fleet.Agent, ag 
 	return nil
 }
 
-func (ac agentCommsServiceMock) NotifyAgentGroupMemberships(a fleet.Agent) error {
-	list, err := ac.aGroupRepoMock.RetrieveAllByAgent(context.Background(), a)
+func (ac agentCommsServiceMock) NotifyAgentGroupMemberships(ctx context.Context, a fleet.Agent) error {
+	list, err := ac.aGroupRepoMock.RetrieveAllByAgent(ctx, a)
 	if err != nil {
 		return err
 	}
@@ -90,18 +90,18 @@ func (ac agentCommsServiceMock) NotifyAgentGroupMemberships(a fleet.Agent) error
 	return nil
 }
 
-func (ac agentCommsServiceMock) NotifyAgentAllDatasets(a fleet.Agent) error {
+func (ac agentCommsServiceMock) NotifyAgentAllDatasets(_ context.Context, _ fleet.Agent) error {
 	return nil
 }
 
-func (ac agentCommsServiceMock) NotifyGroupNewDataset(ctx context.Context, ag fleet.AgentGroup, datasetID string, policyID string, ownerID string) error {
+func (ac agentCommsServiceMock) NotifyGroupNewDataset(_ context.Context, _ fleet.AgentGroup, _ string, _ string, _ string) error {
 	return nil
 }
 
-func (ac agentCommsServiceMock) InactivateDatasetByAgentGroup(groupID string, ownerID string) error {
+func (ac agentCommsServiceMock) InactivateDatasetByAgentGroup(_ context.Context, _, _ string) error {
 	return nil
 }
 
-func (ac agentCommsServiceMock) NotifyGroupRemoval(ctx context.Context, ag fleet.AgentGroup) error {
+func (ac agentCommsServiceMock) NotifyGroupRemoval(_ context.Context, _ fleet.AgentGroup) error {
 	return nil
 }

@@ -585,7 +585,7 @@ def make_policy_json(name, handler_label, handler, description=None, tap="defaul
     assert_that(handler, any_of(equal_to("dns"), equal_to("dhcp"), equal_to("net")), "Unexpected handler for policy")
     assert_that(name, not_none(), "Unable to create policy without name")
 
-    if only_qname_suffix is not None:
+    if only_qname_suffix is not None and isinstance(only_qname_suffix, str):
         only_qname_suffix = only_qname_suffix.split(",")
 
     json_request = {"name": name,

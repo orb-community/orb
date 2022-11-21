@@ -12,6 +12,8 @@ import (
 	"testing"
 )
 
+const typeStr = "pktvisor_prometheus"
+
 func TestLoadConfig(t *testing.T) {
 	t.Run("load config", func(t *testing.T) {
 		factories, err := componenttest.NopFactories()

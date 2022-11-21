@@ -171,7 +171,7 @@ type PeriodPayload struct {
 type FlowPayload struct {
 	Devices map[string]struct {
 		RecordsFiltered         int64       `mapstructure:"records_filtered"`
-		RecordsTotal            int64       `mapstructure:"records_total"`
+		RecordsFlows            int64       `mapstructure:"records_flows"`
 		TopInInterfacesBytes    []NameCount `mapstructure:"top_in_interfaces_bytes"`
 		TopInInterfacesPackets  []NameCount `mapstructure:"top_in_interfaces_packets"`
 		TopOutInterfacesBytes   []NameCount `mapstructure:"top_out_interfaces_bytes"`
@@ -234,8 +234,8 @@ type FlowPayload struct {
 			TopOutDstIpsAndPortPackets []NameCount `mapstructure:"top_out_dst_ips_and_port_packets"`
 			TopConversationsBytes      []NameCount `mapstructure:"top_conversations_bytes"`
 			TopConversationsPackets    []NameCount `mapstructure:"top_conversations_packets"`
-			TopGeoLocBytes             []NameCount `mapstructure:"top_geoLoc_bytes"`
-			TopGeoLocPackets           []NameCount `mapstructure:"top_geoLoc_packets"`
+			TopGeoLocBytes             []NameCount `mapstructure:"top_geo_loc_bytes"`
+			TopGeoLocPackets           []NameCount `mapstructure:"top_geo_loc_packets"`
 			TopAsnBytes                []NameCount `mapstructure:"top_ASN_bytes"`
 			TopAsnPackets              []NameCount `mapstructure:"top_ASN_packets"`
 		} `mapstructure:"interfaces"`

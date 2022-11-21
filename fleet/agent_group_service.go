@@ -37,7 +37,7 @@ func (svc fleetService) removeAgentGroupSubscriptions(ctx context.Context, group
 	return nil
 }
 
-func (svc fleetService) addAgentsToAgentGroupChannel(token string, g AgentGroup) error {
+func (svc fleetService) addAgentsToAgentGroupChannel(ctx context.Context, token string, g AgentGroup) error {
 	// first we get all agents, online or not, to connect them to the correct group channel
 	list, err := svc.agentRepo.RetrieveAllByAgentGroupID(context.Background(), g.MFOwnerID, g.ID, false)
 	if err != nil {
@@ -66,7 +66,7 @@ func (svc fleetService) addAgentsToAgentGroupChannel(token string, g AgentGroup)
 		return err
 	}
 	for _, agent := range list {
-		err := svc.agentComms.NotifyAgentNewGroupMembership(agent, g)
+		err := svc.agentComms.NotifyAgentNewGroupMembership(ctx, agent, g)
 		if err != nil {
 			// note we will not make failure to deliver to one agent fatal, just log
 			svc.logger.Error("failure during agent group membership comms", zap.Error(err))
@@ -159,7 +159,7 @@ func (svc fleetService) EditAgentGroup(ctx context.Context, token string, group 
 	}
 
 	for _, agent := range list {
-		err := svc.agentComms.NotifyAgentGroupMemberships(agent)
+		err := svc.agentComms.NotifyAgentGroupMemberships(ctx, agent)
 		if err != nil {
 			svc.logger.Error("failure during agent group membership comms", zap.Error(err))
 		}
@@ -217,7 +217,7 @@ func (svc fleetService) CreateAgentGroup(ctx context.Context, token string, s Ag
 		return AgentGroup{}, errors.Wrap(ErrCreateAgentGroup, err)
 	}
 
-	err = svc.addAgentsToAgentGroupChannel(token, ag)
+	err = svc.addAgentsToAgentGroupChannel(ctx, token, ag)
 	if err != nil {
 		// TODO should we roll back?
 		svc.logger.Error("error adding agents to group channel", zap.String("group_id", ag.ID), zap.Error(errors.Wrap(ErrMaintainAgentGroupChannels, err)))
