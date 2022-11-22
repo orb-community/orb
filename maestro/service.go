@@ -33,17 +33,19 @@ type maestroService struct {
 	sinksClient sinkspb.SinkServiceClient
 	esCfg       config.EsConfig
 	eventStore  rediscons1.Subscriber
+	kafkaUrl    string
 }
 
-func NewMaestroService(logger *zap.Logger, redisClient *redis.Client, sinksGrpcClient sinkspb.SinkServiceClient, esCfg config.EsConfig) Service {
+func NewMaestroService(logger *zap.Logger, redisClient *redis.Client, sinksGrpcClient sinkspb.SinkServiceClient, esCfg config.EsConfig, otelCfg config.OtelConfig) Service {
 	kubectr := kubecontrol.NewService(logger)
-	eventStore := rediscons1.NewEventStore(redisClient, kubectr, esCfg.Consumer, sinksGrpcClient, logger)
+	eventStore := rediscons1.NewEventStore(redisClient, otelCfg.KafkaUrl, kubectr, esCfg.Consumer, sinksGrpcClient, logger)
 	return &maestroService{
 		logger:      logger,
 		redisClient: redisClient,
 		sinksClient: sinksGrpcClient,
 		kubecontrol: kubectr,
 		eventStore:  eventStore,
+		kafkaUrl:    otelCfg.KafkaUrl,
 	}
 }
 
