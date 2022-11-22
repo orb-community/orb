@@ -100,8 +100,9 @@ func main() {
 		log.Fatalf("Invalid %s value: %s", sinksGRPCCfg.Timeout, err.Error())
 	}
 	sinksGRPCClient := sinksgrpc.NewClient(tracer, sinksGRPCConn, sinksGRPCTimeout, logger)
+	otelCfg := config.LoadOtelConfig(envPrefix)
 
-	svc := maestro.NewMaestroService(logger, esClient, sinksGRPCClient, esCfg)
+	svc := maestro.NewMaestroService(logger, esClient, sinksGRPCClient, esCfg, otelCfg)
 	errs := make(chan error, 2)
 
 	mainContext, mainCancelFunction := context.WithCancel(context.Background())

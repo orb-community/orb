@@ -35,6 +35,7 @@ type Subscriber interface {
 }
 
 type eventStore struct {
+	kafkaUrl    string
 	kubecontrol kubecontrol.Service
 	sinksClient sinkspb.SinkServiceClient
 	client      *redis.Client
@@ -42,8 +43,9 @@ type eventStore struct {
 	logger      *zap.Logger
 }
 
-func NewEventStore(client *redis.Client, kubecontrol kubecontrol.Service, esconsumer string, sinksClient sinkspb.SinkServiceClient, logger *zap.Logger) Subscriber {
+func NewEventStore(client *redis.Client, kafkaUrl string, kubecontrol kubecontrol.Service, esconsumer string, sinksClient sinkspb.SinkServiceClient, logger *zap.Logger) Subscriber {
 	return eventStore{
+		kafkaUrl:    kafkaUrl,
 		kubecontrol: kubecontrol,
 		client:      client,
 		sinksClient: sinksClient,
@@ -72,7 +74,6 @@ func (es eventStore) SubscribeSinker(context context.Context) error {
 
 		for _, msg := range streams[0].Messages {
 			event := msg.Values
-			es.logger.Info("debugging event received", zap.Any("event", event))
 			var err error
 			switch event["operation"] {
 			case sinkerUpdate:
@@ -111,7 +112,6 @@ func (es eventStore) SubscribeSinks(context context.Context) error {
 		for _, msg := range streams[0].Messages {
 			event := msg.Values
 
-			es.logger.Info("debugging event", zap.Any("sink_event", event))
 			rte, err := decodeSinksEvent(event, event["operation"].(string))
 			if err != nil {
 				es.logger.Error("error decoding sinks event", zap.Any("operation", event["operation"]), zap.Any("sink_event", event), zap.Error(err))
