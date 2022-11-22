@@ -248,6 +248,7 @@ func (a *orbAgent) RestartBackend(ctx context.Context, name string, reason strin
 		return err
 	}
 	a.logger.Info("resetting backend", zap.String("backend", name))
+
 	if err := be.FullReset(ctx); err != nil {
 		a.backendState[name].LastError = fmt.Sprintf("failed to reset backend: %v", err)
 		a.logger.Error("failed to reset backend", zap.String("backend", name), zap.Error(err))
@@ -282,6 +283,11 @@ func (a *orbAgent) restartComms(ctx context.Context) error {
 }
 
 func (a *orbAgent) RestartAll(ctx context.Context, reason string) error {
+	if a.config.OrbAgent.Cloud.MQTT.Id != "" {
+		ctx = context.WithValue(ctx, "agent_id", a.config.OrbAgent.Cloud.MQTT.Id)
+	} else {
+		ctx = context.WithValue(ctx, "agent_id", "auto-provisioning-without-id")
+	}
 	a.logger.Info("restarting all backends", zap.String("reason", reason))
 	for name := range a.backends {
 		a.logger.Info("restarting backend", zap.String("backend", name), zap.String("reason", reason))

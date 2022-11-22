@@ -650,6 +650,23 @@ def delete_agent(token, agent_id):
                 + agent_id + ' failed with status=' + str(response.status_code))
 
 
+@threading_wait_until
+def wait_until_agent_being_created(token, name, tags, expected_status_code=201, event=None):
+    json_request = {"name": name, "orb_tags": tags, "validate_only": False}
+    headers_request = {'Content-type': 'application/json', 'Accept': '*/*',
+                       'Authorization': f'Bearer {token}'}
+
+    response = requests.post(orb_url + '/api/v1/agents', json=json_request, headers=headers_request)
+    try:
+        response_json = response.json()
+    except ValueError:
+        response_json = ValueError
+    if response.status_code == expected_status_code:
+        event.set()
+        return response, response_json
+    return response, response_json
+
+
 def create_agent(token, name, tags, expected_status_code=201):
     """
     Creates an agent in Orb control plane
@@ -660,16 +677,7 @@ def create_agent(token, name, tags, expected_status_code=201):
     :param expected_status_code: status code to be returned on response
     :returns: (dict) a dictionary containing the created agent data
     """
-
-    json_request = {"name": name, "orb_tags": tags, "validate_only": False}
-    headers_request = {'Content-type': 'application/json', 'Accept': '*/*',
-                       'Authorization': f'Bearer {token}'}
-
-    response = requests.post(orb_url + '/api/v1/agents', json=json_request, headers=headers_request)
-    try:
-        response_json = response.json()
-    except ValueError:
-        response_json = ValueError
+    response, response_json = wait_until_agent_being_created(token, name, tags, expected_status_code, wait_time=1)
     assert_that(response.status_code, equal_to(expected_status_code),
                 'Request to create agent failed with status=' + str(response.status_code) + ":" + str(response_json))
 
