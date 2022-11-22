@@ -35,6 +35,7 @@ type Subscriber interface {
 }
 
 type eventStore struct {
+	kafkaUrl    string
 	kubecontrol kubecontrol.Service
 	sinksClient sinkspb.SinkServiceClient
 	client      *redis.Client
@@ -42,8 +43,9 @@ type eventStore struct {
 	logger      *zap.Logger
 }
 
-func NewEventStore(client *redis.Client, kubecontrol kubecontrol.Service, esconsumer string, sinksClient sinkspb.SinkServiceClient, logger *zap.Logger) Subscriber {
+func NewEventStore(client *redis.Client, kafkaUrl string, kubecontrol kubecontrol.Service, esconsumer string, sinksClient sinkspb.SinkServiceClient, logger *zap.Logger) Subscriber {
 	return eventStore{
+		kafkaUrl:    kafkaUrl,
 		kubecontrol: kubecontrol,
 		client:      client,
 		sinksClient: sinksClient,
