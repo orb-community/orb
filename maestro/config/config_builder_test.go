@@ -27,7 +27,7 @@ func TestReturnConfigYamlFromSink(t *testing.T) {
 			sinkUrl:        "https://mysinkurl:9922",
 			sinkUsername:   "1234123",
 			sinkPassword:   "CarnivorousVulgaris",
-		}, want: `---\nreceivers:\n  kafka:\n    brokers:\n    - kafka:9092\n    topic: otlp_metrics-sink-id-222\n    protocol_version: 2.0.0\nextensions:\n  health_check:\n    endpoint: 0.0.0.0:13133\n  pprof:\n    endpoint: 0.0.0.0:8888\n  basicauth/exporter:\n    client_auth:\n      username: 1234123\n      password: CarnivorousVulgaris\nexporters:\n  prometheusremotewrite:\n    endpoint: https://mysinkurl:9922\n    auth:\n      authenticator: basicauth/exporter\nservice:\n  extensions:\n  - pprof\n  - health_check\n  - basicauth/exporter\n  pipelines:\n    metrics:\n      receivers:\n      - kafka\n      exporters:\n      - prometheusremotewrite\n`,
+		}, want: `---\nreceivers:\n  kafka:\n    brokers:\n    - kafka:9092\n    topic: otlp_metrics-sink-id-222\n    protocol_version: 2.0.0\nextensions:\n  health_check:\n    endpoint: 0.0.0.0:13133\n  pprof:\n    endpoint: 0.0.0.0:1888\n  basicauth/exporter:\n    client_auth:\n      username: 1234123\n      password: CarnivorousVulgaris\nexporters:\n  prometheusremotewrite:\n    endpoint: https://mysinkurl:9922\n    auth:\n      authenticator: basicauth/exporter\nservice:\n  extensions:\n  - pprof\n  - health_check\n  - basicauth/exporter\n  pipelines:\n    metrics:\n      receivers:\n      - kafka\n      exporters:\n      - prometheusremotewrite\n`,
 			wantErr: false},
 	}
 	for _, tt := range tests {
