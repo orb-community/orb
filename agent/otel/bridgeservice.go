@@ -12,17 +12,17 @@ type AgentBridgeService interface {
 type AgentDataPerPolicy struct {
 	PolicyID  string
 	Datasets  string
-	AgentTags string
+	AgentTags map[string]string
 }
 
 var _ AgentBridgeService = (*bridgeService)(nil)
 
 type bridgeService struct {
 	policyRepo policies.PolicyRepo
-	AgentTags  string
+	AgentTags  map[string]string
 }
 
-func NewBridgeService(policyRepo *policies.PolicyRepo, agentTags string) *bridgeService {
+func NewBridgeService(policyRepo *policies.PolicyRepo, agentTags map[string]string) *bridgeService {
 	return &bridgeService{
 		policyRepo: *policyRepo,
 		AgentTags:  agentTags,

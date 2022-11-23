@@ -63,7 +63,7 @@ func (es eventStore) handleSinksCreateCollector(ctx context.Context, event sinks
 }
 
 func (es eventStore) CreateDeploymentEntry(ctx context.Context, sinkId, sinkUrl, sinkUsername, sinkPassword string) error {
-	deploy, err := config.GetDeploymentJson(sinkId, sinkUrl, sinkUsername, sinkPassword)
+	deploy, err := config.GetDeploymentJson(es.kafkaUrl, sinkId, sinkUrl, sinkUsername, sinkPassword)
 	if err != nil {
 		es.logger.Error("error trying to get deployment json for sink ID", zap.String("sinkId", sinkId))
 		return err
@@ -90,7 +90,7 @@ func (es eventStore) handleSinksUpdateCollector(ctx context.Context, event sinks
 	sinkUrl := data.Url
 	sinkUsername := data.User
 	sinkPassword := data.Password
-	deploy, err := config.GetDeploymentJson(event.sinkID, sinkUrl, sinkUsername, sinkPassword)
+	deploy, err := config.GetDeploymentJson(es.kafkaUrl, event.sinkID, sinkUrl, sinkUsername, sinkPassword)
 	if err != nil {
 		es.logger.Error("error trying to get deployment json for sink ID", zap.String("sinkId", event.sinkID))
 		return err

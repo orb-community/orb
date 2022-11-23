@@ -69,7 +69,7 @@ type pktvisorBackend struct {
 	adminAPIProtocol string
 
 	// added for Strings
-	agentTags string
+	agentTags map[string]string
 
 	// OpenTelemetry management
 	scrapeOtel bool
@@ -173,6 +173,7 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 	// pvOptions = append(pvOptions, "--cp-path", PKTVISOR_CP_PATH)
 	// pvOptions = append(pvOptions, "--default-geo-city", "/geo-db/city.mmdb")
 	// pvOptions = append(pvOptions, "--default-geo-asn", "/geo-db/asn.mmdb")
+	//pvOptions = append(pvOptions, "--cp-custom", ctx.Value("agent_id").(string))
 
 	p.logger.Info("pktvisor startup", zap.Strings("arguments", pvOptions))
 
@@ -299,8 +300,8 @@ func (p *pktvisorBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo
 	if p.adminAPIPort, prs = config["api_port"]; !prs {
 		return errors.New("you must specify pktvisor admin API port")
 	}
-	if agentTags, ok := config["agent_tags"]; ok {
-		p.agentTags = agentTags
+	if agentTags, ok := otelConfig["agent_tags"]; ok {
+		p.agentTags = agentTags.(map[string]string)
 	}
 
 	for k, v := range otelConfig {
