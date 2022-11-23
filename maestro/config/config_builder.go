@@ -210,7 +210,7 @@ func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig, sinkId, sinkUrl
 		Extensions: &Extensions{
 			HealthCheckExtConfig: &HealthCheckExtension{},
 			PProf: &PProfExtension{
-				Endpoint: ":1888", // Leaving default for now, will need to change with more processes
+				Endpoint: ":8888", // Leaving default for now, will need to change with more processes
 			},
 			BasicAuth: &BasicAuthenticationExtension{
 				ClientAuth: &struct {
