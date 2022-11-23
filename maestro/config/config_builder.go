@@ -87,10 +87,6 @@ var k8sOtelCollector = `
                     "protocol": "TCP"
                   },
                   {
-                    "containerPort": 1888,
-                    "protocol": "TCP"
-                  }
-                  {
                     "containerPort": 8888,
                     "protocol": "TCP"
                   }
@@ -167,12 +163,6 @@ var k8sOtelCollector = `
             "protocol": "TCP",
             "port": 8888,
             "targetPort": 8888
-          },
-          {
-            "name": "pprof",
-            "protocol": "TCP",
-            "port": 1888,
-            "targetPort": 1888
           },
           {
             "name": "healthcheck",
