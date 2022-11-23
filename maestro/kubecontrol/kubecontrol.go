@@ -114,7 +114,7 @@ func (svc *deployService) UpdateOtelCollector(ctx context.Context, sinkID, deplo
 	if err != nil {
 		return err
 	}
-	err := svc.CreateOtelCollector(ctx, sinkID, deploymentEntry)
+	err = svc.CreateOtelCollector(ctx, sinkID, deploymentEntry)
 	if err != nil {
 		return err
 	}
