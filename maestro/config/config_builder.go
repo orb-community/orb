@@ -208,9 +208,11 @@ func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig, sinkId, sinkUrl
 			},
 		},
 		Extensions: &Extensions{
-			HealthCheckExtConfig: &HealthCheckExtension{},
+			HealthCheckExtConfig: &HealthCheckExtension{
+				Endpoint: "0.0.0.0:13133",
+			},
 			PProf: &PProfExtension{
-				Endpoint: ":8888", // Leaving default for now, will need to change with more processes
+				Endpoint: "0.0.0.0:8888", // Leaving default for now, will need to change with more processes
 			},
 			BasicAuth: &BasicAuthenticationExtension{
 				ClientAuth: &struct {
@@ -289,6 +291,7 @@ type Extensions struct {
 }
 
 type HealthCheckExtension struct {
+	Endpoint          string `json:"endpoint" yaml:"endpoint"`
 	CollectorPipeline *struct {
 		Enabled          bool   `json:"enabled" yaml:"enabled"`
 		Interval         string `json:"interval" yaml:"interval"`
