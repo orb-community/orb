@@ -110,6 +110,10 @@ func (svc *deployService) CreateOtelCollector(ctx context.Context, sinkID, deplo
 }
 
 func (svc *deployService) UpdateOtelCollector(ctx context.Context, sinkID, deploymentEntry string) error {
+	err := svc.DeleteOtelCollector(ctx, sinkID, deploymentEntry)
+	if err != nil {
+		return err
+	}
 	err := svc.CreateOtelCollector(ctx, sinkID, deploymentEntry)
 	if err != nil {
 		return err
