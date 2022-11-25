@@ -18,7 +18,7 @@ Feature: Integrated Benchmark Tests
     Examples:
       | amount | waiting_time | monitor_time |
       | 10     | 30           |  5           |
-#      | 20     | 30           |  5           |
-#      | 50     | 30           |  5           |
-#      | 100    | 60           |  10          |
-#      | 200    | 60           |  10          |
+      | 20     | 30           |  5           |
+      | 50     | 30           |  5           |
+      | 100    | 60           |  10          |
+      | 200    | 60           |  10          |
