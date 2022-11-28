@@ -20,8 +20,10 @@ def monitor_docker_stats_during(context, monitor_time):
     event = threading.Event()
     sr_file_name = "benchamark/short-report-" + str(started) + ".json"
     short_report_file = open(sr_file_name, "w")
+    short_report = json.load(short_report_file)
     lr_file_name = "benchamark/docker-container-stats-" + str(started) + ".json"
     long_report_file = open(lr_file_name, "w")
+    long_report = json.load(long_report_file)
     while not event.is_set() and monitored_duration < int(monitor_time * MINUTE_INT):
         container = client.containers.get(context.container_id)
         print("Monitor docker stats")
@@ -32,11 +34,9 @@ def monitor_docker_stats_during(context, monitor_time):
         # print to a file instead of printing in console
         print("Memory Usage", (used_memory / available_memory) * 100.0, " %")
         print("CPU Delta ", cpu_delta)
-        short_report = {"timestamp": datetime.now().timestamp(), "cpu_delta": cpu_delta, "memory_usage": (used_memory / available_memory) * 100.0}
-        json.dump(short_report, short_report_file)
-        json.dump(statistics, long_report_file)
-        print("Memory Stats", statistics["memory_stats"])
-        print("CPU Stats", statistics["cpu_stats"])
-        print("PreCPU Stats", statistics["precpu_stats"])
+        short_report.append({"timestamp": datetime.now().timestamp(), "cpu_delta": cpu_delta, "memory_usage": (used_memory / available_memory) * 100.0})
+        long_report.append(statistics)
         event.wait(30)
         monitored_duration = datetime.now().timestamp() - started
+    json.dump(short_report, short_report_file)
+    json.dump(long_report, long_report_file)
