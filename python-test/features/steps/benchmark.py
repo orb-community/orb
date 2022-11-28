@@ -2,6 +2,8 @@ from datetime import datetime
 import threading
 import docker
 from behave import then, step
+
+MINUTE_INT = 3600
 client = docker.from_env()
 
 
@@ -11,7 +13,7 @@ def monitor_docker_stats_during(context, monitor_time):
     started = datetime.now().timestamp()
     monitored_duration = 0
     event = threading.Event()
-    while not event.is_set() and monitored_duration < int(monitor_time *  3600):
+    while not event.is_set() and monitored_duration < int(monitor_time * MINUTE_INT):
         container = client.containers.get(context.container_id)
         print("Monitor docker stats")
         statistics = container.stats(stream=False)

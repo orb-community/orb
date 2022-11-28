@@ -1,7 +1,7 @@
 @benchmark
 Feature: Integrated Benchmark Tests
 
-  @benchmark
+  @benchmark @bench_agent
   Scenario Outline: Benchmark memory usage multiple policies
     Given the Orb user has a registered account
     And the Orb user logs in
@@ -17,8 +17,8 @@ Feature: Integrated Benchmark Tests
     And monitor the activity of memory usage during <monitor_time> minutes
     Examples:
       | amount | waiting_time | monitor_time |
-      | 10     | 30           |  5           |
-      | 20     | 30           |  5           |
-      | 50     | 30           |  5           |
-      | 100    | 60           |  10          |
-      | 200    | 60           |  10          |
+      | 10     | 30           |  15          |
+      | 20     | 30           |  15          |
+      | 50     | 30           |  15          |
+      | 100    | 60           |  15          |
+      | 200    | 60           |  15          |
