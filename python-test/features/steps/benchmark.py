@@ -19,10 +19,10 @@ def monitor_docker_stats_during(context, monitor_time):
     monitored_duration = 0
     event = threading.Event()
     sr_file_name = "benchmark/short-report-" + str(started) + ".json"
-    short_report_file = open(sr_file_name, "w")
+    short_report_file = open(sr_file_name, "x")
     short_report = json.load(short_report_file)
     lr_file_name = "benchmark/docker-container-stats-" + str(started) + ".json"
-    long_report_file = open(lr_file_name, "w")
+    long_report_file = open(lr_file_name, "x")
     long_report = json.load(long_report_file)
     while not event.is_set() and monitored_duration < int(monitor_time * MINUTE_INT):
         container = client.containers.get(context.container_id)
