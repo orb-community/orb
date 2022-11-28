@@ -4,6 +4,7 @@ Feature: Integrated Benchmark Tests
   @benchmark @bench_agent
   Scenario Outline: Benchmark memory usage multiple policies
     Given the Orb user has a registered account
+    And agent will be monitored in cpu and memory usage with <amount> policies applied
     And the Orb user logs in
     And that an agent with 1 orb tag(s) already exists and is online
     And pktvisor state is running
@@ -17,8 +18,9 @@ Feature: Integrated Benchmark Tests
     And monitor the activity of memory usage during <monitor_time> minutes
     Examples:
       | amount | waiting_time | monitor_time |
-      | 10     | 30           |  15          |
-      | 20     | 30           |  15          |
+      | 10     | 30           |  5          |
+      | 20     | 30           |  5          |
       | 50     | 30           |  15          |
       | 100    | 60           |  15          |
       | 200    | 60           |  15          |
+      | 500    | 60           |  15          |
