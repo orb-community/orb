@@ -63,6 +63,13 @@ export class SinkAddComponent {
           input: entry.input,
           required: entry.required,
         }));
+        accumulator[curr].push({
+          type: 'checkbox',
+          label: 'Enable OpenTelemetry',
+          prop: 'opentelemetry',
+          input: 'checkbox',
+          required: false,
+        });
         return accumulator;
       }, {});
 
@@ -124,7 +131,13 @@ export class SinkAddComponent {
       backend: this.firstFormGroup.controls.backend.value,
       description: this.firstFormGroup.controls.description.value,
       config: this.selectedSinkSetting.reduce((accumulator, current) => {
-        accumulator[current.prop] = this.secondFormGroup.controls[current.prop].value;
+        const value = this.secondFormGroup.controls[current.prop].value;
+        if (current.input === 'checkbox') {
+          if (value)
+            accumulator[current.prop] = 'enabled';
+        } else {
+          accumulator[current.prop] = value;
+        }
         return accumulator;
       }, {}),
       tags: { ...this.selectedTags },

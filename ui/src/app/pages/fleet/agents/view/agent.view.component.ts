@@ -41,6 +41,7 @@ export class AgentViewComponent implements OnInit, OnDestroy {
     this.datasets = {};
     this.groups = [];
     this.isLoading = true;
+    this.router.routeReuseStrategy.shouldReuseRoute = () => false;
   }
 
   ngOnInit() {

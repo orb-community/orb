@@ -5,19 +5,20 @@
 package sinker
 
 import (
+	"time"
+
 	"github.com/ns1labs/orb/sinker/config"
 	"go.uber.org/zap"
-	"time"
 )
 
 const (
 	streamID       = "orb.sinker"
 	streamLen      = 1000
-	CheckerFreq    = 300 * time.Second
+	CheckerFreq    = 5 * time.Minute
 	DefaultTimeout = 30 * time.Minute
 )
 
-func (svc *sinkerService) checkState(t time.Time) {
+func (svc *SinkerService) checkState(_ time.Time) {
 	owners, err := svc.sinkerCache.GetAllOwners()
 	if err != nil {
 		svc.logger.Error("failed to retrieve the list of owners")
@@ -31,12 +32,24 @@ func (svc *sinkerService) checkState(t time.Time) {
 			return
 		}
 		for _, cfg := range configs {
-			// Set idle if the sinker is more then 30 minutes not sending metrics (Remove from Redis)
+			// Set idle if the sinker is more than 30 minutes not sending metrics (Remove from Redis)
 			if cfg.LastRemoteWrite.Add(DefaultTimeout).Before(time.Now()) {
 				if cfg.State == config.Active {
-					if err := svc.sinkerCache.Remove(cfg.OwnerID, cfg.SinkID); err != nil {
-						svc.logger.Error("error updating sink config cache", zap.Error(err))
-						return
+					if cfg.Opentelemetry == "enabled" {
+						err := cfg.State.SetFromString("idle")
+						if err != nil {
+							svc.logger.Error("error updating otel sink state", zap.Error(err))
+							return
+						}
+						if err := svc.sinkerCache.Edit(cfg); err != nil {
+							svc.logger.Error("error updating otel sink config cache to idle", zap.Error(err))
+							return
+						}
+					} else {
+						if err := svc.sinkerCache.Remove(cfg.OwnerID, cfg.SinkID); err != nil {
+							svc.logger.Error("error updating sink config cache", zap.Error(err))
+							return
+						}
 					}
 				}
 			}
@@ -44,7 +57,7 @@ func (svc *sinkerService) checkState(t time.Time) {
 	}
 }
 
-func (svc *sinkerService) checkSinker() {
+func (svc *SinkerService) checkSinker() {
 	svc.checkState(time.Now())
 	for {
 		select {

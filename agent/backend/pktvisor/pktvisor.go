@@ -53,31 +53,51 @@ type pktvisorBackend struct {
 	statusChan      <-chan cmd.Status
 	startTime       time.Time
 	cancelFunc      context.CancelFunc
+	ctx             context.Context
 
 	// MQTT Config for OTEL MQTT Exporter
 	mqttConfig config.MQTTConfig
 
-	mqttClient       mqtt.Client
+	mqttClient       *mqtt.Client
 	metricsTopic     string
 	otlpMetricsTopic string
 	scraper          *gocron.Scheduler
 	policyRepo       policies.PolicyRepo
 
-	receiver component.MetricsReceiver
-	exporter component.MetricsExporter
-
 	adminAPIHost     string
 	adminAPIPort     string
 	adminAPIProtocol string
 
+	// added for Strings
+	agentTags map[string]string
+
+	// OpenTelemetry management
 	scrapeOtel bool
+	receiver   map[string]component.MetricsReceiver
+	exporter   map[string]component.MetricsExporter
+	routineMap map[string]context.CancelFunc
+}
+
+func (p *pktvisorBackend) addScraperProcess(ctx context.Context, cancel context.CancelFunc, policyID string, policyName string) {
+	attributeCtx := context.WithValue(ctx, "policy_name", policyName)
+	attributeCtx = context.WithValue(attributeCtx, "policy_id", policyID)
+	p.scrapeOpenTelemetry(attributeCtx)
+	p.routineMap[policyID] = cancel
+}
+
+func (p *pktvisorBackend) killScraperProcess(policyID string) {
+	cancel := p.routineMap[policyID]
+	if cancel != nil {
+		cancel()
+		delete(p.routineMap, policyID)
+	}
 }
 
 func (p *pktvisorBackend) GetStartTime() time.Time {
 	return p.startTime
 }
 
-func (p *pktvisorBackend) SetCommsClient(agentID string, client mqtt.Client, baseTopic string) {
+func (p *pktvisorBackend) SetCommsClient(agentID string, client *mqtt.Client, baseTopic string) {
 	p.mqttClient = client
 	metricsTopic := strings.Replace(baseTopic, "?", "be", 1)
 	otelMetricsTopic := strings.Replace(baseTopic, "?", "otlp", 1)
@@ -116,6 +136,19 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 	// because it is used by the automatic restart system for last attempt
 	p.startTime = time.Now()
 	p.cancelFunc = cancelFunc
+	p.ctx = ctx
+
+	if p.routineMap == nil {
+		p.routineMap = make(map[string]context.CancelFunc)
+	}
+
+	if p.receiver == nil {
+		p.receiver = make(map[string]component.MetricsReceiver)
+	}
+
+	if p.exporter == nil {
+		p.exporter = make(map[string]component.MetricsExporter)
+	}
 
 	_, err := exec.LookPath(p.binary)
 	if err != nil {
@@ -140,6 +173,7 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 	// pvOptions = append(pvOptions, "--cp-path", PKTVISOR_CP_PATH)
 	// pvOptions = append(pvOptions, "--default-geo-city", "/geo-db/city.mmdb")
 	// pvOptions = append(pvOptions, "--default-geo-asn", "/geo-db/asn.mmdb")
+	//pvOptions = append(pvOptions, "--cp-custom", ctx.Value("agent_id").(string))
 
 	p.logger.Info("pktvisor startup", zap.Strings("arguments", pvOptions))
 
@@ -152,7 +186,11 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 	// log STDOUT and STDERR lines streaming from Cmd
 	doneChan := make(chan struct{})
 	go func() {
-		defer close(doneChan)
+		defer func() {
+			if doneChan != nil {
+				close(doneChan)
+			}
+		}()
 		for p.proc.Stdout != nil || p.proc.Stderr != nil {
 			select {
 			case line, open := <-p.proc.Stdout:
@@ -216,9 +254,7 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 	p.scraper = gocron.NewScheduler(time.UTC)
 	p.scraper.StartAsync()
 
-	if p.scrapeOtel {
-		p.scrapeOpenTelemetry(ctx)
-	} else {
+	if !p.scrapeOtel {
 		if err := p.scrapeDefault(); err != nil {
 			return err
 		}
@@ -237,15 +273,12 @@ func (p *pktvisorBackend) Stop(ctx context.Context) error {
 	}
 	p.scraper.Stop()
 
+	// Stop otel scraper goroutines
 	if p.scrapeOtel {
-		if p.exporter != nil {
-			_ = p.exporter.Shutdown(context.Background())
-		}
-		if p.receiver != nil {
-			_ = p.receiver.Shutdown(context.Background())
+		for key := range p.routineMap {
+			p.killScraperProcess(key)
 		}
 	}
-
 	p.logger.Info("pktvisor process stopped", zap.Int("pid", finalStatus.PID), zap.Int("exit_code", finalStatus.Exit))
 	return nil
 }
@@ -267,11 +300,17 @@ func (p *pktvisorBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo
 	if p.adminAPIPort, prs = config["api_port"]; !prs {
 		return errors.New("you must specify pktvisor admin API port")
 	}
+	if agentTags, ok := otelConfig["agent_tags"]; ok {
+		p.agentTags = agentTags.(map[string]string)
+	}
 
 	for k, v := range otelConfig {
 		switch k {
 		case "Enable":
 			p.scrapeOtel = v.(bool)
+			if v.(bool) {
+				p.logger.Info("OpenTelemetry enabled")
+			}
 		}
 	}
 
@@ -299,7 +338,9 @@ func (p *pktvisorBackend) FullReset(ctx context.Context) error {
 		}
 	}
 
+	// for each policy, restart the scraper
 	backendCtx, cancelFunc := context.WithCancel(context.WithValue(ctx, "routine", "pktvisor"))
+
 	// start it
 	if err := p.Start(backendCtx, cancelFunc); err != nil {
 		p.logger.Error("failed to start backend on restart procedure", zap.Error(err))

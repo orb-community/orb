@@ -1,27 +1,34 @@
-name: Deploy Staging
+name: Update Staging with a branch
 
 on:
   workflow_dispatch:
     inputs:
-      develop_image_id:
-        description: 'The docker image tag that you want to promote to staging'
+      branch_source:
+        description: 'branch to deploy on stg'
         required: true
         default: 'develop'
-  pull_request:
-    branches: [ staging ]
-  push:
-    branches: [ staging ]
 
 jobs:
-  update-image-tag-push:
+  prebuild:
     runs-on: ubuntu-latest
-
+    outputs:
+      agent: ${{ steps.filter.outputs.agent }}
+      orb: ${{ steps.filter.outputs.orb }}
+      migrate: ${{ steps.filter.outputs.migrate }}
+      ui: ${{ steps.filter.outputs.ui }}
+      docs: ${{ steps.filter.outputs.docs }}
+      VERSION: ${{ env.VERSION }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.branch_source }}
       - uses: dorny/paths-filter@v2
         id: filter
         with:
           filters: |
+            migrate:
+              - 'migrate/**'
+              - 'cmd/migrate/**'
             agent:
               - 'agent/**'
               - 'cmd/agent/**'
@@ -34,19 +41,25 @@ jobs:
               - 'cmd/sinks/**'
               - 'sinker/**'
               - 'cmd/sinker/**'
-            ui:
+              - 'maestro/**'
+              - 'cmd/maestro/**'
+            ui: 
               - 'ui/**'
+            docs:
+              - 'fleet/api/http/openapi.yaml'
+              - 'sinks/api/http/openapi.yaml'
+              - 'policies/api/openapi.yaml'
 
       - name: Set branch name
         shell: bash
         run: |
-          echo "BRANCH_NAME=production" >> $GITHUB_ENV
+          echo "BRANCH_NAME=develop" >> $GITHUB_ENV
 
-      - name: Generate ref tag (production)
+      - name: Generate ref tag (develop)
         run: |
-          echo "REF_TAG=production" >> $GITHUB_ENV
+          echo "REF_TAG=develop" >> $GITHUB_ENV
 
-      - name: Append suffix on VERSION file for production build
+      - name: Append suffix on VERSION file for develop build
         run: |
           echo "`cat ${{github.workspace}}/VERSION`-${{ env.REF_TAG }}" > VERSION
 
@@ -54,87 +67,611 @@ jobs:
         run: |
           echo "VERSION=`cat ${{github.workspace}}/VERSION`" >> $GITHUB_ENV
 
+      - name: Debug VERSION
+        run: echo ${{ env.VERSION }}
+
       - name: Get short commit hash to a variable
         id: commit_hash
         run: |
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
-
-      - name: Debug VERSION
-        run: |
-          echo ${{ env.VERSION }}
-#
-#      - name: Commit orb-ui-live on orb-live repo staging
-#        run: |
-#          git config --global user.email "${{secrets.GH_ORB_EMAIL}}"
-#          git config --global user.name "${{secrets.GH_ORB_USER}}"
-#          git config --global credential.helper cache
-#          git clone -b main https://${{secrets.GH_ORB_USER}}:${{secrets.GH_ORB_ACCESS_TOKEN}}@github.com/ns1labs/orb-live.git
-#          cd orb-live
-#          rm -rf ui
-#          git add .
-#          git commit -m "[NS1 Orb Bot] clean ui folder"
-#          cp -rf ../ui .
-#          cp -rf ../VERSION .
-#          echo "${{ steps.commit_hash.outputs.sha_short }}" > COMMIT_HASH
-#          git add .
-#          git commit -m "[NS1 Orb Bot] Update Orb Live UI for staging"
-#          git push origin main
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v1
+          
+  go-report:
+    needs: prebuild
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          ref:  ${{ github.event.inputs.branch_source }}
+          name: workspace
+
+      - name: Run go report
+        uses: ./.github/actions/go-report
+        with:
+          go_report_threshold: 90.1 #grade A+
+
+      - name: refresh go-report
+        uses: creekorful/goreportcard-action@v1.0
+          
+  update-api-docs:
+    needs: prebuild
+    runs-on: ubuntu-latest
+    steps:
+    - name: Repository Dispatch
+      uses: peter-evans/repository-dispatch@v2
+      if: ${{ needs.prebuild.outputs.docs == 'true' && github.event_name != 'pull_request' }}
+      with:
+        token: ${{ secrets.GH_ORB_ACCESS_TOKEN }}
+        repository: ns1labs/orb-website
+        event-type: build-docs
+        client-payload: '{"branch_name": "main"}'
+
+  test-agent:
+    runs-on: ubuntu-latest
+    needs: prebuild
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.branch_source }}
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.19
+
+      - name: Go unit tests
+        run: |
+          SERVICE=agent make test_service_cov
+        
+      - name: Install dependencies     
+        run: |
+          go mod tidy
+          sudo apt update && sudo apt install -y build-essential jq
+          go install github.com/axw/gocov/gocov@latest
+          go install github.com/AlekSi/gocov-xml@latest
+          
+      - name: coverage to xml
+        run: |
+          echo "Current directory: ${PWD}"
+          echo "GITHUB_PR_ISSUE_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
+          gocov convert ./coverage.out | gocov-xml > ./coverage.xml
+          
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: coverage.xml
+          name: orb
+          verbose: true
+
+  test-fleet:
+    runs-on: ubuntu-latest
+    needs: prebuild
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.branch_source }}
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.19
+
+      - name: Go unit tests
+        run: |
+            SERVICE=fleet make test_service_cov
+          
+      - name: Install dependencies
+        run: |
+          go mod tidy
+          sudo apt update && sudo apt install -y build-essential jq
+          go install github.com/axw/gocov/gocov@latest
+          go install github.com/AlekSi/gocov-xml@latest
+          
+      - name: coverage to xml
+        run: |
+          echo "Current directory: ${PWD}"
+          echo "GITHUB_PR_ISSUE_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
+          gocov convert ./coverage.out | gocov-xml > ./coverage.xml
+          
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: coverage.xml
+          name: orb
+          verbose: true
+
+  test-policies:
+    runs-on: ubuntu-latest
+    needs: prebuild
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.branch_source }}
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.19
+
+      - name: Go unit tests
+        run: |
+          SERVICE=policies make test_service_cov
+          
+      - name: Install dependencies
+        run: |
+          go mod tidy
+          sudo apt update && sudo apt install -y build-essential jq
+          go install github.com/axw/gocov/gocov@latest
+          go install github.com/AlekSi/gocov-xml@latest
+          
+      - name: coverage to xml
+        run: |
+          echo "Current directory: ${PWD}"
+          echo "GITHUB_PR_ISSUE_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
+          gocov convert ./coverage.out | gocov-xml > ./coverage.xml
+          
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: coverage.xml
+          name: orb
+          verbose: true
+
+  test-sinks:
+    runs-on: ubuntu-latest
+    needs: prebuild
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.branch_source }}
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.19
+
+      - name: Go unit tests
+        run: |
+          SERVICE=sinks make test_service_cov
+          
+      - name: Install dependencies
+        run: |
+          go mod tidy
+          sudo apt update && sudo apt install -y build-essential jq
+          go install github.com/axw/gocov/gocov@latest
+          go install github.com/AlekSi/gocov-xml@latest
+          
+      - name: coverage to xml
+        run: |
+          echo "Current directory: ${PWD}"
+          echo "GITHUB_PR_ISSUE_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
+          gocov convert ./coverage.out | gocov-xml > ./coverage.xml
+          
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: coverage.xml
+          name: orb
+          verbose: true
+
+  test-sinker:
+    runs-on: ubuntu-latest
+    needs: prebuild
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.branch_source }}
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.19
+
+      - name: Go unit tests
+        run: |
+          SERVICE=sinker make test_service_cov
+          
+      - name: Install dependencies
+        run: |
+          go mod tidy
+          sudo apt update && sudo apt install -y build-essential jq
+          go install github.com/axw/gocov/gocov@latest
+          go install github.com/AlekSi/gocov-xml@latest
+          
+      - name: coverage to xml
+        run: |
+          echo "Current directory: ${PWD}"
+          echo "GITHUB_PR_ISSUE_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
+          gocov convert ./coverage.out | gocov-xml > ./coverage.xml
+          
+      - name: Upload coverage to Codecov
+#        if: ${{ needs.prebuild.outputs.orb == 'true' }}
+        uses: codecov/codecov-action@v3
+        with:
+          files: coverage.xml
+          name: orb
+          verbose: true   
+
+  test-maestro:
+    runs-on: ubuntu-latest
+    needs: prebuild
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.branch_source }}
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.19
+
+      - name: Go unit tests
+        run: |
+            SERVICE=maestro make test_service_cov
+          
+      - name: Install dependencies
+        run: |
+          go mod tidy
+          sudo apt update && sudo apt install -y build-essential jq
+          go install github.com/axw/gocov/gocov@latest
+          go install github.com/AlekSi/gocov-xml@latest
+          
+      - name: coverage to xml
+        run: |
+          echo "Current directory: ${PWD}"
+          echo "GITHUB_PR_ISSUE_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
+          gocov convert ./coverage.out | gocov-xml > ./coverage.xml
+          
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: coverage.xml
+          name: orb
+          verbose: true
+
+  package-agent:
+    needs:
+      - prebuild
+      - test-agent
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.branch_source }}
+      - name: Get short commit hash to a variable
+        id: commit_hash
+        run: |
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+          echo ${{ needs.prebuild.outputs.VERSION }} > VERSION
+
+      - name: Replace crashpad and geo-db params
+        run: |
+          ESCAPED_REPLACE_LINE1_NEW=$(printf '%s\n' "pvOptions = append(pvOptions, \"--cp-token\", \"${{ secrets.CRASHPAD_TOKEN }}\")" | sed -e 's/[\/&]/\\&/g')
+          ESCAPED_REPLACE_LINE2_NEW=$(printf '%s\n' "pvOptions = append(pvOptions, \"--cp-url\", \"${{ secrets.CRASHPAD_URL }}\")" | sed -e 's/[\/&]/\\&/g')
+          ESCAPED_REPLACE_LINE3_NEW=$(printf '%s\n' "pvOptions = append(pvOptions, \"--cp-path\", \"/usr/local/sbin/crashpad_handler\")" | sed -e 's/[\/&]/\\&/g')
+          ESCAPED_REPLACE_LINE4_NEW=$(printf '%s\n' "pvOptions = append(pvOptions, \"--default-geo-city\", \"/geo-db/city.mmdb\")" | sed -e 's/[\/&]/\\&/g')
+          ESCAPED_REPLACE_LINE5_NEW=$(printf '%s\n' "pvOptions = append(pvOptions, \"--default-geo-asn\", \"/geo-db/asn.mmdb\")" | sed -e 's/[\/&]/\\&/g')
+          ESCAPED_REPLACE_LINE1_OLD=$(printf '%s\n' "// pvOptions = append(pvOptions, \"--cp-token\", PKTVISOR_CP_TOKEN)" | sed -e 's/[\/&]/\\&/g')
+          ESCAPED_REPLACE_LINE2_OLD=$(printf '%s\n' "// pvOptions = append(pvOptions, \"--cp-url\", PKTVISOR_CP_URL)" | sed -e 's/[\/&]/\\&/g')
+          ESCAPED_REPLACE_LINE3_OLD=$(printf '%s\n' "// pvOptions = append(pvOptions, \"--cp-path\", PKTVISOR_CP_PATH)" | sed -e 's/[\/&]/\\&/g')
+          ESCAPED_REPLACE_LINE4_OLD=$(printf '%s\n' "// pvOptions = append(pvOptions, \"--default-geo-city\", \"/geo-db/city.mmdb\")" | sed -e 's/[\/&]/\\&/g')
+          ESCAPED_REPLACE_LINE5_OLD=$(printf '%s\n' "// pvOptions = append(pvOptions, \"--default-geo-asn\", \"/geo-db/asn.mmdb\")" | sed -e 's/[\/&]/\\&/g')
+          sed -i -e "s/$ESCAPED_REPLACE_LINE1_OLD/$ESCAPED_REPLACE_LINE1_NEW/g" agent/backend/pktvisor/pktvisor.go      
+          sed -i -e "s/$ESCAPED_REPLACE_LINE2_OLD/$ESCAPED_REPLACE_LINE2_NEW/g" agent/backend/pktvisor/pktvisor.go 
+          sed -i -e "s/$ESCAPED_REPLACE_LINE3_OLD/$ESCAPED_REPLACE_LINE3_NEW/g" agent/backend/pktvisor/pktvisor.go
+          sed -i -e "s/$ESCAPED_REPLACE_LINE4_OLD/$ESCAPED_REPLACE_LINE4_NEW/g" agent/backend/pktvisor/pktvisor.go
+          sed -i -e "s/$ESCAPED_REPLACE_LINE5_OLD/$ESCAPED_REPLACE_LINE5_NEW/g" agent/backend/pktvisor/pktvisor.go
 
       - name: Build orb-agent
-        # make this as "latest" tag
         shell: bash
         env:
           IMAGE_NAME: ns1labs/orb-agent
         run: |
           if [ "${{ github.event.inputs.pktvisor_tag }}" == "" ]; then
-            make agent_production
-            make agent_debug_production
+            make agent
+            make agent_debug
           else
-            PKTVISOR_TAG=${{ github.event.inputs.pktvisor_tag }} make agent_production
-            PKTVISOR_TAG=${{ github.event.inputs.pktvisor_tag }} make agent_debug_production
+            PKTVISOR_TAG=${{ github.event.inputs.pktvisor_tag }} make agent
+            PKTVISOR_TAG=${{ github.event.inputs.pktvisor_tag }} make agent_debug
           fi
 
-      - name: Update new branches
+      - name: Login to Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push agent container
+        if: github.event_name != 'pull_request'
+        run: docker push -a ns1labs/orb-agent
+
+  package-fleet:
+    needs:
+      - prebuild
+      - test-fleet
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.branch_source }}
+      - name: Get short commit hash to a variable
+        id: commit_hash
         run: |
-          docker push -a ns1labs/orb-agent
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+          echo ${{ needs.prebuild.outputs.VERSION }} > VERSION
 
-          docker pull ns1labs/orb-fleet:${{ github.event.inputs.develop_image_id }}
-          echo "FLEET_IMG_ID=$(docker images ns1labs/orb-fleet:${{ github.event.inputs.develop_image_id }} --format "{{.ID}}")" >> $GITHUB_ENV
-          docker tag $(FLEET_IMG_ID) ns1labs/orb-fleet:${{ env.VERSION }}
-          docker tag $(FLEET_IMG_ID) ns1labs/orb-fleet:${{ env.VERSION }}-${{ steps.commit_hash.outputs.sha_short }}
-          docker push -a ns1labs/orb-fleet
+      - name: Build service containers
+        run: SERVICE=fleet make build_docker
 
-          docker pull ns1labs/orb-policies:${{ github.event.inputs.develop_image_id }}
-          echo "POLICIES_IMG_ID=$(docker images ns1labs/orb-policies:${{ github.event.inputs.develop_image_id }} --format "{{.ID}}")" >> $GITHUB_ENV
-          docker tag $(POLICIES_IMG_ID) ns1labs/orb-policies:${{ env.VERSION }}
-          docker tag $(POLICIES_IMG_ID) ns1labs/orb-policies:${{ env.VERSION }}-${{ steps.commit_hash.outputs.sha_short }}
-          docker push -a ns1labs/orb-policies
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        if: github.event_name != 'pull_request'
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-          docker pull ns1labs/orb-sinks:${{ github.event.inputs.develop_image_id }}
-          echo "SINKS_IMG_ID=$(docker images ns1labs/orb-sinks:${{ github.event.inputs.develop_image_id }} --format "{{.ID}}")" >> $GITHUB_ENV
-          docker tag $(SINKS_IMG_ID) ns1labs/orb-sinks:${{ env.VERSION }}
-          docker tag $(SINKS_IMG_ID) ns1labs/orb-sinks:${{ env.VERSION }}-${{ steps.commit_hash.outputs.sha_short }}
-          docker push -a ns1labs/orb-sinks
+      - name: Push service containers
+        if: github.event_name != 'pull_request'
+        run: docker push -a ns1labs/orb-fleet
 
-          docker pull ns1labs/orb-sinker:${{ github.event.inputs.develop_image_id }}
-          echo "SINKER_IMG_ID=$(docker images ns1labs/orb-sinker:${{ github.event.inputs.develop_image_id }} --format "{{.ID}}")" >> $GITHUB_ENV
-          docker tag $(SINKER_IMG_ID) ns1labs/orb-sinker:${{ env.VERSION }}
-          docker tag $(SINKER_IMG_ID) ns1labs/orb-sinker:${{ env.VERSION }}-${{ steps.commit_hash.outputs.sha_short }}
-          docker push -a ns1labs/orb-sinker
+  package-policies:
+    needs:
+      - prebuild
+      - test-policies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.branch_source }}
+      - name: Get short commit hash to a variable
+        id: commit_hash
+        run: |
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+          echo ${{ needs.prebuild.outputs.VERSION }} > VERSION
 
-          docker pull ns1labs/orb-ui:${{ github.event.inputs.develop_image_id }}
-          echo "UI_IMG_ID=$(docker images ns1labs/orb-ui:${{ github.event.inputs.develop_image_id }} --format "{{.ID}}")" >> $GITHUB_ENV
-          docker tag $(UI_IMG_ID) ns1labs/orb-ui:${{ env.VERSION }}
-          docker tag $(UI_IMG_ID) ns1labs/orb-ui:${{ env.VERSION }}-${{ steps.commit_hash.outputs.sha_short }}
+      - name: Build service containers
+        run: SERVICE=policies make build_docker
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        if: github.event_name != 'pull_request'
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push service containers
+        if: github.event_name != 'pull_request'
+        run: docker push -a ns1labs/orb-policies
+
+  package-sinker:
+    needs:
+      - prebuild
+      - test-sinker
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.branch_source }}
+      - name: Get short commit hash to a variable
+        id: commit_hash
+        run: |
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+          echo ${{ needs.prebuild.outputs.VERSION }} > VERSION
+
+      - name: Build service containers
+        run: SERVICE=sinker make build_docker
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        if: github.event_name != 'pull_request'
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push service containers
+        if: github.event_name != 'pull_request'
+        run: docker push -a ns1labs/orb-sinker
+
+  package-sinks:
+    needs:
+      - prebuild
+      - test-sinks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.branch_source }}
+      - name: Get short commit hash to a variable
+        id: commit_hash
+        run: |
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+          echo ${{ needs.prebuild.outputs.VERSION }} > VERSION
+
+      - name: Build service containers
+        run: SERVICE=sinks make build_docker
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        if: github.event_name != 'pull_request'
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push service containers
+        if: github.event_name != 'pull_request'
+        run: docker push -a ns1labs/orb-sinks
+        
+  package-maestro:
+    needs:
+      - prebuild
+      - test-maestro
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.branch_source }}
+      - name: Get short commit hash to a variable
+        id: commit_hash
+        run: |
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+          echo ${{ needs.prebuild.outputs.VERSION }} > VERSION
+
+      - name: Build service containers
+        run: SERVICE=maestro make build_docker
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        if: github.event_name != 'pull_request'
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push service containers
+        if: github.event_name != 'pull_request'
+        run: docker push -a ns1labs/orb-maestro
+
+  package-ui-dependencies:
+    needs:
+      - prebuild
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.branch_source }}
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            yarn:
+              ui/package.json
+
+      - name: Login to Docker Hub
+        if: ${{ steps.filter.outputs.yarn == 'true' }}
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build orb yarn image
+        if: ${{ steps.filter.outputs.yarn == 'true' }}
+        env:
+          IMAGE_NAME: ns1labs/orb-ui-modules
+        run: |
+          make ui-modules
+      - name: Push ui image
+        if: ${{ steps.filter.outputs.yarn == 'true' }}
+        run: |
+          docker push -a ns1labs/orb-ui-modules
+
+  package-ui:
+    needs:
+      - prebuild
+      - package-ui-dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.branch_source }}
+      - name: Get short commit hash to a variable
+        id: commit_hash
+        run: |
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+          echo ${{ needs.prebuild.outputs.VERSION }} > VERSION
+
+      - name: Build orb-ui
+        env:
+          IMAGE_NAME: ns1labs/orb-ui
+        run: |
+          make ui
+
+      - name: Commit orb-ui-live on orb-live repo develop
+        if: github.event_name != 'pull_request'
+        run: |
+          git config --global user.email "${{secrets.GH_ORB_EMAIL}}"
+          git config --global user.name "${{secrets.GH_ORB_USER}}"
+          git config --global credential.helper cache
+          git clone -b develop https://${{secrets.GH_ORB_USER}}:${{secrets.GH_ORB_ACCESS_TOKEN}}@github.com/ns1labs/orb-live.git          
+          cd orb-live
+          rm -rf ui
+          git add .
+          git commit -m "[NS1 Orb Bot] clean ui folder"
+          cp -rf ../ui .
+          cp -rf ../VERSION .
+          echo "${{ steps.commit_hash.outputs.sha_short }}" > COMMIT_HASH          
+          git add .
+          git commit -m "[NS1 Orb Bot] Update Orb Live UI for develop"
+          git push origin develop
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        if: github.event_name != 'pull_request'
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push ui container
+        if: github.event_name != 'pull_request'
+        run: |
           docker push -a ns1labs/orb-ui
 
-      - name: Commit image tag on orb-live-manifest environment stg
+  package-migrate:
+    needs:
+      - package-ui-dependencies
+      - package-ui
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.branch_source }}
+
+      - name: Login to Docker Hub
+        if: ${{ needs.prebuild.outputs.migrate == 'true' }}
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build orb migrate service image
+        if: ${{ needs.prebuild.outputs.migrate == 'true' }}
+        env:
+          IMAGE_NAME: ns1labs/orb-migrate
+        run: |
+          SERVICE=migrate make build_docker
+
+      - name: Push orb migrate service image
+        if: ${{ needs.prebuild.outputs.migrate == 'true' }}
+        run: |
+          docker push -a ns1labs/orb-migrate
+
+  publish-orb-live-stg:
+    needs:
+      - prebuild
+      - package-fleet
+      - package-policies
+      - package-sinker
+      - package-sinks
+      - package-ui
+
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.branch_source }}
+
+      - name: Debug values
+        run: |
+          echo ${{ needs.prebuild.outputs.VERSION }}
+          echo ${{ github.event.inputs.pktvisor_tag }}
+        env:
+          VERSION: ${{ needs.prebuild.env.VERSION }}
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Get short commit hash to a variable
+        id: commit_hash
+        run: |
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+          echo ${{ needs.prebuild.outputs.VERSION }} > VERSION
+
+      - name: Commit image tag on orb-live-manifest environment dev
         run: |
           git config --global user.email "${{secrets.GH_ORB_EMAIL}}"
           git config --global user.name "${{secrets.GH_ORB_USER}}"
@@ -143,8 +680,8 @@ jobs:
           cd orb-live-manifest/stg
           mv values.yaml .template/values.old
           cat .template/values.yaml.tpl >> values.yaml
-          sed -i -e "s/IMAGE_TAG/${{ env.VERSION }}-${{ steps.commit_hash.outputs.sha_short }}/g" values.yaml
+          sed -i -e "s/IMAGE_TAG/${{ needs.prebuild.outputs.VERSION }}-${{ steps.commit_hash.outputs.sha_short }}/g" values.yaml
           git add values.yaml
           git add .template/values.old
-          git commit -m "[NS1 Orb Bot] Update image tag on staging environment"
+          git commit -m "[NS1 Orb Bot] Update image tag on stg environment"
           git push origin main

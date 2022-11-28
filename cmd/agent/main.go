@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	defaultConfig = "/etc/orb/agent.yaml"
+	defaultConfig = "/opt/orb/agent.yaml"
 )
 
 var (
@@ -135,11 +135,11 @@ func mergeOrError(path string) {
 	v.SetEnvKeyReplacer(replacer)
 
 	// note: viper seems to require a default (or a BindEnv) to be overridden by environment variables
-	v.SetDefault("orb.cloud.api.address", "https://api.orb.live")
+	v.SetDefault("orb.cloud.api.address", "https://orb.live")
 	v.SetDefault("orb.cloud.api.token", "")
 	v.SetDefault("orb.cloud.config.agent_name", "")
 	v.SetDefault("orb.cloud.config.auto_provision", true)
-	v.SetDefault("orb.cloud.mqtt.address", "tls://mqtt.orb.live:8883")
+	v.SetDefault("orb.cloud.mqtt.address", "tls://orb.live:8883")
 	v.SetDefault("orb.cloud.mqtt.id", "")
 	v.SetDefault("orb.cloud.mqtt.key", "")
 	v.SetDefault("orb.cloud.mqtt.channel_id", "")
@@ -148,8 +148,8 @@ func mergeOrError(path string) {
 	v.SetDefault("orb.otel.enable", false)
 	v.SetDefault("orb.debug.enable", false)
 
-	v.SetDefault("orb.backends.pktvisor.binary", "")
-	v.SetDefault("orb.backends.pktvisor.config_file", "")
+	v.SetDefault("orb.backends.pktvisor.binary", "/usr/local/sbin/pktvisord")
+	v.SetDefault("orb.backends.pktvisor.config_file", "/opt/orb/agent.yaml")
 	v.SetDefault("orb.backends.pktvisor.api_host", "localhost")
 	v.SetDefault("orb.backends.pktvisor.api_port", "10853")
 

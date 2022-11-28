@@ -15,16 +15,24 @@
 package orbreceiver
 
 import (
+	"bytes"
 	"context"
 	"fmt"
-	"github.com/mainflux/mainflux/pkg/messaging"
-	"github.com/ns1labs/orb/sinker/otel/orbreceiver/internal/metrics"
-	"go.opentelemetry.io/collector/config"
-	"go.uber.org/zap"
+	"io"
+	"strings"
+
 	"sync"
 
+	"github.com/andybalholm/brotli"
+	"github.com/mainflux/mainflux/pkg/messaging"
+	"github.com/ns1labs/orb/sinker/otel/bridgeservice"
+	"github.com/ns1labs/orb/sinker/otel/orbreceiver/internal/metrics"
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
+	"go.opentelemetry.io/collector/pdata/pmetric"
+	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
+	"go.uber.org/zap"
 )
 
 const OtelMetricsTopic = "otlp.*.m.>"
@@ -36,6 +44,7 @@ type OrbReceiver struct {
 	cancelFunc      context.CancelFunc
 	metricsReceiver *metrics.Receiver
 	encoder         encoder
+	sinkerService   *bridgeservice.SinkerOtelBridgeService
 
 	shutdownWG sync.WaitGroup
 
@@ -47,9 +56,10 @@ type OrbReceiver struct {
 // as the various Stop*Reception methods to end it.
 func NewOrbReceiver(ctx context.Context, cfg *Config, settings component.ReceiverCreateSettings) *OrbReceiver {
 	r := &OrbReceiver{
-		ctx:      ctx,
-		cfg:      cfg,
-		settings: settings,
+		ctx:           ctx,
+		cfg:           cfg,
+		settings:      settings,
+		sinkerService: cfg.SinkerService,
 	}
 
 	return r
@@ -92,6 +102,137 @@ func (r *OrbReceiver) registerMetricsConsumer(mc consumer.Metrics) error {
 	return nil
 }
 
+func (r *OrbReceiver) decompressBrotli(data []byte) []byte {
+	rdata := bytes.NewReader(data)
+	rec := brotli.NewReader(rdata)
+	s, _ := io.ReadAll(rec)
+	return []byte(s)
+}
+
+// extractAttribute extract attribute from metricsRequest metrics
+func (r *OrbReceiver) extractAttribute(metricsRequest pmetricotlp.Request, attribute string) string {
+	if metricsRequest.Metrics().ResourceMetrics().Len() > 0 {
+		if metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().Len() > 0 {
+			metricsList := metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
+			for i := 0; i < metricsList.Len(); i++ {
+				metricItem := metricsList.At(i)
+				switch metricItem.Type() {
+				case pmetric.MetricTypeGauge:
+					if metricItem.Gauge().DataPoints().Len() > 0 {
+						p, ok := metricItem.Gauge().DataPoints().At(0).Attributes().Get(attribute)
+						if ok {
+							return p.AsString()
+						}
+					}
+				case pmetric.MetricTypeHistogram:
+					if metricItem.Histogram().DataPoints().Len() > 0 {
+						p, ok := metricItem.Histogram().DataPoints().At(0).Attributes().Get(attribute)
+						if ok {
+							return p.AsString()
+						}
+					}
+				case pmetric.MetricTypeSum:
+					if metricItem.Sum().DataPoints().Len() > 0 {
+						p, ok := metricItem.Sum().DataPoints().At(0).Attributes().Get(attribute)
+						if ok {
+							return p.AsString()
+						}
+					}
+				case pmetric.MetricTypeSummary:
+					if metricItem.Summary().DataPoints().Len() > 0 {
+						p, ok := metricItem.Summary().DataPoints().At(0).Attributes().Get(attribute)
+						if ok {
+							return p.AsString()
+						}
+					}
+				case pmetric.MetricTypeExponentialHistogram:
+					if metricItem.ExponentialHistogram().DataPoints().Len() > 0 {
+						p, ok := metricItem.ExponentialHistogram().DataPoints().At(0).Attributes().Get(attribute)
+						if ok {
+							return p.AsString()
+						}
+					}
+				}
+			}
+		}
+	}
+	return ""
+}
+
+// inject attribute on all metricsRequest metrics
+func (r *OrbReceiver) injectAttribute(metricsRequest pmetricotlp.Request, attribute string, value string) pmetricotlp.Request {
+	metricsList := metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
+	for i := 0; i < metricsList.Len(); i++ {
+		metricItem := metricsList.At(i)
+		switch metricItem.Type() {
+		case pmetric.MetricTypeExponentialHistogram:
+			for i := 0; i < metricItem.ExponentialHistogram().DataPoints().Len(); i++ {
+				metricItem.ExponentialHistogram().DataPoints().At(i).Attributes().PutStr(attribute, value)
+			}
+		case pmetric.MetricTypeGauge:
+			for i := 0; i < metricItem.Gauge().DataPoints().Len(); i++ {
+				metricItem.Gauge().DataPoints().At(i).Attributes().PutStr(attribute, value)
+			}
+		case pmetric.MetricTypeHistogram:
+			for i := 0; i < metricItem.Histogram().DataPoints().Len(); i++ {
+				metricItem.Histogram().DataPoints().At(i).Attributes().PutStr(attribute, value)
+			}
+		case pmetric.MetricTypeSum:
+			for i := 0; i < metricItem.Sum().DataPoints().Len(); i++ {
+				metricItem.Sum().DataPoints().At(i).Attributes().PutStr(attribute, value)
+			}
+		case pmetric.MetricTypeSummary:
+			for i := 0; i < metricItem.Summary().DataPoints().Len(); i++ {
+				metricItem.Summary().DataPoints().At(i).Attributes().PutStr(attribute, value)
+			}
+		default:
+			r.cfg.Logger.Error("Unknown metric type: " + metricItem.Type().String())
+		}
+	}
+	return metricsRequest
+}
+
+// delete attribute on all metricsRequest metrics
+func (r *OrbReceiver) deleteAttribute(metricsRequest pmetricotlp.Request, attribute string) pmetricotlp.Request {
+	if metricsRequest.Metrics().ResourceMetrics().Len() > 0 {
+		if metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().Len() > 0 {
+			metricsList := metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
+			for i := 0; i < metricsList.Len(); i++ {
+				metricItem := metricsList.At(i)
+				switch metricItem.Type() {
+				case pmetric.MetricTypeExponentialHistogram:
+					for i := 0; i < metricItem.ExponentialHistogram().DataPoints().Len(); i++ {
+						metricItem.ExponentialHistogram().DataPoints().At(0).Attributes().Remove(attribute)
+					}
+				case pmetric.MetricTypeGauge:
+					for i := 0; i < metricItem.Gauge().DataPoints().Len(); i++ {
+						metricItem.Gauge().DataPoints().At(0).Attributes().Remove(attribute)
+					}
+				case pmetric.MetricTypeHistogram:
+					for i := 0; i < metricItem.Histogram().DataPoints().Len(); i++ {
+						metricItem.Histogram().DataPoints().At(0).Attributes().Remove(attribute)
+					}
+				case pmetric.MetricTypeSum:
+					for i := 0; i < metricItem.Sum().DataPoints().Len(); i++ {
+						metricItem.Sum().DataPoints().At(0).Attributes().Remove(attribute)
+					}
+				case pmetric.MetricTypeSummary:
+					for i := 0; i < metricItem.Summary().DataPoints().Len(); i++ {
+						metricItem.Summary().DataPoints().At(0).Attributes().Remove(attribute)
+					}
+				default:
+					r.cfg.Logger.Error("Unknown metric type: " + metricItem.Type().String())
+				}
+			}
+		} else {
+			r.cfg.Logger.Error("Unable to delete attribute, ScopeMetrics length 0")
+		}
+	} else {
+		r.cfg.Logger.Error("Unable to delete attribute, ResourceMetrics length 0")
+	}
+	return metricsRequest
+}
+
 func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 	go func() {
 		r.cfg.Logger.Debug("received agent message",
@@ -100,16 +241,65 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 			zap.String("protocol", msg.Protocol),
 			zap.Int64("created", msg.Created),
 			zap.String("publisher", msg.Publisher))
-		r.cfg.Logger.Info("received metric message, pushing to exporter")
-		mr, err := r.encoder.unmarshalMetricsRequest(msg.Payload)
+		r.cfg.Logger.Info("received metric message, pushing to kafka exporter")
+		decompressedPayload := r.decompressBrotli(msg.Payload)
+		mr, err := r.encoder.unmarshalMetricsRequest(decompressedPayload)
 		if err != nil {
 			r.cfg.Logger.Error("error during unmarshalling, skipping message", zap.Error(err))
 			return
 		}
-		_, err = r.metricsReceiver.Export(r.ctx, mr)
-		if err != nil {
-			r.cfg.Logger.Error("error during export, skipping message", zap.Error(err))
+
+		// Extract Datasets
+		datasets := r.extractAttribute(mr, "dataset_ids")
+		if datasets == "" {
+			r.cfg.Logger.Info("No data extracting datasetIDs information from metrics request")
 			return
+		}
+		datasetIDs := strings.Split(datasets, ",")
+
+		// Delete datasets_ids and policy_ids from metricsRequest
+		mr = r.deleteAttribute(mr, "dataset_ids")
+		mr = r.deleteAttribute(mr, "policy_id")
+		mr = r.deleteAttribute(mr, "instance")
+
+		// Add tags in Context
+		execCtx, execCancelF := context.WithCancel(r.ctx)
+		defer execCancelF()
+		agentPb, err := r.sinkerService.ExtractAgent(execCtx, msg.Channel)
+		if err != nil {
+			execCancelF()
+			r.cfg.Logger.Info("No data extracting agent information from fleet")
+			return
+		}
+		mr = r.injectAttribute(mr, "agent", agentPb.AgentName)
+		mr = r.injectAttribute(mr, "instance", agentPb.AgentName)
+		for k, v := range agentPb.OrbTags {
+			mr = r.injectAttribute(mr, k, v)
+		}
+		sinkIds, err := r.sinkerService.GetSinkIdsFromDatasetIDs(execCtx, agentPb.OwnerID, datasetIDs)
+		if err != nil {
+			execCancelF()
+			r.cfg.Logger.Info("No data extracting sinks information from datasetIds = " + datasets)
+			return
+		}
+		attributeCtx := context.WithValue(r.ctx, "agent_name", agentPb.AgentName)
+		attributeCtx = context.WithValue(attributeCtx, "agent_tags", agentPb.AgentTags)
+		attributeCtx = context.WithValue(attributeCtx, "orb_tags", agentPb.OrbTags)
+		attributeCtx = context.WithValue(attributeCtx, "agent_groups", agentPb.AgentGroupIDs)
+		attributeCtx = context.WithValue(attributeCtx, "agent_ownerID", agentPb.OwnerID)
+		for sinkId := range sinkIds {
+			err := r.cfg.SinkerService.NotifyActiveSink(r.ctx, agentPb.OwnerID, sinkId, "active", "")
+			if err != nil {
+				r.cfg.Logger.Error("error notifying sink active, changing state, skipping sink", zap.String("sink-id", sinkId), zap.Error(err))
+				continue
+			}
+			attributeCtx = context.WithValue(attributeCtx, "sink_id", sinkId)
+			_, err = r.metricsReceiver.Export(attributeCtx, mr)
+			if err != nil {
+				r.cfg.Logger.Error("error during export, skipping sink", zap.Error(err))
+				_ = r.cfg.SinkerService.NotifyActiveSink(r.ctx, agentPb.OwnerID, sinkId, "error", err.Error())
+				continue
+			}
 		}
 	}()
 	return nil

@@ -149,7 +149,7 @@ func (es eventStore) handleDatasetRemove(ctx context.Context, e removeDatasetEve
 		return err
 	}
 
-	return es.commsService.NotifyGroupDatasetRemoval(ag, e.datasetID, e.policyID)
+	return es.commsService.NotifyGroupDatasetRemoval(ctx, ag, e.datasetID, e.policyID)
 }
 
 func decodeDatasetUpdate(event map[string]interface{}) updateDatasetEvent {
@@ -171,7 +171,7 @@ func (es eventStore) handleDatasetUpdate(ctx context.Context, e updateDatasetEve
 		if err != nil {
 			return err
 		}
-		
+
 		return es.commsService.NotifyGroupDatasetEdit(ctx, ag, e.id, e.policyID, e.ownerID, e.valid)
 	}
 
@@ -227,7 +227,7 @@ func (es eventStore) handlePolicyRemove(ctx context.Context, e removePolicyEvent
 		if err != nil {
 			return err
 		}
-		err = es.commsService.NotifyGroupPolicyRemoval(ag, e.id, e.name, e.backend)
+		err = es.commsService.NotifyGroupPolicyRemoval(ctx, ag, e.id, e.name, e.backend)
 		if err != nil {
 			return err
 		}

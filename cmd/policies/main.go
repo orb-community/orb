@@ -130,7 +130,7 @@ func main() {
 		log.Fatalf("Invalid %s value: %s", sinksGRPCCfg.Timeout, err.Error())
 	}
 
-	sinksGRPCClient := sinkgrpc.NewClient(tracer, sinksGRPCConn, sinksGRPCTimeout)
+	sinksGRPCClient := sinkgrpc.NewClient(tracer, sinksGRPCConn, sinksGRPCTimeout, logger)
 
 	svc := newService(authGRPCClient, db, logger, esClient, fleetGRPCClient, sinksGRPCClient)
 	errs := make(chan error, 2)

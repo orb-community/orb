@@ -15,6 +15,8 @@ const (
 	sinkerPrefix = "sinker."
 	sinkerUpdate = sinkerPrefix + "update"
 
+	otelYamlPrefix = "otel.yaml.sinker."
+
 	exists = "BUSYGROUP Consumer Group name already exists"
 )
 

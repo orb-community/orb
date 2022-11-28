@@ -437,6 +437,7 @@ components:
           example:
             remote_host: my.prometheus-host.com
             username: dbuser
+            opentelemetry: enabled
           description: Object representing backend specific configuration information
         ts_created:
           type: string

@@ -22,6 +22,23 @@ type metricsMiddleware struct {
 	auth    mainflux.AuthServiceClient
 }
 
+func (m metricsMiddleware) ViewAgentMatchingGroupsByIDInternal(ctx context.Context, agentID string, ownerID string) (fleet.MatchingGroups, error) {
+	defer func(begin time.Time) {
+		labels := []string{
+			"method", "viewAgentMatchingGroupsByIDInternal",
+			"owner_id", ownerID,
+			"agent_id", agentID,
+			"group_id", "",
+		}
+
+		m.counter.With(labels...).Add(1)
+		m.latency.With(labels...).Observe(float64(time.Since(begin).Microseconds()))
+
+	}(time.Now())
+
+	return m.svc.ViewAgentMatchingGroupsByIDInternal(ctx, agentID, ownerID)
+}
+
 func (m metricsMiddleware) ResetAgent(ct context.Context, token string, agentID string) error {
 	ownerID, err := m.identify(token)
 	if err != nil {

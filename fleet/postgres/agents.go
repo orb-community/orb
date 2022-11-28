@@ -460,7 +460,7 @@ func (r agentRepository) RetrieveAgentMetadataByOwner(ctx context.Context, owner
 }
 
 func (r agentRepository) RetrieveAgentInfoByChannelID(ctx context.Context, channelID string) (fleet.Agent, error) {
-	q := `select mf_owner_id, name, agent_tags, orb_tags from agents where mf_channel_id = :mf_channel_id limit 1`
+	q := `select mf_owner_id, name, agent_tags, orb_tags, mf_thing_id from agents where mf_channel_id = :mf_channel_id limit 1`
 
 	params := map[string]interface{}{
 		"mf_channel_id": channelID,

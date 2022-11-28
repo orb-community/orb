@@ -8,19 +8,20 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/eclipse/paho.mqtt.golang"
+	"runtime"
+	"time"
+
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/fatih/structs"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/ns1labs/orb/agent/backend"
 	"github.com/ns1labs/orb/agent/cloud_config"
 	"github.com/ns1labs/orb/agent/config"
-	"github.com/ns1labs/orb/agent/policyMgr"
+	manager "github.com/ns1labs/orb/agent/policyMgr"
 	"github.com/ns1labs/orb/buildinfo"
 	"github.com/ns1labs/orb/fleet"
 	"go.uber.org/zap"
-	"runtime"
-	"time"
 )
 
 var (
@@ -108,10 +109,17 @@ func (a *orbAgent) startBackends(agentCtx context.Context) error {
 			return errors.New("specified backend does not exist: " + name)
 		}
 		be := backend.GetBackend(name)
-		if err := be.Configure(a.logger, a.policyManager.GetRepo(), configurationEntry, structs.Map(a.config.OrbAgent.Otel)); err != nil {
+		configuration := structs.Map(a.config.OrbAgent.Otel)
+		configuration["agent_tags"] = a.config.OrbAgent.Tags
+		if err := be.Configure(a.logger, a.policyManager.GetRepo(), configurationEntry, configuration); err != nil {
 			return err
 		}
 		backendCtx := context.WithValue(agentCtx, "routine", name)
+		if a.config.OrbAgent.Cloud.MQTT.Id != "" {
+			backendCtx = context.WithValue(backendCtx, "agent_id", a.config.OrbAgent.Cloud.MQTT.Id)
+		} else {
+			backendCtx = context.WithValue(backendCtx, "agent_id", "auto-provisioning-without-id")
+		}
 		if err := be.Start(context.WithCancel(backendCtx)); err != nil {
 			return err
 		}
@@ -187,7 +195,11 @@ func (a *orbAgent) logoffWithHeartbeat(ctx context.Context) {
 			a.logger.Warn("failed to unsubscribe to RPC channel", zap.Error(token.Error()))
 		}
 	}
-	defer close(a.hbDone)
+	defer func() {
+		if a.hbDone != nil {
+			close(a.hbDone)
+		}
+	}()
 }
 func (a *orbAgent) Stop(ctx context.Context) {
 	a.logger.Info("routine call for stop agent", zap.Any("routine", ctx.Value("routine")))
@@ -230,11 +242,18 @@ func (a *orbAgent) RestartBackend(ctx context.Context, name string, reason strin
 	if err := a.policyManager.RemoveBackendPolicies(be, true); err != nil {
 		a.logger.Error("failed to remove policies", zap.String("backend", name), zap.Error(err))
 	}
+	configuration := structs.Map(a.config.OrbAgent.Otel)
+	configuration["agent_tags"] = a.config.OrbAgent.Tags
+	if err := be.Configure(a.logger, a.policyManager.GetRepo(), a.config.OrbAgent.Backends[name], configuration); err != nil {
+		return err
+	}
 	a.logger.Info("resetting backend", zap.String("backend", name))
+
 	if err := be.FullReset(ctx); err != nil {
 		a.backendState[name].LastError = fmt.Sprintf("failed to reset backend: %v", err)
 		a.logger.Error("failed to reset backend", zap.String("backend", name), zap.Error(err))
 	}
+	be.SetCommsClient(a.config.OrbAgent.Cloud.MQTT.Id, &a.client, fmt.Sprintf("%s/?/%s", a.baseTopic, name))
 	err := a.sendAgentPoliciesReq()
 	if err != nil {
 		a.logger.Error("failed to send agent policies request", zap.Error(err))
@@ -264,6 +283,11 @@ func (a *orbAgent) restartComms(ctx context.Context) error {
 }
 
 func (a *orbAgent) RestartAll(ctx context.Context, reason string) error {
+	if a.config.OrbAgent.Cloud.MQTT.Id != "" {
+		ctx = context.WithValue(ctx, "agent_id", a.config.OrbAgent.Cloud.MQTT.Id)
+	} else {
+		ctx = context.WithValue(ctx, "agent_id", "auto-provisioning-without-id")
+	}
 	a.logger.Info("restarting all backends", zap.String("reason", reason))
 	for name := range a.backends {
 		a.logger.Info("restarting backend", zap.String("backend", name), zap.String("reason", reason))

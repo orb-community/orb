@@ -59,6 +59,13 @@ var stateMap = [...]string{
 	"idle",
 }
 
+const MetadataLabelOtel = "opentelemetry"
+
+type Filter struct {
+	StateFilter   string
+	OpenTelemetry string
+}
+
 var stateRevMap = map[string]State{
 	"unknown": Unknown,
 	"active":  Active,
@@ -112,6 +119,8 @@ type SinkService interface {
 	UpdateSink(ctx context.Context, token string, s Sink) (Sink, error)
 	// ListSinks retrieves data about sinks
 	ListSinks(ctx context.Context, token string, pm PageMetadata) (Page, error)
+	// ListSinksInternal retrieves data from sinks filtered by SinksFilter for Services like Maestro, to build DeploymentEntries
+	ListSinksInternal(ctx context.Context, filter Filter) ([]Sink, error)
 	// ListBackends retrieves a list of available backends
 	ListBackends(ctx context.Context, token string) ([]string, error)
 	// ViewBackend retrieves a backend by the name
@@ -124,25 +133,26 @@ type SinkService interface {
 	DeleteSink(ctx context.Context, token string, key string) error
 	// ValidateSink validate a sink configuration without saving
 	ValidateSink(ctx context.Context, token string, sink Sink) (Sink, error)
-	// ChangeState
+	// ChangeSinkStateInternal change the sink internal state from new/idle/active
 	ChangeSinkStateInternal(ctx context.Context, sinkID string, msg string, ownerID string, state State) error
 }
 
 type SinkRepository interface {
-	// Save persists the Sink. Successful operation is indicated by non-nil
-	// error response.
+	// Save persists the Sink. Successful operation is indicated by non-nil error response.
 	Save(ctx context.Context, sink Sink) (string, error)
 	// Update performs an update to the existing sink, A non-nil error is
 	// returned to indicate operation failure
 	Update(ctx context.Context, sink Sink) error
-	// RetrieveAll retrieves Sinks
-	RetrieveAll(ctx context.Context, owner string, pm PageMetadata) (Page, error)
-	// RetrieveById retrieves a Sink by Id
+	// RetrieveAllByOwnerID retrieves Sinks by OwnerID
+	RetrieveAllByOwnerID(ctx context.Context, owner string, pm PageMetadata) (Page, error)
+	// SearchAllSinks search Sinks for internal usage like services
+	SearchAllSinks(ctx context.Context, filter Filter) ([]Sink, error)
+	// RetrieveById retrieves a Sink by ID
 	RetrieveById(ctx context.Context, key string) (Sink, error)
-	// RetrieveById retrieves a Sink by Id
+	// RetrieveByOwnerAndId retrieves a By OwnerId And SinkId
 	RetrieveByOwnerAndId(ctx context.Context, ownerID string, key string) (Sink, error)
-	// Remove a existing Sink by id
+	// Remove an existing Sink by id
 	Remove(ctx context.Context, owner string, key string) error
-	// UpdateSinkState
+	// UpdateSinkState updates sink state like active, idle, new, unknown
 	UpdateSinkState(ctx context.Context, sinkID string, msg string, ownerID string, state State) error
 }

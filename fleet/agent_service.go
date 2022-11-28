@@ -93,7 +93,7 @@ func (svc fleetService) ResetAgent(ctx context.Context, token string, agentID st
 		return err
 	}
 
-	return svc.agentComms.NotifyAgentReset(agent, true, "Reset initiated from control plane")
+	return svc.agentComms.NotifyAgentReset(ctx, agent, true, "Reset initiated from control plane")
 }
 
 func (svc fleetService) ViewAgentByIDInternal(ctx context.Context, ownerID string, id string) (Agent, error) {
@@ -202,7 +202,7 @@ func (svc fleetService) EditAgent(ctx context.Context, token string, agent Agent
 		svc.logger.Error("failed to add agent to a existing group channel", zap.String("agent_id", res.MFThingID), zap.Error(err))
 	}
 
-	err = svc.agentComms.NotifyAgentGroupMemberships(res)
+	err = svc.agentComms.NotifyAgentGroupMemberships(ctx, res)
 	if err != nil {
 		svc.logger.Error("failure during agent group membership comms", zap.Error(err))
 	}
@@ -297,4 +297,13 @@ func (svc fleetService) GetPolicyState(ctx context.Context, agent Agent) (map[st
 	}
 
 	return policyState, nil
+}
+
+func (svc fleetService) ViewAgentMatchingGroupsByIDInternal(ctx context.Context, agentID string, ownerID string) (MatchingGroups, error) {
+	matchingGroups, err := svc.agentGroupRepository.RetrieveMatchingGroups(ctx, ownerID, agentID)
+	if err != nil {
+		return MatchingGroups{}, err
+	}
+
+	return matchingGroups, nil
 }
