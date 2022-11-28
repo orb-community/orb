@@ -4,7 +4,7 @@ import docker
 from behave import then, step
 import json
 
-MINUTE_INT = 3600
+MINUTE_INT = 60
 client = docker.from_env()
 
 
@@ -38,5 +38,8 @@ def monitor_docker_stats_during(context, monitor_time):
         long_report.append(statistics)
         event.wait(30)
         monitored_duration = datetime.now().timestamp() - started
+        print("monitored duration", monitored_duration, "seconds")
+        print("waiting for ", int(monitor_time * MINUTE_INT))
+
     json.dump(short_report, short_report_file)
     json.dump(long_report, long_report_file)
