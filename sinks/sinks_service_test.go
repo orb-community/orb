@@ -116,6 +116,18 @@ func TestUpdateSink(t *testing.T) {
 	wrongSink := sinks.Sink{ID: wrongID.String()}
 	sink.ID = sk.ID
 
+	noConfig := sk
+	noConfig.Config = make(map[string]interface{})
+	noConfig.Name, _ = types.NewIdentifier("noConfig")
+
+	noTags := sk
+	noTags.Tags = make(map[string]string)
+	noTags.Name, _ = types.NewIdentifier("noTags")
+
+	noDescription := sk
+	noDescription.Tags = make(map[string]string)
+	noDescription.Name, _ = types.NewIdentifier("noDesc")
+
 	cases := map[string]struct {
 		sink  sinks.Sink
 		token string
@@ -141,11 +153,31 @@ func TestUpdateSink(t *testing.T) {
 			token: token,
 			err:   errors.ErrUpdateEntity,
 		},
+		"update existing sink without updating config": {
+			sink:  noConfig,
+			token: token,
+			err:   nil,
+		},
+		"update existing sink without updating tags": {
+			sink:  noTags,
+			token: token,
+			err:   nil,
+		},
+		"update existing sink without updating description": {
+			sink:  noDescription,
+			token: token,
+			err:   nil,
+		},
 	}
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
-			_, err := service.UpdateSink(context.Background(), tc.token, tc.sink)
+			sink, err := service.UpdateSink(context.Background(), tc.token, tc.sink)
+			if err == nil {
+				assert.Equal(t, sk.Config, sink.Config, fmt.Sprintf("%s: expected %s got %s", desc, sk.Config, sink.Config))
+				assert.Equal(t, sk.Tags, sink.Tags, fmt.Sprintf("%s: expected %s got %s", desc, sk.Tags, sink.Tags))
+				assert.Equal(t, sk.Description, sink.Description, fmt.Sprintf("%s: expected %s got %s", desc, sk.Description, sink.Description))
+			}
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %d got %d", desc, tc.err, err))
 		})
 	}

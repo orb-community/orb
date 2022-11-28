@@ -89,6 +89,24 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 		return Sink{}, err
 	}
 
+	var currentSink Sink
+	if len(sink.Config) == 0 || len(sink.Tags) == 0 || sink.Description == "" {
+		currentSink, err = svc.sinkRepo.RetrieveById(ctx, sink.ID)
+		if err != nil {
+			return Sink{}, err
+		}
+	}
+
+	if len(sink.Config) == 0 {
+		sink.Config = currentSink.Config
+	}
+	if len(sink.Tags) == 0 {
+		sink.Tags = currentSink.Tags
+	}
+	if sink.Description == "" {
+		sink.Description = currentSink.Description
+	}
+
 	if sink.Backend != "" || sink.Error != "" {
 		return Sink{}, errors.ErrUpdateEntity
 	}
