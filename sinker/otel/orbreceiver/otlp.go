@@ -161,32 +161,40 @@ func (r *OrbReceiver) extractAttribute(metricsRequest pmetricotlp.Request, attri
 
 // inject attribute on all metricsRequest metrics
 func (r *OrbReceiver) injectAttribute(metricsRequest pmetricotlp.Request, attribute string, value string) pmetricotlp.Request {
-	metricsList := metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
-	for i := 0; i < metricsList.Len(); i++ {
-		metricItem := metricsList.At(i)
-		switch metricItem.Type() {
-		case pmetric.MetricTypeExponentialHistogram:
-			for i := 0; i < metricItem.ExponentialHistogram().DataPoints().Len(); i++ {
-				metricItem.ExponentialHistogram().DataPoints().At(i).Attributes().PutStr(attribute, value)
+	if metricsRequest.Metrics().ResourceMetrics().Len() > 0 {
+		for i := 0; i < metricsRequest.Metrics().ResourceMetrics().Len(); i++ {
+			if metricsRequest.Metrics().ResourceMetrics().At(i).ScopeMetrics().Len() > 0 {
+				for i := 0; i < metricsRequest.Metrics().ResourceMetrics().At(i).ScopeMetrics().Len(); i++ {
+					metricsList := metricsRequest.Metrics().ResourceMetrics().At(i).ScopeMetrics().At(i).Metrics()
+					for i := 0; i < metricsList.Len(); i++ {
+						metricItem := metricsList.At(i)
+						switch metricItem.Type() {
+						case pmetric.MetricTypeExponentialHistogram:
+							for i := 0; i < metricItem.ExponentialHistogram().DataPoints().Len(); i++ {
+								metricItem.ExponentialHistogram().DataPoints().At(i).Attributes().PutStr(attribute, value)
+							}
+						case pmetric.MetricTypeGauge:
+							for i := 0; i < metricItem.Gauge().DataPoints().Len(); i++ {
+								metricItem.Gauge().DataPoints().At(i).Attributes().PutStr(attribute, value)
+							}
+						case pmetric.MetricTypeHistogram:
+							for i := 0; i < metricItem.Histogram().DataPoints().Len(); i++ {
+								metricItem.Histogram().DataPoints().At(i).Attributes().PutStr(attribute, value)
+							}
+						case pmetric.MetricTypeSum:
+							for i := 0; i < metricItem.Sum().DataPoints().Len(); i++ {
+								metricItem.Sum().DataPoints().At(i).Attributes().PutStr(attribute, value)
+							}
+						case pmetric.MetricTypeSummary:
+							for i := 0; i < metricItem.Summary().DataPoints().Len(); i++ {
+								metricItem.Summary().DataPoints().At(i).Attributes().PutStr(attribute, value)
+							}
+						default:
+							r.cfg.Logger.Error("Unknown metric type: " + metricItem.Type().String())
+						}
+					}
+				}
 			}
-		case pmetric.MetricTypeGauge:
-			for i := 0; i < metricItem.Gauge().DataPoints().Len(); i++ {
-				metricItem.Gauge().DataPoints().At(i).Attributes().PutStr(attribute, value)
-			}
-		case pmetric.MetricTypeHistogram:
-			for i := 0; i < metricItem.Histogram().DataPoints().Len(); i++ {
-				metricItem.Histogram().DataPoints().At(i).Attributes().PutStr(attribute, value)
-			}
-		case pmetric.MetricTypeSum:
-			for i := 0; i < metricItem.Sum().DataPoints().Len(); i++ {
-				metricItem.Sum().DataPoints().At(i).Attributes().PutStr(attribute, value)
-			}
-		case pmetric.MetricTypeSummary:
-			for i := 0; i < metricItem.Summary().DataPoints().Len(); i++ {
-				metricItem.Summary().DataPoints().At(i).Attributes().PutStr(attribute, value)
-			}
-		default:
-			r.cfg.Logger.Error("Unknown metric type: " + metricItem.Type().String())
 		}
 	}
 	return metricsRequest
@@ -195,37 +203,41 @@ func (r *OrbReceiver) injectAttribute(metricsRequest pmetricotlp.Request, attrib
 // delete attribute on all metricsRequest metrics
 func (r *OrbReceiver) deleteAttribute(metricsRequest pmetricotlp.Request, attribute string) pmetricotlp.Request {
 	if metricsRequest.Metrics().ResourceMetrics().Len() > 0 {
-		if metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().Len() > 0 {
-			metricsList := metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
-			for i := 0; i < metricsList.Len(); i++ {
-				metricItem := metricsList.At(i)
-				switch metricItem.Type() {
-				case pmetric.MetricTypeExponentialHistogram:
-					for i := 0; i < metricItem.ExponentialHistogram().DataPoints().Len(); i++ {
-						metricItem.ExponentialHistogram().DataPoints().At(0).Attributes().Remove(attribute)
+		for i := 0; i < metricsRequest.Metrics().ResourceMetrics().Len(); i++ {
+			if metricsRequest.Metrics().ResourceMetrics().At(i).ScopeMetrics().Len() > 0 {
+				for i := 0; i < metricsRequest.Metrics().ResourceMetrics().At(i).ScopeMetrics().Len(); i++ {
+					metricsList := metricsRequest.Metrics().ResourceMetrics().At(i).ScopeMetrics().At(0).Metrics()
+					for i := 0; i < metricsList.Len(); i++ {
+						metricItem := metricsList.At(i)
+						switch metricItem.Type() {
+						case pmetric.MetricTypeExponentialHistogram:
+							for i := 0; i < metricItem.ExponentialHistogram().DataPoints().Len(); i++ {
+								metricItem.ExponentialHistogram().DataPoints().At(i).Attributes().Remove(attribute)
+							}
+						case pmetric.MetricTypeGauge:
+							for i := 0; i < metricItem.Gauge().DataPoints().Len(); i++ {
+								metricItem.Gauge().DataPoints().At(i).Attributes().Remove(attribute)
+							}
+						case pmetric.MetricTypeHistogram:
+							for i := 0; i < metricItem.Histogram().DataPoints().Len(); i++ {
+								metricItem.Histogram().DataPoints().At(i).Attributes().Remove(attribute)
+							}
+						case pmetric.MetricTypeSum:
+							for i := 0; i < metricItem.Sum().DataPoints().Len(); i++ {
+								metricItem.Sum().DataPoints().At(i).Attributes().Remove(attribute)
+							}
+						case pmetric.MetricTypeSummary:
+							for i := 0; i < metricItem.Summary().DataPoints().Len(); i++ {
+								metricItem.Summary().DataPoints().At(i).Attributes().Remove(attribute)
+							}
+						default:
+							r.cfg.Logger.Error("Unknown metric type: " + metricItem.Type().String())
+						}
 					}
-				case pmetric.MetricTypeGauge:
-					for i := 0; i < metricItem.Gauge().DataPoints().Len(); i++ {
-						metricItem.Gauge().DataPoints().At(0).Attributes().Remove(attribute)
-					}
-				case pmetric.MetricTypeHistogram:
-					for i := 0; i < metricItem.Histogram().DataPoints().Len(); i++ {
-						metricItem.Histogram().DataPoints().At(0).Attributes().Remove(attribute)
-					}
-				case pmetric.MetricTypeSum:
-					for i := 0; i < metricItem.Sum().DataPoints().Len(); i++ {
-						metricItem.Sum().DataPoints().At(0).Attributes().Remove(attribute)
-					}
-				case pmetric.MetricTypeSummary:
-					for i := 0; i < metricItem.Summary().DataPoints().Len(); i++ {
-						metricItem.Summary().DataPoints().At(0).Attributes().Remove(attribute)
-					}
-				default:
-					r.cfg.Logger.Error("Unknown metric type: " + metricItem.Type().String())
 				}
+			} else {
+				r.cfg.Logger.Error("Unable to delete attribute, ScopeMetrics length 0")
 			}
-		} else {
-			r.cfg.Logger.Error("Unable to delete attribute, ScopeMetrics length 0")
 		}
 	} else {
 		r.cfg.Logger.Error("Unable to delete attribute, ResourceMetrics length 0")
@@ -261,6 +273,7 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 		mr = r.deleteAttribute(mr, "dataset_ids")
 		mr = r.deleteAttribute(mr, "policy_id")
 		mr = r.deleteAttribute(mr, "instance")
+		mr = r.deleteAttribute(mr, "job")
 
 		// Add tags in Context
 		execCtx, execCancelF := context.WithCancel(r.ctx)
@@ -272,7 +285,6 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 			return
 		}
 		mr = r.injectAttribute(mr, "agent", agentPb.AgentName)
-		mr = r.injectAttribute(mr, "instance", agentPb.AgentName)
 		for k, v := range agentPb.OrbTags {
 			mr = r.injectAttribute(mr, k, v)
 		}
