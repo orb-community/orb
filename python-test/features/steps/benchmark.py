@@ -18,15 +18,16 @@ def monitor_docker_stats_during(context, monitor_time):
     started = datetime.now().timestamp()
     monitored_duration = 0
     event = threading.Event()
-    sr_file_name = "short-report-" + str(started) + ".json"
+    sr_file_name = "short-report-" + context.policy_amount +"policies-" + str(started) + ".json"
     short_report_file = open(sr_file_name, "x")
     short_report = [{}]
-    lr_file_name = "docker-container-stats-" + str(started) + ".json"
+    lr_file_name = "docker-container-stats-" + context.policy_amount +"policies-" + str(started) + ".json"
     long_report_file = open(lr_file_name, "x")
     long_report = [{}]
-    while not event.is_set() and monitored_duration < int(monitor_time * MINUTE_INT):
+    monitor_limit = int(monitor_time) * int(MINUTE_INT)
+    while not event.is_set() and monitored_duration <= monitor_limit:
         container = client.containers.get(context.container_id)
-        print("Monitor docker stats")
+        print("Monitor docker stats for", context.policy_amount, "policies")
         statistics = container.stats(stream=False)
         used_memory = int(statistics["memory_stats"]["usage"]) - int(statistics["memory_stats"]["stats"]["file"])
         available_memory = int(statistics["memory_stats"]["limit"])
@@ -39,7 +40,6 @@ def monitor_docker_stats_during(context, monitor_time):
         event.wait(30)
         monitored_duration = datetime.now().timestamp() - started
         print("monitored duration", monitored_duration, "seconds")
-        print("waiting for ", int(monitor_time * MINUTE_INT))
-
+        print("waiting for ", monitor_limit)
     json.dump(short_report, short_report_file)
     json.dump(long_report, long_report_file)
