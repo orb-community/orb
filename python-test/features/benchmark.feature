@@ -18,9 +18,8 @@ Feature: Integrated Benchmark Tests
     And monitor the activity of memory usage during <monitor_time> minutes
     Examples:
       | amount | waiting_time | monitor_time |
-      | 10     | 30           |  5          |
-      | 20     | 30           |  5          |
-      | 50     | 30           |  15          |
-      | 100    | 60           |  15          |
-      | 200    | 60           |  15          |
-      | 500    | 60           |  15          |
+      | 20     | 30           |  3           |
+      | 50     | 30           |  3           |
+      | 100    | 60           |  5           |
+      | 200    | 60           |  5           |
+      | 500    | 60           |  5           |

@@ -32,10 +32,14 @@ def monitor_docker_stats_during(context, monitor_time):
         used_memory = int(statistics["memory_stats"]["usage"]) - int(statistics["memory_stats"]["stats"]["file"])
         available_memory = int(statistics["memory_stats"]["limit"])
         cpu_delta = int(statistics["cpu_stats"]["cpu_usage"]["total_usage"]) - int(statistics["precpu_stats"]["cpu_usage"]["total_usage"])
+        system_cpu_delta = int(statistics["cpu_stats"]["system_cpu_usage"]) - int(statistics["precpu_stats"]["system_cpu_usage"])
+        number_cpus = int(statistics["cpu_stats"]["online_cpus"])
+        cpu_percent = (cpu_delta / system_cpu_delta) * number_cpus * 100.0
+        memory_percent = (used_memory / available_memory) * 100.0
         # print to a file instead of printing in console
-        print("Memory Usage", (used_memory / available_memory) * 100.0, " %")
-        print("CPU Delta ", cpu_delta)
-        short_report.append({"timestamp": datetime.now().timestamp(), "cpu_delta": cpu_delta, "memory_usage": (used_memory / available_memory) * 100.0})
+        print("Memory Usage", memory_percent, " %")
+        print("CPU Usage ", cpu_percent)
+        short_report.append({"timestamp": datetime.now().timestamp(), "cpu_percent": cpu_percent, "memory_usage": memory_percent})
         long_report.append(statistics)
         event.wait(30)
         monitored_duration = datetime.now().timestamp() - started
