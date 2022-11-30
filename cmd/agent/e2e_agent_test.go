@@ -1,19 +1,15 @@
 package main
 
 import (
+	"context"
 	"github.com/spf13/cobra"
 	"testing"
+	"time"
 )
 
 func Test_e2e_orbAgent_ConfigFile(t *testing.T) {
 	rootCmd := &cobra.Command{
 		Use: "orb-agent",
-	}
-
-	versionCmd := &cobra.Command{
-		Use:   "version",
-		Short: "Show agent version",
-		Run:   Version,
 	}
 
 	runCmd := &cobra.Command{
@@ -27,10 +23,16 @@ func Test_e2e_orbAgent_ConfigFile(t *testing.T) {
 	runCmd.PersistentFlags().BoolVarP(&Debug, "debug", "d", false, "Enable verbose (debug level) output")
 
 	rootCmd.AddCommand(runCmd)
-	rootCmd.AddCommand(versionCmd)
-	err := rootCmd.Execute()
+	rootCmd.SetArgs([]string{"run", "-d", "-c", "/home/lpegoraro/workspace/orb/localconfig/config.yaml"})
+	ctx, cancelF := context.WithTimeout(context.Background(), 2*time.Minute)
+	err := rootCmd.ExecuteContext(ctx)
 	if err != nil {
 		t.Fail()
 	}
 
+	select {
+	case <-ctx.Done():
+		cancelF()
+		return
+	}
 }
