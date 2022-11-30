@@ -98,7 +98,7 @@ func TestCreateSink(t *testing.T) {
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
 			_, err := service.CreateSink(context.Background(), tc.token, tc.sink)
-			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, err, tc.err))
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
 			t.Log(tc.token)
 		})
 	}
@@ -118,18 +118,49 @@ func TestUpdateSink(t *testing.T) {
 
 	noConfig := sk
 	noConfig.Config = make(map[string]interface{})
-	noConfig.Name, _ = types.NewIdentifier("noConfig")
 
-	noTags := sk
+	noTagName, _ := types.NewIdentifier("noTagSink")
+	noTags := sinks.Sink{
+		Name:        noTagName,
+		Description: "An example prometheus sink",
+		Backend:     "prometheus",
+		State:       sinks.Unknown,
+		Error:       "",
+		Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
+		Tags:        map[string]string{"cloud": "aws"},
+	}
+	noTags, err = service.CreateSink(context.Background(), token, noTags)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+	noTags.Backend = ""
 	noTags.Tags = make(map[string]string)
-	noTags.Name, _ = types.NewIdentifier("noTags")
 
 	noDescription := sk
-	noDescription.Tags = make(map[string]string)
-	noDescription.Name, _ = types.NewIdentifier("noDesc")
+	noDescription.Description = ""
+
+	newTagsSink := sk
+	newTags := types.Tags{"cloud": "aws", "test": "true"}
+	newTagsSink.Tags = types.Tags{"test": "true"}
+
+	newVTagName, _ := types.NewIdentifier("newKTagSink")
+	newVTagSink := sinks.Sink{
+		Name:        newVTagName,
+		Description: "An example prometheus sink",
+		Backend:     "prometheus",
+		State:       sinks.Unknown,
+		Error:       "",
+		Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
+		Tags:        map[string]string{"cloud": "aws"},
+	}
+	newVTagSink, err = service.CreateSink(context.Background(), token, newVTagSink)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+	newVTagSink.Backend = ""
+
+	newVTagSink.Tags = map[string]string{"cloud": "true"}
+	newVTag := types.Tags{"cloud": "true"}
 
 	cases := map[string]struct {
 		sink  sinks.Sink
+		tags  types.Tags
 		token string
 		err   error
 	}{
@@ -160,11 +191,24 @@ func TestUpdateSink(t *testing.T) {
 		},
 		"update existing sink without updating tags": {
 			sink:  noTags,
+			tags:  make(map[string]string),
 			token: token,
 			err:   nil,
 		},
 		"update existing sink without updating description": {
 			sink:  noDescription,
+			token: token,
+			err:   nil,
+		},
+		"update sink tags with new tags": {
+			sink:  newTagsSink,
+			tags:  newTags,
+			token: token,
+			err:   nil,
+		},
+		"update existing sink tag with new value": {
+			sink:  newVTagSink,
+			tags:  newVTag,
 			token: token,
 			err:   nil,
 		},
@@ -175,8 +219,10 @@ func TestUpdateSink(t *testing.T) {
 			sink, err := service.UpdateSink(context.Background(), tc.token, tc.sink)
 			if err == nil {
 				assert.Equal(t, sk.Config, sink.Config, fmt.Sprintf("%s: expected %s got %s", desc, sk.Config, sink.Config))
-				assert.Equal(t, sk.Tags, sink.Tags, fmt.Sprintf("%s: expected %s got %s", desc, sk.Tags, sink.Tags))
 				assert.Equal(t, sk.Description, sink.Description, fmt.Sprintf("%s: expected %s got %s", desc, sk.Description, sink.Description))
+				if tc.tags != nil {
+					assert.Equal(t, tc.tags, sink.Tags, fmt.Sprintf("%s: expected %s got %s", desc, tc.tags, sink.Tags))
+				}
 			}
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %d got %d", desc, tc.err, err))
 		})
