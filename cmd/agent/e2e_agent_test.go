@@ -2,12 +2,24 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"github.com/ns1labs/orb/agent"
+	"github.com/ns1labs/orb/agent/backend/pktvisor"
+	"github.com/ns1labs/orb/agent/config"
+	"github.com/pkg/profile"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"os"
+	"os/signal"
+	"syscall"
 	"testing"
 	"time"
 )
 
 func Test_e2e_orbAgent_ConfigFile(t *testing.T) {
+	defer profile.Start().Stop()
 	rootCmd := &cobra.Command{
 		Use: "orb-agent",
 	}
@@ -35,4 +47,84 @@ func Test_e2e_orbAgent_ConfigFile(t *testing.T) {
 		cancelF()
 		return
 	}
+}
+
+func Test_main(t *testing.T) {
+	mergeOrError("/home/lpegoraro/workspace/orb/localconfig/config.yaml")
+
+	// configuration
+	var config config.Config
+	err := viper.Unmarshal(&config)
+	if err != nil {
+		cobra.CheckErr(fmt.Errorf("agent start up error (config): %w", err))
+		os.Exit(1)
+	}
+
+	config.OrbAgent.Debug.Enable = Debug
+
+	// include pktvisor backend by default if binary is at default location
+	_, err = os.Stat(pktvisor.DefaultBinary)
+	if err == nil && config.OrbAgent.Backends == nil {
+		config.OrbAgent.Backends = make(map[string]map[string]string)
+		config.OrbAgent.Backends["pktvisor"] = make(map[string]string)
+		config.OrbAgent.Backends["pktvisor"]["binary"] = pktvisor.DefaultBinary
+		if len(cfgFiles) > 0 {
+			config.OrbAgent.Backends["pktvisor"]["config_file"] = "/home/lpegoraro/workspace/orb/localconfig/config.yaml"
+		}
+	}
+
+	// logger
+	var logger *zap.Logger
+	atomicLevel := zap.NewAtomicLevel()
+	if Debug {
+		atomicLevel.SetLevel(zap.DebugLevel)
+	} else {
+		atomicLevel.SetLevel(zap.InfoLevel)
+	}
+	encoderCfg := zap.NewProductionEncoderConfig()
+	encoderCfg.EncodeTime = zapcore.ISO8601TimeEncoder
+	core := zapcore.NewCore(
+		zapcore.NewJSONEncoder(encoderCfg),
+		os.Stdout,
+		atomicLevel,
+	)
+	logger = zap.New(core, zap.AddCaller())
+	defer func(logger *zap.Logger) {
+		_ = logger.Sync()
+	}(logger)
+
+	// new agent
+	a, err := agent.New(logger, config)
+	if err != nil {
+		logger.Error("agent start up error", zap.Error(err))
+		os.Exit(1)
+	}
+
+	// handle signals
+	done := make(chan bool, 1)
+	rootCtx, cancelFunc := context.WithTimeout(context.WithValue(context.Background(), "routine", "mainRoutine"), 2*time.Minute)
+
+	go func() {
+		sigs := make(chan os.Signal, 1)
+		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
+		select {
+		case <-sigs:
+			logger.Warn("stop signal received stopping agent")
+			a.Stop(rootCtx)
+			cancelFunc()
+		case <-rootCtx.Done():
+			logger.Warn("mainRoutine context cancelled")
+			done <- true
+			return
+		}
+	}()
+
+	// start agent
+	err = a.Start(rootCtx, cancelFunc)
+	if err != nil {
+		logger.Error("agent startup error", zap.Error(err))
+		os.Exit(1)
+	}
+
+	<-done
 }
