@@ -19,6 +19,7 @@ import (
 )
 
 func Test_e2e_orbAgent_ConfigFile(t *testing.T) {
+	t.Skip("local run only, skip in CICD")
 	defer profile.Start().Stop()
 	rootCmd := &cobra.Command{
 		Use: "orb-agent",
@@ -50,26 +51,28 @@ func Test_e2e_orbAgent_ConfigFile(t *testing.T) {
 }
 
 func Test_main(t *testing.T) {
+	t.Skip("local run only, skip in CICD")
+
 	mergeOrError("/home/lpegoraro/workspace/orb/localconfig/config.yaml")
 
 	// configuration
-	var config config.Config
-	err := viper.Unmarshal(&config)
+	var cfg config.Config
+	err := viper.Unmarshal(&cfg)
 	if err != nil {
 		cobra.CheckErr(fmt.Errorf("agent start up error (config): %w", err))
 		os.Exit(1)
 	}
 
-	config.OrbAgent.Debug.Enable = Debug
+	cfg.OrbAgent.Debug.Enable = true
 
 	// include pktvisor backend by default if binary is at default location
 	_, err = os.Stat(pktvisor.DefaultBinary)
-	if err == nil && config.OrbAgent.Backends == nil {
-		config.OrbAgent.Backends = make(map[string]map[string]string)
-		config.OrbAgent.Backends["pktvisor"] = make(map[string]string)
-		config.OrbAgent.Backends["pktvisor"]["binary"] = pktvisor.DefaultBinary
+	if err == nil && cfg.OrbAgent.Backends == nil {
+		cfg.OrbAgent.Backends = make(map[string]map[string]string)
+		cfg.OrbAgent.Backends["pktvisor"] = make(map[string]string)
+		cfg.OrbAgent.Backends["pktvisor"]["binary"] = pktvisor.DefaultBinary
 		if len(cfgFiles) > 0 {
-			config.OrbAgent.Backends["pktvisor"]["config_file"] = "/home/lpegoraro/workspace/orb/localconfig/config.yaml"
+			cfg.OrbAgent.Backends["pktvisor"]["config_file"] = "/home/lpegoraro/workspace/orb/localconfig/config.yaml"
 		}
 	}
 
@@ -94,7 +97,7 @@ func Test_main(t *testing.T) {
 	}(logger)
 
 	// new agent
-	a, err := agent.New(logger, config)
+	a, err := agent.New(logger, cfg)
 	if err != nil {
 		logger.Error("agent start up error", zap.Error(err))
 		os.Exit(1)
@@ -102,7 +105,7 @@ func Test_main(t *testing.T) {
 
 	// handle signals
 	done := make(chan bool, 1)
-	rootCtx, cancelFunc := context.WithTimeout(context.WithValue(context.Background(), "routine", "mainRoutine"), 2*time.Minute)
+	rootCtx, cancelFunc := context.WithTimeout(context.WithValue(context.Background(), "routine", "mainRoutine"), 15*time.Minute)
 
 	go func() {
 		sigs := make(chan os.Signal, 1)
