@@ -160,8 +160,8 @@ func (p *pktvisorBackend) scrapeDefault() error {
 func (p *pktvisorBackend) scrapeOpenTelemetry(ctx context.Context) {
 	exeCtx, execCancelF := context.WithCancel(ctx)
 	policyID := ctx.Value("policy_id").(string)
-	defer execCancelF()
 	go func() {
+		defer execCancelF()
 		var err error
 		var ok bool
 		count := 0
@@ -203,20 +203,18 @@ func (p *pktvisorBackend) scrapeOpenTelemetry(ctx context.Context) {
 				_ = p.Stop(exeCtx)
 			}
 		}
-		for {
-			select {
-			case <-ctx.Done():
-				err := p.exporter[policyID].Shutdown(exeCtx)
-				if err != nil {
-					return
-				}
-				err = p.receiver[policyID].Shutdown(exeCtx)
-				if err != nil {
-					return
-				}
-				p.logger.Info("stopped Orb OpenTelemetry collector policy: " + policyID)
+		select {
+		case <-ctx.Done():
+			err := p.exporter[policyID].Shutdown(exeCtx)
+			if err != nil {
 				return
 			}
+			err = p.receiver[policyID].Shutdown(exeCtx)
+			if err != nil {
+				return
+			}
+			p.logger.Info("stopped Orb OpenTelemetry collector policy: " + policyID)
+			return
 		}
 	}()
 }
