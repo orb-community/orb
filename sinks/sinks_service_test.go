@@ -98,7 +98,7 @@ func TestCreateSink(t *testing.T) {
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
 			_, err := service.CreateSink(context.Background(), tc.token, tc.sink)
-			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, err, tc.err))
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
 			t.Log(tc.token)
 		})
 	}
@@ -118,65 +118,108 @@ func TestUpdateSink(t *testing.T) {
 
 	noConfig := sk
 	noConfig.Config = make(map[string]interface{})
-	noConfig.Name, _ = types.NewIdentifier("noConfig")
 
-	noTags := sk
-	noTags.Tags = make(map[string]string)
-	noTags.Name, _ = types.NewIdentifier("noTags")
+	sinkName, _ := types.NewIdentifier("noTagSink")
+	emptyTagsSink := sinks.Sink{
+		Name:        sinkName,
+		Description: "An example prometheus sink",
+		Backend:     "prometheus",
+		State:       sinks.Unknown,
+		Error:       "",
+		Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
+		Tags:        map[string]string{"cloud": "aws"},
+	}
+	emptyTagsSink, err = service.CreateSink(context.Background(), token, emptyTagsSink)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+	emptyTagsSink.Backend = ""
+	emptyTagsSink.Tags = make(map[string]string)
 
 	noDescription := sk
-	noDescription.Tags = make(map[string]string)
-	noDescription.Name, _ = types.NewIdentifier("noDesc")
+	noDescription.Description = ""
+
+	addNewTagsToSink := sk
+	addNewTagsToSink.Tags = types.Tags{"test": "true"}
+
+	sinkName, _ = types.NewIdentifier("updateTagSink")
+	updateTagOnSink := sinks.Sink{
+		Name:        sinkName,
+		Description: "An example prometheus sink",
+		Backend:     "prometheus",
+		State:       sinks.Unknown,
+		Error:       "",
+		Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
+		Tags:        map[string]string{"cloud": "aws"},
+	}
+	updateTagOnSink, err = service.CreateSink(context.Background(), token, updateTagOnSink)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+	updateTagOnSink.Backend = ""
+	updateTagOnSink.Tags = map[string]string{"cloud": "true"}
 
 	cases := map[string]struct {
-		sink  sinks.Sink
-		token string
-		err   error
+		incomingSink sinks.Sink
+		expectedTags types.Tags
+		token        string
+		err          error
 	}{
 		"update existing sink": {
-			sink:  sk,
-			token: token,
-			err:   nil,
+			incomingSink: sk,
+			token:        token,
+			err:          nil,
 		},
 		"update sink with wrong credentials": {
-			sink:  sink,
-			token: invalidToken,
-			err:   sinks.ErrUnauthorizedAccess,
+			incomingSink: sink,
+			token:        invalidToken,
+			err:          sinks.ErrUnauthorizedAccess,
 		},
 		"update a non-existing sink": {
-			sink:  wrongSink,
-			token: token,
-			err:   sinks.ErrNotFound,
+			incomingSink: wrongSink,
+			token:        token,
+			err:          sinks.ErrNotFound,
 		},
 		"update sink read only fields": {
-			sink:  sink,
-			token: token,
-			err:   errors.ErrUpdateEntity,
+			incomingSink: sink,
+			token:        token,
+			err:          errors.ErrUpdateEntity,
 		},
 		"update existing sink without updating config": {
-			sink:  noConfig,
-			token: token,
-			err:   nil,
+			incomingSink: noConfig,
+			token:        token,
+			err:          nil,
 		},
-		"update existing sink without updating tags": {
-			sink:  noTags,
-			token: token,
-			err:   nil,
+		"update existing sink using empty tags": {
+			incomingSink: emptyTagsSink,
+			expectedTags: make(map[string]string),
+			token:        token,
+			err:          nil,
 		},
 		"update existing sink without updating description": {
-			sink:  noDescription,
-			token: token,
-			err:   nil,
+			incomingSink: noDescription,
+			token:        token,
+			err:          nil,
+		},
+		"update sink tags with new tags": {
+			incomingSink: addNewTagsToSink,
+			expectedTags: types.Tags{"cloud": "aws", "test": "true"},
+			token:        token,
+			err:          nil,
+		},
+		"update existing sink tag with new value": {
+			incomingSink: updateTagOnSink,
+			expectedTags: types.Tags{"cloud": "true"},
+			token:        token,
+			err:          nil,
 		},
 	}
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
-			sink, err := service.UpdateSink(context.Background(), tc.token, tc.sink)
+			sink, err := service.UpdateSink(context.Background(), tc.token, tc.incomingSink)
 			if err == nil {
 				assert.Equal(t, sk.Config, sink.Config, fmt.Sprintf("%s: expected %s got %s", desc, sk.Config, sink.Config))
-				assert.Equal(t, sk.Tags, sink.Tags, fmt.Sprintf("%s: expected %s got %s", desc, sk.Tags, sink.Tags))
 				assert.Equal(t, sk.Description, sink.Description, fmt.Sprintf("%s: expected %s got %s", desc, sk.Description, sink.Description))
+				if tc.expectedTags != nil {
+					assert.Equal(t, tc.expectedTags, sink.Tags, fmt.Sprintf("%s: expected %s got %s", desc, tc.expectedTags, sink.Tags))
+				}
 			}
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %d got %d", desc, tc.err, err))
 		})

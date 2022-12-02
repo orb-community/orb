@@ -90,19 +90,22 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 	}
 
 	var currentSink Sink
-	if len(sink.Config) == 0 || len(sink.Tags) == 0 || sink.Description == "" {
-		currentSink, err = svc.sinkRepo.RetrieveById(ctx, sink.ID)
-		if err != nil {
-			return Sink{}, err
-		}
+	currentSink, err = svc.sinkRepo.RetrieveById(ctx, sink.ID)
+	if err != nil {
+		return Sink{}, err
 	}
 
 	if len(sink.Config) == 0 {
 		sink.Config = currentSink.Config
 	}
-	if len(sink.Tags) == 0 {
+
+	if sink.Tags == nil {
+		sink.Tags = currentSink.Tags
+	} else if len(sink.Tags) != 0 {
+		currentSink.Tags.Merge(sink.Tags)
 		sink.Tags = currentSink.Tags
 	}
+
 	if sink.Description == "" {
 		sink.Description = currentSink.Description
 	}
