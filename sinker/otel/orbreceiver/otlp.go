@@ -228,9 +228,9 @@ func (r *OrbReceiver) deleteAttribute(metricsRequest pmetricotlp.Request, attrib
 					for i := 0; i < metricItem.Summary().DataPoints().Len(); i++ {
 						metricItem.Summary().DataPoints().At(i).Attributes().Remove(attribute)
 					}
-				default:
-					r.cfg.Logger.Error("Unknown metric type: " + metricItem.Type().String())
 				}
+			} else {
+				r.cfg.Logger.Error("Unable to delete attribute, ScopeMetrics length 0")
 			}
 		}
 	}
@@ -266,6 +266,7 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 		mr = r.deleteAttribute(mr, "dataset_ids")
 		mr = r.deleteAttribute(mr, "policy_id")
 		mr = r.deleteAttribute(mr, "instance")
+		mr = r.deleteAttribute(mr, "job")
 
 		// Add tags in Context
 		execCtx, execCancelF := context.WithCancel(r.ctx)
@@ -277,7 +278,6 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 			return
 		}
 		mr = r.injectAttribute(mr, "agent", agentPb.AgentName)
-		mr = r.injectAttribute(mr, "instance", agentPb.AgentName)
 		for k, v := range agentPb.OrbTags {
 			mr = r.injectAttribute(mr, k, v)
 		}
