@@ -102,7 +102,7 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 	if sink.Tags == nil {
 		sink.Tags = currentSink.Tags
 	} else if len(sink.Tags) != 0 {
-		currentSink.Tags.Append(sink.Tags)
+		currentSink.Tags.Merge(sink.Tags)
 		sink.Tags = currentSink.Tags
 	}
 

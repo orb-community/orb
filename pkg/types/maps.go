@@ -12,7 +12,7 @@ import (
 // Tags A flat kv pair object
 type Tags map[string]string
 
-func (t *Tags) Append(newTags map[string]string) {
+func (t *Tags) Merge(newTags map[string]string) {
 	for k, v := range newTags {
 		(*t)[k] = v
 	}
