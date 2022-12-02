@@ -37,11 +37,11 @@ define compile_service_linux
 endef
 
 define run_test
-	 go test -mod=mod -race -count 1 -tags test $(shell go list ./... | grep -v 'cmd' | grep '$(SERVICE)')
+	 go test -mod=mod -short -race -count 1 -tags test $(shell go list ./... | grep -v 'cmd' | grep '$(SERVICE)')
 endef
 
 define run_test_coverage
-	 go test -mod=mod -race -count 1 -tags test -cover -coverprofile=coverage.out -covermode=atomic $(shell go list ./... | grep -v 'cmd' | grep '$(SERVICE)')
+	 go test -mod=mod -short -race -count 1 -tags test -cover -coverprofile=coverage.out -covermode=atomic $(shell go list ./... | grep -v 'cmd' | grep '$(SERVICE)')
 endef
 
 define make_docker
@@ -87,7 +87,7 @@ ifdef pv
 endif
 
 test:
-	go test -mod=mod -race -count 1 -tags test $(shell go list ./... | grep -v 'cmd')
+	go test -mod=mod -short -race -count 1 -tags test $(shell go list ./... | grep -v 'cmd')
 
 run_test_service: test_service $(2)
 

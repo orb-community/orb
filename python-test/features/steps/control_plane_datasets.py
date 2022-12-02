@@ -143,7 +143,6 @@ def check_amount_datasets_per_status(context, amount_of_datasets_valid, amount_o
                                                                          amount_of_datasets_valid,
                                                                          amount_of_datasets_invalid,
                                                                          timeout=int(time_to_wait))
-
     assert_that(len(valid_datasets), equal_to(amount_of_datasets_valid),
                 f"Unexpected amount of datasets valid.\nValid: {valid_datasets}. \nInvalid: {invalid_datasets}")
     assert_that(len(invalid_datasets), equal_to(amount_of_datasets_invalid),
