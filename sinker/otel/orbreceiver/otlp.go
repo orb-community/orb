@@ -229,8 +229,6 @@ func (r *OrbReceiver) deleteAttribute(metricsRequest pmetricotlp.Request, attrib
 						metricItem.Summary().DataPoints().At(i).Attributes().Remove(attribute)
 					}
 				}
-			} else {
-				r.cfg.Logger.Error("Unable to delete attribute, ScopeMetrics length 0")
 			}
 		}
 	}
