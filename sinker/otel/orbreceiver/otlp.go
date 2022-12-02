@@ -161,38 +161,36 @@ func (r *OrbReceiver) extractAttribute(metricsRequest pmetricotlp.Request, attri
 
 // inject attribute on all metricsRequest metrics
 func (r *OrbReceiver) injectAttribute(metricsRequest pmetricotlp.Request, attribute string, value string) pmetricotlp.Request {
-	if metricsRequest.Metrics().ResourceMetrics().Len() > 0 {
-		for i := 0; i < metricsRequest.Metrics().ResourceMetrics().Len(); i++ {
-			if metricsRequest.Metrics().ResourceMetrics().At(i).ScopeMetrics().Len() > 0 {
-				for i := 0; i < metricsRequest.Metrics().ResourceMetrics().At(i).ScopeMetrics().Len(); i++ {
-					metricsList := metricsRequest.Metrics().ResourceMetrics().At(i).ScopeMetrics().At(i).Metrics()
-					for i := 0; i < metricsList.Len(); i++ {
-						metricItem := metricsList.At(i)
-						switch metricItem.Type() {
-						case pmetric.MetricTypeExponentialHistogram:
-							for i := 0; i < metricItem.ExponentialHistogram().DataPoints().Len(); i++ {
-								metricItem.ExponentialHistogram().DataPoints().At(i).Attributes().PutStr(attribute, value)
-							}
-						case pmetric.MetricTypeGauge:
-							for i := 0; i < metricItem.Gauge().DataPoints().Len(); i++ {
-								metricItem.Gauge().DataPoints().At(i).Attributes().PutStr(attribute, value)
-							}
-						case pmetric.MetricTypeHistogram:
-							for i := 0; i < metricItem.Histogram().DataPoints().Len(); i++ {
-								metricItem.Histogram().DataPoints().At(i).Attributes().PutStr(attribute, value)
-							}
-						case pmetric.MetricTypeSum:
-							for i := 0; i < metricItem.Sum().DataPoints().Len(); i++ {
-								metricItem.Sum().DataPoints().At(i).Attributes().PutStr(attribute, value)
-							}
-						case pmetric.MetricTypeSummary:
-							for i := 0; i < metricItem.Summary().DataPoints().Len(); i++ {
-								metricItem.Summary().DataPoints().At(i).Attributes().PutStr(attribute, value)
-							}
-						default:
-							r.cfg.Logger.Error("Unknown metric type: " + metricItem.Type().String())
-						}
+	for i1 := 0; i1 < metricsRequest.Metrics().ResourceMetrics().Len(); i1++ {
+		resourceMetrics := metricsRequest.Metrics().ResourceMetrics().At(i1)
+		for i2 := 0; i2 < resourceMetrics.ScopeMetrics().Len(); i2++ {
+			scopeMetrics := resourceMetrics.ScopeMetrics().At(i2)
+			metricsList := scopeMetrics.Metrics()
+			for i3 := 0; i3 < metricsList.Len(); i3++ {
+				metricItem := metricsList.At(i3)
+				switch metricItem.Type() {
+				case pmetric.MetricTypeExponentialHistogram:
+					for i := 0; i < metricItem.ExponentialHistogram().DataPoints().Len(); i++ {
+						metricItem.ExponentialHistogram().DataPoints().At(i).Attributes().PutStr(attribute, value)
 					}
+				case pmetric.MetricTypeGauge:
+					for i := 0; i < metricItem.Gauge().DataPoints().Len(); i++ {
+						metricItem.Gauge().DataPoints().At(i).Attributes().PutStr(attribute, value)
+					}
+				case pmetric.MetricTypeHistogram:
+					for i := 0; i < metricItem.Histogram().DataPoints().Len(); i++ {
+						metricItem.Histogram().DataPoints().At(i).Attributes().PutStr(attribute, value)
+					}
+				case pmetric.MetricTypeSum:
+					for i := 0; i < metricItem.Sum().DataPoints().Len(); i++ {
+						metricItem.Sum().DataPoints().At(i).Attributes().PutStr(attribute, value)
+					}
+				case pmetric.MetricTypeSummary:
+					for i := 0; i < metricItem.Summary().DataPoints().Len(); i++ {
+						metricItem.Summary().DataPoints().At(i).Attributes().PutStr(attribute, value)
+					}
+				default:
+					r.cfg.Logger.Error("Unknown metric type: " + metricItem.Type().String())
 				}
 			}
 		}
@@ -202,46 +200,39 @@ func (r *OrbReceiver) injectAttribute(metricsRequest pmetricotlp.Request, attrib
 
 // delete attribute on all metricsRequest metrics
 func (r *OrbReceiver) deleteAttribute(metricsRequest pmetricotlp.Request, attribute string) pmetricotlp.Request {
-	if metricsRequest.Metrics().ResourceMetrics().Len() > 0 {
-		for i := 0; i < metricsRequest.Metrics().ResourceMetrics().Len(); i++ {
-			if metricsRequest.Metrics().ResourceMetrics().At(i).ScopeMetrics().Len() > 0 {
-				for i := 0; i < metricsRequest.Metrics().ResourceMetrics().At(i).ScopeMetrics().Len(); i++ {
-					metricsList := metricsRequest.Metrics().ResourceMetrics().At(i).ScopeMetrics().At(0).Metrics()
-					for i := 0; i < metricsList.Len(); i++ {
-						metricItem := metricsList.At(i)
-						switch metricItem.Type() {
-						case pmetric.MetricTypeExponentialHistogram:
-							for i := 0; i < metricItem.ExponentialHistogram().DataPoints().Len(); i++ {
-								metricItem.ExponentialHistogram().DataPoints().At(i).Attributes().Remove(attribute)
-							}
-						case pmetric.MetricTypeGauge:
-							for i := 0; i < metricItem.Gauge().DataPoints().Len(); i++ {
-								metricItem.Gauge().DataPoints().At(i).Attributes().Remove(attribute)
-							}
-						case pmetric.MetricTypeHistogram:
-							for i := 0; i < metricItem.Histogram().DataPoints().Len(); i++ {
-								metricItem.Histogram().DataPoints().At(i).Attributes().Remove(attribute)
-							}
-						case pmetric.MetricTypeSum:
-							for i := 0; i < metricItem.Sum().DataPoints().Len(); i++ {
-								metricItem.Sum().DataPoints().At(i).Attributes().Remove(attribute)
-							}
-						case pmetric.MetricTypeSummary:
-							for i := 0; i < metricItem.Summary().DataPoints().Len(); i++ {
-								metricItem.Summary().DataPoints().At(i).Attributes().Remove(attribute)
-							}
-						default:
-							r.cfg.Logger.Error("Unknown metric type: " + metricItem.Type().String())
-						}
+	for i1 := 0; i1 < metricsRequest.Metrics().ResourceMetrics().Len(); i1++ {
+		resourceMetrics := metricsRequest.Metrics().ResourceMetrics().At(i1)
+		for i2 := 0; i2 < resourceMetrics.ScopeMetrics().Len(); i2++ {
+			scopeMetrics := resourceMetrics.ScopeMetrics().At(i2)
+			metricsList := scopeMetrics.Metrics()
+			for i3 := 0; i3 < metricsList.Len(); i3++ {
+				metricItem := metricsList.At(i3)
+				switch metricItem.Type() {
+				case pmetric.MetricTypeExponentialHistogram:
+					for i := 0; i < metricItem.ExponentialHistogram().DataPoints().Len(); i++ {
+						metricItem.ExponentialHistogram().DataPoints().At(i).Attributes().Remove(attribute)
+					}
+				case pmetric.MetricTypeGauge:
+					for i := 0; i < metricItem.Gauge().DataPoints().Len(); i++ {
+						metricItem.Gauge().DataPoints().At(i).Attributes().Remove(attribute)
+					}
+				case pmetric.MetricTypeHistogram:
+					for i := 0; i < metricItem.Histogram().DataPoints().Len(); i++ {
+						metricItem.Histogram().DataPoints().At(i).Attributes().Remove(attribute)
+					}
+				case pmetric.MetricTypeSum:
+					for i := 0; i < metricItem.Sum().DataPoints().Len(); i++ {
+						metricItem.Sum().DataPoints().At(i).Attributes().Remove(attribute)
+					}
+				case pmetric.MetricTypeSummary:
+					for i := 0; i < metricItem.Summary().DataPoints().Len(); i++ {
+						metricItem.Summary().DataPoints().At(i).Attributes().Remove(attribute)
 					}
 				}
-			} else {
-				r.cfg.Logger.Error("Unable to delete attribute, ScopeMetrics length 0")
 			}
 		}
-	} else {
-		r.cfg.Logger.Error("Unable to delete attribute, ResourceMetrics length 0")
 	}
+
 	return metricsRequest
 }
 
