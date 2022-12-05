@@ -12,6 +12,12 @@ import (
 // Tags A flat kv pair object
 type Tags map[string]string
 
+func (t *Tags) Merge(newTags map[string]string) {
+	for k, v := range newTags {
+		(*t)[k] = v
+	}
+}
+
 // Metadata Maybe a full object hierarchy
 type Metadata map[string]interface{}
 
