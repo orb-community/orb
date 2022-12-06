@@ -292,7 +292,8 @@ def check_agent_exists_on_backend(token, agent_name, event=None):
 @step("an agent(input_type:{input_type}, settings: {settings}) is {provision} via a configuration file on port {port} "
       "with {agent_tags} agent tags and has status {status}. [Overwrite default: {overwrite_default}. Paste only "
       "file: {paste_only_file}]")
-def provision_agent_using_config_file(context, input_type, settings, provision, port, agent_tags, status, overwrite_default, paste_only_file):
+def provision_agent_using_config_file(context, input_type, settings, provision, port, agent_tags, status,
+                                      overwrite_default, paste_only_file):
     assert_that(provision, any_of(equal_to("self-provisioned"), equal_to("provisioned")), "Unexpected provision "
                                                                                           "attribute")
     overwrite_default = overwrite_default.title()
@@ -345,11 +346,12 @@ def provision_agent_using_config_file(context, input_type, settings, provision, 
                                                                                    auto_provision, orb_cloud_mqtt_id,
                                                                                    orb_cloud_mqtt_key,
                                                                                    orb_cloud_mqtt_channel_id,
-                                                                                   settings, overwrite_default)
+                                                                                   settings, overwrite_default,
+                                                                                   paste_only_file)
     for key, value in context.tap.items():
         if 'tags' in value.keys():
             context.tap_tags.update({key: value['tags']})
-    context.container_id = run_agent_config_file(context.agent_file_name, paste_only_file)
+    context.container_id = run_agent_config_file(context.agent_file_name, overwrite_default, paste_only_file)
     if context.container_id not in context.containers_id.keys():
         context.containers_id[context.container_id] = str(port)
     log = f"web server listening on localhost:{port}"
@@ -765,7 +767,7 @@ def get_groups_to_which_agent_is_matching(token, agent_id, groups_matching_ids, 
 def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base_orb_address, port,
                              existing_agent_groups, tap_name, input_type="pcap", input_tags='3', auto_provision="true",
                              orb_cloud_mqtt_id=None, orb_cloud_mqtt_key=None, orb_cloud_mqtt_channel_id=None,
-                             settings=None, overwrite_default=False):
+                             settings=None, overwrite_default=False, only_file=False):
     """
     Create a file .yaml with configs of the agent that will be provisioned
 
@@ -785,7 +787,9 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
     :param (str) orb_cloud_mqtt_key: agent mqtt key.
     :param (str) orb_cloud_mqtt_channel_id: agent mqtt channel id.
     :param (str) settings: settings of input
-    :param (bool) overwrite_default: if True saves the agent as "agent.yaml". If false, save it with agent name.
+    :param (bool) overwrite_default: if True and only_file is False saves the agent as "agent.yaml". Else, save it with
+    agent name
+    :param (bool) only_file: is true copy only the file. If false, copy the directory.
     :return: path to the directory where the agent config file was created
     """
     assert_that(auto_provision, any_of(equal_to("true"), equal_to("false")), "Unexpected value for auto_provision "
@@ -832,7 +836,7 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
     agent_config_file['orb']['backends']['pktvisor'].update({"api_port": f"{port}"})
     agent_config_file = yaml.dump(agent_config_file)
     dir_path = configs.get("local_orb_path")
-    if overwrite_default is True:
+    if overwrite_default is True and only_file is False:
         agent_name = "agent"
     with open(f"{dir_path}/{agent_name}.yaml", "w+") as f:
         f.write(agent_config_file)
