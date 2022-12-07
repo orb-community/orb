@@ -301,6 +301,18 @@ func TestAgentGroupUpdate(t *testing.T) {
 
 	group.ID = groupID
 
+	nameConflict, err := types.NewIdentifier("my-group-conflict")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+	groupConflictName := fleet.AgentGroup{
+		Name:        nameConflict,
+		MFOwnerID:   oID.String(),
+		MFChannelID: chID.String(),
+		Tags:        types.Tags{"testkey": "testvalue"},
+	}
+
+	_, err = groupRepo.Save(context.Background(), groupConflictName)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+
 	cases := map[string]struct {
 		group fleet.AgentGroup
 		err   error
@@ -336,6 +348,16 @@ func TestAgentGroupUpdate(t *testing.T) {
 				MFOwnerID: "123",
 			},
 			err: errors.ErrMalformedEntity,
+		},
+		"update a existing group with name conflict": {
+			group: fleet.AgentGroup{
+				ID:          groupID,
+				Name:        nameConflict,
+				MFOwnerID:   oID.String(),
+				MFChannelID: chID.String(),
+				Tags:        types.Tags{"testkey": "testvalue"},
+			},
+			err: errors.ErrConflict,
 		},
 	}
 
