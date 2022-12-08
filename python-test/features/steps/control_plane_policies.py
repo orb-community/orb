@@ -97,6 +97,8 @@ def check_policy_error_detail(context, message):
 def create_new_policy(context, kwargs):
     if kwargs.split(", ")[-1].split("=")[-1] == "flow":
         kwargs_dict = parse_flow_policy_params(kwargs)
+    elif kwargs.split(", ")[-1].split("=")[-1] == "netprobe":
+        kwargs_dict = parse_netprobe_policy_params(kwargs)
     else:
         kwargs_dict = parse_policy_params(kwargs)
     if kwargs_dict["handler"] == "flow":
@@ -108,6 +110,14 @@ def create_new_policy(context, kwargs):
                                             kwargs_dict['only_ips'], kwargs_dict['only_ports'],
                                             kwargs_dict['only_interfaces'], kwargs_dict['geoloc_notfound'],
                                             kwargs_dict['asn_notfound'], kwargs_dict['backend_type'])
+    elif kwargs_dict["handler"] == "netprobe":
+        policy_json = make_policy_netprobe_json(kwargs_dict["name"], kwargs_dict['handle_label'],
+                                                kwargs_dict["handler"], kwargs_dict["description"], kwargs_dict["tap"],
+                                                kwargs_dict["input_type"], kwargs_dict["test_type"],
+                                                kwargs_dict["interval_msec"], kwargs_dict["timeout_msec"],
+                                                kwargs_dict["packets_per_test"], kwargs_dict["packets_interval_msec"],
+                                                kwargs_dict["packet_payload_size"], kwargs_dict["targets"],
+                                                kwargs_dict["backend_type"])
     else:
         policy_json = make_policy_json(kwargs_dict["name"], kwargs_dict['handle_label'],
                                        kwargs_dict["handler"], kwargs_dict["description"], kwargs_dict["tap"],
@@ -671,6 +681,57 @@ def make_policy_flow_json(name, handler_label, handler, description=None, tap="d
     return json_request
 
 
+def make_policy_netprobe_json(name, handler_label, handler, description=None, tap="default_netprobe",
+                              input_type="flow", test_type='ping', interval_msec=None, timeout_msec=None,
+                              packets_per_test=None, packets_interval_msec=None, packet_payload_size=None, targets=None,
+                              backend_type="pktvisor"):
+    """
+
+    Generate a policy json
+
+    :param (str) name:  of the policy to be created
+    :param (str) handler_label:  of the handler
+    :param (str) handler: to be added
+    :param (str) description: description of policy
+    :param tap: named, host specific connection specifications for the raw input streams accessed by pktvisor
+    :param input_type: this must reference a tap name, or application of the policy will fail
+    :param backend_type: Agent backend this policy is for. Cannot change once created. Default: pktvisor
+    :return: (dict) a dictionary containing the created policy data
+    """
+    assert_that(handler, equal_to("netprobe"), "Unexpected handler for policy")
+    assert_that(name, not_none(), "Unable to create policy without name")
+
+    #netprobe configs are on tap level
+    json_request = {"name": name,
+                    "description": description,
+                    "backend": backend_type,
+                    "policy": {
+                        "kind": "collection",
+                        "input": {
+                            "tap": tap,
+                            "input_type": input_type,
+                            "config": {"test_type": test_type,
+                                       "interval_msec": interval_msec,
+                                       "timeout_msec": timeout_msec,
+                                       "packets_per_test": packets_per_test,
+                                       "packets_interval_msec": packets_interval_msec,
+                                       "packet_payload_size": packet_payload_size,
+                                       "targets": targets}},
+                        "handlers": {
+                            "modules": {
+                                handler_label: {
+                                    "type": handler,
+                                    "config": {},
+                                    "filter": {}
+                                }
+                            }
+                        }
+                    }
+                    }
+    json_request = remove_empty_from_json(json_request.copy())
+    return json_request
+
+
 def get_policy(token, policy_id, expected_status_code=200):
     """
     Gets a policy from Orb control plane
@@ -888,6 +949,15 @@ def return_policies_type(k, policies_type='mixed', input_type="pcap"):
         simple = {
             'simple_flow': "handler=flow"
         }
+    elif input_type == "netprobe":
+        advanced = {
+            "advanced_netprobe_1": "handler=netprobe, test_type=ping, interval_msec=3000, timeout_msec=1000, packets_per_test=2, packets_interval_msec=30, packet_payload_size=56",
+            "advanced_netprobe_2": "handler=netprobe, test_type=ping, packet_payload_size=56",
+            "advanced_netprobe_3": "handler=netprobe, test_type=ping, interval_msec=900, timeout_msec=500, packets_per_test=5, packets_interval_msec=45"
+        }
+        simple = {
+            'simple_netprobe': "handler=netprobe, test_type=ping"
+        }
     else:
         advanced = {
             'advanced_dns_libpcap_0': "handler=dns, description='policy_dns', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap, only_qname_suffix=[.orb.live/ .google.com], only_rcode=0",
@@ -896,16 +966,17 @@ def return_policies_type(k, policies_type='mixed', input_type="pcap"):
             'advanced_dns_libpcap_5': "handler=dns, description='policy_dns', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap, only_qname_suffix=[.orb.live/ .google.com], only_rcode=5",
 
             'advanced_net': "handler=net, description='policy_net', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap",
-
-            'advanced_dhcp': "handler=dhcp, description='policy_dhcp', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap",
         }
 
         simple = {
 
             'simple_dns': "handler=dns",
-            'simple_net': "handler=net",
-            # 'simple_dhcp': "handler=dhcp",
+            'simple_net': "handler=net"
         }
+
+        if input_type != "dnstap":
+            advanced['advanced_dhcp'] = "handler=dhcp, description='policy_dhcp', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap"
+            simple['simple_dhcp'] = "handler=dhcp"
 
     mixed = dict()
     mixed.update(advanced)
@@ -1044,6 +1115,28 @@ def parse_flow_policy_params(kwargs):
         kwargs_dict["name"] + policy_name_prefix + kwargs_dict["name"]
 
     assert_that(kwargs_dict["handler"], equal_to("flow"), "Unexpected handler for policy")
+    kwargs_dict['handle_label'] = f"default_{kwargs_dict['handler']}_{random_string(3)}"
+
+    return kwargs_dict
+
+
+def parse_netprobe_policy_params(kwargs):
+    name = policy_name_prefix + random_string(10)
+
+    kwargs_dict = {'name': name, 'handler': None, 'description': None, 'tap': "default_netprobe",
+                   'input_type': "netprobe", 'test_type': 'ping', 'interval_msec': None, 'timeout_msec': None,
+                   'packets_per_test': None, 'packets_interval_msec': None, 'packet_payload_size': None,
+                   'targets': None, 'backend_type': "pktvisor"}
+
+    for i in kwargs.split(", "):
+        assert_that(i, matches_regexp("^.+=.+$"), f"Unexpected format for param {i}")
+        item = i.split("=")
+        kwargs_dict[item[0]] = item[1]
+
+    if policy_name_prefix not in kwargs_dict["name"]:
+        kwargs_dict["name"] + policy_name_prefix + kwargs_dict["name"]
+
+    assert_that(kwargs_dict["handler"], equal_to("netprobe"), "Unexpected handler for policy")
     kwargs_dict['handle_label'] = f"default_{kwargs_dict['handler']}_{random_string(3)}"
 
     return kwargs_dict

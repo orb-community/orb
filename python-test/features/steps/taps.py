@@ -70,6 +70,25 @@ class Taps(UtilsManager):
 
         return self.taps
 
+    def add_netprobe(self, name, **kwargs):
+        self.name = name
+        self.test_type = {'test_type': kwargs.get('test_type')}
+        self.interval_msec = {'interval_msec': kwargs.get('interval_msec')}
+        self.timeout_msec = {'timeout_msec': kwargs.get('timeout_msec')}
+        self.packets_per_test = {'packets_per_test': kwargs.get('packets_per_test')}
+        self.packets_interval_msec = {'packets_interval_msec': kwargs.get('packets_interval_msec')}
+        self.packet_payload_size = {'packet_payload_size': kwargs.get('packet_payload_size')}
+        self.targets = {'targets': kwargs.get('targets')}
+
+        netprobe_configs = [self.test_type, self.interval_msec, self.timeout_msec, self.packets_per_test,
+                            self.packets_interval_msec, self.packet_payload_size, self.targets]
+
+        netprobe_filters = []
+
+        self.__build_tap(self.name, "netprobe", netprobe_configs, netprobe_filters)
+
+        return self.taps
+
     def add_configs(self, name, **kwargs):
         if "config" not in self.taps[name].keys():
             self.taps[name].update({"config": {}})
