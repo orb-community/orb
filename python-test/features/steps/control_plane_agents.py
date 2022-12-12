@@ -827,7 +827,7 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
     include_otel_env_var = configs.get('include_otel_env_var')
     enable_otel = configs.get('enable_otel')
     if configs.get('ignore_ssl_and_certificate_errors', 'false').lower() == 'true':
-        mqtt_url = f"{base_orb_address}:1883"
+        mqtt_url = f"agents.{base_orb_address}:1883"
         agent_config_file, tap = FleetAgent.config_file_of_orb_agent(agent_name, token, iface, orb_url, mqtt_url,
                                                                      tap_name,
                                                                      tls_verify=False, auto_provision=auto_provision,
@@ -840,7 +840,7 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
                                                                      enable_otel=enable_otel,
                                                                      overwrite_default=overwrite_default)
     else:
-        mqtt_url = "tls://" + base_orb_address + ":8883"
+        mqtt_url = "tls://agents." + base_orb_address + ":8883"
         agent_config_file, tap = FleetAgent.config_file_of_orb_agent(agent_name, token, iface, orb_url, mqtt_url,
                                                                      tap_name,
                                                                      auto_provision=auto_provision,
