@@ -365,12 +365,15 @@ def get_logs_and_check(container_id, expected_message, start_time=0, element_to_
     return text_found, logs
 
 
-def run_agent_config_file(agent_name, only_file=False, config_file_path="/opt/orb", time_to_wait=5):
+def run_agent_config_file(agent_name, overwrite_default=False, only_file=False, config_file_path="/opt/orb",
+                          time_to_wait=5):
     """
     Run an agent container using an agent config file
 
     :param agent_name: name of the orb agent
     :param only_file: is true copy only the file. If false, copy the directory
+    :param (bool) overwrite_default: if True and only_file is False saves the agent as "agent.yaml". Else, save it with
+    agent name
     :param config_file_path: path to agent config file
     :param time_to_wait: seconds that threading must wait after run the agent
     :return: agent container id
@@ -379,11 +382,14 @@ def run_agent_config_file(agent_name, only_file=False, config_file_path="/opt/or
     agent_image = f"{agent_docker_image}:{configs.get('agent_docker_tag', 'latest')}"
     local_orb_path = configs.get("local_orb_path")
     if only_file is True:
-        volume = f"{local_orb_path}/{agent_name}.yaml:{config_file_path}/{agent_name}.yaml"
+        if overwrite_default is True:
+            volume = f"{local_orb_path}/{agent_name}.yaml:{config_file_path}/agent.yaml"
+        else:
+            volume = f"{local_orb_path}/{agent_name}.yaml:{config_file_path}/{agent_name}.yaml"
     else:
         volume = f"{local_orb_path}:{config_file_path}/"
     agent_command = f"{config_file_path}/{agent_name}.yaml"
-    if agent_name == "agent":
+    if overwrite_default is True:
         command = f"docker run -d -v {volume} --net=host {agent_image}"
     else:
         command = f"docker run -d -v {volume} --net=host {agent_image} run -c {agent_command}"
