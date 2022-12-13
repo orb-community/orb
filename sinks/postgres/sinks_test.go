@@ -149,6 +149,21 @@ func TestSinkUpdate(t *testing.T) {
 
 	sink.ID = sinkID
 
+	nameConflict, err := types.NewIdentifier("my-sink-conflict")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+	sinkConflictName := sinks.Sink{
+		Name:        nameConflict,
+		Description: "An example prometheus sink",
+		Backend:     "prometheus",
+		Created:     time.Now(),
+		MFOwnerID:   oID.String(),
+		Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
+		Tags:        map[string]string{"cloud": "aws"},
+	}
+
+	_, err = sinkRepo.Save(context.Background(), sinkConflictName)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
+
 	cases := map[string]struct {
 		sink sinks.Sink
 		err  error
@@ -184,6 +199,17 @@ func TestSinkUpdate(t *testing.T) {
 				MFOwnerID: "123",
 			},
 			err: errors.ErrMalformedEntity,
+		},
+		"update a existing sink with conflict name": {
+			sink: sinks.Sink{
+				ID:        sinkID,
+				Name:      nameConflict,
+				Backend:   "prometheus",
+				MFOwnerID: oID.String(),
+				Config:    map[string]interface{}{"remote_host": "data", "username": "dbuser"},
+				Tags:      map[string]string{"cloud": "aws"},
+			},
+			err: errors.ErrConflict,
 		},
 	}
 
