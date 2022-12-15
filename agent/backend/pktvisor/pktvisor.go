@@ -174,7 +174,7 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 	// pvOptions = append(pvOptions, "--default-geo-city", "/geo-db/city.mmdb")
 	// pvOptions = append(pvOptions, "--default-geo-asn", "/geo-db/asn.mmdb")
 	// pvOptions = append(pvOptions, "--default-service-registry", "/iana/custom-iana.csv")
-	// pvOptions = append(pvOptions, "--cp-custom", ctx.Value("agent_id").(string))
+	pvOptions = append(pvOptions, "--cp-custom", ctx.Value("agent_id").(string))
 
 	p.logger.Info("pktvisor startup", zap.Strings("arguments", pvOptions))
 
