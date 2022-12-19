@@ -181,35 +181,11 @@ kind-install-orb:
 	kubectl create secret generic orb-auth-service --from-literal=jwtSecret=MY_SECRET -n orb
 	kubectl create secret generic orb-user-service --from-literal=adminEmail=admin@kind.com --from-literal=adminPassword=pass123456 -n orb
 	kubectl create secret generic orb-sinks-encryption-key --from-literal=key=MY_SINKS_SECRET -n orb
-	helm install \
-		--set fleet.image.pullPolicy=Never \
-		--set policies.image.pullPolicy=Never \
-		--set sinks.image.pullPolicy=Never \
-		--set sinker.image.pullPolicy=Never \
-		--set ui.image.pullPolicy=Never \
-		--set defaults.replicaCount=1 \
-		--set nginx_internal.kindDeploy=true \
-		--set keto.keto.config.dsn=postgres://postgres:orb@kind-orb-postgresql-keto:5432/keto \
-		--set keto.keto.autoMigrate=true \
-		--set ingress.hostname=kubernetes.docker.internal \
-		-n orb \
-		kind-orb ./kind
+	helm install -n orb kind-orb ./kind
 	kubectl apply -f ./kind/nginx.yaml
 
 kind-upgrade-orb:
-	helm upgrade \
-		--set fleet.image.pullPolicy=Never \
-		--set policies.image.pullPolicy=Never \
-		--set sinks.image.pullPolicy=Never \
-		--set sinker.image.pullPolicy=Never \
-		--set ui.image.pullPolicy=Never \
-		--set defaults.replicaCount=1 \
-		--set nginx_internal.kindDeploy=true \
-		--set keto.keto.config.dsn=postgres://postgres:orb@kind-orb-postgresql-keto:5432/keto \
-		--set keto.keto.autoMigrate=true \
-		--set ingress.hostname=kubernetes.docker.internal \
-		-n orb \
-		kind-orb ./charts/orb
+	helm upgrade -n orb kind-orb ./kind
 
 kind-delete-orb:
 	kubectl delete -f ./kind/nginx.yaml

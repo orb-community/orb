@@ -90,6 +90,9 @@ orb:
       enabled: false
     allowAnonymousLogin: true
 
+  nginx_internal:
+    kindDeploy: true
+
   keto:
     keto:
       autoMigrate: true
