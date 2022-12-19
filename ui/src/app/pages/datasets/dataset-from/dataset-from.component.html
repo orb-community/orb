@@ -31,6 +31,7 @@
                             [status]="form?.controls.agent_group_name.touched ? (!form.controls.agent_group_name.valid  ? 'danger' : 'success') : 'basic'"
                             nbInput
                             fullWidth="true"
+                            disabled="isEdit"
                             placeholder="Agent Group"
                             type="text"
                     />
