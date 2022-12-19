@@ -158,7 +158,7 @@ prepare-helm:
 	helm repo add ns1labs-orb https://ns1labs.github.io/orb-helm/ && \
 	helm dependency build
 
-kind-create-all: kind-create-cluster kind-load-images kind-install-orb
+kind-create-all: kind-create-cluster kind-install-orb
 
 kind-upgrade-all: kind-load-images kind-upgrade-orb
 
@@ -174,10 +174,13 @@ kind-load-images:
 	kind load docker-image ns1labs/orb-sinks:develop
 	kind load docker-image ns1labs/orb-sinker:develop
 	kind load docker-image ns1labs/orb-migrate:develop
+	kind load docker-image ns1labs/orb-maestro:develop
 	kind load docker-image ns1labs/orb-ui:develop
 
 kind-install-orb:
 	kubectl create namespace orb
+	kubectl create namespace otelcollectors
+	kubectl apply -f ./kind/rbac-admin-cluster-role.yaml
 	kubectl create secret generic orb-auth-service --from-literal=jwtSecret=MY_SECRET -n orb
 	kubectl create secret generic orb-user-service --from-literal=adminEmail=admin@kind.com --from-literal=adminPassword=pass123456 -n orb
 	kubectl create secret generic orb-sinks-encryption-key --from-literal=key=MY_SINKS_SECRET -n orb
@@ -193,17 +196,13 @@ kind-delete-orb:
 	kubectl delete secret orb-user-service -n orb
 	kubectl delete secret orb-auth-service -n orb
 	kubectl delete namespace orb
+	kubectl delete namespace otelcollectors
 
 #
 
-run:
-	docker-compose -f docker/docker-compose.yml up -d
+run: kind-create-all
 
-run-otel:
-	docker-compose -f docker/docker-compose.yml -f docker/dc-zp-kafka.yml -f docker/dc-sinker-otelcol.yml up -d
-
-stop-otel:
-	docker-compose -f docker/docker-compose.yml -f docker/dc-zp-kafka.yml -f docker/dc-sinker-otelcol.yml down
+stop: kind-delete-orb kind-delete-cluster
 
 agent_bin:
 	$(call compile_service_linux,agent)

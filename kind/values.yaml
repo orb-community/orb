@@ -14,34 +14,34 @@ orb:
       name: "orb-sinks"
       pullPolicy: "IfNotPresent"
       repository: "ns1labs"
-      tag: "0.22.0-develop-478d318"
+      tag: "develop"
 
   policies:
     image:
       name: "orb-policies"
       pullPolicy: "IfNotPresent"
       repository: "ns1labs"
-      tag: "0.22.0-develop-478d318"
+      tag: "develop"
 
   fleet:
     image:
       name: "orb-fleet"
       pullPolicy: "IfNotPresent"
       repository: "ns1labs"
-      tag: "0.22.0-develop-478d318"
+      tag: "develop"
 
   sinker:
     image:
       name: "orb-sinker"
       pullPolicy: "IfNotPresent"
       repository: "ns1labs"
-      tag: "0.22.0-develop-478d318"
+      tag: "develop"
 
   sinkerOtel:
     image:
       name: "orb-sinker"
       pullPolicy: "IfNotPresent"
-      tag: "0.22.0-develop-478d318"
+      tag: "develop"
     otel:
       enabled: true
     kafka:
@@ -52,7 +52,7 @@ orb:
     image:
       name: orb-ui
       pullPolicy: "IfNotPresent"
-      tag: "0.22.0-develop-478d318"
+      tag: "develop"
 
   ingress:
     hostname: "kubernetes.docker.internal"
@@ -108,7 +108,7 @@ orb:
       name: "orb-maestro"
       pullPolicy: "IfNotPresent"
       repository: ns1labs
-      tag: "0.22.0-develop-478d318"
+      tag: "develop" #0.22.0-develop-478d318
     rbac:
       create: true
       serviceAccountName: "k8s-maestro-role"
