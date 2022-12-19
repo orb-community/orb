@@ -119,9 +119,9 @@ func TestUpdateSink(t *testing.T) {
 	noConfig := sk
 	noConfig.Config = make(map[string]interface{})
 
-	sinkName, _ := types.NewIdentifier("noTagSink")
+	emptyTagsSinkName, _ := types.NewIdentifier("emptyTagsSink")
 	emptyTagsSink := sinks.Sink{
-		Name:        sinkName,
+		Name:        emptyTagsSinkName,
 		Description: "An example prometheus sink",
 		Backend:     "prometheus",
 		State:       sinks.Unknown,
@@ -131,18 +131,10 @@ func TestUpdateSink(t *testing.T) {
 	}
 	emptyTagsSink, err = service.CreateSink(context.Background(), token, emptyTagsSink)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
-	emptyTagsSink.Backend = ""
-	emptyTagsSink.Tags = make(map[string]string)
 
-	noDescription := sk
-	noDescription.Description = ""
-
-	addNewTagsToSink := sk
-	addNewTagsToSink.Tags = types.Tags{"test": "true"}
-
-	sinkName, _ = types.NewIdentifier("updateTagSink")
-	updateTagOnSink := sinks.Sink{
-		Name:        sinkName,
+	addTagsToSinkName, _ := types.NewIdentifier("addTagsToSinkName")
+	addTagsToSink := sinks.Sink{
+		Name:        addTagsToSinkName,
 		Description: "An example prometheus sink",
 		Backend:     "prometheus",
 		State:       sinks.Unknown,
@@ -150,10 +142,8 @@ func TestUpdateSink(t *testing.T) {
 		Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
 		Tags:        map[string]string{"cloud": "aws"},
 	}
-	updateTagOnSink, err = service.CreateSink(context.Background(), token, updateTagOnSink)
+	addTagsToSink, err = service.CreateSink(context.Background(), token, addTagsToSink)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
-	updateTagOnSink.Backend = ""
-	updateTagOnSink.Tags = map[string]string{"cloud": "true"}
 
 	cases := map[string]struct {
 		incomingSink sinks.Sink
@@ -181,31 +171,47 @@ func TestUpdateSink(t *testing.T) {
 			token:        token,
 			err:          errors.ErrUpdateEntity,
 		},
-		"update existing sink without updating config": {
-			incomingSink: noConfig,
-			token:        token,
-			err:          nil,
+		"update existing sink - only updating config": {
+			incomingSink: sinks.Sink{
+				ID:          sink.ID,
+				Description: "An example prometheus sink",
+				Error:       "",
+			},
+			token: token,
+			err:   nil,
 		},
 		"update existing sink using empty tags": {
-			incomingSink: emptyTagsSink,
+			incomingSink: sinks.Sink{
+				ID:    emptyTagsSink.ID,
+				Error: "",
+				Tags:  make(map[string]string),
+			},
 			expectedTags: make(map[string]string),
 			token:        token,
 			err:          nil,
 		},
-		"update existing sink without updating description": {
-			incomingSink: noDescription,
-			token:        token,
-			err:          nil,
+		"update existing sink - only updating description": {
+			incomingSink: sinks.Sink{
+				ID:          sink.ID,
+				Description: "An example prometheus sink",
+			},
+			token: token,
+			err:   nil,
 		},
 		"update sink tags with new tags": {
-			incomingSink: addNewTagsToSink,
+			incomingSink: sinks.Sink{
+				ID:   addTagsToSink.ID,
+				Tags: map[string]string{"cloud": "aws", "test": "true"},
+			},
 			expectedTags: types.Tags{"cloud": "aws", "test": "true"},
 			token:        token,
 			err:          nil,
 		},
-		"update existing sink tag with new value": {
-			incomingSink: updateTagOnSink,
-			expectedTags: types.Tags{"cloud": "true"},
+		"update sink tags with omitted tags": {
+			incomingSink: sinks.Sink{
+				ID: sink.ID,
+			},
+			expectedTags: types.Tags{"cloud": "aws"},
 			token:        token,
 			err:          nil,
 		},

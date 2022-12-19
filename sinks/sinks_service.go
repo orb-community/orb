@@ -95,14 +95,11 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 		return Sink{}, err
 	}
 
-	if len(sink.Config) == 0 {
+	if sink.Config == nil {
 		sink.Config = currentSink.Config
 	}
 
 	if sink.Tags == nil {
-		sink.Tags = currentSink.Tags
-	} else if len(sink.Tags) != 0 {
-		currentSink.Tags.Merge(sink.Tags)
 		sink.Tags = currentSink.Tags
 	}
 
@@ -110,8 +107,7 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 		sink.Description = currentSink.Description
 	}
 
-	var newName string
-	if sink.Name.Scan(newName); newName == "" {
+	if newName := sink.Name.String(); newName == "" {
 		sink.Name = currentSink.Name
 	}
 
