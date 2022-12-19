@@ -112,7 +112,8 @@ orb:
     rbac:
       create: true
       serviceAccountName: "k8s-maestro-role"
-      ClusterRole: "admin"
+      serviceAccountNamespace: "orb"
+      ClusterRole: "cluster-admin"
 
   migrate:
     image:
@@ -122,3 +123,15 @@ orb:
       tag: "0.17.0-11889e3a"
     autoMigrate: false
     logLevel: "debug"
+
+  redis-streams:
+    replica:
+      replicaCount: 0
+
+  redis-sinker:
+    replica:
+      replicaCount: 0
+
+  redis-auth:
+    replica:
+      replicaCount: 0
