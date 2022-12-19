@@ -54,6 +54,9 @@ orb:
       pullPolicy: "IfNotPresent"
       tag: "0.22.0-develop-478d318"
 
+  ingress:
+    hostname: "kubernetes.docker.internal"
+
   users:
     image:
       name: "users"

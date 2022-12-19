@@ -155,6 +155,7 @@ install-k9s:
 prepare-helm:
 	cd ./kind/ && \
 	helm repo add jaegertracing https://jaegertracing.github.io/helm-charts && \
+	helm repo add ns1labs-orb https://ns1labs.github.io/orb-helm/ && \
 	helm dependency build
 
 kind-create-all: kind-create-cluster kind-load-images kind-install-orb
