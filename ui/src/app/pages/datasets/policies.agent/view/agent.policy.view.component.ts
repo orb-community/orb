@@ -1,11 +1,17 @@
 import {
   ChangeDetectorRef,
   Component,
+  OnChanges,
   OnDestroy,
   OnInit,
   ViewChild,
 } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import {
+  ActivatedRoute,
+  NavigationEnd,
+  Router,
+  RouterEvent,
+} from '@angular/router';
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
 import { PolicyConfig } from 'app/common/interfaces/orb/policy/config/policy.config.interface';
@@ -18,13 +24,14 @@ import { STRINGS } from 'assets/text/strings';
 import { Subscription } from 'rxjs';
 import yaml from 'js-yaml';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'ngx-agent-view',
   templateUrl: './agent.policy.view.component.html',
   styleUrls: ['./agent.policy.view.component.scss'],
 })
-export class AgentPolicyViewComponent implements OnInit, OnDestroy {
+export class AgentPolicyViewComponent implements OnInit, OnDestroy, OnChanges {
   strings = STRINGS.agents;
 
   isLoading: boolean;
@@ -54,12 +61,26 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
     private orb: OrbService,
     private cdr: ChangeDetectorRef,
     private notifications: NotificationsService,
+    private router: Router,
   ) {}
 
   ngOnInit() {
+    this.router.events
+      .pipe(filter((event: RouterEvent) => event instanceof NavigationEnd))
+      .subscribe(() => {
+        this.fetchData();
+      });
+    this.fetchData();
+  }
+
+  fetchData() {
     this.isLoading = true;
     this.policyId = this.route.snapshot.paramMap.get('id');
     this.retrievePolicy();
+  }
+
+  ngOnChanges(): void {
+    this.fetchData();
   }
 
   isEditMode() {
@@ -87,14 +108,7 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
   }
 
   save() {
-    const {
-      format,
-      version,
-      name,
-      description,
-      id,
-      backend,
-    } = this.policy;
+    const { format, version, name, description, id, backend } = this.policy;
 
     // get values from all modified sections' forms and submit through service.
     const policyDetails = this.detailsComponent.formGroup?.value;
@@ -125,19 +139,19 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
       const payload = {
         ...detailsPartial,
         ...interfacePartial,
-        version, id, tags, backend,
+        version,
+        id,
+        tags,
+        backend,
       } as AgentPolicy;
 
-      this.policiesService.editAgentPolicy(payload)
-        .subscribe(resp => {
-          this.discard();
-          this.policy = resp;
-          this.cdr.markForCheck();
-        });
+      this.policiesService.editAgentPolicy(payload).subscribe((resp) => {
+        this.discard();
+        this.policy = resp;
+        this.cdr.markForCheck();
+      });
 
-      this.notifications.success(
-        'Agent Policy updated successfully', '',
-      );
+      this.notifications.success('Agent Policy updated successfully', '');
     } catch (err) {
       this.notifications.error(
         'Failed to edit Agent Policy',
@@ -167,6 +181,9 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
             'Agent Policy Duplicated',
             `New Agent Policy Name: ${resp?.name}`,
           );
+          this.router.navigate([`view/${resp.id}`], {
+            relativeTo: this.route.parent,
+          });
         }
       });
   }
