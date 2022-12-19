@@ -110,6 +110,11 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 		sink.Description = currentSink.Description
 	}
 
+	var newName string
+	if sink.Name.Scan(newName); newName == "" {
+		sink.Name = currentSink.Name
+	}
+
 	if sink.Backend != "" || sink.Error != "" {
 		return Sink{}, errors.ErrUpdateEntity
 	}
