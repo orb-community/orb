@@ -125,6 +125,8 @@ func (s sinksRepository) Update(ctx context.Context, sink sinks.Sink) error {
 			switch pqErr.Code.Name() {
 			case db.ErrInvalid, db.ErrTruncation:
 				return errors.Wrap(sinks.ErrMalformedEntity, err)
+			case db.ErrDuplicate:
+				return errors.Wrap(errors.ErrConflict, err)
 			}
 		}
 		return errors.Wrap(sinks.ErrUpdateEntity, err)

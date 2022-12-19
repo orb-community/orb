@@ -232,6 +232,8 @@ func (a agentGroupRepository) Update(ctx context.Context, ownerID string, group 
 			switch pqErr.Code.Name() {
 			case db.ErrInvalid, db.ErrTruncation:
 				return fleet.AgentGroup{}, errors.Wrap(fleet.ErrMalformedEntity, err)
+			case db.ErrDuplicate:
+				return fleet.AgentGroup{}, errors.Wrap(errors.ErrConflict, err)
 			}
 		}
 		return fleet.AgentGroup{}, errors.Wrap(fleet.ErrUpdateEntity, err)
