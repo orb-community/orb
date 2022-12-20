@@ -1,157 +1,105 @@
-# Orb.live Helm Chart
-Helm Chart for the SaaS Orb Observability Platform
+# Orb local k8s cluster
 
-## Prerequisites
-- Helm v3
-- **openssl** command line tool
-- **jq** command line tool
-- **aws** command line tool
-- **dockerhub** private repos (ns1labs/orb-ui-live-{{environment}}) permissions 
-- **aws resources** (eks, s3, dynamodb and sts) permissions
+Follow those steps to setup a local k8s cluster and deploy Orb.
 
-## Instructions
-This guide assumes installation into name space `orb`. It requires a HOSTNAME you have DNS control over.
-It uses Let's Encrypt for TLS certification management.
+## 🧱 Requirements
 
-### Preparing your environment
-1. Enter the orb.live chart directory:
-   ```shell
-   cd charts/orb-live
-   ```
-   
-2. Add helm repos for dependencies
-   ```shell
-   helm repo add jaegertracing https://jaegertracing.github.io/helm-charts
-   helm repo add bitnami https://charts.bitnami.com/bitnami
-   helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-   helm repo add jetstack https://charts.jetstack.io
-   helm repo update
-   helm dependency update
-   ```
+- [Docker Environment](#docker)
+- [Helm 3](#helm-3)
+- [Kubectl](#kubectl)
+- [Kind](#install-kind)
 
-3. Get credentials to the K8s cluster and SMTP server from terraform outputs
-    ```shell
-    ENVIRONMENT=# dev, stage or prod
-    export KUBECONFIG=$(mktemp -t eks-${ENVIRONMENT}.conf.XXXX) &&
-    cd ../../terraform/environments/${ENVIRONMENT}/orb-app &&
-    SMTP_CREDS=$(terraform output --json smtp_credentials) &&
-    SMTP_HOST=$(echo $SMTP_CREDS | jq .server) &&
-    SMTP_USER=$(echo $SMTP_CREDS | jq .username) &&
-    SMTP_PASS=$(echo $SMTP_CREDS | jq .password) &&
-    cd ../k8s-cluster &&
-    aws eks --region $(terraform output --raw region) update-kubeconfig \
-      --name $(terraform output --raw cluster_name) \
-      --role-arn $(terraform output --raw management_role_arn) --dry-run > $KUBECONFIG &&
-    cd ../../../../charts/orb-live/
-    ```
+> **💡 Note:** If you have those installed, please skip to [Deploy Orb on Kind](#deploy-orb-kind).
 
-### Deploying Orb app to the Kubernetes cluster
-1. Create the following secrets in the `orb` namespace:
-    * Create the `orb` namespace
-     ```shell
-     kubectl create namespace orb
-     ```
-    * Create the JWT signing key secret
-     ```shell
-     JWT_SECRET=$(openssl rand -base64 27)
-     kubectl create secret -n orb generic orb-auth-service --from-literal=jwtSecret=${JWT_SECRET} 
-     ``` 
-     
-   * Create keto dns secret
-   ```
-   kubectl create secret generic orb-keto-dsn --from-literal=dsn='postgres://postgres:password@db.host.com:5432/keto' -n orb
-   ```
+<a name="docker"></a>
+## 🐳 Docker Environment (Requirement)
 
-     
-    * Create sinks encryption password
-     ```
-     kubectl create secret generic orb-sinks-encryption-key --from-literal=key=mainflux-orb -n orb-live
-     ```
-    * Create the admin user credentials secret
-     ```shell
-     ADMIN_EMAIL=# something like admin@dev.orb.live
-     ADMIN_PASSWORD=$(openssl rand -base64 18)
-     kubectl create secret -n orb generic orb-user-service \
-       --from-literal=adminEmail=${ADMIN_EMAIL} --from-literal=adminPassword=${ADMIN_PASSWORD}
-     ```    
-    * Create the Dockerhub credentials for custom UI image.
-    Make sure you're logged in to dockerhub, [instructions here](https://docs.docker.com/engine/reference/commandline/login/).
-     ```shell
-     kubectl create secret -n orb docker-registry orb-ui-regcred \
-      --from-file=.dockerconfigjson=$HOME/.docker/config.json
-     ```
-    
-2. Create the ingress Load balancer:
-    * Install nginx ingress
-      ```shell
-      helm install -n default --set tcp.8883=orb/my-orb-nginx-internal:8883 \
-        ingress-nginx ingress-nginx/ingress-nginx
-      ```
-    * Add a DNS alias record having the HOSTNAME point to the nginx-ingress public address.
-      The following command helps to get the public address:
-      ```shell
-      kubectl -n default get services -o json ingress-nginx-controller \
-        | jq -r .status.loadBalancer.ingress[0].hostname
-      ```
-    * Install cert-manager to enable HTTPS
-      ```shell
-      helm install -n cert-manager --create-namespace --set installCRDs=true \
-        cert-manager jetstack/cert-manager --version v1.5.3
-      
-      kubectl create -n orb -f ../../certs/production-issuer.yaml
-      ```
-   
-3. Deploy Orb to kubernetes, passing in the correct values file and the SMTP credentials from terraform deployment:
-    ```shell
-    helm install -n orb --values="values-${ENVIRONMENT}.yaml" --set orb.smtp.host=${SMTP_HOST} \
-      --set orb.smtp.username=${SMTP_USER} --set orb.smtp.password=${SMTP_PASS} my-orb .
-    ```
+Check if you have a **Docker Environment** running by executing:
+```shell
+docker version
+```
+If you need help to setup a **Docker Environment**, follow the [steps from here](https://docs.docker.com/engine/install/debian/).
 
-### Deleting Orb app from the Kubernetes cluster
-1. Remove all created namespaces
-    ```shell
-    kubectl delete namespace orb &&
-    kubectl delete namespace cert-manager
-    ```
-2. Remove the ingress load-balancer
-    ```shell
-    helm uninstall ingress-nginx
-    ```
+<a name="helm-3"></a>
+## ⚓ Helm 3 (Requirement)
 
+Check if you have **Helm 3** installed by executing:
+```shell
+helm version
+```
+If you need help to install **Helm 3**, follow the [steps from here](https://helm.sh/docs/intro/install/).
 
-### Installing kubernetes-dashboard
-This step need to be executed only when needed. The orb.live deploy doesn't depends on it. You'll need to execute steps 1 and 3 of "Preparing your environment" section above before doing the steps below.
-1. Add dependencies
-   ```shell
-   helm repo add kubernetes-dashboard https://kubernetes.github.io/dashboard/
-   ```
-2. Create kubernetes-dashboard namespace
-   ```shell
-   kubectl create namespace kubernetes-dashboard
-   ```
-3. Install kubernetes-dashboard
-   ```shell
-   helm install -n kubernetes-dashboard kubernetes-dashboard kubernetes-dashboard/kubernetes-dashboard
-   ```
-4. Apply rbac model
-   ```shell
-   kubectl apply -R -f manifests/rbac/users.d
-   kubectl apply -R -f manifests/rbac/roles.d
-   kubectl apply -R -f manifests/rbac/users-to-role-binding.d
-   ```
-5. To grant access to kubernetes dashboard, you can use one of these two strategies:
-   1. Port-forward. This whill redirect the kubernetes-dashboard pod port inside of the kubernetes cluster to your local machine.
-      ```shell
-      export POD_NAME=$(kubectl get pods -n kubernetes-dashboard -l "app.kubernetes.io/name=kubernetes-dashboard,app.kubernetes.io/instance=kubernetes-dashboard" -o jsonpath="{.items[0].metadata.name}")
-      echo https://127.0.0.1:8443/
-      kubectl -n kubernetes-dashboard port-forward $POD_NAME 8443:8443  > /dev/null 2>&1 &
-      ```
-   2. Ingress policy. This will create a policy inside of the ingress service to receive external connection. Note that to use this strategy, the NS1 DNS need to be configured with kubernetes.orb.live appointing to the ingress hostname.
-      ```shell
-      kubectl apply -f manifests/ingress/kubernetes-dashboard.yaml
-      ```
-6. Get your k8s-dash access token
-   ```shell
-   NAME=eric \
-   kubectl -n kubernetes-dashboard get secret $(kubectl -n kubernetes-dashboard get secret sa/${NAME}-user -o jsonpath="{.secrets[0].name}") -o go-template="{{.data.token | base64decode}}"
-   ```
+> 🚨 **Warning:** Make sure you have version 3 installed, orb helm charts doesn't officialy support helm 2.
+
+<a name="kubectl"></a>
+## 🐋 Kubectl (Requirement)
+
+Check if you have **Kubectl** cmd installed by executing:
+```shell
+kubectl version --client
+```
+If you need help to install **Kubectl**, follow the [steps from here](https://kubernetes.io/docs/tasks/tools/).
+
+<a name="install-kind"></a>
+## 🚢 Install Kind (Requirement)
+
+Kind is a tool for running local k8s clusters using docker container as nodes.
+
+If you have `go 1.17 or later` installed:
+```shell
+go install sigs.k8s.io/kind@v0.14.0
+```
+
+macOS users can also use `brew`:
+```shell
+brew install kind
+```
+
+> 🚨 **Windows WSL users**: WSL is also supported, but for some reason the Orb stack mess up the WSL internal DNS.
+> You can fix that by editing your `/etc/wsl.conf` and adding the following:
+> ```shell
+> [network]
+> generateResolvConf = false
+> ```
+> Restart WSL by executing the following on CMD:
+> ```shell
+> wsl --shutdown
+> ```
+> Open WSL terminal again and remove the symbolic link from `/etc/resolv.conf`:
+> ```shell
+> sudo unlink /etc/resolv.conf
+> ```
+> Create a new `/etc/resolv.conf` file and add the following:
+> ```shell
+> nameserver 8.8.8.8
+> ```
+> save the file and you are done.
+
+<a name="deploy-orb-kind"></a>
+## 🚀  Deploy Orb on Kind
+
+Add `kubernetes.docker.internal` host as `127.0.0.1` address in your hosts file:
+```shell
+echo "127.0.0.1 kubernetes.docker.internal" | sudo tee -a /etc/hosts
+```
+> 
+Setup **Orb Charts** dependencies repositories:
+```shell
+make prepare-helm
+```
+> **💡 Note:** You just need to run those steps until here once, even if you delete the cluster afterwards.
+
+Use the following command to create the cluster and deploy **Orb**:
+```shell
+make kind-create-all
+```
+
+Access the **Orb UI** by accessing: https://kubernetes.docker.internal/. The following users are created during the mainflux bootstrap:
+E-mail | Password | Role
+:--- | :--- | :---
+admin@kind.com | pass123456 | Admin
+
+Have fun! 🎉 When you are done, you can delete the cluster by running:
+```shell
+make kind-delete-cluster
+```
