@@ -51,7 +51,7 @@ export class DatasetFromComponent implements OnInit {
   isEdit: boolean;
 
   selectedGroup: string;
-
+  groupName: string;
   selectedPolicy: string;
   fetchedData: boolean;
   sinkIDs: string[];
@@ -78,6 +78,7 @@ export class DatasetFromComponent implements OnInit {
     private cdr: ChangeDetectorRef,
   ) {
     this.isEdit = false;
+    this.groupName = '';
     this.availableAgentGroups = [];
     this.fetchedData = false;
     this.filteredAgentGroups$ = of(this.availableAgentGroups);
@@ -165,11 +166,10 @@ export class DatasetFromComponent implements OnInit {
     const group = this.availableAgentGroups.filter(
       (agent) => agent.id === groupId,
     );
-    let name;
     if (group.length > 0) {
-      name = group[0].name;
+      this.groupName = group[0].name;
     }
-    this.form.patchValue({ agent_group_name: name });
+    this.form.patchValue({ agent_group_name: this.groupName });
     this.cdr.markForCheck();
   }
 

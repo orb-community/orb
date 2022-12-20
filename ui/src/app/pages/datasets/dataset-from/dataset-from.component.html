@@ -16,7 +16,14 @@
         <form [formGroup]="form" [hidden]="isLoading()">
             <!--      GROUP-->
             <div [hidden]="!!group">
-                <nb-form-field>
+                <nb-form-field *ngIf="isEdit">
+                    <div>
+                        <label class="font-weight-bold">Agent Group</label>
+                        <span class="required">*</span>
+                    </div>
+                    <input nbInput fullWidth="true" disabled [value]="groupName"/>
+                </nb-form-field>
+                <nb-form-field *ngIf="!isEdit">
                     <div>
                         <label class="font-weight-bold">Agent Group</label>
                         <span class="required">*</span>
