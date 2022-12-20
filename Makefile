@@ -134,9 +134,10 @@ install-helm:
 	curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
 install-kubectl:
-	cd /tmp
-	curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-	install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+	cd /tmp && \
+	curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && \
+	chmod a+x /kubectl && \
+	mv ./kubectl /user/local/bin/kubectl
 
 install-docker:
 	cd /tmp
