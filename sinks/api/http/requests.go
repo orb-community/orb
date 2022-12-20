@@ -37,6 +37,22 @@ func (req addReq) validate() error {
 		return errors.ErrUnauthorizedAccess
 	}
 
+	keySize := 0
+	if req.Config == nil {
+		return errors.ErrMalformedEntity
+	} else if !req.Config.IsApplicable(func(key string, value interface{}) bool {
+		if key != "" {
+			keySize++
+		}
+		//currently, with only prometheus, 2 keys is enough, maybe change latter
+		if keySize >= 2 {
+			return true
+		}
+		return false
+	}) {
+		return errors.ErrMalformedEntity
+	}
+
 	if req.Name == "" {
 		return errors.ErrMalformedEntity
 	}
