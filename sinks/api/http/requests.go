@@ -67,7 +67,7 @@ func (req updateSinkReq) validate() error {
 		return errors.ErrMalformedEntity
 	}
 
-	if req.Description == "" && req.Name == "" && len(req.Tags) == 0 && len(req.Config) == 0 {
+	if req.Description == "" && req.Name == "" && len(req.Config) == 0 && req.Tags == nil {
 		return errors.ErrMalformedEntity
 	}
 
