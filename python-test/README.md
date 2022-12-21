@@ -59,10 +59,10 @@ Then fill in the correct values:
 - **remote_prometheus_endpoint**
   - Mandatory!
   - base URL to send Prometheus metrics to Grafana Cloud> `(ex. prometheus-prod-10-prod-us-central-0.grafana.net)`
-- **ignore_ssl_and_certificate_errors**:
+- **verify_ssl**:
   - Bool
-  - Replaces HTTPS connections with HTTP and disables SSL certificate validation in MQTT connections.
-  - Default value: `False`
+  - When it is False, replaces HTTPS connections with HTTP and disables SSL certificate validation in MQTT connections.
+  - Default value: `True`
 - **is_credentials_registered**:
   - Bool
   - If false, register an account with credentials (email and password) used
@@ -88,6 +88,16 @@ Then fill in the correct values:
   - Bool
   - Value to be used in variable "ORB_OTEL_ENABLE". Note that `include_otel_env_var` parameter must be `true` if this variable is true.
   - Default value: `false`
+- **use_orb_live_address_pattern**:
+  - Bool
+  - If true, uses orb_address as base to api and mqtt address using orb.live pattern. If false, requires you to add the corresponding addresses.
+  - Default value: `true`
+- **orb_cloud_api_address**:
+  - Required if `use_orb_live_address_pattern` is false
+  - URL of the Orb deployment API. Obs: You MUST include the protocol.
+- **orb_cloud_mqtt_address**:
+  - Required if `use_orb_live_address_pattern` is false
+  - URL of the Orb deployment mqtt. Obs: You MUST include the protocol and the port.
 
 ## Run behave
 Simply run `behave`, optionally passing the feature file as follows:

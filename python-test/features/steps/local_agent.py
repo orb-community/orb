@@ -12,13 +12,15 @@ from datetime import datetime
 import ciso8601
 
 configs = TestConfig.configs()
-ignore_ssl_and_certificate_errors = configs.get('ignore_ssl_and_certificate_errors')
+verify_ssl_bool = eval(configs.get('verify_ssl').title())
 
 
 @step('the agent container is started on an {status_port} port')
 def run_local_agent_container(context, status_port, **kwargs):
+    use_orb_live_address_pattern = configs.get("use_orb_live_address_pattern")
+    verify_ssl = configs.get('verify_ssl')
     env_vars = create_agent_env_vars_set(context.agent['id'], context.agent['channel_id'], context.agent_key,
-                                         ignore_ssl_and_certificate_errors)
+                                         verify_ssl, use_orb_live_address_pattern)
     env_vars.update(kwargs)
     assert_that(status_port, any_of(equal_to("available"), equal_to("unavailable")), "Unexpected value for port")
     availability = {"available": True, "unavailable": False}
@@ -129,8 +131,9 @@ def run_container_using_ui_command(context, status_port):
     context.port = return_port_to_run_docker_container(context, availability[status_port])
     include_otel_env_var = configs.get("include_otel_env_var")
     enable_otel = configs.get("enable_otel")
+    verify_ssl = configs.get("verify_ssl")
     context.container_id = run_local_agent_from_terminal(context.agent_provisioning_command,
-                                                         ignore_ssl_and_certificate_errors, str(context.port),
+                                                         verify_ssl, str(context.port),
                                                          include_otel_env_var, enable_otel)
     assert_that(context.container_id, is_not((none())), f"Agent container was not run")
     rename_container(context.container_id, LOCAL_AGENT_CONTAINER_NAME + context.agent['name'][-5:])
@@ -176,13 +179,16 @@ def remove_all_orb_agent_test_containers(context):
             container.remove(force=True)
 
 
-def create_agent_env_vars_set(agent_id, agent_channel_id, agent_mqtt_key, ignore_tls_verify):
+def create_agent_env_vars_set(agent_id, agent_channel_id, agent_mqtt_key, verify_ssl,
+                              use_orb_live_address_pattern):
     """
     Create the set of environmental variables to be passed to the agent
     :param agent_id: id of the agent
     :param agent_channel_id: id of the agent channel
     :param agent_mqtt_key: mqtt key to connect the agent
-    :param ignore_tls_verify: ignore process to verify tls
+    :param verify_ssl: ignore process to verify tls if false
+    :param use_orb_live_address_pattern: if true, uses the shortcut orb_cloud_address.
+                                              if false sets api and mqtt address.
     :return: set of environmental variables
     """
     orb_address = configs.get('orb_address')
@@ -191,9 +197,17 @@ def create_agent_env_vars_set(agent_id, agent_channel_id, agent_mqtt_key, ignore
     env_vars = {"ORB_CLOUD_MQTT_ID": agent_id,
                 "ORB_CLOUD_MQTT_CHANNEL_ID": agent_channel_id,
                 "ORB_CLOUD_MQTT_KEY": agent_mqtt_key}
-    if orb_address != "orb.live":
-        env_vars["ORB_CLOUD_ADDRESS"] = orb_address
-    if ignore_tls_verify == 'true':
+    if use_orb_live_address_pattern == "true":
+        if orb_address != "orb.live":
+            env_vars["ORB_CLOUD_ADDRESS"] = orb_address
+        else:
+            # default value must be enough to set correct parameters.
+            pass
+    else:
+        env_vars["ORB_CLOUD_API_ADDRESS"] = configs.get("orb_url")
+        env_vars["ORB_CLOUD_MQTT_ADDRESS"] = configs.get('mqtt_url')
+
+    if verify_ssl == 'false':
         env_vars["ORB_TLS_VERIFY"] = "false"
     if include_otel_env_var == "true":
         env_vars["ORB_OTEL_ENABLE"] = enable_otel
@@ -283,18 +297,18 @@ def check_logs_contain_log(logs, expected_log, event, start_time=0):
     return event.is_set()
 
 
-def run_local_agent_from_terminal(command, ignore_ssl_and_certificate_errors, pktvisor_port,
+def run_local_agent_from_terminal(command, verify_ssl, pktvisor_port,
                                   include_otel_env_var="false", enable_otel="false"):
     """
     :param (str) command: docker command to provision an agent
-    :param (bool) ignore_ssl_and_certificate_errors: True if orb address doesn't have a valid certificate.
+    :param (bool) verify_ssl: False if orb address doesn't have a valid certificate.
     :param (str or int) pktvisor_port: Port on which pktvisor should run
     :param (str): if 'true', ORB_OTEL_ENABLE env ver is included on command provisioning of the agent
     :return: agent container ID
     """
     command = command.replace("\\\n", " ")
     args = shlex.split(command)
-    if ignore_ssl_and_certificate_errors == 'true':
+    if verify_ssl == 'false':
         args.insert(-1, "-e")
         args.insert(-1, "ORB_TLS_VERIFY=false")
     if include_otel_env_var == "true":

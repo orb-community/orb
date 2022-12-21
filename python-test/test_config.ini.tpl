@@ -14,6 +14,12 @@ This field is required if use docker approach to run the tests
 # agent_docker_image=ns1labs/orb-agent
 # agent_docker_tag=latest
 # orb_agent_interface=mock
-# ignore_ssl_and_certificate_errors=True
+# verify_ssl=True
 # is_credentials_registered=False
 # headless=True
+# use_orb_live_address_pattern=True
+
+# Required if use_orb_live_address_pattern is False:
+orb_cloud_api_address=<orb api address>
+orb_cloud_mqtt_address=<orb mqtt address>
+
