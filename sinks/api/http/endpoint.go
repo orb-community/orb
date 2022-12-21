@@ -11,6 +11,7 @@ package http
 import (
 	"context"
 	"github.com/go-kit/kit/endpoint"
+	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/sinks"
 	"github.com/ns1labs/orb/sinks/backend"
@@ -79,13 +80,19 @@ func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 		if err := req.validate(); err != nil {
 			return nil, err
 		}
-		nameID, _ := types.NewIdentifier(req.Name)
 		sink := sinks.Sink{
-			Name:        nameID,
 			ID:          req.id,
 			Tags:        req.Tags,
 			Config:      req.Config,
 			Description: req.Description,
+		}
+
+		if req.Name != "" {
+			nameID, err := types.NewIdentifier(req.Name)
+			if err != nil {
+				return nil, errors.ErrMalformedEntity
+			}
+			sink.Name = nameID
 		}
 
 		sinkEdited, err := svc.UpdateSink(ctx, req.token, sink)
