@@ -435,6 +435,21 @@ func TestPolicyEdition(t *testing.T) {
 			status:      http.StatusBadRequest,
 			data:        invalidNamePolicyJson,
 		},
+		"update policy data in json format that was created in yaml ": {
+			id:          policy.ID,
+			contentType: "application/json",
+			auth:        token,
+			status:      http.StatusBadRequest,
+			data: toJSON(updatePolicyReq{
+				Name:   "test",
+				Format: "json",
+				Policy: types.Metadata{
+					"kind":     "collection",
+					"input":    map[string]string{"input_type": "pcap"},
+					"handlers": map[string]string{"type": "net"},
+				},
+			}),
+		},
 	}
 
 	for desc, tc := range cases {
@@ -1467,4 +1482,15 @@ type duplicatePolicyReq struct {
 	id    string
 	token string
 	Name  string `json:"name,omitempty"`
+}
+
+type updatePolicyReq struct {
+	id          string
+	token       string
+	Name        string         `json:"name,omitempty"`
+	Description string         `json:"description,omitempty"`
+	Tags        types.Tags     `json:"tags,omitempty"`
+	Policy      types.Metadata `json:"policy,omitempty"`
+	PolicyData  string         `json:"policy_data,omitempty"`
+	Format      string         `json:"format,omitempty"`
 }

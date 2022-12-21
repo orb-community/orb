@@ -141,6 +141,11 @@ func (s policiesService) EditPolicy(ctx context.Context, token string, pol Polic
 	pol.MFOwnerID = ownerID
 	pol.Version = currentPol.Version
 
+	if pol.Format != "" && pol.Format != currentPol.Format {
+		return Policy{}, errors.Wrap(errors.New("Can't change policy format after creation"), errors.ErrMalformedEntity)
+	}
+	pol.Format = currentPol.Format
+
 	// If backend policy is not being edited, retrieve saved one
 	if pol.PolicyData == "" && pol.Policy == nil {
 		pol.Policy = currentPol.Policy
