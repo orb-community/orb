@@ -35,14 +35,14 @@ def _read_configs():
     assert_that(configs.get('password'), has_length(greater_than_or_equal_to(8)),
                 'Orb password must be at least 8 digits')
 
-    assert_that(configs.get('prometheus_username'), not_none(), 'No Orb user password was provided!')
-    assert_that(configs.get('prometheus_username'), not_(""), 'No Orb user password was provided!')
+    assert_that(configs.get('prometheus_username'), not_none(), 'No prometheus username was provided!')
+    assert_that(configs.get('prometheus_username'), not_(""), 'No prometheus username was provided!')
 
-    assert_that(configs.get('prometheus_key'), not_none(), 'No Orb user password was provided!')
-    assert_that(configs.get('prometheus_key'), not_(""), 'No Orb user password was provided!')
+    assert_that(configs.get('prometheus_key'), not_none(), 'No Orb prometheus key was provided!')
+    assert_that(configs.get('prometheus_key'), not_(""), 'No Orb prometheus key was provided!')
 
-    assert_that(configs.get('remote_prometheus_endpoint'), not_none(), 'No Orb user password was provided!')
-    assert_that(configs.get('remote_prometheus_endpoint'), not_(""), 'No Orb user password was provided!')
+    assert_that(configs.get('remote_prometheus_endpoint'), not_none(), 'No Orb prometheus endpoint was provided!')
+    assert_that(configs.get('remote_prometheus_endpoint'), not_(""), 'No Orb prometheus endpoint was provided!')
 
     local_orb_path = configs.get("orb_path",
                                  os.path.dirname(os.getcwd()))  # orb_path is required if user will use docker to test,
