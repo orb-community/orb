@@ -93,6 +93,9 @@ run_test_service: test_service $(2)
 
 run_test_service_cov: test_service_cov $(2)
 
+create-otel-collector-image:
+
+
 test_service:
 	$(call run_test,$(@))
 

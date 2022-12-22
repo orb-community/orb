@@ -210,6 +210,8 @@ func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig, sinkId, sinkUrl
 		Extensions: &Extensions{
 			HealthCheckExtConfig: &HealthCheckExtension{
 				Endpoint: "0.0.0.0:13133",
+				CollectorPipeline: &CollectorPipelineExtension{
+					Enabled: true, Interval: "5m", FailureThreshold: 5},
 			},
 			PProf: &PProfExtension{
 				Endpoint: "0.0.0.0:1888", // Leaving default for now, will need to change with more processes
@@ -244,7 +246,7 @@ func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig, sinkId, sinkUrl
 					Exporters  []string `json:"exporters" yaml:"exporters"`
 				}{
 					Receivers: []string{"kafka"},
-					Exporters: []string{"prometheusremotewrite"},
+					Exporters: []string{"prometheusremotewrite", "logging"},
 				},
 			},
 		},
@@ -291,12 +293,14 @@ type Extensions struct {
 }
 
 type HealthCheckExtension struct {
-	Endpoint          string `json:"endpoint" yaml:"endpoint"`
-	CollectorPipeline *struct {
-		Enabled          bool   `json:"enabled" yaml:"enabled"`
-		Interval         string `json:"interval" yaml:"interval"`
-		FailureThreshold int32  `json:"exporter_failure_threshold" yaml:"exporter_failure_threshold"`
-	} `json:"check_collector_pipeline,omitempty" yaml:"check_collector_pipeline,omitempty"`
+	Endpoint          string                      `json:"endpoint" yaml:"endpoint"`
+	CollectorPipeline *CollectorPipelineExtension `json:"check_collector_pipeline,omitempty" yaml:"check_collector_pipeline,omitempty"`
+}
+
+type CollectorPipelineExtension struct {
+	Enabled          bool   `json:"enabled" yaml:"enabled"`
+	Interval         string `json:"interval" yaml:"interval"`
+	FailureThreshold int32  `json:"exporter_failure_threshold" yaml:"exporter_failure_threshold"`
 }
 
 type PProfExtension struct {
@@ -316,6 +320,7 @@ type BasicAuthenticationExtension struct {
 
 type Exporters struct {
 	PrometheusRemoteWrite *PrometheusRemoteWriteExporterConfig `json:"prometheusremotewrite,omitempty" yaml:"prometheusremotewrite,omitempty"`
+	LoggingExporter       string                               `json:"logging" yaml:"logging"`
 }
 
 type PrometheusRemoteWriteExporterConfig struct {
