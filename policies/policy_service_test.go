@@ -480,25 +480,34 @@ func TestEditDataset(t *testing.T) {
 	wrongSinkDs.SinkIDs = []string{wrongSinkID.String()}
 
 	wrongDataset := policies.Dataset{MFOwnerID: wrongOwnerID.String()}
-	newDataset := policies.Dataset{
-		ID:        dataset.ID,
-		Name:      nameID,
-		MFOwnerID: dataset.MFOwnerID,
-		SinkIDs:   dataset.SinkIDs,
-	}
 
 	cases := map[string]struct {
-		ds    policies.Dataset
-		token string
-		err   error
+		ds         policies.Dataset
+		expectedDS policies.Dataset
+		token      string
+		err        error
 	}{
 		"update a existing dataset": {
-			ds:    newDataset,
+			ds: policies.Dataset{
+				ID:        dataset.ID,
+				Name:      nameID,
+				MFOwnerID: dataset.MFOwnerID,
+				SinkIDs:   dataset.SinkIDs,
+			},
+			expectedDS: policies.Dataset{
+				Name:    nameID,
+				SinkIDs: dataset.SinkIDs,
+			},
 			token: token,
 			err:   nil,
 		},
 		"update dataset with wrong credentials": {
-			ds:    newDataset,
+			ds: policies.Dataset{
+				ID:        dataset.ID,
+				Name:      nameID,
+				MFOwnerID: dataset.MFOwnerID,
+				SinkIDs:   dataset.SinkIDs,
+			},
 			token: "invalidToken",
 			err:   policies.ErrUnauthorizedAccess,
 		},
@@ -507,13 +516,27 @@ func TestEditDataset(t *testing.T) {
 			token: token,
 			err:   policies.ErrMalformedEntity,
 		},
+		"update a existing dataset without name": {
+			ds: policies.Dataset{
+				ID:        dataset.ID,
+				MFOwnerID: dataset.MFOwnerID,
+				SinkIDs:   dataset.SinkIDs,
+			},
+			expectedDS: policies.Dataset{
+				Name:    nameID,
+				SinkIDs: dataset.SinkIDs,
+			},
+			token: token,
+			err:   nil,
+		},
 	}
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
 			res, err := svc.EditDataset(context.Background(), tc.token, tc.ds)
 			if err == nil {
-				assert.Equal(t, tc.ds.Name.String(), res.Name.String(), fmt.Sprintf("%s: expected name %s got %s", desc, tc.ds.Name.String(), res.Name.String()))
+				assert.Equal(t, tc.expectedDS.Name.String(), res.Name.String(), fmt.Sprintf("%s: expected name %s got %s", desc, tc.expectedDS.Name.String(), res.Name.String()))
+				assert.Equal(t, tc.expectedDS.SinkIDs, res.SinkIDs, fmt.Sprintf("%s: expected name %s got %s", desc, tc.expectedDS.SinkIDs, res.SinkIDs))
 			}
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected error %d got %d", desc, tc.err, err))
 		})
