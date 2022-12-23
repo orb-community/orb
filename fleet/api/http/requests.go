@@ -63,16 +63,8 @@ func (req updateAgentGroupReq) validate() error {
 	if req.token == "" {
 		return errors.ErrUnauthorizedAccess
 	}
-	if req.Name == "" {
-		return errors.ErrMalformedEntity
-	}
 	if len(req.Tags) == 0 {
 		return errors.ErrMalformedEntity
-	}
-
-	_, err := types.NewIdentifier(req.Name)
-	if err != nil {
-		return errors.Wrap(errors.ErrMalformedEntity, err)
 	}
 
 	return nil

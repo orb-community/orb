@@ -117,9 +117,12 @@ func editAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
 			return agentGroupRes{}, err
 		}
 
-		validName, err := types.NewIdentifier(req.Name)
-		if err != nil {
-			return agentGroupRes{}, err
+		var validName types.Identifier
+		if req.Name != "" {
+			validName, err = types.NewIdentifier(req.Name)
+			if err != nil {
+				return agentGroupRes{}, errors.Wrap(errors.ErrMalformedEntity, err)
+			}
 		}
 		ag := fleet.AgentGroup{
 			ID:          req.id,

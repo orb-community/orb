@@ -469,24 +469,6 @@ func TestUpdateAgentGroup(t *testing.T) {
 	ag, err := createAgentGroup(t, "ue-agent-group", &cli)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	data := toJSON(updateAgentGroupReq{
-		Name:        ag.Name.String(),
-		Description: ag.Description,
-		Tags:        ag.Tags,
-	})
-
-	invalidName := toJSON(updateAgentGroupReq{
-		Name:        "g",
-		Description: ag.Description,
-		Tags:        ag.Tags,
-	})
-
-	missingTagsdata := toJSON(updateAgentGroupReq{
-		Name:        ag.Name.String(),
-		Description: ag.Description,
-		Tags:        map[string]string{},
-	})
-
 	cases := map[string]struct {
 		req         string
 		id          string
@@ -495,7 +477,11 @@ func TestUpdateAgentGroup(t *testing.T) {
 		status      int
 	}{
 		"update existing agent group": {
-			req:         data,
+			req: toJSON(updateAgentGroupReq{
+				Name:        ag.Name.String(),
+				Description: ag.Description,
+				Tags:        ag.Tags,
+			}),
 			id:          ag.ID,
 			contentType: contentType,
 			auth:        token,
@@ -509,42 +495,66 @@ func TestUpdateAgentGroup(t *testing.T) {
 			status:      http.StatusBadRequest,
 		},
 		"update agent group with a invalid id": {
-			req:         data,
+			req: toJSON(updateAgentGroupReq{
+				Name:        ag.Name.String(),
+				Description: ag.Description,
+				Tags:        ag.Tags,
+			}),
 			id:          "invalid",
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusNotFound,
 		},
 		"update non-existing agent group": {
-			req:         data,
+			req: toJSON(updateAgentGroupReq{
+				Name:        ag.Name.String(),
+				Description: ag.Description,
+				Tags:        ag.Tags,
+			}),
 			id:          wrongID,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusNotFound,
 		},
 		"update agent group with invalid user token": {
-			req:         data,
+			req: toJSON(updateAgentGroupReq{
+				Name:        ag.Name.String(),
+				Description: ag.Description,
+				Tags:        ag.Tags,
+			}),
 			id:          ag.ID,
 			contentType: contentType,
 			auth:        "invalid",
 			status:      http.StatusUnauthorized,
 		},
 		"update agent group with empty user token": {
-			req:         data,
+			req: toJSON(updateAgentGroupReq{
+				Name:        ag.Name.String(),
+				Description: ag.Description,
+				Tags:        ag.Tags,
+			}),
 			id:          ag.ID,
 			contentType: contentType,
 			auth:        "",
 			status:      http.StatusUnauthorized,
 		},
 		"update agent group with invalid content type": {
-			req:         data,
+			req: toJSON(updateAgentGroupReq{
+				Name:        ag.Name.String(),
+				Description: ag.Description,
+				Tags:        ag.Tags,
+			}),
 			id:          ag.ID,
 			contentType: "invalid",
 			auth:        token,
 			status:      http.StatusUnsupportedMediaType,
 		},
 		"update agent group without content type": {
-			req:         data,
+			req: toJSON(updateAgentGroupReq{
+				Name:        ag.Name.String(),
+				Description: ag.Description,
+				Tags:        ag.Tags,
+			}),
 			id:          ag.ID,
 			contentType: "",
 			auth:        token,
@@ -572,18 +582,36 @@ func TestUpdateAgentGroup(t *testing.T) {
 			status:      http.StatusBadRequest,
 		},
 		"add a agent group with invalid name": {
-			req:         invalidName,
+			req: toJSON(updateAgentGroupReq{
+				Name:        "g",
+				Description: ag.Description,
+				Tags:        ag.Tags,
+			}),
 			id:          ag.ID,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusBadRequest,
 		},
 		"update existing agent group without tags": {
-			req:         missingTagsdata,
+			req: toJSON(updateAgentGroupReq{
+				Name:        ag.Name.String(),
+				Description: ag.Description,
+				Tags:        map[string]string{},
+			}),
 			id:          ag.ID,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusBadRequest,
+		},
+		"update existing agent group without name": {
+			req: toJSON(updateAgentGroupReq{
+				Description: ag.Description,
+				Tags:        ag.Tags,
+			}),
+			id:          ag.ID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusOK,
 		},
 	}
 
