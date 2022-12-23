@@ -121,14 +121,88 @@ dockers_dev: $(DOCKERS_DEV)
 build_docker:
 	$(call make_docker,$(@),$(GOARCH))
 
-run:
-	docker-compose -f docker/docker-compose.yml up -d
+# install tools for kind
 
-run-otel:
-	docker-compose -f docker/docker-compose.yml -f docker/dc-zp-kafka.yml -f docker/dc-sinker-otelcol.yml up -d
+install-kind:
+	cd /tmp && \
+	curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.17.0/kind-linux-amd64 && \
+	chmod +x ./kind && \
+	mv ./kind /usr/local/bin/kind
 
-stop-otel:
-	docker-compose -f docker/docker-compose.yml -f docker/dc-zp-kafka.yml -f docker/dc-sinker-otelcol.yml down
+install-helm:
+	cd /tmp
+	curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+install-kubectl:
+	cd /tmp && \
+	curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && \
+	chmod a+x /kubectl && \
+	mv ./kubectl /user/local/bin/kubectl
+
+install-docker:
+	cd /tmp
+	curl -fsSL https://get.docker.com -o get-docker.sh
+	sh ./get-docker.sh
+
+install-k9s:
+	cd /tmp && \
+	wget https://github.com/derailed/k9s/releases/download/v0.26.7/k9s_Linux_x86_64.tar.gz && \
+	tar -xvzf k9s_Linux_x86_64.tar.gz && \
+	install -o root -g root -m 0755 k9s /usr/local/bin/k9s
+
+
+# kind commands
+
+prepare-helm:
+	cd ./kind/ && \
+	helm repo add jaegertracing https://jaegertracing.github.io/helm-charts && \
+	helm repo add ns1labs-orb https://ns1labs.github.io/orb-helm/ && \
+	helm dependency build
+
+kind-create-all: kind-create-cluster kind-install-orb
+
+kind-upgrade-all: kind-load-images kind-upgrade-orb
+
+kind-create-cluster:
+	kind create cluster --image kindest/node:v1.23.0 --config=./kind/config.yaml
+
+kind-delete-cluster:
+	kind delete cluster
+
+kind-load-images:
+	kind load docker-image ns1labs/orb-fleet:develop
+	kind load docker-image ns1labs/orb-policies:develop
+	kind load docker-image ns1labs/orb-sinks:develop
+	kind load docker-image ns1labs/orb-sinker:develop
+	kind load docker-image ns1labs/orb-migrate:develop
+	kind load docker-image ns1labs/orb-maestro:develop
+	kind load docker-image ns1labs/orb-ui:develop
+
+kind-install-orb:
+	kubectl create namespace orb
+	kubectl create namespace otelcollectors
+	kubectl create secret generic orb-auth-service --from-literal=jwtSecret=MY_SECRET -n orb
+	kubectl create secret generic orb-user-service --from-literal=adminEmail=admin@kind.com --from-literal=adminPassword=pass123456 -n orb
+	kubectl create secret generic orb-sinks-encryption-key --from-literal=key=MY_SINKS_SECRET -n orb
+	helm install -n orb kind-orb ./kind
+	kubectl apply -f ./kind/nginx.yaml
+
+kind-upgrade-orb:
+	helm upgrade -n orb kind-orb ./kind
+
+kind-delete-orb:
+	kubectl delete -f ./kind/nginx.yaml
+	helm delete -n orb kind-orb
+	kubectl delete secret orb-user-service -n orb
+	kubectl delete secret orb-auth-service -n orb
+	kubectl delete namespace orb
+	kubectl delete namespace otelcollectors
+
+#
+
+run: kind-create-all
+
+stop: kind-delete-orb kind-delete-cluster
 
 agent_bin:
 	$(call compile_service_linux,agent)
