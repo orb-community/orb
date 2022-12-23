@@ -46,10 +46,13 @@ func (req addReq) validate() error {
 		}
 		//currently, with only prometheus, 2 keys is enough, maybe change latter
 		if keySize >= 2 {
+			//minimal number of keys passed, valid config
 			return true
 		}
+		//still not get enough keys to create sink, check if there are more keys on map
 		return false
 	}) {
+		//not get enough keys to create sink, invalid config
 		return errors.ErrMalformedEntity
 	}
 
