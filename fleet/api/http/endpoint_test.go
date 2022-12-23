@@ -1070,16 +1070,6 @@ func TestUpdateAgent(t *testing.T) {
 	ag, err := createAgent(t, "my-agent1", &cli)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	data := toJSON(updateAgentReq{
-		Name: ag.Name.String(),
-		Tags: ag.OrbTags,
-	})
-
-	invalidNameData := toJSON(updateAgentReq{
-		Name: "a",
-		Tags: ag.OrbTags,
-	})
-
 	cases := map[string]struct {
 		req         string
 		id          string
@@ -1088,7 +1078,10 @@ func TestUpdateAgent(t *testing.T) {
 		status      int
 	}{
 		"update existing agent": {
-			req:         data,
+			req: toJSON(updateAgentReq{
+				Name: ag.Name.String(),
+				Tags: ag.OrbTags,
+			}),
 			id:          ag.MFThingID,
 			contentType: contentType,
 			auth:        token,
@@ -1102,42 +1095,60 @@ func TestUpdateAgent(t *testing.T) {
 			status:      http.StatusBadRequest,
 		},
 		"update agent with a invalid id": {
-			req:         data,
+			req: toJSON(updateAgentReq{
+				Name: ag.Name.String(),
+				Tags: ag.OrbTags,
+			}),
 			id:          "invalid",
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusNotFound,
 		},
 		"update non-existing agent": {
-			req:         data,
+			req: toJSON(updateAgentReq{
+				Name: ag.Name.String(),
+				Tags: ag.OrbTags,
+			}),
 			id:          wrongID,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusNotFound,
 		},
 		"update agent with invalid user token": {
-			req:         data,
+			req: toJSON(updateAgentReq{
+				Name: ag.Name.String(),
+				Tags: ag.OrbTags,
+			}),
 			id:          ag.MFThingID,
 			contentType: contentType,
 			auth:        "invalid",
 			status:      http.StatusUnauthorized,
 		},
 		"update agent with empty user token": {
-			req:         data,
+			req: toJSON(updateAgentReq{
+				Name: ag.Name.String(),
+				Tags: ag.OrbTags,
+			}),
 			id:          ag.MFThingID,
 			contentType: contentType,
 			auth:        "",
 			status:      http.StatusUnauthorized,
 		},
 		"update agent with invalid content type": {
-			req:         data,
+			req: toJSON(updateAgentReq{
+				Name: ag.Name.String(),
+				Tags: ag.OrbTags,
+			}),
 			id:          ag.MFThingID,
 			contentType: "invalid",
 			auth:        token,
 			status:      http.StatusUnsupportedMediaType,
 		},
 		"update agent without content type": {
-			req:         data,
+			req: toJSON(updateAgentReq{
+				Name: ag.Name.String(),
+				Tags: ag.OrbTags,
+			}),
 			id:          ag.MFThingID,
 			contentType: "",
 			auth:        token,
@@ -1165,11 +1176,23 @@ func TestUpdateAgent(t *testing.T) {
 			status:      http.StatusBadRequest,
 		},
 		"update existing agent with invalid name": {
-			req:         invalidNameData,
+			req: toJSON(updateAgentReq{
+				Name: "a",
+				Tags: ag.OrbTags,
+			}),
 			id:          ag.MFThingID,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusBadRequest,
+		},
+		"update existing agent without name": {
+			req: toJSON(updateAgentReq{
+				Tags: ag.OrbTags,
+			}),
+			id:          ag.MFThingID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusOK,
 		},
 	}
 

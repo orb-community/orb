@@ -186,6 +186,15 @@ func (svc fleetService) EditAgent(ctx context.Context, token string, agent Agent
 	}
 	agent.MFOwnerID = ownerID
 
+	currentAgent, err := svc.agentRepo.RetrieveByID(ctx, ownerID, agent.MFThingID)
+	if err != nil {
+		return Agent{}, err
+	}
+
+	if newName := agent.Name.String(); newName == "" {
+		agent.Name = currentAgent.Name
+	}
+
 	err = svc.agentRepo.UpdateAgentByID(ctx, ownerID, agent)
 	if err != nil {
 		return Agent{}, err

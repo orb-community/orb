@@ -355,9 +355,12 @@ func editAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
 			return nil, err
 		}
 
-		validName, err := types.NewIdentifier(req.Name)
-		if err != nil {
-			return nil, err
+		var validName types.Identifier
+		if req.Name != "" {
+			validName, err = types.NewIdentifier(req.Name)
+			if err != nil {
+				return nil, errors.Wrap(errors.ErrMalformedEntity, err)
+			}
 		}
 		agent := fleet.Agent{
 			Name:      validName,
