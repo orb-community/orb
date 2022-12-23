@@ -490,12 +490,12 @@ func TestEditDataset(t *testing.T) {
 		"update a existing dataset": {
 			ds: policies.Dataset{
 				ID:        dataset.ID,
-				Name:      nameID,
+				Name:      validName,
 				MFOwnerID: dataset.MFOwnerID,
 				SinkIDs:   dataset.SinkIDs,
 			},
 			expectedDS: policies.Dataset{
-				Name:    nameID,
+				Name:    validName,
 				SinkIDs: dataset.SinkIDs,
 			},
 			token: token,
@@ -523,7 +523,7 @@ func TestEditDataset(t *testing.T) {
 				SinkIDs:   dataset.SinkIDs,
 			},
 			expectedDS: policies.Dataset{
-				Name:    nameID,
+				Name:    validName,
 				SinkIDs: dataset.SinkIDs,
 			},
 			token: token,
