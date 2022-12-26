@@ -369,6 +369,35 @@ func TestUpdateAgentGroup(t *testing.T) {
 			token: token,
 			err:   nil,
 		},
+		"update existing agent with omitted description": {
+			group: fleet.AgentGroup{
+				ID:        ag.ID,
+				Name:      ag.Name,
+				MFOwnerID: ag.MFOwnerID,
+			},
+			expectedGroup: fleet.AgentGroup{
+				Name:        ag.Name,
+				Tags:        ag.Tags,
+				Description: ag.Description,
+			},
+			token: token,
+			err:   nil,
+		},
+		"update existing agent with description empty": {
+			group: fleet.AgentGroup{
+				ID:          ag.ID,
+				Name:        ag.Name,
+				MFOwnerID:   ag.MFOwnerID,
+				Description: "",
+			},
+			expectedGroup: fleet.AgentGroup{
+				Name:        ag.Name,
+				Tags:        ag.Tags,
+				Description: ag.Description,
+			},
+			token: token,
+			err:   nil,
+		},
 	}
 
 	for desc, tc := range cases {
@@ -437,6 +466,7 @@ func createAgentGroup(t *testing.T, name string, svc fleet.AgentGroupService) (f
 		return fleet.AgentGroup{}, err
 	}
 	agCopy.Name = validName
+	agCopy.Description = "example"
 	ag, err := svc.CreateAgentGroup(context.Background(), token, agCopy)
 	if err != nil {
 		return fleet.AgentGroup{}, err

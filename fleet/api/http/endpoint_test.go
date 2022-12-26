@@ -603,7 +603,7 @@ func TestUpdateAgentGroup(t *testing.T) {
 			auth:        token,
 			status:      http.StatusBadRequest,
 		},
-		"update existing agent group without name": {
+		"update existing agent group with omitted name": {
 			req: toJSON(updateAgentGroupReq{
 				Description: ag.Description,
 				Tags:        ag.Tags,
