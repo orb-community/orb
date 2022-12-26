@@ -30,7 +30,7 @@ orb_agent_bin="${ORB_AGENT_BIN:-/usr/local/bin/orb-agent}"
 # support generating API and MQTT addresses with one host name in ORB_CLOUD_ADDRESS
 if [[ -n "${ORB_CLOUD_ADDRESS}" ]]; then
   ORB_CLOUD_API_ADDRESS="https://${ORB_CLOUD_ADDRESS}"
-  ORB_CLOUD_MQTT_ADDRESS="tls://agents.${ORB_CLOUD_ADDRESS}:8883"
+  ORB_CLOUD_MQTT_ADDRESS="tls://${ORB_CLOUD_ADDRESS}:8883"
   export ORB_CLOUD_API_ADDRESS ORB_CLOUD_MQTT_ADDRESS
 fi
 
