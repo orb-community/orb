@@ -383,12 +383,41 @@ func TestUpdateAgentGroup(t *testing.T) {
 			token: token,
 			err:   nil,
 		},
-		"update existing agent with description empty": {
+		"update existing agent group with description empty": {
 			group: fleet.AgentGroup{
 				ID:          ag.ID,
 				Name:        ag.Name,
 				MFOwnerID:   ag.MFOwnerID,
 				Description: "",
+			},
+			expectedGroup: fleet.AgentGroup{
+				Name:        ag.Name,
+				Tags:        ag.Tags,
+				Description: ag.Description,
+			},
+			token: token,
+			err:   nil,
+		},
+		"update existing agent group with tags empty": {
+			group: fleet.AgentGroup{
+				ID:        ag.ID,
+				Name:      ag.Name,
+				MFOwnerID: ag.MFOwnerID,
+				Tags:      map[string]string{},
+			},
+			expectedGroup: fleet.AgentGroup{
+				Name:        ag.Name,
+				Tags:        ag.Tags,
+				Description: ag.Description,
+			},
+			token: token,
+			err:   errors.ErrMalformedEntity,
+		},
+		"update existing agent group with tags omitted": {
+			group: fleet.AgentGroup{
+				ID:        ag.ID,
+				Name:      ag.Name,
+				MFOwnerID: ag.MFOwnerID,
 			},
 			expectedGroup: fleet.AgentGroup{
 				Name:        ag.Name,
@@ -467,6 +496,9 @@ func createAgentGroup(t *testing.T, name string, svc fleet.AgentGroupService) (f
 	}
 	agCopy.Name = validName
 	agCopy.Description = "example"
+	agCopy.Tags = map[string]string{
+		"tag": "test",
+	}
 	ag, err := svc.CreateAgentGroup(context.Background(), token, agCopy)
 	if err != nil {
 		return fleet.AgentGroup{}, err
