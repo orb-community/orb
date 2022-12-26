@@ -51,7 +51,7 @@ export class DatasetFromComponent implements OnInit {
   isEdit: boolean;
 
   selectedGroup: string;
-
+  groupName: string;
   selectedPolicy: string;
   fetchedData: boolean;
   sinkIDs: string[];
@@ -78,6 +78,7 @@ export class DatasetFromComponent implements OnInit {
     private cdr: ChangeDetectorRef,
   ) {
     this.isEdit = false;
+    this.groupName = '';
     this.availableAgentGroups = [];
     this.fetchedData = false;
     this.filteredAgentGroups$ = of(this.availableAgentGroups);
@@ -109,31 +110,15 @@ export class DatasetFromComponent implements OnInit {
   }
 
   readyForms() {
-    const { name, agent_policy_id, agent_group_id, sink_ids } =
+    const { agent_policy_id, agent_group_id, sink_ids } =
       this?.dataset ||
       ({
-        name: '',
         agent_group_id: '',
         agent_policy_id: '',
         sink_ids: [],
       } as Dataset);
 
     this.form = this.fb.group({
-      name: [
-        name,
-        [
-          Validators.required,
-          Validators.pattern(
-            // https://github.com/ns1labs/orb/wiki/Architecture:-Common-Patterns#name-labels
-            // anything starting with alpha chars or underscore followed by any
-            // number of alphanumeric chars, dash '-' or underscore '_'. e.g.:
-            // valid: my_name, _name0, name__anything invalid: 0something, 000,
-            // 0_bla
-            '^[a-zA-Z_][a-zA-Z0-9_-]*$',
-          ),
-          Validators.maxLength(64),
-        ],
-      ],
       agent_policy_id: [agent_policy_id, [Validators.required]],
       agent_group_id: [agent_group_id, [Validators.required]],
       agent_group_name: [null, [this.groupNameValidator]],
@@ -165,11 +150,10 @@ export class DatasetFromComponent implements OnInit {
     const group = this.availableAgentGroups.filter(
       (agent) => agent.id === groupId,
     );
-    let name;
     if (group.length > 0) {
-      name = group[0].name;
+      this.groupName = group[0].name;
     }
-    this.form.patchValue({ agent_group_name: name });
+    this.form.patchValue({ agent_group_name: this.groupName });
     this.cdr.markForCheck();
   }
 
@@ -306,7 +290,7 @@ export class DatasetFromComponent implements OnInit {
 
   onFormSubmit() {
     const payload = {
-      name: this.form.controls.name.value,
+      name: this.createNewName(),
       agent_group_id: this.form.controls.agent_group_id.value,
       agent_policy_id: this.form.controls.agent_policy_id.value,
       sink_ids: this._selectedSinks.map((sink) => sink.id),
@@ -363,5 +347,10 @@ export class DatasetFromComponent implements OnInit {
     this.updateFormSelectedAgentGroupId(value);
 
     return filtered;
+  }
+
+  createNewName() {
+    const ts = Date.now();
+    return `dataset_${ts}`;
   }
 }
