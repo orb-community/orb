@@ -242,13 +242,16 @@ func editDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 			return nil, err
 		}
 
-		nID, err := types.NewIdentifier(req.Name)
-		if err != nil {
-			return nil, err
+		var nameID types.Identifier
+		if req.Name != "" {
+			nameID, err = types.NewIdentifier(req.Name)
+			if err != nil {
+				return policyUpdateRes{}, errors.Wrap(errors.ErrMalformedEntity, err)
+			}
 		}
 
 		dataset := policies.Dataset{
-			Name:    nID,
+			Name:    nameID,
 			ID:      req.id,
 			Tags:    req.Tags,
 			SinkIDs: req.SinkIDs,
