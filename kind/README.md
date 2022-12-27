@@ -183,3 +183,17 @@ If you have any problem to load your new deployment use:
 ```shell
 kubectl rollout restart deployment -n orb
 ```
+
+<a name="update-service"></a>
+## Updating inflight service with recent development
+ 
+
+If you want to change a service, lets say you added some logs to the fleet service, after commiting the changes, add this
+```shell
+SERVICE=fleet make build_docker
+```
+This will build only the docker image of the new service.
+After changing you can simply execute
+```shell
+make kind-upgrade-all
+```
