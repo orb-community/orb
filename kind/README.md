@@ -60,6 +60,11 @@ If you need help to install **Kubectl**, follow the [steps from here](https://ku
 
 Kind is a tool for running local k8s clusters using docker container as nodes.
 
+Quick install a **Kind** on Linux executing:
+```shell
+make install-kind
+```
+
 If you have `go 1.17 or later` installed:
 ```shell
 go install sigs.k8s.io/kind@v0.14.0
@@ -68,11 +73,6 @@ go install sigs.k8s.io/kind@v0.14.0
 macOS users can also use `brew`:
 ```shell
 brew install kind
-```
-
-Quick install a **Kind** on Linux executing:
-```shell
-make install-kind
 ```
 
 > 🚨 **Windows WSL users**: WSL is also supported, but for some reason the Orb stack mess up the WSL internal DNS.
@@ -95,6 +95,14 @@ make install-kind
 > ```
 > save the file and you are done.
 
+<a name="kubectl"></a>
+## 🐋 k9s (Optional)
+
+Quick install a **k9s** to manage your cluster executing:
+```shell
+make install-k9s
+```
+
 <a name="deploy-orb-kind"></a>
 ## 🚀  Deploy Orb on Kind
 
@@ -115,14 +123,6 @@ Use the following command to create the cluster and deploy **Orb**:
 make run
 ```
 
-## Development flow with Kind
-
-First 
-Use the following command to create the cluster and deploy **Orb**:
-```shell
-make run
-```
-
 Access the **Orb UI** by accessing: https://kubernetes.docker.internal/. The following users are created during the mainflux bootstrap:
 E-mail | Password | Role
 :--- | :--- | :---
@@ -132,3 +132,34 @@ Have fun! 🎉 When you are done, you can delete the cluster by running:
 ```shell
 make kind-delete-cluster
 ```
+
+## Development flow with Kind
+
+
+Use the following command to create the empty cluster:
+```shell
+make kind-create-cluster
+```
+> **💡 Note:** Now you have and empty kind cluster with minimum necessary to spin up pods
+
+
+Let's add helm charts for orb:
+```shell
+make prepare-helm
+```
+
+Building all orb images:
+```shell
+make dockers
+```
+
+Loading all images into the kind cluster:
+```shell
+make kind-load-images
+```
+
+Install orb application:
+```shell
+make kind-install-orb
+```
+
