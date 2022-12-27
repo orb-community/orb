@@ -147,19 +147,32 @@ Let's add helm charts for orb:
 ```shell
 make prepare-helm
 ```
+> **💡 Note:** Now your dependencies are configured
+
 
 Building all orb images:
 ```shell
 make dockers
 ```
 
+> **💡 Note:** This can take some time
+
 Loading all images into the kind cluster:
 ```shell
 make kind-load-images
 ```
+
+> **💡 Note:** Your are loading from your local docker registry to kind cluster registry
+
 
 Install orb application:
 ```shell
 make kind-install-orb
 ```
 
+> **💡 Note:** Now orb was installed properly
+
+If you have any problem to load your new deployment use:
+```shell
+kubectl rollout restart deployment -n orb
+```
