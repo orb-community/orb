@@ -164,6 +164,13 @@ make kind-load-images
 
 > **💡 Note:** Your are loading from your local docker registry to kind cluster registry
 
+Load just one image to the kind cluster
+```shell
+kind load docker-image ns1labs/orb-maestro:0.22.0-088bee14
+```
+
+> **💡 Note:** Dont forget to change **kind/values.yaml** manifest to use your image tag
+
 
 Install orb application:
 ```shell
