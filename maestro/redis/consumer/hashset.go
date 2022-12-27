@@ -54,6 +54,7 @@ func (es eventStore) handleSinksCreateCollector(ctx context.Context, event sinks
 	sinkUrl := data.Url
 	sinkUsername := data.User
 	sinkPassword := data.Password
+	es.logger.Info("DEBUG - ", zap.Any("data", data))
 	err2 := es.CreateDeploymentEntry(ctx, event.sinkID, sinkUrl, sinkUsername, sinkPassword)
 	if err2 != nil {
 		return err2
