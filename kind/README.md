@@ -14,7 +14,12 @@ Follow those steps to setup a local k8s cluster and deploy Orb.
 <a name="docker"></a>
 ## 🐳 Docker Environment (Requirement)
 
-Check if you have a **Docker Environment** running by executing:
+Quick install a **Docker** executing:
+```shell
+make install-docker
+```
+
+Check if you have a **Docker** running by executing:
 ```shell
 docker version
 ```
@@ -22,6 +27,11 @@ If you need help to setup a **Docker Environment**, follow the [steps from here]
 
 <a name="helm-3"></a>
 ## ⚓ Helm 3 (Requirement)
+
+Quick install a **Helm 3** executing:
+```shell
+make install-helm
+```
 
 Check if you have **Helm 3** installed by executing:
 ```shell
@@ -33,6 +43,11 @@ If you need help to install **Helm 3**, follow the [steps from here](https://hel
 
 <a name="kubectl"></a>
 ## 🐋 Kubectl (Requirement)
+
+Quick install a **Kubectl** executing:
+```shell
+make install-kubectl
+```
 
 Check if you have **Kubectl** cmd installed by executing:
 ```shell
@@ -53,6 +68,11 @@ go install sigs.k8s.io/kind@v0.14.0
 macOS users can also use `brew`:
 ```shell
 brew install kind
+```
+
+Quick install a **Kind** on Linux executing:
+```shell
+make install-kind
 ```
 
 > 🚨 **Windows WSL users**: WSL is also supported, but for some reason the Orb stack mess up the WSL internal DNS.
@@ -82,7 +102,8 @@ Add `kubernetes.docker.internal` host as `127.0.0.1` address in your hosts file:
 ```shell
 echo "127.0.0.1 kubernetes.docker.internal" | sudo tee -a /etc/hosts
 ```
-> 
+> **💡 Note:** This is needed just once
+
 Setup **Orb Charts** dependencies repositories:
 ```shell
 make prepare-helm
@@ -91,7 +112,15 @@ make prepare-helm
 
 Use the following command to create the cluster and deploy **Orb**:
 ```shell
-make kind-create-all
+make run
+```
+
+## Development flow with Kind
+
+First 
+Use the following command to create the cluster and deploy **Orb**:
+```shell
+make run
 ```
 
 Access the **Orb UI** by accessing: https://kubernetes.docker.internal/. The following users are created during the mainflux bootstrap:
