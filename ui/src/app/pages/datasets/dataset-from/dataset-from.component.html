@@ -127,36 +127,6 @@
                   There are no sinks available
                 </div>
             </div>
-            <!--      NAME-->
-            <nb-form-field>
-                <br>
-                <div>
-                    <label class="font-weight-bold">Dataset Name</label>
-                    <span class="required">*</span>
-                </div>
-                <input
-                        autofocus
-                        data-orb-qa-id="name"
-                        fieldSize="medium"
-                        formControlName="name"
-                        [status]="form?.controls.name.touched ? (!form.controls.name.valid  ? 'danger' : 'success') : 'basic'"
-                        fullWidth="true"
-                        nbInput/>
-                        <ng-container
-                                *ngIf="form.controls?.name.invalid
-                      && (form.controls?.name.dirty)"
-                                class="required">
-                            <div *ngIf="form.controls?.name.errors?.required" class="caption status-danger mb-1">
-                                Name is required.
-                            </div>
-                            <div *ngIf="form.controls?.name.errors?.pattern" class="caption status-danger mb-1">
-                                Name must start with a letter or "_" and contain only letters, numbers, "-" or "_"
-                            </div>
-                            <div *ngIf="form?.controls.name.errors?.maxlength" class="caption status-danger mb-1">
-                                Name must be less than {{form.controls.name.errors?.maxlength.requiredLength}} characters
-                            </div>
-                        </ng-container>
-            </nb-form-field>
         </form>
     </nb-card-body>
     <nb-card-footer>
