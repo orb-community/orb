@@ -188,7 +188,7 @@ kubectl rollout restart deployment -n orb
 ## Updating inflight service with recent development
  
 
-If you want to change a service, lets say you added some logs to the fleet service, after commiting the changes, add this
+If you want to change a service, lets say you added some logs to the fleet service, before commiting the changes, add this
 ```shell
 SERVICE=fleet make build_docker
 ```
