@@ -117,8 +117,44 @@ func TestCreateSinks(t *testing.T) {
 	_, err = service.CreateSink(context.Background(), token, sinkConflict)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var invalidNameJson = "{\n    \"name\": \"s\",\n    \"backend\": \"prometheus\",\n    \"config\": {\n        \"remote_host\": \"my.prometheus-host.com\",\n        \"username\": \"dbuser\"\n    },\n    \"description\": \"An example prometheus sink\",\n    \"tags\": {\n        \"cloud\": \"aws\"\n    },\n    \"validate_only\": false\n}"
-	var emptyNameJson = "{\n    \"name\": \"\",\n    \"backend\": \"prometheus\",\n    \"config\": {\n        \"remote_host\": \"my.prometheus-host.com\",\n        \"username\": \"dbuser\"\n    },\n    \"description\": \"An example prometheus sink\",\n    \"tags\": {\n        \"cloud\": \"aws\"\n    },\n    \"validate_only\": false\n}"
+	invalidNameJson := toJSON(addReq{
+		Name:    "s",
+		Backend: "prometheus",
+		Config: types.Metadata{
+			"username":    "test",
+			"remote_host": "my.prometheus-host.com",
+			"description": "An example prometheus sink",
+		},
+		Tags: map[string]string{
+			"cloud": "aws",
+		},
+	})
+
+	emptyNameJson := toJSON(addReq{
+		Name:    "",
+		Backend: "prometheus",
+		Config: types.Metadata{
+			"username":    "test",
+			"remote_host": "my.prometheus-host.com",
+			"description": "An example prometheus sink",
+		},
+		Tags: map[string]string{
+			"cloud": "aws",
+		},
+	})
+
+	jsonSinkTestConfigNoConfig := toJSON(addReq{
+		Name:    "sinkConfig",
+		Backend: "prometheus",
+	})
+
+	jsonSinkTestConfig := toJSON(addReq{
+		Name:    "sinkConfig",
+		Backend: "prometheus",
+		Config: types.Metadata{
+			"user": "test",
+		},
+	})
 
 	cases := map[string]struct {
 		req         string
@@ -171,6 +207,20 @@ func TestCreateSinks(t *testing.T) {
 		},
 		"add a sink with empty name": {
 			req:         emptyNameJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/sinks",
+		},
+		"add sink with missing config": {
+			req:         string(jsonSinkTestConfigNoConfig),
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/sinks",
+		},
+		"add sink with only 1 key on config": {
+			req:         string(jsonSinkTestConfig),
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusBadRequest,
