@@ -57,3 +57,26 @@
                 class="edit-dataset-button">{{ sink?.name }}{{ isLast ? '' : ', '}}</button>
     </ng-container>
 </ng-template>
+
+<ng-template #actionsTemplateCell let-i="index" let-row="row" let-value="value">
+  <div class="block">
+    <button
+      (click)="onOpenEdit(row)"
+      class="orb-action-hover edit-button"
+      ghost
+      nbTooltip="Edit"
+      nbButton
+    >
+      <nb-icon icon="edit-outline"></nb-icon>
+    </button>
+    <button
+      (click)="openDeleteModal(row)"
+      class="orb-action-hover del-button"
+      ghost
+      nbTooltip="Delete"
+      nbButton
+    >
+      <nb-icon icon="trash-2-outline"></nb-icon>
+    </button>
+  </div>
+</ng-template>
