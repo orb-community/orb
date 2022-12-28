@@ -103,3 +103,16 @@ Have fun! 🎉 When you are done, you can delete the cluster by running:
 ```shell
 make kind-delete-cluster
 ```
+
+<a name="update-service"></a>
+## Updating inflight service with recent development
+
+If you want to change a service, lets say you added some logs to the fleet service, after commiting the changes, add this
+```shell
+SERVICE=fleet make build_docker
+```
+This will build only the docker image of the new service.
+After changing you can simply execute
+```shell
+make kind-upgrade-all
+```

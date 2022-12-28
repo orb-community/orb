@@ -120,7 +120,7 @@ orb:
       name: "orb-migrate"
       pullPolicy: "IfNotPresent"
       repository: ns1labs
-      tag: "0.17.0-11889e3a"
+      tag: "develop"
     autoMigrate: false
     logLevel: "debug"
 
