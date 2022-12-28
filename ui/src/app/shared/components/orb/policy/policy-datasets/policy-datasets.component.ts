@@ -61,7 +61,7 @@ export class PolicyDatasetsComponent
   ];
 
   // templates
-  @ViewChild('nameTemplateCell') nameTemplateCell: TemplateRef<any>;
+  @ViewChild('actionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
 
   @ViewChild('groupTemplateCell') groupTemplateCell: TemplateRef<any>;
 
@@ -97,10 +97,10 @@ export class PolicyDatasetsComponent
         name: 'Agent Group',
         resizeable: false,
         canAutoResize: true,
-        minWidth: 90,
-        width: 150,
-        maxWidth: 250,
-        flexGrow: 5,
+        minWidth: 200,
+        width: 250,
+        maxWidth: 300,
+        flexGrow: 2,
         cellTemplate: this.groupTemplateCell,
       },
       {
@@ -111,7 +111,7 @@ export class PolicyDatasetsComponent
         minWidth: 65,
         width: 80,
         maxWidth: 100,
-        flexGrow: 2,
+        flexGrow: 0,
         cellTemplate: this.validTemplateCell,
       },
       {
@@ -119,11 +119,20 @@ export class PolicyDatasetsComponent
         name: 'Sinks',
         resizeable: false,
         canAutoResize: true,
-        minWidth: 200,
+        minWidth: 250,
         width: 300,
         maxWidth: 500,
-        flexGrow: 6,
+        flexGrow: 4,
         cellTemplate: this.sinksTemplateCell,
+      },
+      {
+        name: '',
+        prop: 'actions',
+        minWidth: 100,
+        resizeable: false,
+        sortable: false,
+        flexGrow: 0,
+        cellTemplate: this.actionsTemplateCell,
       },
     ];
 
