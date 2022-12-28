@@ -93,25 +93,14 @@ export class PolicyDatasetsComponent
   ngAfterViewInit() {
     this.columns = [
       {
-        prop: 'name',
-        name: 'Name',
-        resizeable: false,
-        canAutoResize: true,
-        minWidth: 90,
-        width: 120,
-        maxWidth: 150,
-        flexGrow: 3,
-        cellTemplate: this.nameTemplateCell,
-      },
-      {
         prop: 'agent_group',
         name: 'Agent Group',
         resizeable: false,
         canAutoResize: true,
         minWidth: 90,
-        width: 120,
-        maxWidth: 150,
-        flexGrow: 3,
+        width: 150,
+        maxWidth: 250,
+        flexGrow: 5,
         cellTemplate: this.groupTemplateCell,
       },
       {

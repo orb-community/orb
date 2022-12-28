@@ -116,6 +116,15 @@ func (svc fleetService) EditAgentGroup(ctx context.Context, token string, group 
 		return AgentGroup{}, err
 	}
 
+	currentAgentGroup, err := svc.agentGroupRepository.RetrieveByID(ctx, group.ID, ownerID)
+	if err != nil {
+		return AgentGroup{}, err
+	}
+
+	if newName := group.Name.String(); newName == "" {
+		group.Name = currentAgentGroup.Name
+	}
+
 	ag, err := svc.agentGroupRepository.Update(ctx, ownerID, group)
 	if err != nil {
 		return AgentGroup{}, err

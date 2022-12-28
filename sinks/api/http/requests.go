@@ -37,6 +37,25 @@ func (req addReq) validate() error {
 		return errors.ErrUnauthorizedAccess
 	}
 
+	keySize := 0
+	if req.Config == nil {
+		return errors.ErrMalformedEntity
+	} else if !req.Config.IsApplicable(func(key string, value interface{}) bool {
+		if key != "" {
+			keySize++
+		}
+		//currently, with only prometheus, 2 keys is enough, maybe change latter
+		if keySize >= 2 {
+			//minimal number of keys passed, valid config
+			return true
+		}
+		//still not get enough keys to create sink, check if there are more keys on map
+		return false
+	}) {
+		//not get enough keys to create sink, invalid config
+		return errors.ErrMalformedEntity
+	}
+
 	if req.Name == "" {
 		return errors.ErrMalformedEntity
 	}
@@ -67,7 +86,7 @@ func (req updateSinkReq) validate() error {
 		return errors.ErrMalformedEntity
 	}
 
-	if req.Description == "" && req.Name == "" && len(req.Tags) == 0 && len(req.Config) == 0 {
+	if req.Description == "" && req.Name == "" && len(req.Config) == 0 && req.Tags == nil {
 		return errors.ErrMalformedEntity
 	}
 
