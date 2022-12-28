@@ -210,6 +210,7 @@ func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig, sinkId, sinkUrl
 		Extensions: &Extensions{
 			HealthCheckExtConfig: &HealthCheckExtension{
 				Endpoint: "0.0.0.0:13133",
+				Path:     "/health/status",
 				CollectorPipeline: &CollectorPipelineExtension{
 					Enabled: "true", Interval: "5m", FailureThreshold: 4},
 			},
@@ -294,6 +295,7 @@ type Extensions struct {
 
 type HealthCheckExtension struct {
 	Endpoint          string                      `json:"endpoint" yaml:"endpoint"`
+	Path              string                      `json:"path" yaml:"path"`
 	CollectorPipeline *CollectorPipelineExtension `json:"check_collector_pipeline,omitempty" yaml:"check_collector_pipeline,omitempty"`
 }
 
