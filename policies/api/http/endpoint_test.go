@@ -813,45 +813,73 @@ func TestDatasetEdition(t *testing.T) {
 			contentType: "application/json",
 			auth:        token,
 			status:      http.StatusOK,
-			data:        validDatasetJson,
+			data: toJSON(updateDatasetReq{
+				Name:    "dataset",
+				Tags:    map[string]string{"region": "eu", "node_type": "dns"},
+				SinkIDs: []string{"03679425-aa69-4574-bf62-e0fe71b80939", "03679425-aa69-4574-bf62-e0fe71b80939"},
+			}),
 		},
 		"update dataset with a invalid id": {
-			data:        validDatasetJson,
+			data: toJSON(updateDatasetReq{
+				Name:    "dataset",
+				Tags:    map[string]string{"region": "eu", "node_type": "dns"},
+				SinkIDs: []string{"03679425-aa69-4574-bf62-e0fe71b80939", "03679425-aa69-4574-bf62-e0fe71b80939"},
+			}),
 			id:          "invalid",
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusNotFound,
 		},
 		"update non-existing dataset": {
-			data:        validDatasetJson,
+			data: toJSON(updateDatasetReq{
+				Name:    "dataset",
+				Tags:    map[string]string{"region": "eu", "node_type": "dns"},
+				SinkIDs: []string{"03679425-aa69-4574-bf62-e0fe71b80939", "03679425-aa69-4574-bf62-e0fe71b80939"},
+			}),
 			id:          wrongID,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusNotFound,
 		},
 		"update dataset with invalid user token": {
-			data:        validDatasetJson,
+			data: toJSON(updateDatasetReq{
+				Name:    "dataset",
+				Tags:    map[string]string{"region": "eu", "node_type": "dns"},
+				SinkIDs: []string{"03679425-aa69-4574-bf62-e0fe71b80939", "03679425-aa69-4574-bf62-e0fe71b80939"},
+			}),
 			id:          dataset.ID,
 			contentType: contentType,
 			auth:        "invalid",
 			status:      http.StatusUnauthorized,
 		},
 		"update dataset with empty user token": {
-			data:        validDatasetJson,
+			data: toJSON(updateDatasetReq{
+				Name:    "dataset",
+				Tags:    map[string]string{"region": "eu", "node_type": "dns"},
+				SinkIDs: []string{"03679425-aa69-4574-bf62-e0fe71b80939", "03679425-aa69-4574-bf62-e0fe71b80939"},
+			}),
 			id:          dataset.ID,
 			contentType: contentType,
 			auth:        "",
 			status:      http.StatusUnauthorized,
 		},
 		"update dataset with invalid content type": {
-			data:        validDatasetJson,
+			data: toJSON(updateDatasetReq{
+				Name:    "dataset",
+				Tags:    map[string]string{"region": "eu", "node_type": "dns"},
+				SinkIDs: []string{"03679425-aa69-4574-bf62-e0fe71b80939", "03679425-aa69-4574-bf62-e0fe71b80939"},
+			}),
 			id:          dataset.ID,
 			contentType: "invalid",
 			auth:        token,
 			status:      http.StatusUnsupportedMediaType,
 		},
 		"update dataset without content type": {
-			data:        validDatasetJson,
+			data: toJSON(updateDatasetReq{
+				Name:    "dataset",
+				Tags:    map[string]string{"region": "eu", "node_type": "dns"},
+				SinkIDs: []string{"03679425-aa69-4574-bf62-e0fe71b80939", "03679425-aa69-4574-bf62-e0fe71b80939"},
+			}),
 			id:          dataset.ID,
 			contentType: "",
 			auth:        token,
@@ -876,7 +904,21 @@ func TestDatasetEdition(t *testing.T) {
 			contentType: "application/json",
 			auth:        token,
 			status:      http.StatusBadRequest,
-			data:        validDatasetJson,
+			data: toJSON(updateDatasetReq{
+				Name:    "dataset",
+				Tags:    map[string]string{"region": "eu", "node_type": "dns"},
+				SinkIDs: []string{"03679425-aa69-4574-bf62-e0fe71b80939", "03679425-aa69-4574-bf62-e0fe71b80939"},
+			}),
+		},
+		"update a existing dataset without name": {
+			id:          dataset.ID,
+			contentType: "application/json",
+			auth:        token,
+			status:      http.StatusOK,
+			data: toJSON(updateDatasetReq{
+				Tags:    map[string]string{"region": "eu", "node_type": "dns"},
+				SinkIDs: []string{"03679425-aa69-4574-bf62-e0fe71b80939", "03679425-aa69-4574-bf62-e0fe71b80939"},
+			}),
 		},
 	}
 
@@ -1467,4 +1509,12 @@ type duplicatePolicyReq struct {
 	id    string
 	token string
 	Name  string `json:"name,omitempty"`
+}
+
+type updateDatasetReq struct {
+	Name    string `json:"name,omitempty"`
+	id      string
+	token   string
+	Tags    types.Tags `json:"tags,omitempty"`
+	SinkIDs []string   `json:"sink_ids,omitempty"`
 }

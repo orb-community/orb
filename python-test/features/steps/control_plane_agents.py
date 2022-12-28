@@ -19,6 +19,7 @@ from deepdiff import DeepDiff
 configs = TestConfig.configs()
 agent_name_prefix = "test_agent_name_"
 orb_url = configs.get('orb_url')
+verify_ssl_bool = eval(configs.get('verify_ssl').title())
 
 
 @given("that an agent with {orb_tags} orb tag(s) already exists and is {status}")
@@ -396,7 +397,8 @@ def provision_agent_using_config_file(context, input_type, settings, provision, 
 def reset_agent_remotely(context):
     context.considered_timestamp_reset = datetime.now().timestamp()
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {context.token}'}
-    response = requests.post(f"{orb_url}/api/v1/agents/{context.agent['id']}/rpc/reset", headers=headers_request)
+    response = requests.post(f"{orb_url}/api/v1/agents/{context.agent['id']}/rpc/reset", headers=headers_request,
+                             verify=verify_ssl_bool)
     logs = get_orb_agent_logs(context.container_id)
     assert_that(response.status_code, equal_to(200),
                 f"Request to restart agent failed with status= {str(response.status_code)}. \n Agent: {context.agent}\n"
@@ -413,7 +415,7 @@ def check_agent_backend_pktvisor_routes(context, route):
                             "handlers": "backends/pktvisor/handlers"}
 
     response = requests.get(orb_url + '/api/v1/agents/' + agent_backend_routes[route],
-                            headers={'Authorization': f'Bearer {context.token}'})
+                            headers={'Authorization': f'Bearer {context.token}'}, verify=verify_ssl_bool)
     assert_that(response.status_code, equal_to(200),
                 f"Request to get {route} route failed with status =" + str(response.status_code))
     local_orb_path = configs.get("local_orb_path")
@@ -590,7 +592,7 @@ def get_agent(token, agent_id, status_code=200):
     """
 
     get_agents_response = requests.get(orb_url + '/api/v1/agents/' + agent_id,
-                                       headers={'Authorization': f'Bearer {token}'})
+                                       headers={'Authorization': f'Bearer {token}'}, verify=verify_ssl_bool)
     try:
         response_json = get_agents_response.json()
     except ValueError:
@@ -636,7 +638,7 @@ def list_up_to_limit_agents(token, limit=100, offset=0):
     """
 
     response = requests.get(orb_url + '/api/v1/agents', headers={'Authorization': f'Bearer {token}'},
-                            params={"limit": limit, "offset": offset})
+                            params={"limit": limit, "offset": offset}, verify=verify_ssl_bool)
     assert_that(response.status_code, equal_to(200),
                 f"Request to list agents failed with status= {str(response.status_code)}:{str(response.json())}")
     agents_as_json = response.json()
@@ -664,7 +666,7 @@ def delete_agent(token, agent_id):
     """
 
     response = requests.delete(orb_url + '/api/v1/agents/' + agent_id,
-                               headers={'Authorization': f'Bearer {token}'})
+                               headers={'Authorization': f'Bearer {token}'}, verify=verify_ssl_bool)
 
     assert_that(response.status_code, equal_to(204), 'Request to delete agent id='
                 + agent_id + ' failed with status=' + str(response.status_code))
@@ -676,7 +678,7 @@ def wait_until_agent_being_created(token, name, tags, expected_status_code=201, 
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*',
                        'Authorization': f'Bearer {token}'}
 
-    response = requests.post(orb_url + '/api/v1/agents', json=json_request, headers=headers_request)
+    response = requests.post(orb_url + '/api/v1/agents', json=json_request, headers=headers_request, verify=verify_ssl_bool)
     try:
         response_json = response.json()
     except ValueError:
@@ -717,7 +719,8 @@ def edit_agent(token, agent_id, name, tags, expected_status_code=200):
     json_request = {"name": name, "orb_tags": tags, "validate_only": False}
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*',
                        'Authorization': f'Bearer {token}'}
-    response = requests.put(orb_url + '/api/v1/agents/' + agent_id, json=json_request, headers=headers_request)
+    response = requests.put(orb_url + '/api/v1/agents/' + agent_id, json=json_request, headers=headers_request,
+                            verify=verify_ssl_bool)
     assert_that(response.status_code, equal_to(expected_status_code),
                 'Request to edit agent failed with status=' + str(response.status_code) + ":" + str(response.json()))
 
@@ -826,8 +829,8 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
         tags = {"tags": create_tags_set(agent_tags)}
     include_otel_env_var = configs.get('include_otel_env_var')
     enable_otel = configs.get('enable_otel')
-    if configs.get('ignore_ssl_and_certificate_errors', 'false').lower() == 'true':
-        mqtt_url = f"agents.{base_orb_address}:1883"
+    mqtt_url = configs.get('mqtt_url')
+    if configs.get('verify_ssl') == 'false':
         agent_config_file, tap = FleetAgent.config_file_of_orb_agent(agent_name, token, iface, orb_url, mqtt_url,
                                                                      tap_name,
                                                                      tls_verify=False, auto_provision=auto_provision,
@@ -840,7 +843,6 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
                                                                      enable_otel=enable_otel,
                                                                      overwrite_default=overwrite_default)
     else:
-        mqtt_url = "tls://agents." + base_orb_address + ":8883"
         agent_config_file, tap = FleetAgent.config_file_of_orb_agent(agent_name, token, iface, orb_url, mqtt_url,
                                                                      tap_name,
                                                                      auto_provision=auto_provision,

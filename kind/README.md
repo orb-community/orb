@@ -14,7 +14,12 @@ Follow those steps to setup a local k8s cluster and deploy Orb.
 <a name="docker"></a>
 ## 🐳 Docker Environment (Requirement)
 
-Check if you have a **Docker Environment** running by executing:
+Quick install a **Docker** executing:
+```shell
+make install-docker
+```
+
+Check if you have a **Docker** running by executing:
 ```shell
 docker version
 ```
@@ -22,6 +27,11 @@ If you need help to setup a **Docker Environment**, follow the [steps from here]
 
 <a name="helm-3"></a>
 ## ⚓ Helm 3 (Requirement)
+
+Quick install a **Helm 3** executing:
+```shell
+make install-helm
+```
 
 Check if you have **Helm 3** installed by executing:
 ```shell
@@ -34,6 +44,11 @@ If you need help to install **Helm 3**, follow the [steps from here](https://hel
 <a name="kubectl"></a>
 ## 🐋 Kubectl (Requirement)
 
+Quick install a **Kubectl** executing:
+```shell
+make install-kubectl
+```
+
 Check if you have **Kubectl** cmd installed by executing:
 ```shell
 kubectl version --client
@@ -44,6 +59,11 @@ If you need help to install **Kubectl**, follow the [steps from here](https://ku
 ## 🚢 Install Kind (Requirement)
 
 Kind is a tool for running local k8s clusters using docker container as nodes.
+
+Quick install a **Kind** on Linux executing:
+```shell
+make install-kind
+```
 
 If you have `go 1.17 or later` installed:
 ```shell
@@ -75,6 +95,14 @@ brew install kind
 > ```
 > save the file and you are done.
 
+<a name="kubectl"></a>
+## 🐋 k9s (Optional)
+
+Quick install a **k9s** to manage your cluster executing:
+```shell
+make install-k9s
+```
+
 <a name="deploy-orb-kind"></a>
 ## 🚀  Deploy Orb on Kind
 
@@ -82,7 +110,8 @@ Add `kubernetes.docker.internal` host as `127.0.0.1` address in your hosts file:
 ```shell
 echo "127.0.0.1 kubernetes.docker.internal" | sudo tee -a /etc/hosts
 ```
-> 
+> **💡 Note:** This is needed just once
+
 Setup **Orb Charts** dependencies repositories:
 ```shell
 make prepare-helm
@@ -91,7 +120,7 @@ make prepare-helm
 
 Use the following command to create the cluster and deploy **Orb**:
 ```shell
-make kind-create-all
+make run
 ```
 
 Access the **Orb UI** by accessing: https://kubernetes.docker.internal/. The following users are created during the mainflux bootstrap:
@@ -104,10 +133,62 @@ Have fun! 🎉 When you are done, you can delete the cluster by running:
 make kind-delete-cluster
 ```
 
+## Development flow with Kind
+
+
+Use the following command to create the empty cluster:
+```shell
+make kind-create-cluster
+```
+> **💡 Note:** Now you have and empty kind cluster with minimum necessary to spin up pods
+
+
+Let's add helm charts for orb:
+```shell
+make prepare-helm
+```
+> **💡 Note:** Now your dependencies are configured
+
+
+Building all orb images:
+```shell
+make dockers
+```
+
+> **💡 Note:** This can take some time
+
+Loading all images into the kind cluster:
+```shell
+make kind-load-images
+```
+
+> **💡 Note:** Your are loading from your local docker registry to kind cluster registry
+
+Load just one image to the kind cluster
+```shell
+kind load docker-image ns1labs/orb-maestro:0.22.0-088bee14
+```
+
+> **💡 Note:** Dont forget to change **kind/values.yaml** manifest to use your image tag
+
+
+Install orb application:
+```shell
+make kind-install-orb
+```
+
+> **💡 Note:** Now orb was installed properly
+
+If you have any problem to load your new deployment use:
+```shell
+kubectl rollout restart deployment -n orb
+```
+
 <a name="update-service"></a>
 ## Updating inflight service with recent development
+ 
 
-If you want to change a service, lets say you added some logs to the fleet service, after commiting the changes, add this
+If you want to change a service, lets say you added some logs to the fleet service, before commiting the changes, add this
 ```shell
 SERVICE=fleet make build_docker
 ```

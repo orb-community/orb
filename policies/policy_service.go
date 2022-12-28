@@ -291,6 +291,14 @@ func (s policiesService) EditDataset(ctx context.Context, token string, ds Datas
 		return Dataset{}, err
 	}
 
+	if ds.Name.String() == "" {
+		currentDataset, err := s.repo.RetrieveDatasetByID(ctx, ds.ID, ds.MFOwnerID)
+		if err != nil {
+			return Dataset{}, err
+		}
+		ds.Name = currentDataset.Name
+	}
+
 	err = s.repo.UpdateDataset(ctx, mfOwnerID, ds)
 	if err != nil {
 		return Dataset{}, err
