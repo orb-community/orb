@@ -80,11 +80,11 @@ Then fill in the correct values:
   - Bool
   - Referred to UI tests. If True, run chromedriver in headless mode
   - Default value: `true`
--  **include_otel_env_var**:
+- **include_otel_env_var**:
   - Bool
   - If true, use the environmental variable "ORB_OTEL_ENABLE" on agent provisioning commands
   - Default value: `false`
--  **enable_otel**:
+- **enable_otel**:
   - Bool
   - Value to be used in variable "ORB_OTEL_ENABLE". Note that `include_otel_env_var` parameter must be `true` if this variable is true.
   - Default value: `false`
