@@ -12,6 +12,7 @@ dataset_name_prefix = "test_dataset_name_"
 
 orb_url = TestConfig.configs().get('orb_url')
 configs = TestConfig.configs()
+verify_ssl_bool = eval(configs.get('verify_ssl').title())
 
 
 @step("a new dataset is requested to be created with the same name as an existent one")
@@ -177,7 +178,8 @@ def create_dataset(token, name_label, policy_id, agent_group_id, sink_id, expect
                     "sink_ids": sink_id}
     header_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
 
-    response = requests.post(orb_url + '/api/v1/policies/dataset', json=json_request, headers=header_request)
+    response = requests.post(orb_url + '/api/v1/policies/dataset', json=json_request, headers=header_request,
+                             verify=verify_ssl_bool)
     try:
         response_json = response.json()
     except ValueError:
@@ -207,7 +209,7 @@ def edit_dataset(token, dataset_id, name_label, policy_id, agent_group_id, sink_
     header_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
 
     response = requests.put(f"{orb_url}/api/v1/policies/dataset/{dataset_id}", json=json_request,
-                            headers=header_request)
+                            headers=header_request, verify=verify_ssl_bool)
     assert_that(response.status_code, equal_to(expected_status_code),
                 'Request to edit dataset failed with status=' + str(response.status_code) + ': ' + str(response.json()))
 
@@ -259,7 +261,7 @@ def list_up_to_limit_datasets(token, limit=100, offset=0):
     """
 
     response = requests.get(orb_url + '/api/v1/policies/dataset', headers={'Authorization': f'Bearer {token}'},
-                            params={"limit": limit, "offset": offset})
+                            params={"limit": limit, "offset": offset}, verify=verify_ssl_bool)
 
     assert_that(response.status_code, equal_to(200),
                 'Request to list datasets failed with status=' + str(response.status_code) + ':' + str(response.json()))
@@ -289,7 +291,7 @@ def delete_dataset(token, dataset_id):
     """
 
     response = requests.delete(orb_url + '/api/v1/policies/dataset/' + dataset_id,
-                               headers={'Authorization': f'Bearer {token}'})
+                               headers={'Authorization': f'Bearer {token}'}, verify=verify_ssl_bool)
 
     assert_that(response.status_code, equal_to(204), 'Request to delete dataset id='
                 + dataset_id + ' failed with status=' + str(response.status_code))
@@ -306,7 +308,7 @@ def get_dataset(token, dataset_id, expected_status_code=200):
     """
 
     get_dataset_response = requests.get(orb_url + '/api/v1/policies/dataset/' + dataset_id,
-                                        headers={'Authorization': f'Bearer {token}'})
+                                        headers={'Authorization': f'Bearer {token}'}, verify=verify_ssl_bool)
 
     try:
         response_json = get_dataset_response.json()

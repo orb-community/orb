@@ -13,7 +13,9 @@ import json
 import ciso8601
 
 policy_name_prefix = "test_policy_name_"
-orb_url = TestConfig.configs().get('orb_url')
+configs = TestConfig.configs()
+orb_url = configs.get('orb_url')
+verify_ssl_bool = eval(configs.get('verify_ssl').title())
 
 
 @step("a new policy is requested to be created with the same name as an existent one and: {kwargs}")
@@ -477,7 +479,7 @@ def create_duplicated_policy(token, policy_id, new_policy_name=None, status_code
     headers_request = {'Content-type': 'application/json', 'Accept': 'application/json',
                        'Authorization': f'Bearer {token}'}
     post_url = f"{orb_url}/api/v1/policies/agent/{policy_id}/duplicate"
-    response = requests.post(post_url, json=json_request, headers=headers_request)
+    response = requests.post(post_url, json=json_request, headers=headers_request, verify=verify_ssl_bool)
     assert_that(response.status_code, equal_to(status_code),
                 'Request to create duplicated policy failed with status=' + str(response.status_code) + ': '
                 + str(response.json()))
@@ -516,7 +518,8 @@ def create_policy(token, json_request, expected_status_code=201):
 
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
 
-    response = requests.post(orb_url + '/api/v1/policies/agent', json=json_request, headers=headers_request)
+    response = requests.post(orb_url + '/api/v1/policies/agent', json=json_request, headers=headers_request,
+                             verify=verify_ssl_bool)
     try:
         response_json = response.json()
     except ValueError:
@@ -541,7 +544,7 @@ def edit_policy(token, policy_id, json_request, expected_status_code=200):
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
 
     response = requests.put(orb_url + f"/api/v1/policies/agent/{policy_id}", json=json_request,
-                            headers=headers_request)
+                            headers=headers_request, verify=verify_ssl_bool)
     try:
         response_json = response.json()
     except ValueError:
@@ -743,7 +746,7 @@ def get_policy(token, policy_id, expected_status_code=200):
     """
 
     get_policy_response = requests.get(orb_url + '/api/v1/policies/agent/' + policy_id,
-                                       headers={'Authorization': f'Bearer {token}'})
+                                       headers={'Authorization': f'Bearer {token}'}, verify=verify_ssl_bool)
     try:
         response_json = get_policy_response.json()
     except ValueError:
@@ -788,7 +791,7 @@ def list_up_to_limit_policies(token, limit=100, offset=0):
     """
 
     response = requests.get(orb_url + '/api/v1/policies/agent', headers={'Authorization': f'Bearer {token}'},
-                            params={'limit': limit, 'offset': offset})
+                            params={'limit': limit, 'offset': offset}, verify=verify_ssl_bool)
 
     assert_that(response.status_code, equal_to(200),
                 'Request to list policies failed with status=' + str(response.status_code) + ': '
@@ -819,7 +822,7 @@ def delete_policy(token, policy_id):
     """
 
     response = requests.delete(orb_url + '/api/v1/policies/agent/' + policy_id,
-                               headers={'Authorization': f'Bearer {token}'})
+                               headers={'Authorization': f'Bearer {token}'}, verify=verify_ssl_bool)
 
     assert_that(response.status_code, equal_to(204), 'Request to delete policy id='
                 + policy_id + ' failed with status=' + str(response.status_code))
