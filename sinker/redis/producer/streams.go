@@ -10,8 +10,7 @@ import (
 )
 
 const (
-	streamID  = "orb.sinker"
-	streamLen = 1000
+	streamID = "orb.sinker"
 )
 
 var _ config.ConfigRepo = (*eventStore)(nil)
@@ -40,9 +39,8 @@ func (e eventStore) Add(config config.SinkConfig) error {
 		Timestamp: time.Now(),
 	}
 	record := &redis.XAddArgs{
-		Stream:       streamID,
-		MaxLenApprox: streamLen,
-		Values:       event.Encode(),
+		Stream: streamID,
+		Values: event.Encode(),
 	}
 	err = e.client.XAdd(context.Background(), record).Err()
 	if err != nil {
@@ -64,9 +62,8 @@ func (e eventStore) Remove(ownerID string, sinkID string) error {
 		Timestamp: time.Now(),
 	}
 	record := &redis.XAddArgs{
-		Stream:       streamID,
-		MaxLenApprox: streamLen,
-		Values:       event.Encode(),
+		Stream: streamID,
+		Values: event.Encode(),
 	}
 	err = e.client.XAdd(context.Background(), record).Err()
 	if err != nil {
@@ -93,9 +90,8 @@ func (e eventStore) Edit(config config.SinkConfig) error {
 		Timestamp: time.Now(),
 	}
 	record := &redis.XAddArgs{
-		Stream:       streamID,
-		MaxLenApprox: streamLen,
-		Values:       event.Encode(),
+		Stream: streamID,
+		Values: event.Encode(),
 	}
 	err = e.client.XAdd(context.Background(), record).Err()
 	if err != nil {
