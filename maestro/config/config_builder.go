@@ -211,7 +211,7 @@ func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig, sinkId, sinkUrl
 			HealthCheckExtConfig: &HealthCheckExtension{
 				Endpoint: "0.0.0.0:13133",
 				CollectorPipeline: &CollectorPipelineExtension{
-					Enabled: "true", Interval: "5m", FailureThreshold: 5},
+					Enabled: "true", Interval: "5m", FailureThreshold: 4},
 			},
 			PProf: &PProfExtension{
 				Endpoint: "0.0.0.0:1888", // Leaving default for now, will need to change with more processes
