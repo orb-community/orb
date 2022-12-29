@@ -257,6 +257,7 @@ export class PolicyDatasetsComponent
               '',
             );
           });
+          this.refreshPolicy.emit('refresh-from-dataset');
         }
       });
   }
