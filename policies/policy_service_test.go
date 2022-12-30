@@ -190,6 +190,7 @@ func TestEditPolicy(t *testing.T) {
 	svc := newService(users)
 
 	policy := createPolicy(t, svc, "policy")
+	policyTestDescription := createPolicy(t, svc, "policyDescription")
 
 	nameID, err := types.NewIdentifier("new-policy")
 	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
@@ -197,7 +198,6 @@ func TestEditPolicy(t *testing.T) {
 	wrongOwnerID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 
-	wrongPolicy := policies.Policy{MFOwnerID: wrongOwnerID.String()}
 	newPolicy := policies.Policy{
 		ID:         policy.ID,
 		Name:       nameID,
@@ -206,65 +206,122 @@ func TestEditPolicy(t *testing.T) {
 		Format:     format,
 	}
 
-	invalidFormatPolicy := newPolicy
-	invalidFormatPolicy.Format = "invalid"
-
-	invalidPolicyData := newPolicy
-	invalidPolicyData.PolicyData = "invalid"
-
-	invalidYamlPolicy := newPolicy
-	invalidYamlPolicy.Format = ""
-
-	invalidJsonPolicy := newPolicy
-	invalidJsonPolicy.Format = "json"
+	emptyDescription := ""
+	newDescription := "new description"
 
 	cases := map[string]struct {
-		pol   policies.Policy
-		token string
-		err   error
+		policy         policies.Policy
+		expectedPolicy policies.Policy
+		token          string
+		err            error
 	}{
 		"update a existing policy": {
-			pol:   newPolicy,
+			policy: policies.Policy{
+				ID:          policy.ID,
+				Name:        nameID,
+				MFOwnerID:   policy.MFOwnerID,
+				PolicyData:  policy_data,
+				Format:      format,
+				Description: &newDescription,
+			},
+			expectedPolicy: policies.Policy{
+				Name:        nameID,
+				PolicyData:  policy_data,
+				Format:      format,
+				Description: &newDescription,
+			},
 			token: token,
 			err:   nil,
 		},
 		"update policy with wrong credentials": {
-			pol:   newPolicy,
-			token: "invalidToken",
-			err:   policies.ErrUnauthorizedAccess,
+			policy: newPolicy,
+			token:  "invalidToken",
+			err:    policies.ErrUnauthorizedAccess,
 		},
 		"update a non-existing policy": {
-			pol:   wrongPolicy,
-			token: token,
-			err:   policies.ErrNotFound,
+			policy: policies.Policy{MFOwnerID: wrongOwnerID.String()},
+			token:  token,
+			err:    policies.ErrNotFound,
 		},
 		"update a existing policy with invalid format": {
-			pol:   invalidFormatPolicy,
+			policy: policies.Policy{
+				ID:         policy.ID,
+				Name:       nameID,
+				MFOwnerID:  policy.MFOwnerID,
+				PolicyData: policy_data,
+				Format:     "invalid",
+			},
 			token: token,
 			err:   policies.ErrValidatePolicy,
 		},
 		"update a existing policy with invalid policy_data": {
-			pol:   invalidPolicyData,
+			policy: policies.Policy{
+				ID:         policy.ID,
+				Name:       nameID,
+				MFOwnerID:  policy.MFOwnerID,
+				PolicyData: "invalid",
+				Format:     format,
+			},
 			token: token,
 			err:   policies.ErrValidatePolicy,
 		},
 		"update a policy with invalid yaml - empty Format field": {
-			pol:   invalidYamlPolicy,
+			policy: policies.Policy{
+				ID:         policy.ID,
+				Name:       nameID,
+				MFOwnerID:  policy.MFOwnerID,
+				PolicyData: policy_data,
+				Format:     "",
+			},
 			token: token,
 			err:   policies.ErrValidatePolicy,
 		},
 		"update a policy with invalid json - not empty Format field": {
-			pol:   invalidJsonPolicy,
+			policy: policies.Policy{
+				ID:         policy.ID,
+				Name:       nameID,
+				MFOwnerID:  policy.MFOwnerID,
+				PolicyData: policy_data,
+				Format:     "json",
+			},
 			token: token,
 			err:   policies.ErrValidatePolicy,
+		},
+		"update a existing policy with omitted description": {
+			policy: policies.Policy{
+				ID:        policyTestDescription.ID,
+				Name:      nameID,
+				MFOwnerID: policy.MFOwnerID,
+			},
+			expectedPolicy: policies.Policy{
+				Name:        nameID,
+				Description: policyTestDescription.Description,
+			},
+			token: token,
+			err:   nil,
+		},
+		"update a existing policy with empty description": {
+			policy: policies.Policy{
+				ID:          policy.ID,
+				Name:        nameID,
+				MFOwnerID:   policy.MFOwnerID,
+				Description: &emptyDescription,
+			},
+			expectedPolicy: policies.Policy{
+				Name:        nameID,
+				Description: &emptyDescription,
+			},
+			token: token,
+			err:   nil,
 		},
 	}
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
-			res, err := svc.EditPolicy(context.Background(), tc.token, tc.pol)
+			res, err := svc.EditPolicy(context.Background(), tc.token, tc.policy)
 			if err == nil {
-				assert.Equal(t, tc.pol.Name.String(), res.Name.String(), fmt.Sprintf("%s: expected name %s got %s", desc, tc.pol.Name.String(), res.Name.String()))
+				assert.Equal(t, tc.expectedPolicy.Name.String(), res.Name.String(), fmt.Sprintf("%s: expected name %s got %s", desc, tc.expectedPolicy.Name.String(), res.Name.String()))
+				assert.Equal(t, *tc.expectedPolicy.Description, *res.Description, fmt.Sprintf("%s: expected name %s got %s", desc, *tc.expectedPolicy.Description, *res.Description))
 			}
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected error %d got %d", desc, tc.err, err))
 		})
@@ -363,10 +420,11 @@ func TestCreatePolicy(t *testing.T) {
 	nameID, _ := types.NewIdentifier("my-policy")
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
+	description := "An example policy"
 	policy := policies.Policy{
 		Name:        nameID,
 		MFOwnerID:   ownerID.String(),
-		Description: "An example policy",
+		Description: &description,
 		Backend:     "pktvisor",
 		Version:     0,
 		OrbTags:     map[string]string{"region": "eu"},
@@ -1124,12 +1182,14 @@ func createPolicy(t *testing.T, svc policies.Service, name string) policies.Poli
 	validName, err := types.NewIdentifier(name)
 	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 
+	description := "example policy"
 	policy := policies.Policy{
-		ID:         ID.String(),
-		Name:       validName,
-		Backend:    "pktvisor",
-		Format:     format,
-		PolicyData: policy_data,
+		ID:          ID.String(),
+		Name:        validName,
+		Backend:     "pktvisor",
+		Format:      format,
+		PolicyData:  policy_data,
+		Description: &description,
 	}
 
 	res, err := svc.AddPolicy(context.Background(), token, policy)

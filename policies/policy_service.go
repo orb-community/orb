@@ -158,6 +158,10 @@ func (s policiesService) EditPolicy(ctx context.Context, token string, pol Polic
 		pol.Name = currentPol.Name
 	}
 
+	if pol.Description == nil {
+		pol.Description = currentPol.Description
+	}
+
 	pol.Version++
 	err = s.repo.UpdatePolicy(ctx, ownerID, pol)
 	if err != nil {

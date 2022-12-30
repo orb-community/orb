@@ -14,7 +14,7 @@ import (
 type Policy struct {
 	ID            string
 	Name          types.Identifier
-	Description   string
+	Description   *string
 	MFOwnerID     string
 	Backend       string
 	SchemaVersion string

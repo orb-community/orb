@@ -590,14 +590,13 @@ input:
 kind: collection`
 
 	policy := policies.Policy{
-		Name:        validName,
-		MFOwnerID:   ID.String(),
-		Description: "An example policy",
-		Backend:     "pktvisor",
-		Version:     0,
-		OrbTags:     map[string]string{"region": "eu"},
-		PolicyData:  policy_data,
-		Format:      "yaml",
+		Name:       validName,
+		MFOwnerID:  ID.String(),
+		Backend:    "pktvisor",
+		Version:    0,
+		OrbTags:    map[string]string{"region": "eu"},
+		PolicyData: policy_data,
+		Format:     "yaml",
 	}
 	res, err := svc.AddPolicy(context.Background(), token, policy)
 	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))

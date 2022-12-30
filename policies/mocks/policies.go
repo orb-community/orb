@@ -222,6 +222,11 @@ func (m *mockPoliciesRepository) SavePolicy(ctx context.Context, policy policies
 		}
 	}
 
+	if policy.Description == nil {
+		description := ""
+		policy.Description = &description
+	}
+
 	ID, _ := uuid.NewV4()
 	policy.ID = ID.String()
 	m.pdb[policy.ID] = policy
