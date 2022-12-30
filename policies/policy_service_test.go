@@ -332,6 +332,31 @@ func TestEditPolicy(t *testing.T) {
 			token: token,
 			err:   nil,
 		},
+		"update a existing policy with empty tags": {
+			policy: policies.Policy{
+				ID:      policy.ID,
+				OrbTags: types.Tags{},
+			},
+			expectedPolicy: policies.Policy{
+				Name:        policy.Name,
+				OrbTags:     types.Tags{},
+				Description: policy.Description,
+			},
+			token: token,
+			err:   nil,
+		},
+		"update a existing policy with omitted tags": {
+			policy: policies.Policy{
+				ID: policyTestDescriptionAttribute.ID,
+			},
+			expectedPolicy: policies.Policy{
+				Name:        policyTestDescriptionAttribute.Name,
+				OrbTags:     policyTestDescriptionAttribute.OrbTags,
+				Description: policyTestDescriptionAttribute.Description,
+			},
+			token: token,
+			err:   nil,
+		},
 	}
 
 	for desc, tc := range cases {
@@ -340,6 +365,7 @@ func TestEditPolicy(t *testing.T) {
 			if err == nil {
 				assert.Equal(t, tc.expectedPolicy.Name.String(), res.Name.String(), fmt.Sprintf("%s: expected name %s got %s", desc, tc.expectedPolicy.Name.String(), res.Name.String()))
 				assert.Equal(t, *tc.expectedPolicy.Description, *res.Description, fmt.Sprintf("%s: expected name %s got %s", desc, *tc.expectedPolicy.Description, *res.Description))
+				assert.Equal(t, tc.expectedPolicy.OrbTags, res.OrbTags, fmt.Sprintf("%s: expected name %s got %s", desc, tc.expectedPolicy.OrbTags, res.OrbTags))
 			}
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected error %d got %d", desc, tc.err, err))
 		})
@@ -1208,6 +1234,9 @@ func createPolicy(t *testing.T, svc policies.Service, name string) policies.Poli
 		Format:      format,
 		PolicyData:  policy_data,
 		Description: &description,
+		OrbTags: types.Tags{
+			"test": "tags",
+		},
 	}
 
 	res, err := svc.AddPolicy(context.Background(), token, policy)
