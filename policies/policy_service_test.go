@@ -190,7 +190,8 @@ func TestEditPolicy(t *testing.T) {
 	svc := newService(users)
 
 	policy := createPolicy(t, svc, "policy")
-	policyTestDescription := createPolicy(t, svc, "policyDescription")
+	policyTestDescriptionAttribute := createPolicy(t, svc, "policyDescription")
+	policyTestTagsAttribute := createPolicy(t, svc, "policyTags")
 
 	nameID, err := types.NewIdentifier("new-policy")
 	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
@@ -289,13 +290,13 @@ func TestEditPolicy(t *testing.T) {
 		},
 		"update a existing policy with omitted description": {
 			policy: policies.Policy{
-				ID:        policyTestDescription.ID,
+				ID:        policyTestDescriptionAttribute.ID,
 				Name:      nameID,
 				MFOwnerID: policy.MFOwnerID,
 			},
 			expectedPolicy: policies.Policy{
 				Name:        nameID,
-				Description: policyTestDescription.Description,
+				Description: policyTestDescriptionAttribute.Description,
 			},
 			token: token,
 			err:   nil,
@@ -310,6 +311,23 @@ func TestEditPolicy(t *testing.T) {
 			expectedPolicy: policies.Policy{
 				Name:        nameID,
 				Description: &emptyDescription,
+			},
+			token: token,
+			err:   nil,
+		},
+		"update just tags of na existing policy": {
+			policy: policies.Policy{
+				ID: policyTestTagsAttribute.ID,
+				OrbTags: types.Tags{
+					"tags": "true",
+				},
+			},
+			expectedPolicy: policies.Policy{
+				Name: policyTestTagsAttribute.Name,
+				OrbTags: types.Tags{
+					"tags": "true",
+				},
+				Description: policyTestTagsAttribute.Description,
 			},
 			token: token,
 			err:   nil,

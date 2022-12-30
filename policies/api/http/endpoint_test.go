@@ -467,6 +467,17 @@ func TestPolicyEdition(t *testing.T) {
 				Name: "mypktvisorpolicyyaml-3",
 			}),
 		},
+		"update just tags of an existing policy": {
+			id:          policyTestAttributeDeletion.ID,
+			contentType: "application/json",
+			auth:        token,
+			status:      http.StatusOK,
+			data: toJSON(updatePolicyReq{
+				Tags: types.Tags{
+					"test": "tags",
+				},
+			}),
+		},
 	}
 
 	for desc, tc := range cases {
