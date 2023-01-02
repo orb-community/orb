@@ -797,7 +797,7 @@ Scenario: agent netprobe with mixed tags subscription to a group with policies c
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @config_file @netprobe @oi
+@smoke @config_file @netprobe
 Scenario: agent netprobe with only agent tags subscription to a group with policies created after provision the agent (config file - auto_provision=false)
     Given the Orb user has a registered account
         And the Orb user logs in
