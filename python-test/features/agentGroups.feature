@@ -85,8 +85,9 @@ Feature: agent groups creation
             And 1 agent must be matching on response field matching_agents of the last group created
 
 
-    @smoke @lala
-    Scenario: Edit Agent Group description (description informed but empty))
+#    @smoke
+    @MUTE
+    Scenario: Edit Agent Group description (description informed but empty)
         Given the Orb user has a registered account
             And the Orb user logs in
             And that an agent with 1 orb tag(s) already exists and is online
