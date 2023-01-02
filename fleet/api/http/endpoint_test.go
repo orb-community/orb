@@ -592,7 +592,7 @@ func TestUpdateAgentGroup(t *testing.T) {
 			auth:        token,
 			status:      http.StatusBadRequest,
 		},
-		"update existing agent group without tags": {
+		"update existing agent group with empty tags": {
 			req: toJSON(updateAgentGroupReq{
 				Name:        ag.Name.String(),
 				Description: ag.Description,
@@ -603,10 +603,20 @@ func TestUpdateAgentGroup(t *testing.T) {
 			auth:        token,
 			status:      http.StatusBadRequest,
 		},
-		"update existing agent group without name": {
+		"update existing agent group with omitted name": {
 			req: toJSON(updateAgentGroupReq{
 				Description: ag.Description,
 				Tags:        ag.Tags,
+			}),
+			id:          ag.ID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusOK,
+		},
+		"update existing agent group with omitted tags": {
+			req: toJSON(updateAgentGroupReq{
+				Name:        ag.Name.String(),
+				Description: ag.Description,
 			}),
 			id:          ag.ID,
 			contentType: contentType,

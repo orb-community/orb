@@ -125,6 +125,16 @@ func (svc fleetService) EditAgentGroup(ctx context.Context, token string, group 
 		group.Name = currentAgentGroup.Name
 	}
 
+	if group.Description == "" {
+		group.Description = currentAgentGroup.Description
+	}
+
+	if group.Tags == nil {
+		group.Tags = currentAgentGroup.Tags
+	} else if len(group.Tags) == 0 {
+		return AgentGroup{}, errors.ErrMalformedEntity
+	}
+
 	ag, err := svc.agentGroupRepository.Update(ctx, ownerID, group)
 	if err != nil {
 		return AgentGroup{}, err

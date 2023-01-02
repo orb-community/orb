@@ -22,7 +22,10 @@ import {
 } from '@swimlane/ngx-datatable';
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
+import { DatasetPoliciesService } from 'app/common/services/dataset/dataset.policies.service';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { DatasetFromComponent, DATASET_RESPONSE } from 'app/pages/datasets/dataset-from/dataset-from.component';
+import { DatasetDeleteComponent } from 'app/pages/datasets/delete/dataset.delete.component';
 import { AgentGroupDetailsComponent } from 'app/pages/fleet/groups/details/agent.group.details.component';
 import { SinkDetailsComponent } from 'app/pages/sinks/details/sink.details.component';
 import { Subscription } from 'rxjs';
@@ -61,7 +64,7 @@ export class PolicyDatasetsComponent
   ];
 
   // templates
-  @ViewChild('nameTemplateCell') nameTemplateCell: TemplateRef<any>;
+  @ViewChild('actionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
 
   @ViewChild('groupTemplateCell') groupTemplateCell: TemplateRef<any>;
 
@@ -80,7 +83,9 @@ export class PolicyDatasetsComponent
     private cdr: ChangeDetectorRef,
     protected router: Router,
     protected route: ActivatedRoute,
-  ) {
+    protected datasetService: DatasetPoliciesService,
+    private notificationsService: NotificationsService,
+    ) {
     this.refreshPolicy = new EventEmitter<string>();
     this.datasets = [];
     this.errors = {};
@@ -97,10 +102,10 @@ export class PolicyDatasetsComponent
         name: 'Agent Group',
         resizeable: false,
         canAutoResize: true,
-        minWidth: 90,
-        width: 150,
-        maxWidth: 250,
-        flexGrow: 5,
+        minWidth: 200,
+        width: 250,
+        maxWidth: 300,
+        flexGrow: 2,
         cellTemplate: this.groupTemplateCell,
       },
       {
@@ -111,7 +116,7 @@ export class PolicyDatasetsComponent
         minWidth: 65,
         width: 80,
         maxWidth: 100,
-        flexGrow: 2,
+        flexGrow: 0,
         cellTemplate: this.validTemplateCell,
       },
       {
@@ -119,11 +124,20 @@ export class PolicyDatasetsComponent
         name: 'Sinks',
         resizeable: false,
         canAutoResize: true,
-        minWidth: 200,
+        minWidth: 250,
         width: 300,
         maxWidth: 500,
-        flexGrow: 6,
+        flexGrow: 4,
         cellTemplate: this.sinksTemplateCell,
+      },
+      {
+        name: '',
+        prop: 'actions',
+        minWidth: 100,
+        resizeable: false,
+        sortable: false,
+        flexGrow: 0,
+        cellTemplate: this.actionsTemplateCell,
       },
     ];
 
@@ -225,6 +239,27 @@ export class PolicyDatasetsComponent
       relativeTo: this.route,
       state: { sink: sink, edit: true },
     });
+  }
+
+  openDeleteModal(row: any) {
+    const { name, id } = row;
+    this.dialogService
+      .open(DatasetDeleteComponent, {
+        context: { name },
+        autoFocus: true,
+        closeOnEsc: true,
+      })
+      .onClose.subscribe((confirm) => {
+        if (confirm) {
+          this.datasetService.deleteDataset(id).subscribe(() => {
+            this.notificationsService.success(
+              'Dataset successfully deleted',
+              '',
+            );
+          });
+          this.refreshPolicy.emit('refresh-from-dataset');
+        }
+      });
   }
 
   ngOnDestroy() {
