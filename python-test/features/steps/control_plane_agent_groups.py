@@ -15,6 +15,7 @@ configs = TestConfig.configs()
 agent_group_name_prefix = 'test_group_name_'
 agent_group_description = "This is an agent group"
 orb_url = configs.get('orb_url')
+verify_ssl_bool = eval(configs.get('verify_ssl').title())
 
 
 @step("{amount_of_agent_groups} Agent Group(s) is created with {amount_of_tags} tags contained in the agent")
@@ -68,7 +69,8 @@ def create_new_agent_group(context, amount_of_agent_groups, orb_tags, **kwargs):
     for group in range(int(amount_of_agent_groups)):
         agent_group_name = generate_random_string_with_predefined_prefix(agent_group_name_prefix)
         if len(context.orb_tags) == 0:
-            create_agent_group(context.token, agent_group_name, group_description, context.orb_tags, 400)
+            context.agent_group_data = create_agent_group(context.token, agent_group_name, group_description,
+                                                          context.orb_tags, 400)
         else:
             agent_group_data = generate_group_with_valid_json(context.token, agent_group_name, group_description,
                                                               context.orb_tags, context.agent_groups)
@@ -92,9 +94,58 @@ def create_agent_group_with_defined_description_and_matching_agent(context, amou
     if description == "without":
         create_agent_group_matching_agent(context, amount_of_agent_groups, "all", group_description=None)
     else:
-        description = description.replace('"', '')
-        description = description.replace(' as', '')
+        if description == "with":
+            description = f"test agent group description {random_string()}"
+        else:
+            description = description.replace('"', '')
+            description = description.replace(' as', '')
         create_agent_group_matching_agent(context, amount_of_agent_groups, "all", group_description=description)
+
+
+@step("{group_order} agent group {edited_parameter} must be empty")
+def check_if_value_is_empty_after_editing(context, group_order, edited_parameter):
+    agent_group_id = get_group_by_order(group_order, list(context.agent_groups.keys()))
+    group_after_editing = get_agent_group(context.token, agent_group_id)
+    if edited_parameter in group_after_editing.keys():
+        assert_that(group_after_editing[edited_parameter], equal_to(any_of(None, "", {})),
+                    f"Agent group {edited_parameter} must be empty, but is not. "
+                    f"Group after editing: {group_after_editing}")
+    else:
+        assert_that(edited_parameter, is_in(context.group_before_editing.keys()), f"{edited_parameter} "
+                                                                                  f" was not already present in group "
+                                                                                  f"before editing. Before editing: "
+                                                                                  f"{context.group_before_editing}\n. "
+                                                                                  f"After Editing: "
+                                                                                  f"{group_after_editing}\n")
+        assert_that(edited_parameter, not_(is_in(group_after_editing.keys())), f"{edited_parameter} must be empty, but "
+                                                                               f"is present in group with non empty "
+                                                                               f"values after editing. Before "
+                                                                               f"editing: "
+                                                                               f"{context.group_before_editing}\n. "
+                                                                               f"After Editing: "
+                                                                               f"{group_after_editing}\n")
+
+
+@step("{group_order} agent group {edited_parameter} must remain the same")
+def check_if_value_is_the_same_as_before(context, group_order, edited_parameter):
+    agent_group_id = get_group_by_order(group_order, list(context.agent_groups.keys()))
+    group_after_editing = get_agent_group(context.token, agent_group_id)
+    if edited_parameter in context.group_before_editing.keys() and edited_parameter in group_after_editing.keys():
+        assert_that(context.group_before_editing[edited_parameter], equal_to(group_after_editing[edited_parameter]),
+                    f"Agent group {edited_parameter} has different value than before editing. Group before editing: "
+                    f"{context.group_before_editing}. Group after editing: {group_after_editing}")
+    else:
+        assert_that(edited_parameter, is_in(context.group_before_editing.keys()), f"{edited_parameter} "
+                                                                                  f"not present in group before "
+                                                                                  f"editing. Before editing: "
+                                                                                  f"{context.group_before_editing}\n. "
+                                                                                  f"After Editing: "
+                                                                                  f"{group_after_editing}\n")
+        assert_that(edited_parameter, is_in(group_after_editing.keys()), f"{edited_parameter} not present in group "
+                                                                         f"after editing. Before editing: "
+                                                                         f"{context.group_before_editing}\n. "
+                                                                         f"After Editing: "
+                                                                         f"{group_after_editing}\n")
 
 
 @step("the {edited_parameters} of {group_order} Agent Group is edited using: {parameters_values}")
@@ -119,14 +170,17 @@ def edit_multiple_groups_parameters(context, edited_parameters, group_order, par
     editing_param_dict = dict()
     for param in parameters_values:
         param_split = param.split("=")
-        if param_split[1].lower() == "none":
+        if param_split[1].lower() == "empty":
+            param_split[1] = {}
+        elif param_split[1].lower() == "omitted":
             param_split[1] = None
         editing_param_dict[param_split[0]] = param_split[1]
 
     assert_that(set(editing_param_dict.keys()), equal_to(set(edited_parameters)),
                 "All parameter must have referenced value")
 
-    if "tags" in editing_param_dict.keys() and editing_param_dict["tags"] is not None:
+    if "tags" in editing_param_dict.keys() and editing_param_dict["tags"] is not None and editing_param_dict["tags"] \
+            != {}:
         if re.match(r"matching (\d+|all|the) agent*", editing_param_dict["tags"]):
             # todo improve logic for multiple agents
             editing_param_dict["tags"] = context.agent["orb_tags"]
@@ -135,7 +189,8 @@ def edit_multiple_groups_parameters(context, edited_parameters, group_order, par
         else:
             editing_param_dict["tags"] = create_tags_set(editing_param_dict["tags"])
     expected_status_code = 200
-    if "name" in editing_param_dict.keys() and editing_param_dict["name"] is not None:
+    if "name" in editing_param_dict.keys() and editing_param_dict["name"] is not None and editing_param_dict["name"] \
+            != {}:
         if editing_param_dict['name'] == "conflict":
             agent_group_name = list(context.agent_groups.values())[-1]
             editing_param_dict["name"] = agent_group_name
@@ -146,14 +201,18 @@ def edit_multiple_groups_parameters(context, edited_parameters, group_order, par
     for parameter, value in editing_param_dict.items():
         group_data[parameter] = value
 
-    context.editing_response = edit_agent_group(context.token, agent_groups_id, group_data["name"],
-                                                group_data["description"], group_data["tags"],
-                                                expected_status_code=expected_status_code)
+    context.group_before_editing = get_agent_group(context.token, agent_groups_id)
+    context.editing_response, real_status_code = edit_agent_group(context.token, agent_groups_id, group_data["name"],
+                                                                  group_data["description"], group_data["tags"],
+                                                                  expected_status_code=expected_status_code)
+    if real_status_code >= 300 or real_status_code < 200:
+        context.error_message = context.editing_response
 
 
 @then("agent group editing must fail")
 def fail_group_editing(context):
-    assert_that(list(context.editing_response.keys())[0], equal_to("error"))
+    assert_that(list(context.editing_response.keys())[0], equal_to("error"), f"Agent group editing process was supposed"
+                                                                             f" to fail, but didn't.")
 
 
 @step("Agent Group creation response must be an error with message '{message}'")
@@ -261,7 +320,8 @@ def create_agent_group(token, name, description, tags, expected_status_code=201)
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
     if expected_status_code == 201:
         assert_that(len(tags), greater_than(0), f"Tags is required to created a group. Json used: {json_request}")
-    response = requests.post(orb_url + '/api/v1/agent_groups', json=json_request, headers=headers_request)
+    response = requests.post(orb_url + '/api/v1/agent_groups', json=json_request, headers=headers_request,
+                             verify=verify_ssl_bool)
     try:
         response_json = response.json()
     except ValueError:
@@ -283,7 +343,7 @@ def get_agent_group(token, agent_group_id):
     """
 
     get_groups_response = requests.get(orb_url + '/api/v1/agent_groups/' + agent_group_id,
-                                       headers={'Authorization': f'Bearer {token}'})
+                                       headers={'Authorization': f'Bearer {token}'}, verify=verify_ssl_bool)
 
     assert_that(get_groups_response.status_code, equal_to(200),
                 'Request to get agent group id=' + agent_group_id + ' failed with status=' + str(
@@ -324,7 +384,7 @@ def list_up_to_limit_agent_groups(token, limit=100, offset=0):
     """
 
     response = requests.get(orb_url + '/api/v1/agent_groups', headers={'Authorization': f'Bearer {token}'},
-                            params={"limit": limit, "offset": offset})
+                            params={"limit": limit, "offset": offset}, verify=verify_ssl_bool)
 
     assert_that(response.status_code, equal_to(200),
                 'Request to list agent groups failed with status=' + str(response.status_code))
@@ -354,7 +414,7 @@ def delete_agent_group(token, agent_group_id):
     """
 
     response = requests.delete(orb_url + '/api/v1/agent_groups/' + agent_group_id,
-                               headers={'Authorization': f'Bearer {token}'})
+                               headers={'Authorization': f'Bearer {token}'}, verify=verify_ssl_bool)
 
     assert_that(response.status_code, equal_to(204), 'Request to delete agent group id='
                 + agent_group_id + ' failed with status=' + str(response.status_code))
@@ -395,23 +455,31 @@ def edit_agent_group(token, agent_group_id, name, description, tags, expected_st
     :returns: (dict) the edited agent group
     """
 
+    if description == {}:
+        description = ""
+
     json_request = {"name": name, "description": description, "tags": tags,
                     "validate_only": False}
-    json_request = {parameter: value for parameter, value in json_request.items() if value}
+    json_request = {parameter: value for parameter, value in json_request.items() if value is not None}
 
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
 
     group_edited_response = requests.put(orb_url + '/api/v1/agent_groups/' + agent_group_id, json=json_request,
-                                         headers=headers_request)
+                                         headers=headers_request, verify=verify_ssl_bool)
 
-    if name is None or tags is None:
+    if tags == {} or name == {}:
         expected_status_code = 400
     assert_that(group_edited_response.status_code, equal_to(expected_status_code),
                 'Request to edit agent group failed with status=' + "status code =" +
                 str(group_edited_response.status_code) + "response =" + str(group_edited_response.json()) +
                 " json used: " + str(json_request))
 
-    return group_edited_response.json()
+    try:
+        response_json = group_edited_response.json()
+    except ValueError:
+        response_json = ValueError
+
+    return response_json, group_edited_response.status_code
 
 
 def return_matching_groups(token, existing_agent_groups, agent_json):
@@ -484,3 +552,17 @@ def generate_group_with_valid_json(token, agent_group_name, group_description, t
     is_schema_valid = validate_json(agent_group_data, agent_group_schema_path)
     assert_that(is_schema_valid, equal_to(True), f"Invalid group json. \n Group = {agent_group_data}")
     return agent_group_data
+
+
+def get_group_by_order(group_order, agent_groups_ids):
+    """
+
+    :param group_order: first, second or last group created
+    :param agent_groups_ids: list of all agent groups ids created on test process
+    :return: id of group
+    """
+    assert_that(group_order, any_of(equal_to("first"), equal_to("second"), equal_to("last")),
+                "Unexpected value for group.")
+    order_convert = {"first": 0, "last": -1, "second": 1}
+    agent_group_id = agent_groups_ids[order_convert[group_order]]
+    return agent_group_id
