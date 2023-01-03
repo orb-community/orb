@@ -28,6 +28,7 @@ type maestroService struct {
 	serviceCancelFunc context.CancelFunc
 
 	kubecontrol kubecontrol.Service
+	monitor     Service
 	logger      *zap.Logger
 	redisClient *redis.Client
 	sinksClient sinkspb.SinkServiceClient
@@ -39,11 +40,13 @@ type maestroService struct {
 func NewMaestroService(logger *zap.Logger, redisClient *redis.Client, sinksGrpcClient sinkspb.SinkServiceClient, esCfg config.EsConfig, otelCfg config.OtelConfig) Service {
 	kubectr := kubecontrol.NewService(logger)
 	eventStore := rediscons1.NewEventStore(redisClient, otelCfg.KafkaUrl, kubectr, esCfg.Consumer, sinksGrpcClient, logger)
+	monitor := kubecontrol.NewMonitorService(logger, redisClient, &kubectr)
 	return &maestroService{
 		logger:      logger,
 		redisClient: redisClient,
 		sinksClient: sinksGrpcClient,
 		kubecontrol: kubectr,
+		monitor:     monitor,
 		eventStore:  eventStore,
 		kafkaUrl:    otelCfg.KafkaUrl,
 	}
@@ -104,6 +107,14 @@ func (svc *maestroService) Start(ctx context.Context, cancelFunction context.Can
 
 	go svc.subscribeToSinksES(ctx)
 	go svc.subscribeToSinkerES(ctx)
+
+	monitorCtx := context.WithValue(ctx, "routine", "monitor")
+	err = svc.monitor.Start(monitorCtx, cancelFunction)
+	if err != nil {
+		cancelFunction()
+		return err
+	}
+
 	return nil
 }
 

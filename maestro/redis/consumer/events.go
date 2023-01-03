@@ -25,3 +25,8 @@ type sinkerUpdateEvent struct {
 	state     string
 	timestamp time.Time
 }
+
+type DeploymentEvent struct {
+	SinkID         string
+	DeploymentYaml string
+}
