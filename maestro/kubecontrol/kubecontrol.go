@@ -4,9 +4,11 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"github.com/go-redis/redis/v8"
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 
 	"go.uber.org/zap"
 )
@@ -16,13 +18,12 @@ const namespace = "otelcollectors"
 var _ Service = (*deployService)(nil)
 
 type deployService struct {
-	logger          *zap.Logger
-	deploymentState map[string]bool
+	logger      *zap.Logger
+	redisClient *redis.Client
 }
 
-func NewService(logger *zap.Logger) Service {
-	deploymentState := make(map[string]bool)
-	return &deployService{logger: logger, deploymentState: deploymentState}
+func NewService(logger *zap.Logger, redisClient *redis.Client) Service {
+	return &deployService{logger: logger, redisClient: redisClient}
 }
 
 type Service interface {
@@ -66,20 +67,23 @@ func (svc *deployService) collectorDeploy(ctx context.Context, operation, sinkId
 	fileContent := []byte(manifest)
 	tmp := strings.Split(string(fileContent), "\n")
 	newContent := strings.Join(tmp[1:], "\n")
-
+	status, err := svc.getDeploymentState(ctx, sinkId)
+	if err != nil {
+		return err
+	}
 	if operation == "apply" {
-		if value, ok := svc.getDeploymentState(sinkId); ok && value {
-			svc.logger.Info("Already applied Sink ID=" + sinkId)
+		if status != "deleted" {
+			svc.logger.Info("Already applied Sink ID", zap.String("sinkID", sinkId), zap.String("status", status))
 			return nil
 		}
 	} else if operation == "delete" {
-		if value, ok := svc.getDeploymentState(sinkId); ok && !value {
-			svc.logger.Info("Already deleted Sink ID=" + sinkId)
+		if status == "deleted" {
+			svc.logger.Info("Already deleted Sink ID", zap.String("sinkID", sinkId), zap.String("status", status))
 			return nil
 		}
 	}
 
-	err := os.WriteFile("/tmp/otel-collector-"+sinkId+".json", []byte(newContent), 0644)
+	err = os.WriteFile("/tmp/otel-collector-"+sinkId+".json", []byte(newContent), 0644)
 	if err != nil {
 		svc.logger.Error("failed to write file content", zap.Error(err))
 		return err
@@ -102,16 +106,22 @@ func (svc *deployService) collectorDeploy(ctx context.Context, operation, sinkId
 
 	if err == nil {
 		if operation == "apply" {
-			svc.deploymentState[sinkId] = true
+			err := svc.setNewDeploymentState(ctx, sinkId, "idle")
+			if err != nil {
+				return err
+			}
 		} else if operation == "delete" {
-			svc.deploymentState[sinkId] = false
+			err := svc.setNewDeploymentState(ctx, sinkId, "idle")
+			if err != nil {
+				return err
+			}
 		}
 	}
 
 	return nil
 }
 
-func execCmd(ctx context.Context, cmd *exec.Cmd, logger *zap.Logger, stdOutFunc func(stdOut *bufio.Scanner, stdErr *bufio.Scanner)) (*bufio.Scanner, *bufio.Scanner, error) {
+func execCmd(_ context.Context, cmd *exec.Cmd, logger *zap.Logger, stdOutFunc func(stdOut *bufio.Scanner, stdErr *bufio.Scanner)) (*bufio.Scanner, *bufio.Scanner, error) {
 	stdoutReader, _ := cmd.StdoutPipe()
 	stdoutScanner := bufio.NewScanner(stdoutReader)
 	stderrReader, _ := cmd.StderrPipe()
@@ -130,17 +140,52 @@ func execCmd(ctx context.Context, cmd *exec.Cmd, logger *zap.Logger, stdOutFunc 
 	return stdoutScanner, stderrScanner, err
 }
 
-func (svc *deployService) getDeploymentState(sinkId string) (bool, bool) {
-	value, ok := svc.deploymentState[sinkId]
-	return value, ok
+func (svc *deployService) getDeploymentState(ctx context.Context, sinkId string) (string, error) {
+	key := CollectorStatusKey + "." + sinkId
+	args := redis.ZRangeArgs{
+		Key:     key,
+		Start:   nil,
+		Stop:    nil,
+		ByScore: false,
+		ByLex:   false,
+		Rev:     false,
+		Offset:  0,
+		Count:   0,
+	}
+	cmd := svc.redisClient.ZRangeArgsWithScores(ctx, args)
+	slice, err := cmd.Result()
+	if err != nil {
+		return "", cmd.Err()
+	}
+	svc.logger.Info("debug returned slice", zap.Any("slice", slice))
+	value := slice[0]
+	entry := value.Member.(CollectorStatusSortedSetEntry)
+	return entry.Status, nil
+}
+
+func (svc *deployService) setNewDeploymentState(ctx context.Context, sinkId, state string) error {
+	key := CollectorStatusKey + "." + sinkId
+	entry := redis.Z{
+		Score: float64(time.Now().Unix()),
+		Member: CollectorStatusSortedSetEntry{
+			SinkId:       sinkId,
+			Status:       "idle",
+			ErrorMessage: nil,
+		},
+	}
+	intCmd := svc.redisClient.ZAdd(ctx, key, &entry)
+	if intCmd.Err() != nil {
+		return intCmd.Err()
+	}
+	return nil
 }
 
 func (svc *deployService) CreateOtelCollector(ctx context.Context, sinkID, deploymentEntry string) error {
 	err := svc.collectorDeploy(ctx, "apply", sinkID, deploymentEntry)
-
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 

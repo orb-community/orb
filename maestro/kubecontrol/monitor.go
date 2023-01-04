@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/go-redis/redis/v8"
-	"github.com/ns1labs/orb/maestro"
 	"go.uber.org/zap"
 	"time"
 )
@@ -12,12 +11,16 @@ import (
 const MonitorFixedDuration = 1 * time.Minute
 const TimeDiffForFetchingLogs = 5 * time.Minute
 
-func NewMonitorService(logger *zap.Logger, redis *redis.Client, kubecontrol *Service) maestro.Service {
+func NewMonitorService(logger *zap.Logger, redis *redis.Client, kubecontrol *Service) MonitorService {
 	return &monitorService{
 		logger:      logger,
 		redisClient: redis,
 		kubecontrol: *kubecontrol,
 	}
+}
+
+type MonitorService interface {
+	Start(ctx context.Context, cancelFunc context.CancelFunc) error
 }
 
 type monitorService struct {
@@ -29,10 +32,10 @@ type monitorService struct {
 func (svc *monitorService) Start(ctx context.Context, cancelFunc context.CancelFunc) error {
 	go func() {
 		ticker := time.NewTicker(MonitorFixedDuration)
-		svc.logger.Debug("start monitor routine", zap.Any("routine", ctx.Value("#routine")))
+		svc.logger.Info("start monitor routine", zap.Any("routine", ctx))
 		defer func() {
 			cancelFunc()
-			svc.logger.Debug("stopping monitor routine")
+			svc.logger.Info("stopping monitor routine")
 		}()
 		for {
 			select {
@@ -40,6 +43,7 @@ func (svc *monitorService) Start(ctx context.Context, cancelFunc context.CancelF
 				cancelFunc()
 				return
 			case _ = <-ticker.C:
+				svc.logger.Info("monitoring sinks")
 				svc.monitorSinks(ctx)
 			}
 		}
@@ -58,6 +62,7 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 		svc.logger.Error("error collecting collectors keys", zap.Error(queryCmd.Err()))
 		return
 	}
+	svc.logger.Info("reading logs from collectors", zap.Int("collectors_length", len(collectorSlice)))
 	for _, collectorJson := range collectorSlice {
 		var collector CollectorStatusSortedSetEntry
 		err = json.Unmarshal([]byte(collectorJson), &collector)
@@ -81,5 +86,6 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 
 // WIP
 func analyzeLogs(logEntry []string) (string, error) {
+
 	return "active", nil
 }

@@ -28,7 +28,7 @@ type maestroService struct {
 	serviceCancelFunc context.CancelFunc
 
 	kubecontrol kubecontrol.Service
-	monitor     Service
+	monitor     kubecontrol.MonitorService
 	logger      *zap.Logger
 	redisClient *redis.Client
 	sinksClient sinkspb.SinkServiceClient
