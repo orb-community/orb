@@ -192,6 +192,7 @@ func TestEditPolicy(t *testing.T) {
 	policy := createPolicy(t, svc, "policy")
 	policyTestDescriptionAttribute := createPolicy(t, svc, "policyDescription")
 	policyTestTagsAttribute := createPolicy(t, svc, "policyTags")
+	policyTestTagsAttributeDeletion := createPolicy(t, svc, "policyTags2")
 
 	nameID, err := types.NewIdentifier("new-policy")
 	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
@@ -230,6 +231,7 @@ func TestEditPolicy(t *testing.T) {
 				PolicyData:  policy_data,
 				Format:      format,
 				Description: &newDescription,
+				OrbTags:     policy.OrbTags,
 			},
 			token: token,
 			err:   nil,
@@ -291,12 +293,12 @@ func TestEditPolicy(t *testing.T) {
 		"update a existing policy with omitted description": {
 			policy: policies.Policy{
 				ID:        policyTestDescriptionAttribute.ID,
-				Name:      nameID,
 				MFOwnerID: policy.MFOwnerID,
 			},
 			expectedPolicy: policies.Policy{
-				Name:        nameID,
+				Name:        policyTestDescriptionAttribute.Name,
 				Description: policyTestDescriptionAttribute.Description,
+				OrbTags:     policyTestDescriptionAttribute.OrbTags,
 			},
 			token: token,
 			err:   nil,
@@ -311,6 +313,7 @@ func TestEditPolicy(t *testing.T) {
 			expectedPolicy: policies.Policy{
 				Name:        nameID,
 				Description: &emptyDescription,
+				OrbTags:     policy.OrbTags,
 			},
 			token: token,
 			err:   nil,
@@ -334,13 +337,13 @@ func TestEditPolicy(t *testing.T) {
 		},
 		"update a existing policy with empty tags": {
 			policy: policies.Policy{
-				ID:      policy.ID,
+				ID:      policyTestTagsAttributeDeletion.ID,
 				OrbTags: types.Tags{},
 			},
 			expectedPolicy: policies.Policy{
-				Name:        policy.Name,
+				Name:        policyTestTagsAttributeDeletion.Name,
 				OrbTags:     types.Tags{},
-				Description: policy.Description,
+				Description: policyTestTagsAttributeDeletion.Description,
 			},
 			token: token,
 			err:   nil,
@@ -364,8 +367,8 @@ func TestEditPolicy(t *testing.T) {
 			res, err := svc.EditPolicy(context.Background(), tc.token, tc.policy)
 			if err == nil {
 				assert.Equal(t, tc.expectedPolicy.Name.String(), res.Name.String(), fmt.Sprintf("%s: expected name %s got %s", desc, tc.expectedPolicy.Name.String(), res.Name.String()))
-				assert.Equal(t, *tc.expectedPolicy.Description, *res.Description, fmt.Sprintf("%s: expected name %s got %s", desc, *tc.expectedPolicy.Description, *res.Description))
-				assert.Equal(t, tc.expectedPolicy.OrbTags, res.OrbTags, fmt.Sprintf("%s: expected name %s got %s", desc, tc.expectedPolicy.OrbTags, res.OrbTags))
+				assert.Equal(t, *tc.expectedPolicy.Description, *res.Description, fmt.Sprintf("%s: expected description %s got %s", desc, *tc.expectedPolicy.Description, *res.Description))
+				assert.Equal(t, tc.expectedPolicy.OrbTags, res.OrbTags, fmt.Sprintf("%s: expected tags %s got %s", desc, tc.expectedPolicy.OrbTags, res.OrbTags))
 			}
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected error %d got %d", desc, tc.err, err))
 		})
