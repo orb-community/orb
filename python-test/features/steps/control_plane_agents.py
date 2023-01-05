@@ -373,6 +373,7 @@ def provision_agent_using_config_file(context, input_type, settings, provision, 
     assert_that(agent_started, equal_to(True), f"Log {log} not found on agent logs. Agent Name: {agent_name}.\n"
                                                f"Logs:{logs}")
     context.agent, is_agent_created = check_agent_exists_on_backend(context.token, agent_name, timeout=60)
+    logs = get_orb_agent_logs(context.container_id)
     assert_that(is_agent_created, equal_to(True), f"Agent {agent_name} not found in /agents route."
                                                   f"\n Config File (json converted): {safe_config_file}."
                                                   f"\nLogs: {logs}.")
