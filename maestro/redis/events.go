@@ -5,18 +5,18 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
-package consumer
+package redis
 
 import (
 	"github.com/ns1labs/orb/pkg/types"
 	"time"
 )
 
-type sinksUpdateEvent struct {
-	sinkID    string
-	owner     string
-	config    types.Metadata
-	timestamp time.Time
+type SinksUpdateEvent struct {
+	SinkID    string
+	Owner     string
+	Config    types.Metadata
+	Timestamp time.Time
 }
 
 type SinkerUpdateEvent struct {

@@ -3,7 +3,7 @@ package kubecontrol
 import (
 	"context"
 	"github.com/go-redis/redis/v8"
-	rediscons1 "github.com/ns1labs/orb/maestro/redis/consumer"
+	rediscons1 "github.com/ns1labs/orb/maestro/redis"
 	sinkspb "github.com/ns1labs/orb/sinks/pb"
 	"go.uber.org/zap"
 	"time"

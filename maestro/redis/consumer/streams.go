@@ -3,6 +3,7 @@ package consumer
 import (
 	"context"
 	"github.com/ns1labs/orb/maestro/kubecontrol"
+	redis2 "github.com/ns1labs/orb/maestro/redis"
 	"github.com/ns1labs/orb/pkg/types"
 	sinkspb "github.com/ns1labs/orb/sinks/pb"
 	"time"
@@ -142,7 +143,7 @@ func (es eventStore) SubscribeSinks(context context.Context) error {
 }
 
 // handleSinkerDeleteCollector Delete collector
-func (es eventStore) handleSinkerDeleteCollector(ctx context.Context, event SinkerUpdateEvent) error {
+func (es eventStore) handleSinkerDeleteCollector(ctx context.Context, event redis2.SinkerUpdateEvent) error {
 	es.logger.Info("Received maestro DELETE event from sinker, sink state", zap.String("state", event.State), zap.String("sinkdID", event.SinkID), zap.String("ownerID", event.Owner))
 	deployment, err := es.GetDeploymentEntryFromSinkId(ctx, event.SinkID)
 	if err != nil {
@@ -156,7 +157,7 @@ func (es eventStore) handleSinkerDeleteCollector(ctx context.Context, event Sink
 }
 
 // handleSinkerCreateCollector Create collector
-func (es eventStore) handleSinkerCreateCollector(ctx context.Context, event SinkerUpdateEvent) error {
+func (es eventStore) handleSinkerCreateCollector(ctx context.Context, event redis2.SinkerUpdateEvent) error {
 	es.logger.Info("Received maestro CREATE event from sinker, sink state", zap.String("state", event.State), zap.String("sinkdID", event.SinkID), zap.String("ownerID", event.Owner))
 	deploymentEntry, err := es.GetDeploymentEntryFromSinkId(ctx, event.SinkID)
 	if err != nil {
@@ -169,8 +170,8 @@ func (es eventStore) handleSinkerCreateCollector(ctx context.Context, event Sink
 	return nil
 }
 
-func decodeSinkerStateUpdate(event map[string]interface{}) SinkerUpdateEvent {
-	val := SinkerUpdateEvent{
+func decodeSinkerStateUpdate(event map[string]interface{}) redis2.SinkerUpdateEvent {
+	val := redis2.SinkerUpdateEvent{
 		Owner:     read(event, "owner", ""),
 		SinkID:    read(event, "sink_id", ""),
 		State:     read(event, "state", ""),
