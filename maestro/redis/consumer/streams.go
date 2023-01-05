@@ -120,12 +120,12 @@ func (es eventStore) SubscribeSinks(context context.Context) error {
 			}
 			switch event["operation"] {
 			case sinksCreate:
-				if v, ok := rte.config["opentelemetry"]; ok && v.(string) == "enabled" {
+				if v, ok := rte.Config["opentelemetry"]; ok && v.(string) == "enabled" {
 					err = es.handleSinksCreateCollector(context, rte) //should create collector
 				}
 
 			case sinksUpdate:
-				if v, ok := rte.config["opentelemetry"]; ok && v.(string) == "enabled" {
+				if v, ok := rte.Config["opentelemetry"]; ok && v.(string) == "enabled" {
 					err = es.handleSinksUpdateCollector(context, rte) //should create collector
 				}
 
