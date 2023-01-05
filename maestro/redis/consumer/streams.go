@@ -78,9 +78,9 @@ func (es eventStore) SubscribeSinker(context context.Context) error {
 			switch event["operation"] {
 			case sinkerUpdate:
 				rte := decodeSinkerStateUpdate(event)
-				if rte.state == "idle" {
+				if rte.State == "idle" {
 					err = es.handleSinkerDeleteCollector(context, rte) //sinker request delete collector
-				} else if rte.state == "active" {
+				} else if rte.State == "active" {
 					err = es.handleSinkerCreateCollector(context, rte) //sinker request create collector
 				}
 			}
@@ -142,13 +142,13 @@ func (es eventStore) SubscribeSinks(context context.Context) error {
 }
 
 // handleSinkerDeleteCollector Delete collector
-func (es eventStore) handleSinkerDeleteCollector(ctx context.Context, event sinkerUpdateEvent) error {
-	es.logger.Info("Received maestro DELETE event from sinker, sink state=" + event.state + ", , Sink ID=" + event.sinkID + ", Owner ID=" + event.ownerID)
-	deployment, err := es.GetDeploymentEntryFromSinkId(ctx, event.sinkID)
+func (es eventStore) handleSinkerDeleteCollector(ctx context.Context, event SinkerUpdateEvent) error {
+	es.logger.Info("Received maestro DELETE event from sinker, sink state", zap.String("state", event.State), zap.String("sinkdID", event.SinkID), zap.String("ownerID", event.Owner))
+	deployment, err := es.GetDeploymentEntryFromSinkId(ctx, event.SinkID)
 	if err != nil {
 		return err
 	}
-	err = es.kubecontrol.DeleteOtelCollector(ctx, event.sinkID, deployment)
+	err = es.kubecontrol.DeleteOtelCollector(ctx, event.Owner, event.SinkID, deployment)
 	if err != nil {
 		return err
 	}
@@ -156,25 +156,25 @@ func (es eventStore) handleSinkerDeleteCollector(ctx context.Context, event sink
 }
 
 // handleSinkerCreateCollector Create collector
-func (es eventStore) handleSinkerCreateCollector(ctx context.Context, event sinkerUpdateEvent) error {
-	es.logger.Info("Received maestro CREATE event from sinker, sink state=" + event.state + ", Sink ID=" + event.sinkID + ", Owner ID=" + event.ownerID)
-	deploymentEntry, err := es.GetDeploymentEntryFromSinkId(ctx, event.sinkID)
+func (es eventStore) handleSinkerCreateCollector(ctx context.Context, event SinkerUpdateEvent) error {
+	es.logger.Info("Received maestro CREATE event from sinker, sink state", zap.String("state", event.State), zap.String("sinkdID", event.SinkID), zap.String("ownerID", event.Owner))
+	deploymentEntry, err := es.GetDeploymentEntryFromSinkId(ctx, event.SinkID)
 	if err != nil {
 		return err
 	}
-	err = es.kubecontrol.CreateOtelCollector(ctx, event.sinkID, deploymentEntry)
+	err = es.kubecontrol.CreateOtelCollector(ctx, event.Owner, event.SinkID, deploymentEntry)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func decodeSinkerStateUpdate(event map[string]interface{}) sinkerUpdateEvent {
-	val := sinkerUpdateEvent{
-		ownerID:   read(event, "owner", ""),
-		sinkID:    read(event, "sink_id", ""),
-		state:     read(event, "state", ""),
-		timestamp: time.Time{},
+func decodeSinkerStateUpdate(event map[string]interface{}) SinkerUpdateEvent {
+	val := SinkerUpdateEvent{
+		Owner:     read(event, "owner", ""),
+		SinkID:    read(event, "sink_id", ""),
+		State:     read(event, "state", ""),
+		Timestamp: time.Time{},
 	}
 	return val
 }

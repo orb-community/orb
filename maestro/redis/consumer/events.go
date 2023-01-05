@@ -19,11 +19,22 @@ type sinksUpdateEvent struct {
 	timestamp time.Time
 }
 
-type sinkerUpdateEvent struct {
-	ownerID   string
-	sinkID    string
-	state     string
-	timestamp time.Time
+type SinkerUpdateEvent struct {
+	SinkID    string
+	Owner     string
+	State     string
+	Msg       string
+	Timestamp time.Time
+}
+
+func (cse SinkerUpdateEvent) Encode() map[string]interface{} {
+	return map[string]interface{}{
+		"sink_id":   cse.SinkID,
+		"owner":     cse.Owner,
+		"state":     cse.State,
+		"msg":       cse.Msg,
+		"timestamp": cse.Timestamp.Unix(),
+	}
 }
 
 type DeploymentEvent struct {

@@ -40,7 +40,7 @@ type maestroService struct {
 func NewMaestroService(logger *zap.Logger, redisClient *redis.Client, sinksGrpcClient sinkspb.SinkServiceClient, esCfg config.EsConfig, otelCfg config.OtelConfig) Service {
 	kubectr := kubecontrol.NewService(logger, redisClient)
 	eventStore := rediscons1.NewEventStore(redisClient, otelCfg.KafkaUrl, kubectr, esCfg.Consumer, sinksGrpcClient, logger)
-	monitor := kubecontrol.NewMonitorService(logger, redisClient, &kubectr)
+	monitor := kubecontrol.NewMonitorService(logger, &sinksGrpcClient, redisClient, &kubectr)
 	return &maestroService{
 		logger:      logger,
 		redisClient: redisClient,
@@ -96,7 +96,7 @@ func (svc *maestroService) Start(ctx context.Context, cancelFunction context.Can
 				svc.logger.Warn("failed to fetch deploymentEntry for sink, skipping", zap.String("sink-id", sinkRes.Id))
 				continue
 			}
-			err = svc.kubecontrol.CreateOtelCollector(sinkContext, sinkRes.Id, deploymentEntry)
+			err = svc.kubecontrol.CreateOtelCollector(sinkContext, sinkRes.OwnerID, sinkRes.Id, deploymentEntry)
 			if err != nil {
 				svc.logger.Warn("failed to deploy OtelCollector for sink, skipping", zap.String("sink-id", sinkRes.Id))
 				continue

@@ -2,19 +2,23 @@ package kubecontrol
 
 import (
 	"context"
-	"encoding/json"
 	"github.com/go-redis/redis/v8"
+	rediscons1 "github.com/ns1labs/orb/maestro/redis/consumer"
+	sinkspb "github.com/ns1labs/orb/sinks/pb"
 	"go.uber.org/zap"
 	"time"
 )
 
+const streamID = "orb.sinker"
+
 const MonitorFixedDuration = 1 * time.Minute
 const TimeDiffForFetchingLogs = 5 * time.Minute
 
-func NewMonitorService(logger *zap.Logger, redis *redis.Client, kubecontrol *Service) MonitorService {
+func NewMonitorService(logger *zap.Logger, sinksClient *sinkspb.SinkServiceClient, redisClient *redis.Client, kubecontrol *Service) MonitorService {
 	return &monitorService{
 		logger:      logger,
-		redisClient: redis,
+		sinksClient: *sinksClient,
+		redisClient: redisClient,
 		kubecontrol: *kubecontrol,
 	}
 }
@@ -25,6 +29,7 @@ type MonitorService interface {
 
 type monitorService struct {
 	logger      *zap.Logger
+	sinksClient sinkspb.SinkServiceClient
 	redisClient *redis.Client
 	kubecontrol Service
 }
@@ -52,31 +57,37 @@ func (svc *monitorService) Start(ctx context.Context, cancelFunc context.CancelF
 }
 
 func (svc *monitorService) monitorSinks(ctx context.Context) {
-	queryCmd := svc.redisClient.ZRange(ctx, CollectorStatusKey, time.Now().Add(-TimeDiffForFetchingLogs).Unix(), 0)
-	if queryCmd.Err() != nil {
-		svc.logger.Error("error collecting collectors keys", zap.Error(queryCmd.Err()))
-		return
-	}
-	collectorSlice, err := queryCmd.Result()
+
+	sinksRes, err := svc.sinksClient.RetrieveSinks(ctx, &sinkspb.SinksFilterReq{OtelEnabled: "enabled"})
 	if err != nil {
-		svc.logger.Error("error collecting collectors keys", zap.Error(queryCmd.Err()))
+		svc.logger.Error("error collecting collectors keys", zap.Error(err))
 		return
 	}
-	svc.logger.Info("reading logs from collectors", zap.Int("collectors_length", len(collectorSlice)))
-	for _, collectorJson := range collectorSlice {
-		var collector CollectorStatusSortedSetEntry
-		err = json.Unmarshal([]byte(collectorJson), &collector)
-		logs, err := svc.kubecontrol.CollectLogs(ctx, collector.SinkId)
+	svc.logger.Info("reading logs from collectors", zap.Int("collectors_length", len(sinksRes.Sinks)))
+	for _, sink := range sinksRes.Sinks {
+		logs, err := svc.kubecontrol.CollectLogs(ctx, sink.OwnerID, sink.Id)
 		if err != nil {
 			return
 		}
 		status, err := analyzeLogs(logs)
-		if status != collector.Status {
-			svc.logger.Info("updating status", zap.Any("before", collector), zap.String("new status", status), zap.String("error_message (opt)", err.Error()))
-			collector.Status = status
+		if status != sink.GetState() {
+			svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("error_message (opt)", err.Error()))
+			event := rediscons1.SinkerUpdateEvent{
+				SinkID:    sink.Id,
+				Owner:     sink.OwnerID,
+				State:     sink.State,
+				Timestamp: time.Now(),
+			}
 			if status == "error" {
-				errorStr := err.Error()
-				collector.ErrorMessage = &errorStr
+				event.Msg = err.Error()
+			}
+			record := &redis.XAddArgs{
+				Stream: streamID,
+				Values: event.Encode(),
+			}
+			err = svc.redisClient.XAdd(context.Background(), record).Err()
+			if err != nil {
+				svc.logger.Error("error sending event to event store", zap.Error(err))
 			}
 		}
 		return

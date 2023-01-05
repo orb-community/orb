@@ -28,19 +28,19 @@ func NewService(logger *zap.Logger, redisClient *redis.Client) Service {
 
 type Service interface {
 	// CreateOtelCollector - create an existing collector by id
-	CreateOtelCollector(ctx context.Context, sinkID, deploymentEntry string) error
+	CreateOtelCollector(ctx context.Context, ownerID, sinkID, deploymentEntry string) error
 
 	// DeleteOtelCollector - delete an existing collector by id
-	DeleteOtelCollector(ctx context.Context, sinkID, deploymentEntry string) error
+	DeleteOtelCollector(ctx context.Context, ownerID, sinkID, deploymentEntry string) error
 
 	// UpdateOtelCollector - update an existing collector by id
-	UpdateOtelCollector(ctx context.Context, sinkID, deploymentEntry string) error
+	UpdateOtelCollector(ctx context.Context, ownerID, sinkID, deploymentEntry string) error
 
 	// CollectLogs - collect logs from the collector by sink-id
-	CollectLogs(ctx context.Context, sinkID string) ([]string, error)
+	CollectLogs(ctx context.Context, ownerID, sinkID string) ([]string, error)
 }
 
-func (svc *deployService) CollectLogs(ctx context.Context, sinkId string) ([]string, error) {
+func (svc *deployService) CollectLogs(ctx context.Context, ownerID, sinkId string) ([]string, error) {
 	cmd := exec.Command("kubectl", "get logs", fmt.Sprintf("otel-collector-%s", sinkId), "-n", namespace)
 	exporterLogs := make([]string, 10)
 	watchLogsFunction := func(out *bufio.Scanner, err *bufio.Scanner) {
@@ -62,23 +62,23 @@ func (svc *deployService) CollectLogs(ctx context.Context, sinkId string) ([]str
 	return exporterLogs, err
 }
 
-func (svc *deployService) collectorDeploy(ctx context.Context, operation, sinkId, manifest string) error {
+func (svc *deployService) collectorDeploy(ctx context.Context, operation, ownerID, sinkId, manifest string) error {
 
 	fileContent := []byte(manifest)
 	tmp := strings.Split(string(fileContent), "\n")
 	newContent := strings.Join(tmp[1:], "\n")
-	status, err := svc.getDeploymentState(ctx, sinkId)
+	status, err := svc.getDeploymentState(ctx, ownerID, sinkId)
 	if err != nil {
 		return err
 	}
 	if operation == "apply" {
 		if status != "deleted" {
-			svc.logger.Info("Already applied Sink ID", zap.String("sinkID", sinkId), zap.String("status", status))
+			svc.logger.Info("Already applied Sink ID", zap.String("ownerID", ownerID), zap.String("sinkID", sinkId), zap.String("status", status))
 			return nil
 		}
 	} else if operation == "delete" {
 		if status == "deleted" {
-			svc.logger.Info("Already deleted Sink ID", zap.String("sinkID", sinkId), zap.String("status", status))
+			svc.logger.Info("Already deleted Sink ID", zap.String("ownerID", ownerID), zap.String("sinkID", sinkId), zap.String("status", status))
 			return nil
 		}
 	}
@@ -106,12 +106,12 @@ func (svc *deployService) collectorDeploy(ctx context.Context, operation, sinkId
 
 	if err == nil {
 		if operation == "apply" {
-			err := svc.setNewDeploymentState(ctx, sinkId, "idle")
+			err := svc.setNewDeploymentState(ctx, ownerID, sinkId, "idle")
 			if err != nil {
 				return err
 			}
 		} else if operation == "delete" {
-			err := svc.setNewDeploymentState(ctx, sinkId, "idle")
+			err := svc.setNewDeploymentState(ctx, ownerID, sinkId, "idle")
 			if err != nil {
 				return err
 			}
@@ -140,7 +140,7 @@ func execCmd(_ context.Context, cmd *exec.Cmd, logger *zap.Logger, stdOutFunc fu
 	return stdoutScanner, stderrScanner, err
 }
 
-func (svc *deployService) getDeploymentState(ctx context.Context, sinkId string) (string, error) {
+func (svc *deployService) getDeploymentState(ctx context.Context, ownerID, sinkId string) (string, error) {
 	key := CollectorStatusKey + "." + sinkId
 	args := redis.ZRangeArgs{
 		Key:     key,
@@ -163,12 +163,12 @@ func (svc *deployService) getDeploymentState(ctx context.Context, sinkId string)
 	return entry.Status, nil
 }
 
-func (svc *deployService) setNewDeploymentState(ctx context.Context, sinkId, state string) error {
+func (svc *deployService) setNewDeploymentState(ctx context.Context, ownerID, sinkId, state string) error {
 	key := CollectorStatusKey + "." + sinkId
 	entry := redis.Z{
 		Score: float64(time.Now().Unix()),
 		Member: CollectorStatusSortedSetEntry{
-			SinkId:       sinkId,
+			SinkID:       sinkId,
 			Status:       "idle",
 			ErrorMessage: nil,
 		},
@@ -180,8 +180,8 @@ func (svc *deployService) setNewDeploymentState(ctx context.Context, sinkId, sta
 	return nil
 }
 
-func (svc *deployService) CreateOtelCollector(ctx context.Context, sinkID, deploymentEntry string) error {
-	err := svc.collectorDeploy(ctx, "apply", sinkID, deploymentEntry)
+func (svc *deployService) CreateOtelCollector(ctx context.Context, ownerID, sinkID, deploymentEntry string) error {
+	err := svc.collectorDeploy(ctx, "apply", ownerID, sinkID, deploymentEntry)
 	if err != nil {
 		return err
 	}
@@ -189,20 +189,20 @@ func (svc *deployService) CreateOtelCollector(ctx context.Context, sinkID, deplo
 	return nil
 }
 
-func (svc *deployService) UpdateOtelCollector(ctx context.Context, sinkID, deploymentEntry string) error {
-	err := svc.DeleteOtelCollector(ctx, sinkID, deploymentEntry)
+func (svc *deployService) UpdateOtelCollector(ctx context.Context, ownerID, sinkID, deploymentEntry string) error {
+	err := svc.DeleteOtelCollector(ctx, ownerID, sinkID, deploymentEntry)
 	if err != nil {
 		return err
 	}
-	err = svc.CreateOtelCollector(ctx, sinkID, deploymentEntry)
+	err = svc.CreateOtelCollector(ctx, ownerID, sinkID, deploymentEntry)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (svc *deployService) DeleteOtelCollector(ctx context.Context, sinkID, deploymentEntry string) error {
-	err := svc.collectorDeploy(ctx, "delete", sinkID, deploymentEntry)
+func (svc *deployService) DeleteOtelCollector(ctx context.Context, ownerID, sinkID, deploymentEntry string) error {
+	err := svc.collectorDeploy(ctx, "delete", ownerID, sinkID, deploymentEntry)
 	if err != nil {
 		return err
 	}

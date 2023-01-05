@@ -29,7 +29,7 @@ func (es eventStore) handleSinksDeleteCollector(ctx context.Context, event sinks
 		es.logger.Error("did not find collector entry for sink", zap.String("sink-id", event.sinkID))
 		return err
 	}
-	err = es.kubecontrol.DeleteOtelCollector(ctx, event.sinkID, deployment)
+	err = es.kubecontrol.DeleteOtelCollector(ctx, event.owner, event.sinkID, deployment)
 	if err != nil {
 		return err
 	}
@@ -96,7 +96,7 @@ func (es eventStore) handleSinksUpdateCollector(ctx context.Context, event sinks
 		return err
 	}
 	es.client.HSet(ctx, deploymentKey, event.sinkID, deploy)
-	err = es.kubecontrol.UpdateOtelCollector(ctx, event.sinkID, deploy)
+	err = es.kubecontrol.UpdateOtelCollector(ctx, event.owner, event.sinkID, deploy)
 	if err != nil {
 		return err
 	}
