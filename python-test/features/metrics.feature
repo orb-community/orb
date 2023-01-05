@@ -3,7 +3,7 @@ Feature: Integration tests validating metric groups
 
 #### netprobe
 
-@smoke @metric_groups @metrics_netprobe
+@sanity @metric_groups @metrics_netprobe
 Scenario: netprobe handler with default metric groups configuration
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -22,7 +22,7 @@ Scenario: netprobe handler with default metric groups configuration
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_netprobe
+@sanity @metric_groups @metrics_netprobe
 Scenario: netprobe handler with all metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -41,7 +41,7 @@ Scenario: netprobe handler with all metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_netprobe
+@sanity @metric_groups @metrics_netprobe
 Scenario: netprobe handler with all metric groups disabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -60,7 +60,7 @@ Scenario: netprobe handler with all metric groups disabled
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_netprobe
+@sanity @metric_groups @metrics_netprobe
 Scenario: netprobe handler with only counters metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -79,7 +79,7 @@ Scenario: netprobe handler with only counters metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_netprobe
+@sanity @metric_groups @metrics_netprobe
 Scenario: netprobe handler with only quantiles metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -98,7 +98,7 @@ Scenario: netprobe handler with only quantiles metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_netprobe
+@sanity @metric_groups @metrics_netprobe
 Scenario: netprobe handler with only histograms metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -117,7 +117,7 @@ Scenario: netprobe handler with only histograms metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_netprobe
+@sanity @metric_groups @metrics_netprobe
 Scenario: netprobe handler with counters and histograms metric groups enabled and quantiles disabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -136,7 +136,7 @@ Scenario: netprobe handler with counters and histograms metric groups enabled an
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_netprobe
+@sanity @metric_groups @metrics_netprobe
 Scenario: netprobe handler with counters and quantiles metric groups enabled and histograms disabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -155,7 +155,7 @@ Scenario: netprobe handler with counters and quantiles metric groups enabled and
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_netprobe
+@sanity @metric_groups @metrics_netprobe
 Scenario: netprobe handler with histograms and quantiles metric groups enabled and counters disabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -175,7 +175,7 @@ Scenario: netprobe handler with histograms and quantiles metric groups enabled a
 
 #### flow
 
-@smoke @metric_groups @metrics_flow
+@sanity @metric_groups @metrics_flow
 Scenario: flow handler with default metric groups configuration
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -194,7 +194,7 @@ Scenario: flow handler with default metric groups configuration
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_flow
+@sanity @metric_groups @metrics_flow
 Scenario: flow handler with all metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -213,7 +213,7 @@ Scenario: flow handler with all metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_flow
+@sanity @metric_groups @metrics_flow
 Scenario: flow handler with all metric groups disabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -232,7 +232,7 @@ Scenario: flow handler with all metric groups disabled
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_flow
+@sanity @metric_groups @metrics_flow
 Scenario: flow handler with only cardinality metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -251,7 +251,7 @@ Scenario: flow handler with only cardinality metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_flow
+@sanity @metric_groups @metrics_flow
 Scenario: flow handler with only counters metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -270,7 +270,7 @@ Scenario: flow handler with only counters metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_flow
+@sanity @metric_groups @metrics_flow
 Scenario: flow handler with only by_packets metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -289,7 +289,7 @@ Scenario: flow handler with only by_packets metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_flow
+@sanity @metric_groups @metrics_flow
 Scenario: flow handler with only by_bytes metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -308,7 +308,7 @@ Scenario: flow handler with only by_bytes metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_flow
+@sanity @metric_groups @metrics_flow
 Scenario: flow handler with only top_geo metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -327,7 +327,7 @@ Scenario: flow handler with only top_geo metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_flow
+@sanity @metric_groups @metrics_flow
 Scenario: flow handler with only conversations metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -346,7 +346,7 @@ Scenario: flow handler with only conversations metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_flow
+@sanity @metric_groups @metrics_flow
 Scenario: flow handler with only top_ports metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -365,7 +365,7 @@ Scenario: flow handler with only top_ports metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_flow
+@sanity @metric_groups @metrics_flow
 Scenario: flow handler with only top_ips_ports metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -384,7 +384,7 @@ Scenario: flow handler with only top_ips_ports metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_flow
+@sanity @metric_groups @metrics_flow
 Scenario: flow handler with only top_interfaces metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -403,7 +403,7 @@ Scenario: flow handler with only top_interfaces metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_flow
+@sanity @metric_groups @metrics_flow
 Scenario: flow handler with only top_ips metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -424,7 +424,7 @@ Scenario: flow handler with only top_ips metric groups enabled
 
 #### pcap
 
-@smoke @metric_groups @metrics_pcap
+@sanity @metric_groups @metrics_pcap
 Scenario: pcap handler with default metric groups configuration
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -443,7 +443,7 @@ Scenario: pcap handler with default metric groups configuration
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_pcap
+@sanity @metric_groups @metrics_pcap
 Scenario: pcap handler with all metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -462,7 +462,7 @@ Scenario: pcap handler with all metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_pcap
+@sanity @metric_groups @metrics_pcap
 Scenario: pcap handler with all metric groups disabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -483,7 +483,7 @@ Scenario: pcap handler with all metric groups disabled
 
 #### bgp
 
-@smoke @metric_groups @metrics_bgp
+@sanity @metric_groups @metrics_bgp
 Scenario: bgp handler with default metric groups configuration
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -502,7 +502,7 @@ Scenario: bgp handler with default metric groups configuration
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_bgp
+@sanity @metric_groups @metrics_bgp
 Scenario: bgp handler with all metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -521,7 +521,7 @@ Scenario: bgp handler with all metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_bgp
+@sanity @metric_groups @metrics_bgp
 Scenario: bgp handler with all metric groups disabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -542,7 +542,7 @@ Scenario: bgp handler with all metric groups disabled
 
 #### dhcp
 
-@smoke @metric_groups @metrics_dhcp
+@sanity @metric_groups @metrics_dhcp
 Scenario: dhcp handler with default metric groups configuration
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -561,7 +561,7 @@ Scenario: dhcp handler with default metric groups configuration
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_dhcp
+@sanity @metric_groups @metrics_dhcp
 Scenario: dhcp handler with all metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -580,7 +580,7 @@ Scenario: dhcp handler with all metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_dhcp
+@sanity @metric_groups @metrics_dhcp
 Scenario: dhcp handler with all metric groups disabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -601,7 +601,7 @@ Scenario: dhcp handler with all metric groups disabled
 
 #### net
 
-@smoke @metric_groups @metrics_net
+@sanity @metric_groups @metrics_net
 Scenario: net handler with default metric groups configuration
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -620,7 +620,7 @@ Scenario: net handler with default metric groups configuration
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_net
+@sanity @metric_groups @metrics_net
 Scenario: net handler with all metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -639,7 +639,7 @@ Scenario: net handler with all metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_net
+@sanity @metric_groups @metrics_net
 Scenario: net handler with all metric groups disabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -658,7 +658,7 @@ Scenario: net handler with all metric groups disabled
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_net
+@sanity @metric_groups @metrics_net
 Scenario: net handler with only cardinality metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -677,7 +677,7 @@ Scenario: net handler with only cardinality metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_net
+@sanity @metric_groups @metrics_net
 Scenario: net handler with only counters metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -696,7 +696,7 @@ Scenario: net handler with only counters metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_net
+@sanity @metric_groups @metrics_net
 Scenario: net handler with only top_geo metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -715,7 +715,7 @@ Scenario: net handler with only top_geo metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_net
+@sanity @metric_groups @metrics_net
 Scenario: net handler with only top_ips metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -736,7 +736,7 @@ Scenario: net handler with only top_ips metric groups enabled
 
 #### dns
 
-@smoke @metric_groups @metrics_dns
+@sanity @metric_groups @metrics_dns
 Scenario: dns handler with default metric groups configuration
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -755,7 +755,7 @@ Scenario: dns handler with default metric groups configuration
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_dns
+@sanity @metric_groups @metrics_dns
 Scenario: dns handler with all metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -774,7 +774,7 @@ Scenario: dns handler with all metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_dns
+@sanity @metric_groups @metrics_dns
 Scenario: dns handler with all metric groups disabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -793,7 +793,7 @@ Scenario: dns handler with all metric groups disabled
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_dns
+@sanity @metric_groups @metrics_dns
 Scenario: dns handler with only top_ecs metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -812,7 +812,7 @@ Scenario: dns handler with only top_ecs metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_dns
+@sanity @metric_groups @metrics_dns
 Scenario: dns handler with only top_qnames_details metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -831,7 +831,7 @@ Scenario: dns handler with only top_qnames_details metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_dns
+@sanity @metric_groups @metrics_dns
 Scenario: dns handler with only cardinality metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -850,7 +850,7 @@ Scenario: dns handler with only cardinality metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_dns
+@sanity @metric_groups @metrics_dns
 Scenario: dns handler with only counters metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -869,7 +869,7 @@ Scenario: dns handler with only counters metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_dns
+@sanity @metric_groups @metrics_dns
 Scenario: dns handler with only dns_transaction metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -888,7 +888,7 @@ Scenario: dns handler with only dns_transaction metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_dns
+@sanity @metric_groups @metrics_dns
 Scenario: dns handler with only top_qnames metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -907,7 +907,7 @@ Scenario: dns handler with only top_qnames metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @metric_groups @metrics_dns
+@sanity @metric_groups @metrics_dns
 Scenario: dns handler with only top_ports metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
