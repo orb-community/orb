@@ -313,7 +313,9 @@ def provision_agent_using_config_file(context, input_type, settings, provision, 
     assert_that(paste_only_file, any_of("True", "False"), "Unexpected value for overwrite_default parameter.")
     overwrite_default = eval(overwrite_default)
     paste_only_file = eval(paste_only_file)
-    settings = json.loads(settings)
+    settings_is_json, settings = is_json(settings)
+    assert_that(settings_is_json, is_(True), f"settings must be written in json format. Current settings: "
+                                             f"{settings}")
     if ("tcp" in settings.keys() and settings["tcp"].split(":")[1] == "available_port") or (
             "port" in settings.keys() and settings["port"] == "available_port"):
         port_to_attach = return_port_to_run_docker_container(context)
