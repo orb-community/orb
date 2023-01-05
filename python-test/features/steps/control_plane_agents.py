@@ -357,18 +357,11 @@ def provision_agent_using_config_file(context, input_type, settings, provision, 
             pkt_configs["binary"] = kwargs['pkt_config']["binary"]
         if "config_file" in kwargs['pkt_config'].keys():
             pkt_configs["config_file"] = kwargs['pkt_config']["config_file"]
-    context.agent_file_name, tags_on_agent, context.tap = create_agent_config_file(context.token, agent_name, interface,
-                                                                                   agent_tags, orb_url,
-                                                                                   base_orb_address, port,
-                                                                                   context.agent_groups, tap_name,
-                                                                                   input_type, input_tags,
-                                                                                   auto_provision, orb_cloud_mqtt_id,
-                                                                                   orb_cloud_mqtt_key,
-                                                                                   orb_cloud_mqtt_channel_id,
-                                                                                   settings, overwrite_default,
-                                                                                   paste_only_file,
-                                                                                   pkt_configs['binary'],
-                                                                                   pkt_configs['config_file'])
+    context.agent_file_name, tags_on_agent, context.tap, safe_config_file = \
+        create_agent_config_file(context.token, agent_name, interface, agent_tags, orb_url, base_orb_address, port,
+                                 context.agent_groups, tap_name, input_type, input_tags, auto_provision,
+                                 orb_cloud_mqtt_id, orb_cloud_mqtt_key, orb_cloud_mqtt_channel_id, settings,
+                                 overwrite_default, paste_only_file, pkt_configs['binary'], pkt_configs['config_file'])
     for key, value in context.tap.items():
         if 'tags' in value.keys():
             context.tap_tags.update({key: value['tags']})
@@ -379,9 +372,11 @@ def provision_agent_using_config_file(context, input_type, settings, provision, 
     agent_started, logs = get_logs_and_check(context.container_id, log, element_to_check="log")
     assert_that(agent_started, equal_to(True), f"Log {log} not found on agent logs. Agent Name: {agent_name}.\n"
                                                f"Logs:{logs}")
-    context.agent, is_agent_created = check_agent_exists_on_backend(context.token, agent_name, timeout=10)
+    context.agent, is_agent_created = check_agent_exists_on_backend(context.token, agent_name, timeout=60)
+    assert_that(is_agent_created, equal_to(True), f"Agent {agent_name} not found in /agents route."
+                                                  f"\n Config File (json converted): {safe_config_file}."
+                                                  f"\nLogs: {logs}.")
     context.agent, are_tags_correct = get_agent_tags(context.token, context.agent['id'], tags_on_agent)
-    assert_that(is_agent_created, equal_to(True), f"Agent {agent_name} not found. Logs: {logs}")
     assert_that(are_tags_correct, equal_to(True), f"Agent tags created does not match with the required ones. Agent:"
                                                   f"{context.agent}. Tags that would be present: {tags_on_agent}.\n"
                                                   f"Agent Logs: {logs}")
@@ -680,7 +675,8 @@ def wait_until_agent_being_created(token, name, tags, expected_status_code=201, 
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*',
                        'Authorization': f'Bearer {token}'}
 
-    response = requests.post(orb_url + '/api/v1/agents', json=json_request, headers=headers_request, verify=verify_ssl_bool)
+    response = requests.post(orb_url + '/api/v1/agents', json=json_request, headers=headers_request,
+                             verify=verify_ssl_bool)
     try:
         response_json = response.json()
     except ValueError:
@@ -871,13 +867,16 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
         agent_config_file['orb']['backends']['pktvisor']["binary"] = pktvisor_binary
     agent_config_file['orb'].update(tags)
     agent_config_file['orb']['backends']['pktvisor'].update({"api_port": f"{port}"})
-    agent_config_file = yaml.dump(agent_config_file)
+    agent_config_file_yaml = yaml.dump(agent_config_file)
+    safe_agent_config_file = agent_config_file.copy()
+    if "token" in safe_agent_config_file['orb']['cloud']['api'].keys():
+        safe_agent_config_file['orb']['cloud']['api']['token'] = "token omitted for security reason"
     dir_path = configs.get("local_orb_path")
     if overwrite_default is True and only_file is False:
         agent_name = "agent"
     with open(f"{dir_path}/{agent_name}.yaml", "w+") as f:
-        f.write(agent_config_file)
-    return agent_name, tags, tap
+        f.write(agent_config_file_yaml)
+    return agent_name, tags, tap, safe_agent_config_file
 
 
 @threading_wait_until
