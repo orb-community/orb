@@ -14,6 +14,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gofrs/uuid"
+	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/ns1labs/orb/pkg/db"
 	"github.com/ns1labs/orb/pkg/errors"
@@ -43,7 +44,12 @@ func (s sinksRepository) SearchAllSinks(ctx context.Context, filter sinks.Filter
 	if err != nil {
 		return nil, errors.Wrap(errors.ErrSelectEntity, err)
 	}
-	defer rows.Close()
+	defer func(rows *sqlx.Rows) {
+		err := rows.Close()
+		if err != nil {
+			s.logger.Error("error closing rows", zap.Error(err))
+		}
+	}(rows)
 
 	items := make([]sinks.Sink, 0)
 	for rows.Next() {

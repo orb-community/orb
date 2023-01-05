@@ -81,6 +81,7 @@ func buildSinkResponse(sink sinks.Sink) (sinkRes, error) {
 
 	return sinkRes{
 		id:          sink.ID,
+		mfOwnerId:   sink.MFOwnerID,
 		name:        sink.Name.String(),
 		description: sink.Description,
 		tags:        tagData,
