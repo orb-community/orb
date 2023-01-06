@@ -127,7 +127,7 @@ install-kind:
 	cd /tmp && \
 	curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.17.0/kind-linux-amd64 && \
 	chmod +x ./kind && \
-	mv ./kind /usr/local/bin/kind
+	sudo mv ./kind /usr/local/bin/kind
 
 install-helm:
 	cd /tmp
@@ -137,7 +137,7 @@ install-kubectl:
 	cd /tmp && \
 	curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && \
 	chmod a+x /kubectl && \
-	mv ./kubectl /user/local/bin/kubectl
+	sudo mv ./kubectl /user/local/bin/kubectl
 
 install-docker:
 	cd /tmp
@@ -148,7 +148,7 @@ install-k9s:
 	cd /tmp && \
 	wget https://github.com/derailed/k9s/releases/download/v0.26.7/k9s_Linux_x86_64.tar.gz && \
 	tar -xvzf k9s_Linux_x86_64.tar.gz && \
-	install -o root -g root -m 0755 k9s /usr/local/bin/k9s
+	sudo install -o root -g root -m 0755 k9s /usr/local/bin/k9s
 
 
 # kind commands
