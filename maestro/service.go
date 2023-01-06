@@ -111,6 +111,7 @@ func (svc *maestroService) Start(ctx context.Context, cancelFunction context.Can
 	monitorCtx := context.WithValue(ctx, "routine", "monitor")
 	err = svc.monitor.Start(monitorCtx, cancelFunction)
 	if err != nil {
+		svc.logger.Error("error duriong monitor routine start", zap.Error(err))
 		cancelFunction()
 		return err
 	}

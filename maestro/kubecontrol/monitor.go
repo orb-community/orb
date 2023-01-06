@@ -1,11 +1,19 @@
 package kubecontrol
 
 import (
+	"bytes"
 	"context"
+	"fmt"
 	"github.com/go-redis/redis/v8"
 	rediscons1 "github.com/ns1labs/orb/maestro/redis"
 	sinkspb "github.com/ns1labs/orb/sinks/pb"
 	"go.uber.org/zap"
+	"io"
+	k8scorev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
+	"strings"
 	"time"
 )
 
@@ -35,7 +43,7 @@ type monitorService struct {
 }
 
 func (svc *monitorService) Start(ctx context.Context, cancelFunc context.CancelFunc) error {
-	go func() {
+	go func(ctx context.Context, cancelFunc context.CancelFunc) {
 		ticker := time.NewTicker(MonitorFixedDuration)
 		svc.logger.Info("start monitor routine", zap.Any("routine", ctx))
 		defer func() {
@@ -52,8 +60,41 @@ func (svc *monitorService) Start(ctx context.Context, cancelFunc context.CancelF
 				svc.monitorSinks(ctx)
 			}
 		}
-	}()
+	}(ctx, cancelFunc)
 	return nil
+}
+
+func (svc *monitorService) getPodLogs(ctx context.Context, collectorName string) ([]string, error) {
+	pod := k8scorev1.Pod{ObjectMeta: metav1.ObjectMeta{Name: collectorName}}
+	podLogOpts := k8scorev1.PodLogOptions{}
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		return nil, err
+	}
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		return nil, err
+	}
+	req := clientset.CoreV1().Pods(pod.Namespace).GetLogs(pod.Name, &podLogOpts)
+	podLogs, err := req.Stream(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer func(podLogs io.ReadCloser) {
+		err := podLogs.Close()
+		if err != nil {
+
+		}
+	}(podLogs)
+
+	buf := new(bytes.Buffer)
+	_, err = io.Copy(buf, podLogs)
+	if err != nil {
+		return nil, err
+	}
+	str := buf.String()
+
+	return strings.Split(str, "\n"), nil
 }
 
 func (svc *monitorService) monitorSinks(ctx context.Context) {
@@ -65,7 +106,7 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 	}
 	svc.logger.Info("reading logs from collectors", zap.Int("collectors_length", len(sinksRes.Sinks)))
 	for _, sink := range sinksRes.Sinks {
-		logs, err := svc.kubecontrol.CollectLogs(ctx, sink.OwnerID, sink.Id)
+		logs, err := svc.getPodLogs(ctx, fmt.Sprintf("otel-%s", sink.Id))
 		if err != nil {
 			return
 		}

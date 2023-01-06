@@ -41,11 +41,11 @@ type Service interface {
 }
 
 func (svc *deployService) CollectLogs(ctx context.Context, ownerID, sinkId string) ([]string, error) {
-	cmd := exec.Command("kubectl", "get logs", fmt.Sprintf("otel-collector-%s", sinkId), "-n", namespace)
+	cmd := exec.Command("kubectl", "logs", fmt.Sprintf("otel-%s", sinkId), "-n", namespace)
 	exporterLogs := make([]string, 10)
 	watchLogsFunction := func(out *bufio.Scanner, err *bufio.Scanner) {
 		if err.Scan() || out.Err() != nil {
-			svc.logger.Error("failed to get logs for collector on sink")
+			svc.logger.Error("failed to get logs for collector on sink", zap.Error(err.Err()), zap.Error(out.Err()))
 			return
 		}
 		for out.Scan() && len(exporterLogs) < 10 {
