@@ -153,6 +153,9 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			svc.logger.Warn("failed to unmarshal sink, skipping", zap.String("sink-id", sink.Id))
 			continue
 		}
+		data.SinkID = sink.Id
+		data.OwnerID = sink.OwnerID
+		data.LastRemoteWrite = time.Now()
 		logs, err := svc.getPodLogs(ctx, *sinkCollector)
 		if err != nil {
 			svc.logger.Error("error on getting logs, skipping", zap.Error(err))
@@ -186,9 +189,6 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			}
 			if err = svc.redisClient.Set(context.Background(), skey, byteSink, 0).Err(); err != nil {
 				svc.logger.Error("error during analyze logs", zap.Error(err))
-			}
-			if err != nil {
-				svc.logger.Error("error sending event to event store", zap.Error(err))
 			}
 		}
 		return
