@@ -3,7 +3,6 @@ package kubecontrol
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"github.com/go-redis/redis/v8"
 	rediscons1 "github.com/ns1labs/orb/maestro/redis"
 	sinkspb "github.com/ns1labs/orb/sinks/pb"
@@ -64,54 +63,95 @@ func (svc *monitorService) Start(ctx context.Context, cancelFunc context.CancelF
 	return nil
 }
 
-func (svc *monitorService) getPodLogs(ctx context.Context, collectorName string) ([]string, error) {
-	pod := k8scorev1.Pod{ObjectMeta: k8smetav1.ObjectMeta{Name: collectorName}}
-	podLogOpts := k8scorev1.PodLogOptions{}
+func (svc *monitorService) getPodLogs(ctx context.Context, pod k8scorev1.Pod) ([]string, error) {
+	maxTailLines := int64(10)
+	podLogOpts := k8scorev1.PodLogOptions{TailLines: &maxTailLines}
 	config, err := rest.InClusterConfig()
 	if err != nil {
+		svc.logger.Error("error on get cluster config", zap.Error(err))
 		return nil, err
 	}
-	clientset, err := kubernetes.NewForConfig(config)
+	clientSet, err := kubernetes.NewForConfig(config)
 	if err != nil {
+		svc.logger.Error("error on get client", zap.Error(err))
 		return nil, err
 	}
-	req := clientset.CoreV1().Pods(pod.Namespace).GetLogs(pod.Name, &podLogOpts)
+	svc.logger.Info("DEBUG log pod", zap.Any("pod", pod), zap.Any("clientSet", clientSet))
+	req := clientSet.CoreV1().Pods(pod.Namespace).GetLogs(pod.Name, &podLogOpts)
 	podLogs, err := req.Stream(ctx)
 	if err != nil {
+		svc.logger.Error("error on get logs", zap.Error(err))
 		return nil, err
 	}
 	defer func(podLogs io.ReadCloser) {
 		err := podLogs.Close()
 		if err != nil {
-
+			svc.logger.Error("error closing log stream", zap.Error(err))
 		}
 	}(podLogs)
 
 	buf := new(bytes.Buffer)
 	_, err = io.Copy(buf, podLogs)
 	if err != nil {
+		svc.logger.Error("error on copying buffer", zap.Error(err))
 		return nil, err
 	}
 	str := buf.String()
+	splitLogs := strings.Split(str, "\n")
+	svc.logger.Info("DEBUG podLogs", zap.Strings("logs", splitLogs))
+	return splitLogs, nil
+}
 
-	return strings.Split(str, "\n"), nil
+func (svc *monitorService) getRunningPods(ctx context.Context) ([]k8scorev1.Pod, error) {
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		svc.logger.Error("error on get cluster config", zap.Error(err))
+		return nil, err
+	}
+	clientSet, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		svc.logger.Error("error on get client", zap.Error(err))
+		return nil, err
+	}
+	pods, err := clientSet.CoreV1().Pods(namespace).List(ctx, k8smetav1.ListOptions{})
+	return pods.Items, err
 }
 
 func (svc *monitorService) monitorSinks(ctx context.Context) {
-
+	runningCollectors, err := svc.getRunningPods(ctx)
+	if err != nil {
+		svc.logger.Error("error getting running pods on namespace", zap.Error(err))
+		return
+	}
+	if len(runningCollectors) == 0 {
+		svc.logger.Info("skipping, no running collectors")
+		return
+	}
 	sinksRes, err := svc.sinksClient.RetrieveSinks(ctx, &sinkspb.SinksFilterReq{OtelEnabled: "enabled"})
 	if err != nil {
-		svc.logger.Error("error collecting collectors keys", zap.Error(err))
+		svc.logger.Error("error collecting sinks", zap.Error(err))
 		return
 	}
 	svc.logger.Info("reading logs from collectors", zap.Int("collectors_length", len(sinksRes.Sinks)))
 	for _, sink := range sinksRes.Sinks {
-		logs, err := svc.getPodLogs(ctx, fmt.Sprintf("otel-%s", sink.Id))
+		var sinkCollector *k8scorev1.Pod
+		for _, collector := range runningCollectors {
+			if strings.Contains(collector.Name, sink.Id) {
+				sinkCollector = &collector
+				break
+			}
+		}
+		if sinkCollector == nil {
+			svc.logger.Warn("collector not found for sink, skipping", zap.String("sinkID", sink.Id))
+			continue
+		}
+		logs, err := svc.getPodLogs(ctx, *sinkCollector)
 		if err != nil {
-			return
+			svc.logger.Error("error on getting logs, skipping", zap.Error(err))
+			continue
 		}
 		status, err := analyzeLogs(logs)
-		if status != sink.GetState() {
+		if status != sink.State {
 			svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("error_message (opt)", err.Error()))
 			event := rediscons1.SinkerUpdateEvent{
 				SinkID:    sink.Id,
