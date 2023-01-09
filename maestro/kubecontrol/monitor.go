@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 	"io"
 	k8scorev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	k8smetav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"strings"
@@ -65,7 +65,7 @@ func (svc *monitorService) Start(ctx context.Context, cancelFunc context.CancelF
 }
 
 func (svc *monitorService) getPodLogs(ctx context.Context, collectorName string) ([]string, error) {
-	pod := k8scorev1.Pod{ObjectMeta: metav1.ObjectMeta{Name: collectorName}}
+	pod := k8scorev1.Pod{ObjectMeta: k8smetav1.ObjectMeta{Name: collectorName}}
 	podLogOpts := k8scorev1.PodLogOptions{}
 	config, err := rest.InClusterConfig()
 	if err != nil {
