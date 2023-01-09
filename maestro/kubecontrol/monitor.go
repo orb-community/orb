@@ -151,8 +151,12 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			continue
 		}
 		status, err := analyzeLogs(logs)
-		if status != sink.State {
-			svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("error_message (opt)", err.Error()))
+		if sink.State != status {
+			if err != nil {
+				svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("error_message (opt)", err.Error()))
+			} else {
+				svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status))
+			}
 			event := rediscons1.SinkerUpdateEvent{
 				SinkID:    sink.Id,
 				Owner:     sink.OwnerID,
