@@ -4,8 +4,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/go-redis/redis/v8"
-	rediscons1 "github.com/ns1labs/orb/maestro/redis"
+	maestroconfig "github.com/ns1labs/orb/maestro/config"
 	"github.com/ns1labs/orb/pkg/errors"
 	sinkspb "github.com/ns1labs/orb/sinks/pb"
 	"go.uber.org/zap"
@@ -129,6 +130,7 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 		return
 	}
 	sinksRes, err := svc.sinksClient.RetrieveSinks(ctx, &sinkspb.SinksFilterReq{OtelEnabled: "enabled"})
+
 	if err != nil {
 		svc.logger.Error("error collecting sinks", zap.Error(err))
 		return
@@ -146,35 +148,45 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			svc.logger.Warn("collector not found for sink, skipping", zap.String("sinkID", sink.Id))
 			continue
 		}
+		var data maestroconfig.SinkData
+		if err := json.Unmarshal(sink.Config, &data); err != nil {
+			svc.logger.Warn("failed to unmarshal sink, skipping", zap.String("sink-id", sink.Id))
+			continue
+		}
 		logs, err := svc.getPodLogs(ctx, *sinkCollector)
 		if err != nil {
 			svc.logger.Error("error on getting logs, skipping", zap.Error(err))
 			continue
 		}
-		status, err := svc.analyzeLogs(logs)
+		status, logsErr := svc.analyzeLogs(logs)
 		if status == "fail" {
-			svc.logger.Error("error during analyze logs", zap.Error(err))
+			svc.logger.Error("error during analyze logs", zap.Error(logsErr))
 		}
-		if sink.State != status {
+		if data.State.String() != status {
 			if err != nil {
 				svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("error_message (opt)", err.Error()))
 			} else {
 				svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status))
 			}
-			event := rediscons1.SinkerUpdateEvent{
-				SinkID:    sink.Id,
-				Owner:     sink.OwnerID,
-				State:     sink.State,
-				Timestamp: time.Now(),
+			keyPrefix := "sinker_key"
+			skey := fmt.Sprintf("%s-%s:%s", keyPrefix, data.OwnerID, data.SinkID)
+			err := data.State.SetFromString(status)
+			if err != nil {
+				svc.logger.Error("error during analyze logs", zap.Error(err))
 			}
-			if status == "error" {
-				event.Msg = err.Error()
+			if logsErr != nil {
+				data.Msg = logsErr.Error()
 			}
-			record := &redis.XAddArgs{
-				Stream: streamID,
-				Values: event.Encode(),
+			if err := svc.redisClient.Del(ctx, skey).Err(); err != nil {
+				svc.logger.Error("error during analyze logs", zap.Error(err))
 			}
-			err = svc.redisClient.XAdd(context.Background(), record).Err()
+			byteSink, err := json.Marshal(data)
+			if err != nil {
+				svc.logger.Error("error during analyze logs", zap.Error(err))
+			}
+			if err = svc.redisClient.Set(context.Background(), skey, byteSink, 0).Err(); err != nil {
+				svc.logger.Error("error during analyze logs", zap.Error(err))
+			}
 			if err != nil {
 				svc.logger.Error("error sending event to event store", zap.Error(err))
 			}
@@ -203,7 +215,9 @@ func (svc *monitorService) analyzeLogs(logEntry []string) (status string, err er
 			if errorJson != nil && errorJson["error"] != nil {
 				errorMessage := errorJson["error"].(string)
 				if strings.Contains(errorMessage, "429") {
-					return "warn", errors.New(errorMessage)
+					return "warning", errors.New(errorMessage)
+				} else {
+					return "error", errors.New(errorMessage)
 				}
 			}
 		}
