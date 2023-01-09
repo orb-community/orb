@@ -3,8 +3,10 @@ package kubecontrol
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"github.com/go-redis/redis/v8"
 	rediscons1 "github.com/ns1labs/orb/maestro/redis"
+	"github.com/ns1labs/orb/pkg/errors"
 	sinkspb "github.com/ns1labs/orb/sinks/pb"
 	"go.uber.org/zap"
 	"io"
@@ -76,7 +78,6 @@ func (svc *monitorService) getPodLogs(ctx context.Context, pod k8scorev1.Pod) ([
 		svc.logger.Error("error on get client", zap.Error(err))
 		return nil, err
 	}
-	svc.logger.Info("DEBUG log pod", zap.Any("pod", pod), zap.Any("clientSet", clientSet))
 	req := clientSet.CoreV1().Pods(pod.Namespace).GetLogs(pod.Name, &podLogOpts)
 	podLogs, err := req.Stream(ctx)
 	if err != nil {
@@ -98,7 +99,7 @@ func (svc *monitorService) getPodLogs(ctx context.Context, pod k8scorev1.Pod) ([
 	}
 	str := buf.String()
 	splitLogs := strings.Split(str, "\n")
-	svc.logger.Info("DEBUG podLogs", zap.Strings("logs", splitLogs))
+	svc.logger.Info("logs length", zap.Int("amount line logs", len(splitLogs)))
 	return splitLogs, nil
 }
 
@@ -150,7 +151,10 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			svc.logger.Error("error on getting logs, skipping", zap.Error(err))
 			continue
 		}
-		status, err := analyzeLogs(logs)
+		status, err := svc.analyzeLogs(logs)
+		if status == "fail" {
+			svc.logger.Error("error during analyze logs", zap.Error(err))
+		}
 		if sink.State != status {
 			if err != nil {
 				svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("error_message (opt)", err.Error()))
@@ -180,8 +184,29 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 
 }
 
-// WIP
-func analyzeLogs(logEntry []string) (string, error) {
-
+// analyzeLogs, will check for errors in exporter, and will return as follow
+//
+//	for errors 479 will send a "warning" state, plus message of too many requests
+//	for any other errors, will add error and message
+//	if no error message on exporter, will log as active
+func (svc *monitorService) analyzeLogs(logEntry []string) (status string, err error) {
+	for _, logLine := range logEntry {
+		if strings.Contains(logLine, "error") {
+			errStringLog := strings.TrimRight(logLine, "error")
+			jsonError := strings.Split(errStringLog, "\t")[4]
+			errorJson := make(map[string]interface{})
+			err := json.Unmarshal([]byte(jsonError), &errorJson)
+			if err != nil {
+				return "fail", err
+			}
+			svc.logger.Info("DEBUG -", zap.Any("errorJson", errorJson))
+			if errorJson != nil && errorJson["error"] != nil {
+				errorMessage := errorJson["error"].(string)
+				if strings.Contains(errorMessage, "429") {
+					return "warn", errors.New(errorMessage)
+				}
+			}
+		}
+	}
 	return "active", nil
 }
