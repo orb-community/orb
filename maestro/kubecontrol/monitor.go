@@ -156,6 +156,7 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 		data.SinkID = sink.Id
 		data.OwnerID = sink.OwnerID
 		data.LastRemoteWrite = time.Now()
+		svc.logger.Info("DEBUG DATA", zap.Any("data", data))
 		logs, err := svc.getPodLogs(ctx, *sinkCollector)
 		if err != nil {
 			svc.logger.Error("error on getting logs, skipping", zap.Error(err))

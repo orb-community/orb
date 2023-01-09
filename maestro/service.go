@@ -27,28 +27,30 @@ type maestroService struct {
 	serviceContext    context.Context
 	serviceCancelFunc context.CancelFunc
 
-	kubecontrol kubecontrol.Service
-	monitor     kubecontrol.MonitorService
-	logger      *zap.Logger
-	redisClient *redis.Client
-	sinksClient sinkspb.SinkServiceClient
-	esCfg       config.EsConfig
-	eventStore  rediscons1.Subscriber
-	kafkaUrl    string
+	kubecontrol       kubecontrol.Service
+	monitor           kubecontrol.MonitorService
+	logger            *zap.Logger
+	streamRedisClient *redis.Client
+	sinkerRedisClient *redis.Client
+	sinksClient       sinkspb.SinkServiceClient
+	esCfg             config.EsConfig
+	eventStore        rediscons1.Subscriber
+	kafkaUrl          string
 }
 
-func NewMaestroService(logger *zap.Logger, redisClient *redis.Client, sinksGrpcClient sinkspb.SinkServiceClient, esCfg config.EsConfig, otelCfg config.OtelConfig) Service {
-	kubectr := kubecontrol.NewService(logger, redisClient)
-	eventStore := rediscons1.NewEventStore(redisClient, otelCfg.KafkaUrl, kubectr, esCfg.Consumer, sinksGrpcClient, logger)
-	monitor := kubecontrol.NewMonitorService(logger, &sinksGrpcClient, redisClient, &kubectr)
+func NewMaestroService(logger *zap.Logger, streamRedisClient *redis.Client, sinkerRedisClient *redis.Client, sinksGrpcClient sinkspb.SinkServiceClient, esCfg config.EsConfig, otelCfg config.OtelConfig) Service {
+	kubectr := kubecontrol.NewService(logger, streamRedisClient)
+	eventStore := rediscons1.NewEventStore(streamRedisClient, otelCfg.KafkaUrl, kubectr, esCfg.Consumer, sinksGrpcClient, logger)
+	monitor := kubecontrol.NewMonitorService(logger, &sinksGrpcClient, sinkerRedisClient, &kubectr)
 	return &maestroService{
-		logger:      logger,
-		redisClient: redisClient,
-		sinksClient: sinksGrpcClient,
-		kubecontrol: kubectr,
-		monitor:     monitor,
-		eventStore:  eventStore,
-		kafkaUrl:    otelCfg.KafkaUrl,
+		logger:            logger,
+		streamRedisClient: streamRedisClient,
+		sinkerRedisClient: sinkerRedisClient,
+		sinksClient:       sinksGrpcClient,
+		kubecontrol:       kubectr,
+		monitor:           monitor,
+		eventStore:        eventStore,
+		kafkaUrl:          otelCfg.KafkaUrl,
 	}
 }
 
