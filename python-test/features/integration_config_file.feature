@@ -137,7 +137,7 @@ Scenario: tap_selector - any - matching 0 of all tags from an agent
     When an agent(input_type:pcap, settings: {"iface":"default"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
-        And a net policy pcap with tap_selector matching any of 0 agent tap tags ands settings: geoloc_notfound=False is applied to the group
+        And a net policy pcap with tap_selector matching any tag(s) of the tap from 0 agent, default metric_groups enabled, default metric_groups disabled and settings: {"geoloc_notfound":"False"} is applied to the group
     Then 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
@@ -153,7 +153,7 @@ Scenario: tap_selector - any - matching 1 of all tags from an agent
     When an agent(input_type:pcap, settings: {"iface":"default"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: False]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
-        And a net policy pcap with tap_selector matching any of 1 agent (1 tag matching) tap tags ands settings: geoloc_notfound=False is applied to the group
+        And a net policy pcap with tap_selector matching any tag(s) of the tap from 1 agent (1 tag matching), default metric_groups enabled, default metric_groups disabled and settings: {"geoloc_notfound":"False"} is applied to the group
     Then 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
@@ -171,7 +171,7 @@ Scenario: tap_selector - any - matching 1 of all tags (plus 1 random tag) from a
     When an agent(input_type:pcap, settings: {"iface":"default"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
-        And a net policy pcap with tap_selector matching any of 1 agent (1 tag matching + 1 random tag) tap tags ands settings: geoloc_notfound=False is applied to the group
+        And a net policy pcap with tap_selector matching any tag(s) of the tap from 1 agent (1 tag matching + 1 random tag), default metric_groups enabled, default metric_groups disabled and settings: {"geoloc_notfound":"False"} is applied to the group
     Then 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
@@ -189,7 +189,7 @@ Scenario: tap_selector - all - matching 0 of all tags from an agent
     When an agent(input_type:pcap, settings: {"iface":"default"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: False]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
-        And a net policy pcap with tap_selector matching all of 0 agent tap tags ands settings: geoloc_notfound=False is applied to the group
+        And a net policy pcap with tap_selector matching all tag(s) of the tap from 0 agent, default metric_groups enabled, default metric_groups disabled and settings: {"geoloc_notfound":"False"} is applied to the group
     Then 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
@@ -205,7 +205,7 @@ Scenario: tap_selector - all - matching 1 of all tags from an agent
     When an agent(input_type:pcap, settings: {"iface":"default"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
-        And a net policy pcap with tap_selector matching all of 1 agent (1 tag matching) tap tags ands settings: geoloc_notfound=False is applied to the group
+        And a net policy pcap with tap_selector matching all tag(s) of the tap from 1 agent (1 tag matching), default metric_groups enabled, default metric_groups disabled and settings: {"geoloc_notfound":"False"} is applied to the group
     Then 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
@@ -224,7 +224,7 @@ Scenario: tap_selector - all - matching all tags from an agent
     When an agent(input_type:pcap, settings: {"iface":"default"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: False]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
-        And a net policy pcap with tap_selector matching all of an agent tap tags ands settings: geoloc_notfound=False is applied to the group
+        And a net policy pcap with tap_selector matching all tag(s) of the tap from an agent, default metric_groups enabled, default metric_groups disabled and settings: {"geoloc_notfound":"False"} is applied to the group
     Then 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
@@ -797,7 +797,7 @@ Scenario: agent netprobe with mixed tags subscription to a group with policies c
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @config_file @netprobe @oi
+@smoke @config_file @netprobe
 Scenario: agent netprobe with only agent tags subscription to a group with policies created after provision the agent (config file - auto_provision=false)
     Given the Orb user has a registered account
         And the Orb user logs in
