@@ -15,7 +15,7 @@ type AgentGroup struct {
 	ID             string
 	MFOwnerID      string
 	Name           types.Identifier
-	Description    string
+	Description    *string
 	MFChannelID    string
 	Tags           types.Tags
 	Created        time.Time

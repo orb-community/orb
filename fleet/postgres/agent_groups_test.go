@@ -21,6 +21,10 @@ import (
 	"testing"
 )
 
+var (
+	description = "example description"
+)
+
 func TestAgentGroupSave(t *testing.T) {
 	dbMiddleware := postgres.NewDatabase(db)
 	agentGroupRepository := postgres.NewAgentGroupRepository(dbMiddleware, logger)
@@ -95,7 +99,7 @@ func TestAgentGroupRetrieve(t *testing.T) {
 
 	group := fleet.AgentGroup{
 		Name:        nameID,
-		Description: "a example",
+		Description: &description,
 		MFOwnerID:   oID.String(),
 		MFChannelID: chID.String(),
 		Tags:        types.Tags{"testkey": "testvalue"},
@@ -168,7 +172,7 @@ func TestMultiAgentGroupRetrieval(t *testing.T) {
 
 		group := fleet.AgentGroup{
 			Name:        nameID,
-			Description: "a example",
+			Description: &description,
 			MFOwnerID:   oID.String(),
 			MFChannelID: chID.String(),
 			Tags:        types.Tags{"testkey": "testvalue"},
@@ -466,7 +470,7 @@ func TestAgentGroupRetrieveAllByAgent(t *testing.T) {
 
 		group := fleet.AgentGroup{
 			Name:        nameID,
-			Description: "a example",
+			Description: &description,
 			MFOwnerID:   oID.String(),
 			MFChannelID: chID.String(),
 			Tags:        types.Tags{"testkey": "testvalue"},
@@ -548,7 +552,7 @@ func TestRetrieveMatchingGroups(t *testing.T) {
 
 		group := fleet.AgentGroup{
 			Name:        nameID,
-			Description: "a example",
+			Description: &description,
 			MFOwnerID:   oID.String(),
 			MFChannelID: chID.String(),
 			Tags:        types.Tags{"testkey": "testvalue"},
