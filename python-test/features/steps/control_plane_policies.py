@@ -2,7 +2,7 @@ from hamcrest import *
 import requests
 from behave import given, then, step
 from utils import random_string, filter_list_by_parameter_start_with, safe_load_json, remove_empty_from_json, \
-    threading_wait_until, UtilsManager, create_tags_set
+    threading_wait_until, UtilsManager, create_tags_set, is_json, values_to_boolean
 from local_agent import get_orb_agent_logs
 from test_config import TestConfig
 from datetime import datetime
@@ -44,10 +44,11 @@ def create_policy_with_conflict_name(context, kwargs):
     context.error_message = create_policy(context.token, policy_json, expected_status_code=409)
 
 
-@step(
-    "a {handler} policy {input_type} with tap_selector matching {match_type} of {condition} tap tags ands settings: {"
-    "settings} is applied to the group")
-def apply_policy_using_tap_selector(context, handler, input_type, match_type, condition, settings):
+@step("a {handler} policy {input_type} with tap_selector matching {match_type} tag(s) of the tap from {condition}, "
+      "{metric_groups_enabled} metric_groups enabled, {metric_groups_disabled} metric_groups disabled and settings: {"
+      "settings} is applied to the group")
+def apply_policy_using_tap_selector(context, handler, input_type, match_type, condition, metric_groups_enabled,
+                                    metric_groups_disabled, settings):
     module_name = f"{handler}_{random_string(5)}"
     policy_name = policy_name_prefix + random_string(10)
     if condition == "0 agent" and match_type == "any":
@@ -72,19 +73,25 @@ def apply_policy_using_tap_selector(context, handler, input_type, match_type, co
     if handler.lower() == "pcap":
         policy.add_pcap_module(module_name)
     elif handler.lower() == "dns":
-        policy.add_dns_module(module_name)
+        policy.add_dns_module(module_name, settings)
     elif handler.lower() == "net":
-        policy.add_net_module(module_name)
+        policy.add_net_module(module_name, settings)
     elif handler.lower() == "dhcp":
         policy.add_dhcp_module(module_name)
     elif handler.lower() == "bgp":
         policy.add_bgp_module(module_name)
     elif handler.lower() == "flow":
-        policy.add_flow_module(module_name)
+        policy.add_flow_module(module_name, settings)
+    elif handler.lower() == "netprobe":
+        policy.add_netprobe_module(module_name)
     else:
         raise ValueError("Invalid policy handler. It must be one of pcap, dns, net, dhcp, bpg or flow.")
-
-    context.policy = create_policy(context.token, policy.policy)
+    if metric_groups_enabled.lower() != "default" and metric_groups_enabled.lower() != "none":
+        policy.enable_metric_groups(module_name, metric_groups_enabled.split(", "))
+    if metric_groups_disabled.lower() != "default" and metric_groups_disabled.lower() != "none":
+        policy.disable_metric_groups(module_name, metric_groups_disabled.split(", "))
+    json_for_create_policy = remove_empty_from_json(policy.policy)
+    context.policy = create_policy(context.token, json_for_create_policy)
     check_policies(context)
     create_new_dataset(context, 1, 'last', 1, 'sink')
 
@@ -1176,7 +1183,7 @@ class HandlerModules(HandlerConfigs):
 
                 "filter": {
                 },
-                "metrics_groups": {
+                "metric_groups": {
                 }
             }
         }
@@ -1185,21 +1192,31 @@ class HandlerModules(HandlerConfigs):
 
         self.handler_modules.update(module)
 
-    def add_dns_module(self, name, public_suffix_list=None, only_rcode=None, exclude_noerror=None,
-                       only_dnssec_response=None, answer_count=None,
-                       only_qtype=None, only_qname_suffix=None, geoloc_notfound=None, asn_notfound=None,
-                       dnstap_msg_type=None):
+    def __parse_module_settings(self, settings):
+        if settings is None or settings == "default":
+            settings_json = {}
+        else:
+            settings_is_json, settings_json = is_json(settings)
+            assert_that(settings_is_json, is_(True), f"settings must be written in json format. Current settings: "
+                                                     f"{settings}")
+            settings_json = values_to_boolean(settings_json)
+        return settings_json
+
+    def add_dns_module(self, name, settings=None):
+
+        settings_json = self.__parse_module_settings(settings)
+
         self.name = name
-        self.public_suffix_list = {'public_suffix_list': public_suffix_list}
-        self.only_rcode = {'only_rcode': only_rcode}
-        self.exclude_noerror = {'exclude_noerror': exclude_noerror}
-        self.only_dnssec_response = {'only_dnssec_response': only_dnssec_response}
-        self.answer_count = {'answer_count': answer_count}
-        self.only_qtype = {'only_qtype': only_qtype}
-        self.only_qname_suffix = {'only_qname_suffix': only_qname_suffix}
-        self.geoloc_notfound = {'geoloc_notfound': geoloc_notfound}
-        self.asn_notfound = {'asn_notfound': asn_notfound}
-        self.dnstap_msg_type = {'dnstap_msg_type': dnstap_msg_type}
+        self.public_suffix_list = {'public_suffix_list': settings_json.get('public_suffix_list', None)}
+        self.only_rcode = {'only_rcode': settings_json.get("only_rcode", None)}
+        self.exclude_noerror = {'exclude_noerror': settings_json.get("exclude_noerror", None)}
+        self.only_dnssec_response = {'only_dnssec_response': settings_json.get("only_dnssec_response", None)}
+        self.answer_count = {'answer_count': settings_json.get("answer_count", None)}
+        self.only_qtype = {'only_qtype': settings_json.get("only_qtype", None)}
+        self.only_qname_suffix = {'only_qname_suffix': settings_json.get("only_qname_suffix", None)}
+        self.geoloc_notfound = {'geoloc_notfound': settings_json.get("geoloc_notfound", None)}
+        self.asn_notfound = {'asn_notfound': settings_json.get("asn_notfound", None)}
+        self.dnstap_msg_type = {'dnstap_msg_type': settings_json.get("dnstap_msg_type", None)}
 
         dns_configs = [self.public_suffix_list]
 
@@ -1210,13 +1227,15 @@ class HandlerModules(HandlerConfigs):
         self.__build_module(self.name, "dns", dns_configs, dns_filters)
         return self.handler_modules
 
-    def add_net_module(self, name, geoloc_notfound=None, asn_notfound=None, only_geoloc_prefix=None,
-                       only_asn_number=None):
+    def add_net_module(self, name, settings=None):
+
+        settings_json = self.__parse_module_settings(settings)
+
         self.name = name
-        self.geoloc_notfound = {'geoloc_notfound': geoloc_notfound}
-        self.asn_notfound = {'asn_notfound': asn_notfound}
-        self.only_geoloc_prefix = {'only_geoloc_prefix': only_geoloc_prefix}
-        self.only_asn_number = {'only_asn_number': only_asn_number}
+        self.geoloc_notfound = {'geoloc_notfound': settings_json.get('geoloc_notfound', None)}
+        self.asn_notfound = {'asn_notfound': settings_json.get('asn_notfound', None)}
+        self.only_geoloc_prefix = {'only_geoloc_prefix': settings_json.get('only_geoloc_prefix', None)}
+        self.only_asn_number = {'only_asn_number': settings_json.get('only_asn_number', None)}
 
         net_configs = []
 
@@ -1255,17 +1274,19 @@ class HandlerModules(HandlerConfigs):
         self.__build_module(self.name, "pcap", pcap_configs, pcap_filters)
         return self.handler_modules
 
-    def add_flow_module(self, name, sample_rate_scaling=None, recorded_stream=None, only_devices=None, only_ips=None,
-                        only_ports=None, only_interfaces=None, geoloc_notfound=None, asn_notfound=None):
+    def add_flow_module(self, name, settings=None):
+
+        settings_json = self.__parse_module_settings(settings)
+
         self.name = name
-        self.sample_rate_scaling = {'sample_rate_scaling': sample_rate_scaling}
-        self.recorded_stream = {'recorded_stream': recorded_stream}
-        self.only_devices = {'only_devices': only_devices}
-        self.only_ips = {'only_ips': only_ips}
-        self.only_ports = {'only_ports': only_ports}
-        self.only_interfaces = {'only_interfaces': only_interfaces}
-        self.geoloc_notfound = {'geoloc_notfound': geoloc_notfound}
-        self.asn_notfound = {'asn_notfound': asn_notfound}
+        self.sample_rate_scaling = {'sample_rate_scaling': settings_json.get("sample_rate_scaling", None)}
+        self.recorded_stream = {'recorded_stream': settings_json.get("recorded_stream", None)}
+        self.only_devices = {'only_devices': settings_json.get("only_devices", None)}
+        self.only_ips = {'only_ips': settings_json.get("only_ips", None)}
+        self.only_ports = {'only_ports': settings_json.get("only_ports", None)}
+        self.only_interfaces = {'only_interfaces': settings_json.get("only_interfaces", None)}
+        self.geoloc_notfound = {'geoloc_notfound': settings_json.get("geoloc_notfound", None)}
+        self.asn_notfound = {'asn_notfound': settings_json.get("asn_notfound", None)}
 
         flow_configs = [self.sample_rate_scaling, self.recorded_stream]
 
@@ -1273,6 +1294,16 @@ class HandlerModules(HandlerConfigs):
                         self.asn_notfound]
 
         self.__build_module(self.name, "flow", flow_configs, flow_filters)
+        return self.handler_modules
+
+    def add_netprobe_module(self, name):
+        self.name = name
+
+        netprobe_configs = []
+
+        netprobe_filters = []
+
+        self.__build_module(self.name, "netprobe", netprobe_configs, netprobe_filters)
         return self.handler_modules
 
     def add_configs(self, name, **kwargs):
@@ -1290,44 +1321,44 @@ class HandlerModules(HandlerConfigs):
 
         return self.handler_modules
 
-    def enable_metrics_group(self, name, *args):
-        self.metrics_group = self.handler_modules[name]["metrics_groups"]
+    def enable_metric_groups(self, name, args):
+        self.metric_groups = self.handler_modules[name]["metric_groups"]
         metrics_enable = list()
-        if 'enable' not in self.metrics_group.keys():
-            self.metrics_group.update({"enable": metrics_enable})
+        if 'enable' not in self.metric_groups.keys():
+            self.metric_groups.update({"enable": metrics_enable})
 
         for metric in args:
             metrics_enable.append(metric)
-            if 'disable' in self.metrics_group.keys() and metric in self.metrics_group['disable']:
-                self.metrics_group['disable'].remove(metric)
+            if 'disable' in self.metric_groups.keys() and metric in self.metric_groups['disable']:
+                self.metric_groups['disable'].remove(metric)
 
-        self.metrics_group['enable'] = metrics_enable
+        self.metric_groups['enable'] = metrics_enable
 
         return self.handler_modules
 
-    def disable_metrics_group(self, name, *args):
-        self.metrics_group = self.handler_modules[name]["metrics_groups"]
+    def disable_metric_groups(self, name, args):
+        self.metric_groups = self.handler_modules[name]["metric_groups"]
         metrics_disable = list()
-        if 'disable' not in self.metrics_group.keys():
-            self.metrics_group.update({"disable": metrics_disable})
+        if 'disable' not in self.metric_groups.keys():
+            self.metric_groups.update({"disable": metrics_disable})
 
         for metric in args:
             metrics_disable.append(metric)
-            if 'enable' in self.metrics_group.keys() and metric in self.metrics_group['enable']:
-                self.metrics_group['enable'].remove(metric)
+            if 'enable' in self.metric_groups.keys() and metric in self.metric_groups['enable']:
+                self.metric_groups['enable'].remove(metric)
 
-        self.metrics_group['disable'] = metrics_disable
+        self.metric_groups['disable'] = metrics_disable
 
         return self.handler_modules
 
-    def remove_metrics_group(self, name, *args):
-        self.metrics_group = self.handler_modules[name]["metrics_groups"]
+    def remove_metric_groups(self, name, args):
+        self.metric_groups = self.handler_modules[name]["metric_groups"]
 
         for metric in args:
-            if 'enable' in self.metrics_group.keys() and metric in self.metrics_group['enable']:
-                self.metrics_group['enable'].remove(metric)
-            if 'disable' in self.metrics_group.keys() and metric in self.metrics_group['disable']:
-                self.metrics_group['disable'].remove(metric)
+            if 'enable' in self.metric_groups.keys() and metric in self.metric_groups['enable']:
+                self.metric_groups['enable'].remove(metric)
+            if 'disable' in self.metric_groups.keys() and metric in self.metric_groups['disable']:
+                self.metric_groups['disable'].remove(metric)
 
         return self.handler_modules
 
