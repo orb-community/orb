@@ -95,7 +95,7 @@ type Sink struct {
 	ID          string
 	Name        types.Identifier
 	MFOwnerID   string
-	Description string
+	Description *string
 	Backend     string
 	Config      types.Metadata
 	Tags        types.Tags

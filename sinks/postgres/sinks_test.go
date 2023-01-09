@@ -24,7 +24,8 @@ import (
 )
 
 var (
-	logger, _ = zap.NewDevelopment()
+	logger, _   = zap.NewDevelopment()
+	description = "An example prometheus sink"
 )
 
 func TestSinkSave(t *testing.T) {
@@ -45,7 +46,7 @@ func TestSinkSave(t *testing.T) {
 
 	sink := sinks.Sink{
 		Name:        nameID,
-		Description: "An example prometheus sink",
+		Description: &description,
 		Backend:     "prometheus",
 		ID:          skID.String(),
 		Created:     time.Now(),
@@ -58,7 +59,7 @@ func TestSinkSave(t *testing.T) {
 
 	invalidOwnerSink := sinks.Sink{
 		Name:        nameID,
-		Description: "An example prometheus sink",
+		Description: &description,
 		Backend:     "prometheus",
 		ID:          skID.String(),
 		Created:     time.Now(),
@@ -71,7 +72,7 @@ func TestSinkSave(t *testing.T) {
 
 	sinkMalformedOwnerID := sinks.Sink{
 		Name:        nameID,
-		Description: "An example prometheus sink",
+		Description: &description,
 		Backend:     "prometheus",
 		ID:          skID.String(),
 		Created:     time.Now(),
@@ -136,7 +137,7 @@ func TestSinkUpdate(t *testing.T) {
 
 	sink := sinks.Sink{
 		Name:        nameID,
-		Description: "An example prometheus sink",
+		Description: &description,
 		Backend:     "prometheus",
 		Created:     time.Now(),
 		MFOwnerID:   oID.String(),
@@ -153,7 +154,7 @@ func TestSinkUpdate(t *testing.T) {
 	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 	sinkConflictName := sinks.Sink{
 		Name:        nameConflict,
-		Description: "An example prometheus sink",
+		Description: &description,
 		Backend:     "prometheus",
 		Created:     time.Now(),
 		MFOwnerID:   oID.String(),
@@ -234,7 +235,7 @@ func TestSinkRetrieve(t *testing.T) {
 
 	sink := sinks.Sink{
 		Name:        nameID,
-		Description: "An example prometheus sink",
+		Description: &description,
 		Backend:     "prometheus",
 		Created:     time.Now(),
 		MFOwnerID:   oID.String(),
@@ -288,7 +289,7 @@ func TestMultiSinkRetrieval(t *testing.T) {
 
 		sink := sinks.Sink{
 			Name:        nameID,
-			Description: "An example prometheus sink",
+			Description: &description,
 			Backend:     "prometheus",
 			Created:     time.Now(),
 			MFOwnerID:   oID.String(),
@@ -413,7 +414,7 @@ func TestSinkRemoval(t *testing.T) {
 
 	sink := sinks.Sink{
 		Name:        sinkName,
-		Description: "An example prometheus sink",
+		Description: &description,
 		Backend:     "prometheus",
 		Created:     time.Now(),
 		MFOwnerID:   oID.String(),
@@ -463,7 +464,7 @@ func TestSinkRetrieveInternal(t *testing.T) {
 
 	sink := sinks.Sink{
 		Name:        nameID,
-		Description: "An example prometheus sink",
+		Description: &description,
 		Backend:     "prometheus",
 		Created:     time.Now(),
 		MFOwnerID:   oID.String(),
@@ -528,7 +529,7 @@ func TestUpdateSinkState(t *testing.T) {
 
 	sink := sinks.Sink{
 		Name:        nameID,
-		Description: "An example prometheus sink",
+		Description: &description,
 		Backend:     "prometheus",
 		Created:     time.Now(),
 		MFOwnerID:   oID.String(),

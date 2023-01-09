@@ -310,13 +310,20 @@ func toDBSink(sink sinks.Sink) (dbSink, error) {
 		return dbSink{}, errors.Wrap(errors.ErrMalformedEntity, err)
 	}
 
+	var description string
+	if sink.Description == nil {
+		description = ""
+	} else {
+		description = *sink.Description
+	}
+
 	return dbSink{
 		ID:          sink.ID,
 		Name:        sink.Name,
 		MFOwnerID:   uID.String(),
 		Metadata:    db.Metadata(sink.Config),
 		Backend:     sink.Backend,
-		Description: sink.Description,
+		Description: description,
 		State:       sink.State,
 		Error:       sink.Error,
 		Tags:        db.Tags(sink.Tags),
@@ -330,7 +337,7 @@ func toSink(dba dbSink) (sinks.Sink, error) {
 		Name:        dba.Name,
 		MFOwnerID:   dba.MFOwnerID,
 		Backend:     dba.Backend,
-		Description: dba.Description,
+		Description: &dba.Description,
 		State:       dba.State,
 		Error:       dba.Error,
 		Config:      types.Metadata(dba.Metadata),
