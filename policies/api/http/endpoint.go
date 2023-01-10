@@ -34,7 +34,7 @@ func addPolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 			Backend:       req.Backend,
 			SchemaVersion: req.SchemaVersion,
 			Policy:        req.Policy,
-			Description:   req.Description,
+			Description:   &req.Description,
 			OrbTags:       req.Tags,
 			PolicyData:    req.PolicyData,
 			Format:        req.Format,
@@ -51,7 +51,7 @@ func addPolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 		res := policyRes{
 			ID:            saved.ID,
 			Name:          saved.Name.String(),
-			Description:   saved.Description,
+			Description:   *saved.Description,
 			Tags:          saved.OrbTags,
 			Backend:       saved.Backend,
 			SchemaVersion: saved.SchemaVersion,
@@ -80,7 +80,7 @@ func viewPolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 		res := policyRes{
 			ID:            policy.ID,
 			Name:          policy.Name.String(),
-			Description:   policy.Description,
+			Description:   *policy.Description,
 			Tags:          policy.OrbTags,
 			Backend:       policy.Backend,
 			SchemaVersion: policy.SchemaVersion,
@@ -121,7 +121,7 @@ func listPoliciesEndpoint(svc policies.Service) endpoint.Endpoint {
 			view := policyRes{
 				ID:            ag.ID,
 				Name:          ag.Name.String(),
-				Description:   ag.Description,
+				Description:   *ag.Description,
 				Version:       ag.Version,
 				Backend:       ag.Backend,
 				SchemaVersion: ag.SchemaVersion,
@@ -167,7 +167,7 @@ func editPoliciyEndpoint(svc policies.Service) endpoint.Endpoint {
 		plcyRes := policyUpdateRes{
 			ID:          res.ID,
 			Name:        res.Name.String(),
-			Description: res.Description,
+			Description: *res.Description,
 			Tags:        res.OrbTags,
 			Policy:      res.Policy,
 			Format:      res.Format,
@@ -295,7 +295,7 @@ func validatePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 			Backend:     req.Backend,
 			Policy:      req.Policy,
 			OrbTags:     req.Tags,
-			Description: req.Description,
+			Description: &req.Description,
 			Format:      req.Format,
 			PolicyData:  req.PolicyData,
 		}
@@ -312,7 +312,7 @@ func validatePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 			Policy:      validated.Policy,
 			PolicyData:  validated.PolicyData,
 			Format:      validated.Format,
-			Description: validated.Description,
+			Description: *validated.Description,
 		}
 
 		return res, nil
@@ -449,7 +449,7 @@ func duplicatePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 		res := policyRes{
 			ID:            duplicatedPolicy.ID,
 			Name:          duplicatedPolicy.Name.String(),
-			Description:   duplicatedPolicy.Description,
+			Description:   *duplicatedPolicy.Description,
 			Tags:          duplicatedPolicy.OrbTags,
 			Backend:       duplicatedPolicy.Backend,
 			SchemaVersion: duplicatedPolicy.SchemaVersion,

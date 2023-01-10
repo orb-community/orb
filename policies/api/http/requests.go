@@ -90,7 +90,7 @@ type updatePolicyReq struct {
 	id          string
 	token       string
 	Name        string         `json:"name,omitempty"`
-	Description string         `json:"description,omitempty"`
+	Description *string        `json:"description,omitempty"`
 	Tags        types.Tags     `json:"tags,omitempty"`
 	Format      string         `json:"format,omitempty"`
 	Policy      types.Metadata `json:"policy,omitempty"`
@@ -103,7 +103,7 @@ func (req updatePolicyReq) validate() error {
 		return errors.ErrUnauthorizedAccess
 	}
 
-	if (req.Name == "" && req.Description == "") && (req.PolicyData == "" && req.Policy == nil) {
+	if (req.Name == "" && req.Description == nil && req.Tags == nil) && (req.PolicyData == "" && req.Policy == nil) {
 		return errors.ErrMalformedEntity
 	}
 

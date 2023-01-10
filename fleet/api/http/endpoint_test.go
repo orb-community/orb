@@ -54,7 +54,7 @@ var (
 		ID:          "",
 		MFOwnerID:   "",
 		Name:        types.Identifier{},
-		Description: "",
+		Description: nil,
 		MFChannelID: "",
 		Tags:        nil,
 		Created:     time.Time{},
@@ -300,7 +300,7 @@ func TestListAgentGroup(t *testing.T) {
 		data = append(data, agentGroupRes{
 			ID:             ag.ID,
 			Name:           ag.Name.String(),
-			Description:    ag.Description,
+			Description:    *ag.Description,
 			Tags:           ag.Tags,
 			TsCreated:      ag.Created,
 			MatchingAgents: nil,
@@ -479,7 +479,7 @@ func TestUpdateAgentGroup(t *testing.T) {
 		"update existing agent group": {
 			req: toJSON(updateAgentGroupReq{
 				Name:        ag.Name.String(),
-				Description: ag.Description,
+				Description: *ag.Description,
 				Tags:        ag.Tags,
 			}),
 			id:          ag.ID,
@@ -497,7 +497,7 @@ func TestUpdateAgentGroup(t *testing.T) {
 		"update agent group with a invalid id": {
 			req: toJSON(updateAgentGroupReq{
 				Name:        ag.Name.String(),
-				Description: ag.Description,
+				Description: *ag.Description,
 				Tags:        ag.Tags,
 			}),
 			id:          "invalid",
@@ -508,7 +508,7 @@ func TestUpdateAgentGroup(t *testing.T) {
 		"update non-existing agent group": {
 			req: toJSON(updateAgentGroupReq{
 				Name:        ag.Name.String(),
-				Description: ag.Description,
+				Description: *ag.Description,
 				Tags:        ag.Tags,
 			}),
 			id:          wrongID,
@@ -519,7 +519,7 @@ func TestUpdateAgentGroup(t *testing.T) {
 		"update agent group with invalid user token": {
 			req: toJSON(updateAgentGroupReq{
 				Name:        ag.Name.String(),
-				Description: ag.Description,
+				Description: *ag.Description,
 				Tags:        ag.Tags,
 			}),
 			id:          ag.ID,
@@ -530,7 +530,7 @@ func TestUpdateAgentGroup(t *testing.T) {
 		"update agent group with empty user token": {
 			req: toJSON(updateAgentGroupReq{
 				Name:        ag.Name.String(),
-				Description: ag.Description,
+				Description: *ag.Description,
 				Tags:        ag.Tags,
 			}),
 			id:          ag.ID,
@@ -541,7 +541,7 @@ func TestUpdateAgentGroup(t *testing.T) {
 		"update agent group with invalid content type": {
 			req: toJSON(updateAgentGroupReq{
 				Name:        ag.Name.String(),
-				Description: ag.Description,
+				Description: *ag.Description,
 				Tags:        ag.Tags,
 			}),
 			id:          ag.ID,
@@ -552,7 +552,7 @@ func TestUpdateAgentGroup(t *testing.T) {
 		"update agent group without content type": {
 			req: toJSON(updateAgentGroupReq{
 				Name:        ag.Name.String(),
-				Description: ag.Description,
+				Description: *ag.Description,
 				Tags:        ag.Tags,
 			}),
 			id:          ag.ID,
@@ -584,7 +584,7 @@ func TestUpdateAgentGroup(t *testing.T) {
 		"add a agent group with invalid name": {
 			req: toJSON(updateAgentGroupReq{
 				Name:        "g",
-				Description: ag.Description,
+				Description: *ag.Description,
 				Tags:        ag.Tags,
 			}),
 			id:          ag.ID,
@@ -595,17 +595,17 @@ func TestUpdateAgentGroup(t *testing.T) {
 		"update existing agent group with empty tags": {
 			req: toJSON(updateAgentGroupReq{
 				Name:        ag.Name.String(),
-				Description: ag.Description,
+				Description: *ag.Description,
 				Tags:        map[string]string{},
 			}),
 			id:          ag.ID,
 			contentType: contentType,
 			auth:        token,
-			status:      http.StatusBadRequest,
+			status:      http.StatusOK,
 		},
 		"update existing agent group with omitted name": {
 			req: toJSON(updateAgentGroupReq{
-				Description: ag.Description,
+				Description: *ag.Description,
 				Tags:        ag.Tags,
 			}),
 			id:          ag.ID,
@@ -616,7 +616,7 @@ func TestUpdateAgentGroup(t *testing.T) {
 		"update existing agent group with omitted tags": {
 			req: toJSON(updateAgentGroupReq{
 				Name:        ag.Name.String(),
-				Description: ag.Description,
+				Description: *ag.Description,
 			}),
 			id:          ag.ID,
 			contentType: contentType,
@@ -1634,6 +1634,9 @@ func createAgentGroup(t *testing.T, name string, cli *clientServer) (fleet.Agent
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 	agCopy.Name = validName
 	agCopy.Tags = tags
+
+	description := "description example"
+	agCopy.Description = &description
 	ag, err := cli.service.CreateAgentGroup(context.Background(), token, agCopy)
 	if err != nil {
 		return fleet.AgentGroup{}, err
