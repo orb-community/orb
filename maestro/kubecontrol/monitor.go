@@ -227,8 +227,8 @@ func (svc *monitorService) analyzeLogs(logEntry []string) (status string, err er
 		return "fail", err
 	}
 	if lastLogTime.After(time.Now().Add(-TimeDiffActiveIdle)) {
-		return "active", nil
-	} else {
 		return "idle", nil
+	} else {
+		return "active", nil
 	}
 }
