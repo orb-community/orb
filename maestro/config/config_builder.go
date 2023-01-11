@@ -231,6 +231,11 @@ func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig, sinkId, sinkUrl
 					Authenticator string `json:"authenticator" yaml:"authenticator"`
 				}{Authenticator: "basicauth/exporter"},
 			},
+			LoggingExporter: &LoggingExporterConfig{
+				Verbosity:          "detailed",
+				SamplingInitial:    5,
+				SamplingThereAfter: 50,
+			},
 		},
 		Service: ServiceConfig{
 			Extensions: []string{"pprof", "health_check", "basicauth/exporter"},
@@ -322,6 +327,13 @@ type BasicAuthenticationExtension struct {
 
 type Exporters struct {
 	PrometheusRemoteWrite *PrometheusRemoteWriteExporterConfig `json:"prometheusremotewrite,omitempty" yaml:"prometheusremotewrite,omitempty"`
+	LoggingExporter       *LoggingExporterConfig               `json:"logging,omitempty" yaml:"logging,omitempty"`
+}
+
+type LoggingExporterConfig struct {
+	Verbosity          string `json:"verbosity,omitempty" yaml:"verbosity,omitempty"`
+	SamplingInitial    int    `json:"sampling_initial,omitempty" yaml:"verbosity,omitempty"`
+	SamplingThereAfter int    `json:"sampling_thereafter,omitempty" yaml:"verbosity,omitempty"`
 }
 
 type PrometheusRemoteWriteExporterConfig struct {

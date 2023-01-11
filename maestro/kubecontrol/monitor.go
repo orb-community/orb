@@ -19,10 +19,8 @@ import (
 	"time"
 )
 
-const streamID = "orb.sinker"
-
 const MonitorFixedDuration = 1 * time.Minute
-const TimeDiffForFetchingLogs = 5 * time.Minute
+const TimeDiffActiveIdle = 5 * time.Minute
 
 func NewMonitorService(logger *zap.Logger, sinksClient *sinkspb.SinkServiceClient, redisClient *redis.Client, kubecontrol *Service) MonitorService {
 	return &monitorService{
@@ -197,13 +195,16 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 
 }
 
-// analyzeLogs, will check for errors in exporter, and will return as follow
+// analyzeLogs, will check for errors in exporter, and will return as follows
 //
+//	for active, the timestamp should not be longer than 5 minutes of the last metric export
 //	for errors 479 will send a "warning" state, plus message of too many requests
 //	for any other errors, will add error and message
 //	if no error message on exporter, will log as active
 func (svc *monitorService) analyzeLogs(logEntry []string) (status string, err error) {
+	var lastTimeStamp string
 	for _, logLine := range logEntry {
+		lastTimeStamp = logLine[0:24]
 		if strings.Contains(logLine, "error") {
 			errStringLog := strings.TrimRight(logLine, "error")
 			jsonError := strings.Split(errStringLog, "\t")[4]
@@ -223,5 +224,13 @@ func (svc *monitorService) analyzeLogs(logEntry []string) (status string, err er
 			}
 		}
 	}
-	return "active", nil
+	lastLogTime, err := time.Parse(time.RFC3339, lastTimeStamp)
+	if err != nil {
+		return "fail", err
+	}
+	if lastLogTime.After(time.Now().Add(-TimeDiffActiveIdle)) {
+		return "active", nil
+	} else {
+		return "idle", nil
+	}
 }
