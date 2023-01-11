@@ -209,7 +209,7 @@ func addDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 			Name:         nID,
 			AgentGroupID: req.AgentGroupID,
 			PolicyID:     req.PolicyID,
-			SinkIDs:      req.SinkIDs,
+			SinkIDs:      &req.SinkIDs,
 			Tags:         req.Tags,
 		}
 
@@ -224,7 +224,7 @@ func addDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 			Valid:        saved.Valid,
 			AgentGroupID: saved.AgentGroupID,
 			PolicyID:     saved.PolicyID,
-			SinkIDs:      saved.SinkIDs,
+			SinkIDs:      *saved.SinkIDs,
 			Metadata:     saved.Metadata,
 			TsCreated:    saved.Created,
 			Tags:         saved.Tags,
@@ -268,7 +268,7 @@ func editDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 			Valid:        ds.Valid,
 			AgentGroupID: ds.AgentGroupID,
 			PolicyID:     ds.PolicyID,
-			SinkIDs:      ds.SinkIDs,
+			SinkIDs:      *ds.SinkIDs,
 			Metadata:     ds.Metadata,
 			TsCreated:    ds.Created,
 			Tags:         ds.Tags,
@@ -348,7 +348,7 @@ func validateDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 			Name:         nID,
 			AgentGroupID: req.AgentGroupID,
 			PolicyID:     req.PolicyID,
-			SinkIDs:      req.SinkIDs,
+			SinkIDs:      &req.SinkIDs,
 			Tags:         req.Tags,
 		}
 
@@ -363,7 +363,7 @@ func validateDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 			Tags:         validated.Tags,
 			AgentGroupID: validated.AgentGroupID,
 			PolicyID:     validated.PolicyID,
-			SinkIDs:      validated.SinkIDs,
+			SinkIDs:      *validated.SinkIDs,
 		}
 
 		return res, nil
@@ -386,10 +386,14 @@ func viewDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 			ID:           dataset.ID,
 			Name:         dataset.Name.String(),
 			PolicyID:     dataset.PolicyID,
-			SinkIDs:      dataset.SinkIDs,
 			AgentGroupID: dataset.AgentGroupID,
 			Valid:        dataset.Valid,
 			TsCreated:    dataset.Created,
+		}
+		if dataset.SinkIDs != nil {
+			res.SinkIDs = *dataset.SinkIDs
+		} else {
+			res.SinkIDs = []string{}
 		}
 		return res, nil
 	}
@@ -422,11 +426,15 @@ func listDatasetEndpoint(svc policies.Service) endpoint.Endpoint {
 				ID:           dataset.ID,
 				Name:         dataset.Name.String(),
 				PolicyID:     dataset.PolicyID,
-				SinkIDs:      dataset.SinkIDs,
 				AgentGroupID: dataset.AgentGroupID,
 				TsCreated:    dataset.Created,
 				Valid:        dataset.Valid,
 				Tags:         dataset.Tags,
+			}
+			if dataset.SinkIDs != nil {
+				view.SinkIDs = *dataset.SinkIDs
+			} else {
+				view.SinkIDs = []string{}
 			}
 			res.Datasets = append(res.Datasets, view)
 		}

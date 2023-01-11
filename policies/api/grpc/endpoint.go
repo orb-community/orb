@@ -87,7 +87,7 @@ func retrieveDatasetEnpoint(svc policies.Service) endpoint.Endpoint {
 			id:           dataset.ID,
 			agentGroupID: dataset.AgentGroupID,
 			policyID:     dataset.PolicyID,
-			sinkIDs:      dataset.SinkIDs,
+			sinkIDs:      *dataset.SinkIDs,
 		}, nil
 	}
 }
@@ -108,7 +108,7 @@ func retrieveDatasetsByGroupsEndpoint(svc policies.Service) endpoint.Endpoint {
 			datasets[i] = datasetRes{
 				id:           ds.ID,
 				agentGroupID: ds.AgentGroupID,
-				sinkIDs:      ds.SinkIDs,
+				sinkIDs:      *ds.SinkIDs,
 				policyID:     ds.PolicyID,
 			}
 		}

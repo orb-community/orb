@@ -36,6 +36,10 @@ kind: collection`
 	wrongID = "28ea82e7-0224-4798-a848-899a75cdc650"
 )
 
+var (
+	emptySinkIDs []string
+)
+
 func newService(auth mainflux.AuthServiceClient) policies.Service {
 	policyRepo := plmocks.NewPoliciesRepository()
 	fleetGrpcClient := flmocks.NewClient()
@@ -561,12 +565,13 @@ func TestEditDataset(t *testing.T) {
 	validName, err := types.NewIdentifier("dataset")
 	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 
+	sinkIDs := []string{sinkID.String()}
 	dataset := policies.Dataset{
 		Name:         validName,
 		Valid:        true,
 		AgentGroupID: groupID.String(),
 		PolicyID:     policy.ID,
-		SinkIDs:      []string{sinkID.String()},
+		SinkIDs:      &sinkIDs,
 	}
 
 	dataset, err = svc.AddDataset(context.Background(), token, dataset)
@@ -581,8 +586,9 @@ func TestEditDataset(t *testing.T) {
 	wrongSinkID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 
-	wrongSinkDs := createDataset(t, svc, "wrong_sink")
-	wrongSinkDs.SinkIDs = []string{wrongSinkID.String()}
+	testAttributeWrongSinkDs := createDataset(t, svc, "wrong_sink")
+	wrongSinkDs := []string{wrongSinkID.String()}
+	testAttributeWrongSinkDs.SinkIDs = &wrongSinkDs
 
 	wrongDataset := policies.Dataset{MFOwnerID: wrongOwnerID.String()}
 
@@ -619,7 +625,7 @@ func TestEditDataset(t *testing.T) {
 		"update a non-existing dataset": {
 			ds:    wrongDataset,
 			token: token,
-			err:   policies.ErrMalformedEntity,
+			err:   policies.ErrNotFound,
 		},
 		"update a existing dataset without name": {
 			ds: policies.Dataset{
@@ -633,6 +639,31 @@ func TestEditDataset(t *testing.T) {
 			},
 			token: token,
 			err:   nil,
+		},
+		"update a existing dataset with omitted sinkIDs": {
+			ds: policies.Dataset{
+				ID:        dataset.ID,
+				MFOwnerID: dataset.MFOwnerID,
+			},
+			expectedDS: policies.Dataset{
+				Name:    validName,
+				SinkIDs: dataset.SinkIDs,
+			},
+			token: token,
+			err:   nil,
+		},
+		"update a existing dataset with empty sinkIDs": {
+			ds: policies.Dataset{
+				ID:        dataset.ID,
+				MFOwnerID: dataset.MFOwnerID,
+				SinkIDs:   &emptySinkIDs,
+			},
+			expectedDS: policies.Dataset{
+				Name:    validName,
+				SinkIDs: dataset.SinkIDs,
+			},
+			token: token,
+			err:   errors.ErrMalformedEntity,
 		},
 	}
 
@@ -691,14 +722,16 @@ func TestValidateDataset(t *testing.T) {
 	policy := createPolicy(t, svc, "policy")
 	var nameID, _ = types.NewIdentifier("my-dataset")
 	var (
+		emptySinkIDs               []string
+		invalidSinkIDs             = []string{"invalid"}
 		sinkIDsArray               = []string{"f5b2d342-211d-a9ab-1233-63199a3fc16f", "03679425-aa69-4574-bf62-e0fe71b80939"}
-		dataset                    = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", PolicyID: policy.ID, SinkIDs: sinkIDsArray, Valid: true}
-		datasetEmptySinkID         = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", PolicyID: policy.ID, SinkIDs: []string{}, Valid: true}
-		datasetEmptyPolicyID       = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", PolicyID: "", SinkIDs: sinkIDsArray, Valid: true}
-		datasetEmptyAgentGroupID   = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "", PolicyID: policy.ID, SinkIDs: sinkIDsArray, Valid: true}
-		datasetInvalidSinkID       = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", PolicyID: policy.ID, SinkIDs: []string{"invalid"}, Valid: true}
-		datasetInvalidPolicyID     = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", PolicyID: "invalid", SinkIDs: sinkIDsArray, Valid: true}
-		datasetInvalidAgentGroupID = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "invalid", PolicyID: policy.ID, SinkIDs: sinkIDsArray, Valid: true}
+		dataset                    = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", PolicyID: policy.ID, SinkIDs: &sinkIDsArray, Valid: true}
+		datasetEmptySinkID         = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", PolicyID: policy.ID, SinkIDs: &emptySinkIDs, Valid: true}
+		datasetEmptyPolicyID       = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", PolicyID: "", SinkIDs: &sinkIDsArray, Valid: true}
+		datasetEmptyAgentGroupID   = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "", PolicyID: policy.ID, SinkIDs: &sinkIDsArray, Valid: true}
+		datasetInvalidSinkID       = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", PolicyID: policy.ID, SinkIDs: &invalidSinkIDs, Valid: true}
+		datasetInvalidPolicyID     = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", PolicyID: "invalid", SinkIDs: &sinkIDsArray, Valid: true}
+		datasetInvalidAgentGroupID = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "invalid", PolicyID: policy.ID, SinkIDs: &sinkIDsArray, Valid: true}
 	)
 
 	cases := map[string]struct {
@@ -719,7 +752,7 @@ func TestValidateDataset(t *testing.T) {
 		"validate a dataset with a empty sink ID": {
 			dataset: datasetEmptySinkID,
 			token:   token,
-			err:     policies.ErrMalformedEntity,
+			err:     errors.ErrMalformedEntity,
 		},
 		"validate a dataset with a empty policy ID": {
 			dataset: datasetEmptyPolicyID,
@@ -734,7 +767,7 @@ func TestValidateDataset(t *testing.T) {
 		"validate a dataset with a invalid sink ID": {
 			dataset: datasetInvalidSinkID,
 			token:   token,
-			err:     policies.ErrMalformedEntity,
+			err:     errors.ErrMalformedEntity,
 		},
 		"validate a dataset with a invalid policy ID": {
 			dataset: datasetInvalidPolicyID,
@@ -929,7 +962,7 @@ func TestListPoliciesByGroupIDInternal(t *testing.T) {
 			Name:         validName,
 			PolicyID:     policy.ID,
 			AgentGroupID: agentGroupID.String(),
-			SinkIDs:      sinkIDs,
+			SinkIDs:      &sinkIDs,
 		}
 
 		ds, err := svc.AddDataset(context.Background(), token, dataset)
@@ -1067,7 +1100,7 @@ func TestListDatasetsByPolicyIDInternal(t *testing.T) {
 			Name:         validName,
 			PolicyID:     policy.ID,
 			AgentGroupID: agentGroupID.String(),
-			SinkIDs:      sinkIDs,
+			SinkIDs:      &sinkIDs,
 		}
 
 		ds, err := svc.AddDataset(context.Background(), token, dataset)
@@ -1179,7 +1212,7 @@ func TestInactivateDatasetsByGroupID(t *testing.T) {
 			Name:         validName,
 			PolicyID:     policy.ID,
 			AgentGroupID: agentGroupID.String(),
-			SinkIDs:      sinkIDs,
+			SinkIDs:      &sinkIDs,
 		}
 
 		ds, err := svc.AddDataset(context.Background(), token, dataset)
@@ -1273,7 +1306,7 @@ func createDataset(t *testing.T, svc policies.Service, name string) policies.Dat
 		Name:         validName,
 		PolicyID:     policyID.String(),
 		AgentGroupID: agentGroupID.String(),
-		SinkIDs:      sinkIDs,
+		SinkIDs:      &sinkIDs,
 	}
 
 	res, err := svc.AddDataset(context.Background(), token, dataset)
@@ -1315,7 +1348,7 @@ func TestDeleteSinkFromDataset(t *testing.T) {
 			Name:         validName,
 			PolicyID:     policy.ID,
 			AgentGroupID: agentGroupID.String(),
-			SinkIDs:      sinkIDs,
+			SinkIDs:      &sinkIDs,
 		}
 
 		ds, err := svc.AddDataset(context.Background(), token, dataset)
@@ -1391,7 +1424,7 @@ func TestInactivateDatasetByID(t *testing.T) {
 			Name:         validName,
 			PolicyID:     policy.ID,
 			AgentGroupID: agentGroupID.String(),
-			SinkIDs:      sinkIDs,
+			SinkIDs:      &sinkIDs,
 		}
 
 		ds, err := svc.AddDataset(context.Background(), token, dataset)
@@ -1466,7 +1499,7 @@ func TestDeleteAGroupFromDataset(t *testing.T) {
 			Name:         validName,
 			PolicyID:     policy.ID,
 			AgentGroupID: agentGroupID.String(),
-			SinkIDs:      sinkIDs,
+			SinkIDs:      &sinkIDs,
 		}
 
 		ds, err := svc.AddDataset(context.Background(), token, dataset)
