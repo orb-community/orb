@@ -332,8 +332,8 @@ type Exporters struct {
 
 type LoggingExporterConfig struct {
 	Verbosity          string `json:"verbosity,omitempty" yaml:"verbosity,omitempty"`
-	SamplingInitial    int    `json:"sampling_initial,omitempty" yaml:"verbosity,omitempty"`
-	SamplingThereAfter int    `json:"sampling_thereafter,omitempty" yaml:"verbosity,omitempty"`
+	SamplingInitial    int    `json:"sampling_initial,omitempty" yaml:"sampling_initial,omitempty"`
+	SamplingThereAfter int    `json:"sampling_thereafter,omitempty" yaml:"sampling_thereafter,omitempty"`
 }
 
 type PrometheusRemoteWriteExporterConfig struct {
