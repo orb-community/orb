@@ -170,7 +170,8 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 				svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status))
 			}
 			keyPrefix := "sinker_key"
-			skey := fmt.Sprintf("%s-%s-%s", keyPrefix, data.OwnerID, data.SinkID)
+			skey := fmt.Sprintf("%s-%s:%s", keyPrefix, data.OwnerID, data.SinkID)
+			svc.logger.Info("debugging ownerID", zap.String("dest", data.OwnerID), zap.String("orig", sink.OwnerID))
 			err := data.State.SetFromString(status)
 			if err != nil {
 				svc.logger.Error("error during analyze logs", zap.Error(err))
