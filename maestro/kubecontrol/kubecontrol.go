@@ -3,7 +3,6 @@ package kubecontrol
 import (
 	"bufio"
 	"context"
-	"fmt"
 	"github.com/go-redis/redis/v8"
 	"os"
 	"os/exec"
@@ -35,30 +34,6 @@ type Service interface {
 
 	// UpdateOtelCollector - update an existing collector by id
 	UpdateOtelCollector(ctx context.Context, ownerID, sinkID, deploymentEntry string) error
-
-	// CollectLogs - collect logs from the collector by sink-id
-	CollectLogs(ctx context.Context, ownerID, sinkID string) ([]string, error)
-}
-
-func (svc *deployService) CollectLogs(ctx context.Context, ownerID, sinkId string) ([]string, error) {
-	cmd := exec.Command("kubectl", "logs", fmt.Sprintf("otel-%s", sinkId), "-n", namespace)
-	exporterLogs := make([]string, 10)
-	watchLogsFunction := func(out *bufio.Scanner, err *bufio.Scanner) {
-		if err.Scan() || out.Err() != nil {
-			svc.logger.Error("failed to get logs for collector on sink", zap.Error(err.Err()), zap.Error(out.Err()))
-			return
-		}
-		for out.Scan() && len(exporterLogs) < 10 {
-			logEntry := out.Text()
-			exporterLogs = append(exporterLogs, logEntry)
-		}
-	}
-	_, _, err := execCmd(ctx, cmd, svc.logger, watchLogsFunction)
-	if err != nil {
-		svc.logger.Error("Error reading the logs")
-		exporterLogs = nil
-	}
-	return exporterLogs, err
 }
 
 func (svc *deployService) collectorDeploy(ctx context.Context, operation, ownerID, sinkId, manifest string) error {
