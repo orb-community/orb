@@ -50,7 +50,6 @@ func (svc *deployService) CollectLogs(ctx context.Context, ownerID, sinkId strin
 		}
 		for out.Scan() && len(exporterLogs) < 10 {
 			logEntry := out.Text()
-			svc.logger.Info("debugging logEntry", zap.String("sinkId", sinkId), zap.String("logEntry", logEntry))
 			exporterLogs = append(exporterLogs, logEntry)
 		}
 	}
@@ -91,11 +90,9 @@ func (svc *deployService) collectorDeploy(ctx context.Context, operation, ownerI
 
 	stdOutListenFunction := func(out *bufio.Scanner, err *bufio.Scanner) {
 		for out.Scan() {
-			fmt.Println(out.Text())
 			svc.logger.Info("Deploy Info: " + out.Text())
 		}
 		for err.Scan() {
-			fmt.Println(err.Text())
 			svc.logger.Info("Deploy Error: " + err.Text())
 		}
 	}
@@ -129,12 +126,10 @@ func execCmd(_ context.Context, cmd *exec.Cmd, logger *zap.Logger, stdOutFunc fu
 	go stdOutFunc(stdoutScanner, stderrScanner)
 	err := cmd.Start()
 	if err != nil {
-		fmt.Printf("Error : %v \n", err)
 		logger.Error("Collector Deploy Error", zap.Error(err))
 	}
 	err = cmd.Wait()
 	if err != nil {
-		fmt.Printf("Error: %v \n", err)
 		logger.Error("Collector Deploy Error", zap.Error(err))
 	}
 	return stdoutScanner, stderrScanner, err
@@ -157,7 +152,6 @@ func (svc *deployService) getDeploymentState(ctx context.Context, ownerID, sinkI
 	if err != nil {
 		return "", cmd.Err()
 	}
-	svc.logger.Info("debug returned slice", zap.Any("slice", slice))
 	value := slice[0]
 	entry := value.Member.(CollectorStatusSortedSetEntry)
 	return entry.Status, nil
