@@ -100,7 +100,6 @@ func encodeSinkResponse(_ context.Context, grpcRes interface{}) (interface{}, er
 	return &pb.SinkRes{
 		Id:          res.id,
 		Name:        res.name,
-		OwnerID:     res.mfOwnerId,
 		Description: res.description,
 		Tags:        res.tags,
 		State:       res.state,
