@@ -151,6 +151,10 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			svc.logger.Warn("failed to unmarshal sink, skipping", zap.String("sink-id", sink.Id))
 			continue
 		}
+		if data.LastRemoteWrite.After(time.Now().Add(-TimeDiffActiveIdle)) {
+			svc.logger.Warn("collector recently updated, skipping", zap.String("sink-id", sink.Id))
+			continue
+		}
 		data.SinkID = sink.Id
 		data.OwnerID = sink.OwnerID
 		data.LastRemoteWrite = time.Now()

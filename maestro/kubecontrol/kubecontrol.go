@@ -3,6 +3,7 @@ package kubecontrol
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"github.com/go-redis/redis/v8"
 	"os"
 	"os/exec"
@@ -78,12 +79,12 @@ func (svc *deployService) collectorDeploy(ctx context.Context, operation, ownerI
 
 	if err == nil {
 		if operation == "apply" {
-			err := svc.setNewDeploymentState(ctx, ownerID, sinkId, "idle")
+			err := svc.setNewDeploymentState(ctx, ownerID, sinkId, "new")
 			if err != nil {
 				return err
 			}
 		} else if operation == "delete" {
-			err := svc.setNewDeploymentState(ctx, ownerID, sinkId, "idle")
+			err := svc.setNewDeploymentState(ctx, ownerID, sinkId, "stopped")
 			if err != nil {
 				return err
 			}
@@ -111,38 +112,31 @@ func execCmd(_ context.Context, cmd *exec.Cmd, logger *zap.Logger, stdOutFunc fu
 }
 
 func (svc *deployService) getDeploymentState(ctx context.Context, ownerID, sinkId string) (string, error) {
-	key := CollectorStatusKey + "." + sinkId
-	args := redis.ZRangeArgs{
-		Key:     key,
-		Start:   nil,
-		Stop:    nil,
-		ByScore: false,
-		ByLex:   false,
-		Rev:     false,
-		Offset:  0,
-		Count:   0,
-	}
-	cmd := svc.redisClient.ZRangeArgsWithScores(ctx, args)
-	slice, err := cmd.Result()
+	key := CollectorStatusKey + "." + ownerID + "." + sinkId
+	cmd := svc.redisClient.Get(ctx, key)
+	collectorStatusAsString, err := cmd.Result()
 	if err != nil {
 		return "", cmd.Err()
 	}
-	value := slice[0]
-	entry := value.Member.(CollectorStatusSortedSetEntry)
-	return entry.Status, nil
+	var collectorStatus CollectorStatusSortedSetEntry
+	err = json.Unmarshal([]byte(collectorStatusAsString), &collectorStatus)
+	if err != nil {
+		return "", err
+	}
+	return collectorStatus.Status, nil
 }
 
 func (svc *deployService) setNewDeploymentState(ctx context.Context, ownerID, sinkId, state string) error {
-	key := CollectorStatusKey + "." + sinkId
+	key := CollectorStatusKey + "." + ownerID + "." + sinkId
 	entry := redis.Z{
 		Score: float64(time.Now().Unix()),
 		Member: CollectorStatusSortedSetEntry{
 			SinkID:       sinkId,
-			Status:       "idle",
+			Status:       state,
 			ErrorMessage: nil,
 		},
 	}
-	intCmd := svc.redisClient.ZAdd(ctx, key, &entry)
+	intCmd := svc.redisClient.Set(ctx, key, &entry, 0)
 	if intCmd.Err() != nil {
 		return intCmd.Err()
 	}
