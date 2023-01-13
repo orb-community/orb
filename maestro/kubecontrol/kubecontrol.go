@@ -3,13 +3,15 @@ package kubecontrol
 import (
 	"bufio"
 	"context"
+	"encoding/json"
+	"fmt"
 	"github.com/go-redis/redis/v8"
+	maestroconfig "github.com/ns1labs/orb/maestro/config"
+	"go.uber.org/zap"
 	"os"
 	"os/exec"
 	"strings"
 	"time"
-
-	"go.uber.org/zap"
 )
 
 const namespace = "otelcollectors"
@@ -41,18 +43,18 @@ func (svc *deployService) collectorDeploy(ctx context.Context, operation, ownerI
 	fileContent := []byte(manifest)
 	tmp := strings.Split(string(fileContent), "\n")
 	newContent := strings.Join(tmp[1:], "\n")
-	status, err := svc.getDeploymentState(ctx, ownerID, sinkId)
+	sinkData, err := svc.getDeploymentState(ctx, ownerID, sinkId)
 	if err != nil {
 		return err
 	}
 	if operation == "apply" {
-		if status != "deleted" {
-			svc.logger.Info("Already applied Sink ID", zap.String("ownerID", ownerID), zap.String("sinkID", sinkId), zap.String("status", status))
+		if sinkData.State != maestroconfig.Active {
+			svc.logger.Info("Already applied Sink ID", zap.String("ownerID", ownerID), zap.String("sinkID", sinkId), zap.String("status", sinkData.State.String()))
 			return nil
 		}
 	} else if operation == "delete" {
-		if status == "deleted" {
-			svc.logger.Info("Already deleted Sink ID", zap.String("ownerID", ownerID), zap.String("sinkID", sinkId), zap.String("status", status))
+		if sinkData.State == maestroconfig.Idle {
+			svc.logger.Info("Already deleted Sink ID", zap.String("ownerID", ownerID), zap.String("sinkID", sinkId), zap.String("status", sinkData.State.String()))
 			return nil
 		}
 	}
@@ -78,12 +80,12 @@ func (svc *deployService) collectorDeploy(ctx context.Context, operation, ownerI
 
 	if err == nil {
 		if operation == "apply" {
-			err := svc.setNewDeploymentState(ctx, ownerID, sinkId, "idle")
+			err := svc.setNewDeploymentState(ctx, *sinkData, ownerID, sinkId, "idle")
 			if err != nil {
 				return err
 			}
 		} else if operation == "delete" {
-			err := svc.setNewDeploymentState(ctx, ownerID, sinkId, "idle")
+			err := svc.setNewDeploymentState(ctx, *sinkData, ownerID, sinkId, "idle")
 			if err != nil {
 				return err
 			}
@@ -110,41 +112,41 @@ func execCmd(_ context.Context, cmd *exec.Cmd, logger *zap.Logger, stdOutFunc fu
 	return stdoutScanner, stderrScanner, err
 }
 
-func (svc *deployService) getDeploymentState(ctx context.Context, ownerID, sinkId string) (string, error) {
-	key := CollectorStatusKey + "." + sinkId
-	args := redis.ZRangeArgs{
-		Key:     key,
-		Start:   nil,
-		Stop:    nil,
-		ByScore: false,
-		ByLex:   false,
-		Rev:     false,
-		Offset:  0,
-		Count:   0,
+func (svc *deployService) getDeploymentState(ctx context.Context, ownerID, sinkId string) (*maestroconfig.SinkData, error) {
+	skey := fmt.Sprintf("%s-%s:%s", sinkerKey, ownerID, sinkId)
+
+	get := svc.redisClient.Get(ctx, skey)
+	if err := get.Err(); err != nil {
+		return nil, err
 	}
-	cmd := svc.redisClient.ZRangeArgsWithScores(ctx, args)
-	slice, err := cmd.Result()
+	var unmarshalled maestroconfig.SinkData
+	bytes, err := get.Bytes()
 	if err != nil {
-		return "", cmd.Err()
+		return nil, err
 	}
-	value := slice[0]
-	entry := value.Member.(CollectorStatusSortedSetEntry)
-	return entry.Status, nil
+	err = json.Unmarshal(bytes, &unmarshalled)
+	if err != nil {
+		return nil, err
+	}
+	return &unmarshalled, nil
 }
 
-func (svc *deployService) setNewDeploymentState(ctx context.Context, ownerID, sinkId, state string) error {
-	key := CollectorStatusKey + "." + sinkId
-	entry := redis.Z{
-		Score: float64(time.Now().Unix()),
-		Member: CollectorStatusSortedSetEntry{
-			SinkID:       sinkId,
-			Status:       "idle",
-			ErrorMessage: nil,
-		},
+func (svc *deployService) setNewDeploymentState(ctx context.Context, previousData maestroconfig.SinkData, ownerID, sinkId, state string) error {
+	skey := fmt.Sprintf("%s-%s:%s", sinkerKey, ownerID, sinkId)
+	err := previousData.State.SetFromString(state)
+	previousData.LastRemoteWrite = time.Now()
+	if err != nil {
+		return err
 	}
-	intCmd := svc.redisClient.ZAdd(ctx, key, &entry)
-	if intCmd.Err() != nil {
-		return intCmd.Err()
+	byteSink, err := json.Marshal(previousData)
+	if err != nil {
+		return err
+	}
+	if err := svc.redisClient.Del(ctx, skey).Err(); err != nil {
+		svc.logger.Error("error during analyze logs", zap.Error(err))
+	}
+	if err = svc.redisClient.Set(ctx, skey, byteSink, 0).Err(); err != nil {
+		return err
 	}
 	return nil
 }

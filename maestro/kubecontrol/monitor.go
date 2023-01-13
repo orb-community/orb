@@ -19,8 +19,9 @@ import (
 	"time"
 )
 
-const MonitorFixedDuration = 1 * time.Minute
-const TimeDiffActiveIdle = 5 * time.Minute
+const monitorFixedDuration = 1 * time.Minute
+const timeDiffActiveIdle = 5 * time.Minute
+const sinkerKey = "sinker_key"
 
 func NewMonitorService(logger *zap.Logger, sinksClient *sinkspb.SinkServiceClient, redisClient *redis.Client, kubecontrol *Service) MonitorService {
 	return &monitorService{
@@ -44,7 +45,7 @@ type monitorService struct {
 
 func (svc *monitorService) Start(ctx context.Context, cancelFunc context.CancelFunc) error {
 	go func(ctx context.Context, cancelFunc context.CancelFunc) {
-		ticker := time.NewTicker(MonitorFixedDuration)
+		ticker := time.NewTicker(monitorFixedDuration)
 		svc.logger.Info("start monitor routine", zap.Any("routine", ctx))
 		defer func() {
 			cancelFunc()
@@ -169,30 +170,31 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			} else {
 				svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status))
 			}
-			keyPrefix := "sinker_key"
-			skey := fmt.Sprintf("%s-%s:%s", keyPrefix, data.OwnerID, data.SinkID)
-			svc.logger.Info("debugging ownerID", zap.String("dest", data.OwnerID), zap.String("orig", sink.OwnerID))
-			err := data.State.SetFromString(status)
-			if err != nil {
-				svc.logger.Error("error during analyze logs", zap.Error(err))
-			}
-			if logsErr != nil {
-				data.Msg = logsErr.Error()
-			}
-			if err := svc.redisClient.Del(ctx, skey).Err(); err != nil {
-				svc.logger.Error("error during analyze logs", zap.Error(err))
-			}
-			byteSink, err := json.Marshal(data)
-			if err != nil {
-				svc.logger.Error("error during analyze logs", zap.Error(err))
-			}
-			if err = svc.redisClient.Set(context.Background(), skey, byteSink, 0).Err(); err != nil {
-				svc.logger.Error("error during analyze logs", zap.Error(err))
-			}
+			svc.updateStatus(ctx, data, status, logsErr)
 		}
 		return
 	}
+}
 
+func (svc *monitorService) updateStatus(ctx context.Context, data maestroconfig.SinkData, status string, logsErr error) {
+	skey := fmt.Sprintf("%s-%s:%s", sinkerKey, data.OwnerID, data.SinkID)
+	err := data.State.SetFromString(status)
+	if err != nil {
+		svc.logger.Error("error during analyze logs", zap.Error(err))
+	}
+	if logsErr != nil {
+		data.Msg = logsErr.Error()
+	}
+	if err := svc.redisClient.Del(ctx, skey).Err(); err != nil {
+		svc.logger.Error("error during analyze logs", zap.Error(err))
+	}
+	byteSink, err := json.Marshal(data)
+	if err != nil {
+		svc.logger.Error("error during analyze logs", zap.Error(err))
+	}
+	if err = svc.redisClient.Set(ctx, skey, byteSink, 0).Err(); err != nil {
+		svc.logger.Error("error during analyze logs", zap.Error(err))
+	}
 }
 
 // analyzeLogs, will check for errors in exporter, and will return as follows
@@ -230,7 +232,7 @@ func (svc *monitorService) analyzeLogs(logEntry []string) (status string, err er
 	if err != nil {
 		return "fail", err
 	}
-	if lastLogTime.After(time.Now().Add(-TimeDiffActiveIdle)) {
+	if lastLogTime.After(time.Now().Add(-timeDiffActiveIdle)) {
 		return "idle", nil
 	} else {
 		return "active", nil
