@@ -343,10 +343,13 @@ def provision_agent_using_config_file(context, input_type, settings, provision, 
         orb_cloud_mqtt_channel_id = None
         agent_name = f"{agent_name_prefix}{random_string(10)}"
 
-    interface = configs.get('orb_agent_interface', 'auto')
+    if "iface" in settings.keys() and isinstance(settings["iface"], str) and settings["iface"].lower() == "mocked":
+        interface = context.mock_iface_name
+    else:
+        interface = configs.get('orb_agent_interface', 'auto')
     orb_url = configs.get('orb_url')
     base_orb_address = configs.get('orb_address')
-    port = return_port_to_run_docker_container(context, True)
+    context.port = return_port_to_run_docker_container(context, True)
     if "tap_name" in context:
         tap_name = context.tap_name
     else:
@@ -358,7 +361,7 @@ def provision_agent_using_config_file(context, input_type, settings, provision, 
         if "config_file" in kwargs['pkt_config'].keys():
             pkt_configs["config_file"] = kwargs['pkt_config']["config_file"]
     context.agent_file_name, tags_on_agent, context.tap, safe_config_file = \
-        create_agent_config_file(context.token, agent_name, interface, agent_tags, orb_url, base_orb_address, port,
+        create_agent_config_file(context.token, agent_name, interface, agent_tags, orb_url, base_orb_address, context.port,
                                  context.agent_groups, tap_name, input_type, input_tags, auto_provision,
                                  orb_cloud_mqtt_id, orb_cloud_mqtt_key, orb_cloud_mqtt_channel_id, settings,
                                  overwrite_default, paste_only_file, pkt_configs['binary'], pkt_configs['config_file'])
@@ -367,8 +370,8 @@ def provision_agent_using_config_file(context, input_type, settings, provision, 
             context.tap_tags.update({key: value['tags']})
     context.container_id = run_agent_config_file(context.agent_file_name, overwrite_default, paste_only_file)
     if context.container_id not in context.containers_id.keys():
-        context.containers_id[context.container_id] = str(port)
-    log = f"web server listening on localhost:{port}"
+        context.containers_id[context.container_id] = str(context.port)
+    log = f"web server listening on localhost:{context.port}"
     agent_started, logs = get_logs_and_check(context.container_id, log, element_to_check="log")
     assert_that(agent_started, equal_to(True), f"Log {log} not found on agent logs. Agent Name: {agent_name}.\n"
                                                f"Logs:{logs}")
@@ -460,7 +463,7 @@ def kill_pktvisor_on_agent(context):
         assert_that(current_proc_pid, is_not(None), "Unable to find pid of pktvisor process")
     except psutil.AccessDenied:
         context.access_denied = True
-        raise ValueError(f"You are not allowed to run this scenario without root permissions.")
+        context.scenario.skip(f"You are not allowed to run this scenario without root permissions.")
     except Exception as exception:
         raise exception
 

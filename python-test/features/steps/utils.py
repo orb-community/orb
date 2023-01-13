@@ -11,6 +11,8 @@ import json
 import jsonschema
 from jsonschema import validate
 from abc import ABC, abstractmethod
+import shlex
+import subprocess
 
 tag_prefix = "test_tag_"
 
@@ -323,3 +325,11 @@ def is_json(json_string):
     except ValueError as e:
         return False, e
     return True, json_converted
+
+
+def send_terminal_commands(command, cwd_run=None):
+    args = shlex.split(command)
+    p = subprocess.Popen(args, stdin=subprocess.PIPE, stderr=subprocess.PIPE,
+                         stdout=subprocess.PIPE, cwd=cwd_run, universal_newlines=True)
+    subprocess_return_terminal = p.communicate()
+    return subprocess_return_terminal

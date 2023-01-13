@@ -1,4 +1,5 @@
 from behave.model_core import Status
+import os
 
 
 def before_scenario(context, scenario):
@@ -6,6 +7,9 @@ def before_scenario(context, scenario):
     context.agent_groups = dict()
     context.existent_sinks_id = list()
     context.tap_tags = dict()
+    user = os.getuid()
+    if 'root' in scenario.tags and user != 0:
+        scenario.skip('Root privileges are required')
 
 
 def after_scenario(context, scenario):
@@ -19,3 +23,7 @@ def after_scenario(context, scenario):
     if "driver" in context:
         context.driver.close()
         context.driver.quit()
+    if "mocked_interface" in scenario.tags and scenario.status == Status.passed:
+        context.execute_steps('''
+        Then remove dummy interface
+        ''')

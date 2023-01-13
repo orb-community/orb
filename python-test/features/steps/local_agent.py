@@ -10,9 +10,31 @@ import threading
 import json
 from datetime import datetime
 import ciso8601
+from metrics import expected_metrics_by_handlers_and_groups, wait_until_metrics_scraped
+
 
 configs = TestConfig.configs()
 verify_ssl_bool = eval(configs.get('verify_ssl').title())
+
+
+@step("metrics must be correctly generated for {handler_type} handler")
+def check_metrics_by_handler(context, handler_type):
+    expected_metrics = expected_metrics_by_handlers_and_groups(handler_type, context.metric_groups_enabled,
+                                                               context.metric_groups_disabled)
+    policy_name = context.policy['name']
+    local_prometheus_endpoint = f"http://localhost:{context.port}/api/v1/policies/{policy_name}/metrics/prometheus"
+    correct_metrics, metrics_dif, metrics_present = wait_until_metrics_scraped(local_prometheus_endpoint,
+                                                                               expected_metrics, timeout=60,
+                                                                               wait_time=5)
+    expected_metrics_not_present = expected_metrics.difference(metrics_present)
+    if expected_metrics_not_present == set():
+        expected_metrics_not_present = None
+    extra_metrics_present = metrics_present.difference(expected_metrics)
+    if extra_metrics_present == set():
+        extra_metrics_present = None
+    assert_that(correct_metrics, equal_to(True), f"Metrics are not the expected. "
+                                           f"Metrics expected that are not present: {expected_metrics_not_present}."
+                                           f"Extra metrics present: {extra_metrics_present}")
 
 
 @step('the agent container is started on an {status_port} port')
