@@ -6,10 +6,18 @@ option go_package = "sinks/pb";
 service SinkService {
   rpc RetrieveSink(SinkByIDReq) returns (SinkRes) {}
   rpc RetrieveSinks(SinksFilterReq) returns (SinksRes) {}
+  rpc UpdateSinkState(SinkStateUpdateReq) returns (SinkRes) {}
 }
 
 message SinksRes {
   repeated SinkRes sinks = 1;
+}
+
+message SinkStateUpdateReq {
+  string id = 1;
+  string ownerID = 2;
+  string state = 3;
+  string error = 4;
 }
 
 message SinksFilterReq {
