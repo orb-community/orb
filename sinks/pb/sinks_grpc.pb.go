@@ -24,7 +24,6 @@ const _ = grpc.SupportPackageIsVersion7
 type SinkServiceClient interface {
 	RetrieveSink(ctx context.Context, in *SinkByIDReq, opts ...grpc.CallOption) (*SinkRes, error)
 	RetrieveSinks(ctx context.Context, in *SinksFilterReq, opts ...grpc.CallOption) (*SinksRes, error)
-	UpdateSinkState(ctx context.Context, in *SinkStateUpdateReq, opts ...grpc.CallOption) (*SinkRes, error)
 }
 
 type sinkServiceClient struct {
@@ -53,22 +52,12 @@ func (c *sinkServiceClient) RetrieveSinks(ctx context.Context, in *SinksFilterRe
 	return out, nil
 }
 
-func (c *sinkServiceClient) UpdateSinkState(ctx context.Context, in *SinkStateUpdateReq, opts ...grpc.CallOption) (*SinkRes, error) {
-	out := new(SinkRes)
-	err := c.cc.Invoke(ctx, "/sinks.SinkService/UpdateSinkState", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // SinkServiceServer is the server API for SinkService service.
 // All implementations must embed UnimplementedSinkServiceServer
 // for forward compatibility
 type SinkServiceServer interface {
 	RetrieveSink(context.Context, *SinkByIDReq) (*SinkRes, error)
 	RetrieveSinks(context.Context, *SinksFilterReq) (*SinksRes, error)
-	UpdateSinkState(context.Context, *SinkStateUpdateReq) (*SinkRes, error)
 	mustEmbedUnimplementedSinkServiceServer()
 }
 
@@ -81,9 +70,6 @@ func (UnimplementedSinkServiceServer) RetrieveSink(context.Context, *SinkByIDReq
 }
 func (UnimplementedSinkServiceServer) RetrieveSinks(context.Context, *SinksFilterReq) (*SinksRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RetrieveSinks not implemented")
-}
-func (UnimplementedSinkServiceServer) UpdateSinkState(context.Context, *SinkStateUpdateReq) (*SinkRes, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateSinkState not implemented")
 }
 func (UnimplementedSinkServiceServer) mustEmbedUnimplementedSinkServiceServer() {}
 
@@ -134,24 +120,6 @@ func _SinkService_RetrieveSinks_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
-func _SinkService_UpdateSinkState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SinkStateUpdateReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(SinkServiceServer).UpdateSinkState(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/sinks.SinkService/UpdateSinkState",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SinkServiceServer).UpdateSinkState(ctx, req.(*SinkStateUpdateReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // SinkService_ServiceDesc is the grpc.ServiceDesc for SinkService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -166,10 +134,6 @@ var SinkService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RetrieveSinks",
 			Handler:    _SinkService_RetrieveSinks_Handler,
-		},
-		{
-			MethodName: "UpdateSinkState",
-			Handler:    _SinkService_UpdateSinkState_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
