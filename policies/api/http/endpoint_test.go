@@ -349,7 +349,16 @@ func TestPolicyEdition(t *testing.T) {
 	cli := newClientServer(t)
 	policy := createPolicy(t, &cli, "policy")
 
-	var invalidNamePolicyJson = "{\"name\": \"*#simple_dns#*\", \"backend\": \"pktvisor\", \"policy\": { \"kind\": \"collection\", \"input\": {\"tap\": \"mydefault\", \"input_type\": \"pcap\"}, \"handlers\": {\"modules\": {\"default_net\": {\"type\": \"net\"}, \"default_dns\": {\"type\": \"dns\"}}}}}"
+	policyTestAttributeDeletion := createPolicy(t, &cli, "policyTest")
+
+	validJson := toJSON(updatePolicyReq{
+		Name:        "mypktvisorpolicyyaml-3",
+		Description: nil,
+		PolicyData:  policy_data,
+		Format:      "yaml",
+	})
+
+	emptyDescription := ""
 
 	cases := map[string]struct {
 		id          string
@@ -433,7 +442,41 @@ func TestPolicyEdition(t *testing.T) {
 			contentType: "application/json",
 			auth:        token,
 			status:      http.StatusBadRequest,
-			data:        invalidNamePolicyJson,
+			data: toJSON(updatePolicyReq{
+				Name:        "*#simple_dns#*",
+				Description: nil,
+				PolicyData:  policy_data,
+				Format:      "yaml",
+			}),
+		},
+		"update a existing policy with an empty description": {
+			id:          policyTestAttributeDeletion.ID,
+			contentType: "application/json",
+			auth:        token,
+			status:      http.StatusOK,
+			data: toJSON(updatePolicyReq{
+				Description: &emptyDescription,
+			}),
+		},
+		"update a existing policy with an omitted description": {
+			id:          policyTestAttributeDeletion.ID,
+			contentType: "application/json",
+			auth:        token,
+			status:      http.StatusOK,
+			data: toJSON(updatePolicyReq{
+				Name: "mypktvisorpolicyyaml-3",
+			}),
+		},
+		"update just tags of an existing policy": {
+			id:          policyTestAttributeDeletion.ID,
+			contentType: "application/json",
+			auth:        token,
+			status:      http.StatusOK,
+			data: toJSON(updatePolicyReq{
+				Tags: types.Tags{
+					"test": "tags",
+				},
+			}),
 		},
 	}
 
@@ -611,10 +654,20 @@ func TestCreatePolicy(t *testing.T) {
 	cli := newClientServer(t)
 	defer cli.server.Close()
 
-	var (
-		emptyFormatPolicyYaml    = `{"name": "mypktvisorpolicyyaml-3", "backend": "pktvisor", "description": "my pktvisor policy yaml", "tags": {"region": "eu", "node_type": "dns"}, "format": "","policy_data": "version: \"1.0\"\nvisor:\n handlers:\n  modules:\n    default_dns:\n      type: dns\n    default_net:\n      type: net\ninput:\n  input_type: pcap\n  tap: mydefault\nkind: collection"}`
-		notEmptyFormatPolicyJson = "{\"name\": \"simple_dns\", \"backend\": \"pktvisor\", \"format\": \"json\", \"policy\": { \"kind\": \"collection\", \"input\": {\"tap\": \"mydefault\", \"input_type\": \"pcap\"}, \"handlers\": {\"modules\": {\"default_net\": {\"type\": \"net\"}, \"default_dns\": {\"type\": \"dns\"}}}}}"
-	)
+	description := "my pktvisor policy yaml"
+	emptyFormatPolicyYaml := toJSON(updatePolicyReq{
+		Name:        "mypktvisorpolicyyaml-3",
+		Description: &description,
+		PolicyData:  policy_data,
+		Format:      "",
+	})
+
+	notEmptyFormatPolicyJson := toJSON(updatePolicyReq{
+		Name:        "mypktvisorpolicyyaml-3",
+		Description: &description,
+		PolicyData:  policy_data,
+		Format:      "",
+	})
 
 	// Conflict scenario
 	createPolicy(t, &cli, "conflict-simple_dns")
@@ -791,11 +844,12 @@ func TestDatasetEdition(t *testing.T) {
 	validName, err := types.NewIdentifier("my-dataset-json")
 	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 
+	sinkIDs := []string{"f5b2d342-211d-a9ab-1233-63199a3fc16f", "03679425-aa69-4574-bf62-e0fe71b80939"}
 	ds := policies.Dataset{
 		Name:         validName,
 		AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db",
 		PolicyID:     policy.ID,
-		SinkIDs:      []string{"f5b2d342-211d-a9ab-1233-63199a3fc16f", "03679425-aa69-4574-bf62-e0fe71b80939"},
+		SinkIDs:      &sinkIDs,
 		Tags:         map[string]string{"region": "eu", "node_type": "dns"},
 	}
 	dataset, err := cli.service.AddDataset(context.Background(), token, ds)
@@ -910,7 +964,7 @@ func TestDatasetEdition(t *testing.T) {
 				SinkIDs: []string{"03679425-aa69-4574-bf62-e0fe71b80939", "03679425-aa69-4574-bf62-e0fe71b80939"},
 			}),
 		},
-		"update a existing dataset without name": {
+		"update a existing dataset with omitted name": {
 			id:          dataset.ID,
 			contentType: "application/json",
 			auth:        token,
@@ -919,6 +973,40 @@ func TestDatasetEdition(t *testing.T) {
 				Tags:    map[string]string{"region": "eu", "node_type": "dns"},
 				SinkIDs: []string{"03679425-aa69-4574-bf62-e0fe71b80939", "03679425-aa69-4574-bf62-e0fe71b80939"},
 			}),
+		},
+		"update a existing dataset with omitted tags": {
+			id:          dataset.ID,
+			contentType: "application/json",
+			auth:        token,
+			status:      http.StatusOK,
+			data: toJSON(updateDatasetReq{
+				SinkIDs: []string{"03679425-aa69-4574-bf62-e0fe71b80939", "03679425-aa69-4574-bf62-e0fe71b80939"},
+				Name:    "dataset",
+			}),
+		},
+		"update a existing dataset with omitted SinkIDs": {
+			id:          dataset.ID,
+			contentType: "application/json",
+			auth:        token,
+			status:      http.StatusOK,
+			data: toJSON(updateDatasetReq{
+				Name: "dataset",
+				Tags: map[string]string{"region": "eu", "node_type": "dns"},
+			}),
+		},
+		"update a existing dataset with empty SinkIDs": {
+			id:          dataset.ID,
+			contentType: "application/json",
+			auth:        token,
+			status:      http.StatusBadRequest,
+			data:        "{\"name\":\"dataset\",\"sink_ids\":[]}",
+		},
+		"update a existing dataset with empty request": {
+			id:          dataset.ID,
+			contentType: "application/json",
+			auth:        token,
+			status:      http.StatusBadRequest,
+			data:        "{}",
 		},
 	}
 
@@ -1162,7 +1250,6 @@ func TestListDataset(t *testing.T) {
 			ID:           d.ID,
 			Name:         d.Name.String(),
 			PolicyID:     d.PolicyID,
-			SinkIDs:      d.SinkIDs,
 			AgentGroupID: d.AgentGroupID,
 			created:      true,
 		})
@@ -1413,12 +1500,14 @@ func createPolicy(t *testing.T, cli *clientServer, name string) policies.Policy 
 	validName, err := types.NewIdentifier(name)
 	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 
+	description := "description example"
 	policy := policies.Policy{
-		ID:         ID.String(),
-		Name:       validName,
-		Backend:    "pktvisor",
-		PolicyData: policy_data,
-		Format:     format,
+		ID:          ID.String(),
+		Name:        validName,
+		Backend:     "pktvisor",
+		PolicyData:  policy_data,
+		Description: &description,
+		Format:      format,
 	}
 
 	res, err := cli.service.AddPolicy(context.Background(), token, policy)
@@ -1517,4 +1606,15 @@ type updateDatasetReq struct {
 	token   string
 	Tags    types.Tags `json:"tags,omitempty"`
 	SinkIDs []string   `json:"sink_ids,omitempty"`
+}
+
+type updatePolicyReq struct {
+	id          string
+	token       string
+	Name        string         `json:"name,omitempty"`
+	Description *string        `json:"description,omitempty"`
+	Tags        types.Tags     `json:"tags,omitempty"`
+	Format      string         `json:"format,omitempty"`
+	Policy      types.Metadata `json:"policy,omitempty"`
+	PolicyData  string         `json:"policy_data,omitempty"`
 }
