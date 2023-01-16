@@ -844,11 +844,12 @@ func TestDatasetEdition(t *testing.T) {
 	validName, err := types.NewIdentifier("my-dataset-json")
 	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 
+	sinkIDs := []string{"f5b2d342-211d-a9ab-1233-63199a3fc16f", "03679425-aa69-4574-bf62-e0fe71b80939"}
 	ds := policies.Dataset{
 		Name:         validName,
 		AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db",
 		PolicyID:     policy.ID,
-		SinkIDs:      []string{"f5b2d342-211d-a9ab-1233-63199a3fc16f", "03679425-aa69-4574-bf62-e0fe71b80939"},
+		SinkIDs:      &sinkIDs,
 		Tags:         map[string]string{"region": "eu", "node_type": "dns"},
 	}
 	dataset, err := cli.service.AddDataset(context.Background(), token, ds)
@@ -963,7 +964,7 @@ func TestDatasetEdition(t *testing.T) {
 				SinkIDs: []string{"03679425-aa69-4574-bf62-e0fe71b80939", "03679425-aa69-4574-bf62-e0fe71b80939"},
 			}),
 		},
-		"update a existing dataset without name": {
+		"update a existing dataset with omitted name": {
 			id:          dataset.ID,
 			contentType: "application/json",
 			auth:        token,
@@ -972,6 +973,40 @@ func TestDatasetEdition(t *testing.T) {
 				Tags:    map[string]string{"region": "eu", "node_type": "dns"},
 				SinkIDs: []string{"03679425-aa69-4574-bf62-e0fe71b80939", "03679425-aa69-4574-bf62-e0fe71b80939"},
 			}),
+		},
+		"update a existing dataset with omitted tags": {
+			id:          dataset.ID,
+			contentType: "application/json",
+			auth:        token,
+			status:      http.StatusOK,
+			data: toJSON(updateDatasetReq{
+				SinkIDs: []string{"03679425-aa69-4574-bf62-e0fe71b80939", "03679425-aa69-4574-bf62-e0fe71b80939"},
+				Name:    "dataset",
+			}),
+		},
+		"update a existing dataset with omitted SinkIDs": {
+			id:          dataset.ID,
+			contentType: "application/json",
+			auth:        token,
+			status:      http.StatusOK,
+			data: toJSON(updateDatasetReq{
+				Name: "dataset",
+				Tags: map[string]string{"region": "eu", "node_type": "dns"},
+			}),
+		},
+		"update a existing dataset with empty SinkIDs": {
+			id:          dataset.ID,
+			contentType: "application/json",
+			auth:        token,
+			status:      http.StatusBadRequest,
+			data:        "{\"name\":\"dataset\",\"sink_ids\":[]}",
+		},
+		"update a existing dataset with empty request": {
+			id:          dataset.ID,
+			contentType: "application/json",
+			auth:        token,
+			status:      http.StatusBadRequest,
+			data:        "{}",
 		},
 	}
 
@@ -1215,7 +1250,6 @@ func TestListDataset(t *testing.T) {
 			ID:           d.ID,
 			Name:         d.Name.String(),
 			PolicyID:     d.PolicyID,
-			SinkIDs:      d.SinkIDs,
 			AgentGroupID: d.AgentGroupID,
 			created:      true,
 		})

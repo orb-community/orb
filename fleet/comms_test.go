@@ -626,7 +626,7 @@ func createDataset(t *testing.T, svc policies.Service, name string, groupID stri
 		Name:         validName,
 		PolicyID:     policyID.String(),
 		AgentGroupID: groupID,
-		SinkIDs:      sinkIDs,
+		SinkIDs:      &sinkIDs,
 	}
 
 	res, err := svc.AddDataset(context.Background(), token, dataset)

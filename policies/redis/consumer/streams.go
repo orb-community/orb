@@ -158,7 +158,7 @@ func (es eventStore) handleSinkRemove(ctx context.Context, sinkID string, ownerI
 	}
 
 	for _, ds := range datasets {
-		if len(ds.SinkIDs) == 0 {
+		if len(*ds.SinkIDs) == 0 {
 			err = es.policiesService.InactivateDatasetByIDInternal(ctx, ownerID, ds.ID)
 			if err != nil {
 				return err

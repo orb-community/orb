@@ -826,11 +826,15 @@ func toDataset(dba dbDataset) policies.Dataset {
 		Valid:        dba.Valid,
 		AgentGroupID: dba.AgentGroupID.String,
 		PolicyID:     dba.PolicyID.String,
-		SinkIDs:      dba.SinkIDs,
+		SinkIDs:      (*[]string)(&dba.SinkIDs),
 		Metadata:     types.Metadata(dba.Metadata),
 		Created:      dba.TsCreated,
 		Tags:         types.Tags(dba.Tags),
 	}
+
+	//var sinkIDs []string
+	//sinkIDs = dba.SinkIDs
+	//dataset.SinkIDs = &sinkIDs
 
 	return dataset
 }

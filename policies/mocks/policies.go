@@ -74,7 +74,7 @@ func (m *mockPoliciesRepository) RetrieveAllDatasetsInternal(ctx context.Context
 func (m *mockPoliciesRepository) InactivateDatasetByID(ctx context.Context, sinkID string, ownerID string) error {
 	for _, ds := range m.ddb {
 		if ds.MFOwnerID == ownerID {
-			for _, sID := range ds.SinkIDs {
+			for _, sID := range *ds.SinkIDs {
 				if sID == sinkID {
 					ds.Valid = false
 				}
@@ -89,12 +89,14 @@ func (m *mockPoliciesRepository) DeleteSinkFromAllDatasets(ctx context.Context, 
 
 	for _, ds := range m.ddb {
 		if ds.MFOwnerID == ownerID {
-			for i, sID := range ds.SinkIDs {
+			for i, sID := range *ds.SinkIDs {
 				if sID == sinkID {
-					ds.SinkIDs[i] = ds.SinkIDs[len(ds.SinkIDs)-1]
-					ds.SinkIDs[len(ds.SinkIDs)-1] = ""
-					ds.SinkIDs = ds.SinkIDs[:len(ds.SinkIDs)-1]
+					sinkIDsTemp := *ds.SinkIDs
+					sinkIDsTemp[i] = sinkIDsTemp[len(sinkIDsTemp)-1]
+					sinkIDsTemp[len(sinkIDsTemp)-1] = ""
+					sinkIDsTemp = sinkIDsTemp[:len(sinkIDsTemp)-1]
 
+					ds.SinkIDs = &sinkIDsTemp
 					datasets = append(datasets, ds)
 				}
 			}

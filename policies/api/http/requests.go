@@ -176,7 +176,7 @@ type updateDatasetReq struct {
 	id      string
 	token   string
 	Tags    types.Tags `json:"tags,omitempty"`
-	SinkIDs []string   `json:"sink_ids,omitempty"`
+	SinkIDs *[]string  `json:"sink_ids,omitempty"`
 }
 
 func (req updateDatasetReq) validate() error {
@@ -185,6 +185,10 @@ func (req updateDatasetReq) validate() error {
 	}
 	if req.token == "" {
 		return errors.ErrUnauthorizedAccess
+	}
+
+	if req.Name == "" && req.Tags == nil && req.SinkIDs == nil {
+		return errors.ErrMalformedEntity
 	}
 
 	return nil
