@@ -6,6 +6,7 @@ from utils import random_string
 
 configs = TestConfig.configs()
 orb_url = configs.get('orb_url')
+verify_ssl_bool = eval(configs.get('verify_ssl').title())
 
 
 @step("that there is an unregistered {email} email with {password} password")
@@ -98,7 +99,8 @@ def authenticate(user_email, user_password, expected_status_code=201):
     json_request = {parameter: value for parameter, value in json_request.items() if value}
     response = requests.post(orb_url + '/api/v1/tokens',
                              json=json_request,
-                             headers=headers)
+                             headers=headers,
+                             verify=verify_ssl_bool)
     assert_that(response.status_code, equal_to(expected_status_code),
                 'Authentication failed with status= ' + str(response.status_code) + str(response.json()))
 
@@ -124,7 +126,8 @@ def register_account(user_email, user_password, company_name=None, user_full_nam
     headers = {'Content-type': 'application/json', 'Accept': '*/*'}
     response = requests.post(orb_url + '/api/v1/users',
                              json=json_request,
-                             headers=headers)
+                             headers=headers,
+                             verify=verify_ssl_bool)
     assert_that(response.status_code, equal_to(expected_status_code),
                 f"Current value of is_credentials_registered parameter = {configs.get('is_credentials_registered')}."
                 f"\nExpected status code for registering an account failed with status= {str(response.status_code)}.")
@@ -139,7 +142,7 @@ def get_account_information(token, expected_status_code=200):
     :return: (dict) account_response
     """
     response = requests.get(orb_url + '/api/v1/users/profile',
-                            headers={'Authorization': f'Bearer {token}'})
+                            headers={'Authorization': f'Bearer {token}'}, verify=verify_ssl_bool)
     assert_that(response.status_code, equal_to(expected_status_code), f"Unexpected status code for get account data."
                                                                       f"Status Code = {response.status_code}."
                                                                       f"Response = {str(response.json())}")

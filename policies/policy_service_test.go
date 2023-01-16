@@ -36,6 +36,10 @@ kind: collection`
 	wrongID = "28ea82e7-0224-4798-a848-899a75cdc650"
 )
 
+var (
+	emptySinkIDs []string
+)
+
 func newService(auth mainflux.AuthServiceClient) policies.Service {
 	policyRepo := plmocks.NewPoliciesRepository()
 	fleetGrpcClient := flmocks.NewClient()
@@ -190,6 +194,9 @@ func TestEditPolicy(t *testing.T) {
 	svc := newService(users)
 
 	policy := createPolicy(t, svc, "policy")
+	policyTestDescriptionAttribute := createPolicy(t, svc, "policyDescription")
+	policyTestTagsAttribute := createPolicy(t, svc, "policyTags")
+	policyTestTagsAttributeDeletion := createPolicy(t, svc, "policyTags2")
 
 	nameID, err := types.NewIdentifier("new-policy")
 	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
@@ -197,7 +204,6 @@ func TestEditPolicy(t *testing.T) {
 	wrongOwnerID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 
-	wrongPolicy := policies.Policy{MFOwnerID: wrongOwnerID.String()}
 	newPolicy := policies.Policy{
 		ID:         policy.ID,
 		Name:       nameID,
@@ -206,65 +212,167 @@ func TestEditPolicy(t *testing.T) {
 		Format:     format,
 	}
 
-	invalidFormatPolicy := newPolicy
-	invalidFormatPolicy.Format = "invalid"
-
-	invalidPolicyData := newPolicy
-	invalidPolicyData.PolicyData = "invalid"
-
-	invalidYamlPolicy := newPolicy
-	invalidYamlPolicy.Format = ""
-
-	invalidJsonPolicy := newPolicy
-	invalidJsonPolicy.Format = "json"
+	emptyDescription := ""
+	newDescription := "new description"
 
 	cases := map[string]struct {
-		pol   policies.Policy
-		token string
-		err   error
+		policy         policies.Policy
+		expectedPolicy policies.Policy
+		token          string
+		err            error
 	}{
 		"update a existing policy": {
-			pol:   newPolicy,
+			policy: policies.Policy{
+				ID:          policy.ID,
+				Name:        nameID,
+				MFOwnerID:   policy.MFOwnerID,
+				PolicyData:  policy_data,
+				Format:      format,
+				Description: &newDescription,
+			},
+			expectedPolicy: policies.Policy{
+				Name:        nameID,
+				PolicyData:  policy_data,
+				Format:      format,
+				Description: &newDescription,
+				OrbTags:     policy.OrbTags,
+			},
 			token: token,
 			err:   nil,
 		},
 		"update policy with wrong credentials": {
-			pol:   newPolicy,
-			token: "invalidToken",
-			err:   policies.ErrUnauthorizedAccess,
+			policy: newPolicy,
+			token:  "invalidToken",
+			err:    policies.ErrUnauthorizedAccess,
 		},
 		"update a non-existing policy": {
-			pol:   wrongPolicy,
-			token: token,
-			err:   policies.ErrNotFound,
+			policy: policies.Policy{MFOwnerID: wrongOwnerID.String()},
+			token:  token,
+			err:    policies.ErrNotFound,
 		},
 		"update a existing policy with invalid format": {
-			pol:   invalidFormatPolicy,
+			policy: policies.Policy{
+				ID:         policy.ID,
+				Name:       nameID,
+				MFOwnerID:  policy.MFOwnerID,
+				PolicyData: policy_data,
+				Format:     "invalid",
+			},
 			token: token,
 			err:   policies.ErrValidatePolicy,
 		},
 		"update a existing policy with invalid policy_data": {
-			pol:   invalidPolicyData,
+			policy: policies.Policy{
+				ID:         policy.ID,
+				Name:       nameID,
+				MFOwnerID:  policy.MFOwnerID,
+				PolicyData: "invalid",
+				Format:     format,
+			},
 			token: token,
 			err:   policies.ErrValidatePolicy,
 		},
 		"update a policy with invalid yaml - empty Format field": {
-			pol:   invalidYamlPolicy,
+			policy: policies.Policy{
+				ID:         policy.ID,
+				Name:       nameID,
+				MFOwnerID:  policy.MFOwnerID,
+				PolicyData: policy_data,
+				Format:     "",
+			},
 			token: token,
 			err:   policies.ErrValidatePolicy,
 		},
 		"update a policy with invalid json - not empty Format field": {
-			pol:   invalidJsonPolicy,
+			policy: policies.Policy{
+				ID:         policy.ID,
+				Name:       nameID,
+				MFOwnerID:  policy.MFOwnerID,
+				PolicyData: policy_data,
+				Format:     "json",
+			},
 			token: token,
 			err:   policies.ErrValidatePolicy,
+		},
+		"update a existing policy with omitted description": {
+			policy: policies.Policy{
+				ID:        policyTestDescriptionAttribute.ID,
+				MFOwnerID: policy.MFOwnerID,
+			},
+			expectedPolicy: policies.Policy{
+				Name:        policyTestDescriptionAttribute.Name,
+				Description: policyTestDescriptionAttribute.Description,
+				OrbTags:     policyTestDescriptionAttribute.OrbTags,
+			},
+			token: token,
+			err:   nil,
+		},
+		"update a existing policy with empty description": {
+			policy: policies.Policy{
+				ID:          policy.ID,
+				Name:        nameID,
+				MFOwnerID:   policy.MFOwnerID,
+				Description: &emptyDescription,
+			},
+			expectedPolicy: policies.Policy{
+				Name:        nameID,
+				Description: &emptyDescription,
+				OrbTags:     policy.OrbTags,
+			},
+			token: token,
+			err:   nil,
+		},
+		"update just tags of na existing policy": {
+			policy: policies.Policy{
+				ID: policyTestTagsAttribute.ID,
+				OrbTags: types.Tags{
+					"tags": "true",
+				},
+			},
+			expectedPolicy: policies.Policy{
+				Name: policyTestTagsAttribute.Name,
+				OrbTags: types.Tags{
+					"tags": "true",
+				},
+				Description: policyTestTagsAttribute.Description,
+			},
+			token: token,
+			err:   nil,
+		},
+		"update a existing policy with empty tags": {
+			policy: policies.Policy{
+				ID:      policyTestTagsAttributeDeletion.ID,
+				OrbTags: types.Tags{},
+			},
+			expectedPolicy: policies.Policy{
+				Name:        policyTestTagsAttributeDeletion.Name,
+				OrbTags:     types.Tags{},
+				Description: policyTestTagsAttributeDeletion.Description,
+			},
+			token: token,
+			err:   nil,
+		},
+		"update a existing policy with omitted tags": {
+			policy: policies.Policy{
+				ID: policyTestDescriptionAttribute.ID,
+			},
+			expectedPolicy: policies.Policy{
+				Name:        policyTestDescriptionAttribute.Name,
+				OrbTags:     policyTestDescriptionAttribute.OrbTags,
+				Description: policyTestDescriptionAttribute.Description,
+			},
+			token: token,
+			err:   nil,
 		},
 	}
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
-			res, err := svc.EditPolicy(context.Background(), tc.token, tc.pol)
+			res, err := svc.EditPolicy(context.Background(), tc.token, tc.policy)
 			if err == nil {
-				assert.Equal(t, tc.pol.Name.String(), res.Name.String(), fmt.Sprintf("%s: expected name %s got %s", desc, tc.pol.Name.String(), res.Name.String()))
+				assert.Equal(t, tc.expectedPolicy.Name.String(), res.Name.String(), fmt.Sprintf("%s: expected name %s got %s", desc, tc.expectedPolicy.Name.String(), res.Name.String()))
+				assert.Equal(t, *tc.expectedPolicy.Description, *res.Description, fmt.Sprintf("%s: expected description %s got %s", desc, *tc.expectedPolicy.Description, *res.Description))
+				assert.Equal(t, tc.expectedPolicy.OrbTags, res.OrbTags, fmt.Sprintf("%s: expected tags %s got %s", desc, tc.expectedPolicy.OrbTags, res.OrbTags))
 			}
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected error %d got %d", desc, tc.err, err))
 		})
@@ -363,10 +471,11 @@ func TestCreatePolicy(t *testing.T) {
 	nameID, _ := types.NewIdentifier("my-policy")
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
+	description := "An example policy"
 	policy := policies.Policy{
 		Name:        nameID,
 		MFOwnerID:   ownerID.String(),
-		Description: "An example policy",
+		Description: &description,
 		Backend:     "pktvisor",
 		Version:     0,
 		OrbTags:     map[string]string{"region": "eu"},
@@ -456,12 +565,13 @@ func TestEditDataset(t *testing.T) {
 	validName, err := types.NewIdentifier("dataset")
 	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 
+	sinkIDs := []string{sinkID.String()}
 	dataset := policies.Dataset{
 		Name:         validName,
 		Valid:        true,
 		AgentGroupID: groupID.String(),
 		PolicyID:     policy.ID,
-		SinkIDs:      []string{sinkID.String()},
+		SinkIDs:      &sinkIDs,
 	}
 
 	dataset, err = svc.AddDataset(context.Background(), token, dataset)
@@ -476,36 +586,84 @@ func TestEditDataset(t *testing.T) {
 	wrongSinkID, err := uuid.NewV4()
 	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 
-	wrongSinkDs := createDataset(t, svc, "wrong_sink")
-	wrongSinkDs.SinkIDs = []string{wrongSinkID.String()}
+	testAttributeWrongSinkDs := createDataset(t, svc, "wrong_sink")
+	wrongSinkDs := []string{wrongSinkID.String()}
+	testAttributeWrongSinkDs.SinkIDs = &wrongSinkDs
 
 	wrongDataset := policies.Dataset{MFOwnerID: wrongOwnerID.String()}
-	newDataset := policies.Dataset{
-		ID:        dataset.ID,
-		Name:      nameID,
-		MFOwnerID: dataset.MFOwnerID,
-		SinkIDs:   dataset.SinkIDs,
-	}
 
 	cases := map[string]struct {
-		ds    policies.Dataset
-		token string
-		err   error
+		ds         policies.Dataset
+		expectedDS policies.Dataset
+		token      string
+		err        error
 	}{
 		"update a existing dataset": {
-			ds:    newDataset,
+			ds: policies.Dataset{
+				ID:        dataset.ID,
+				Name:      validName,
+				MFOwnerID: dataset.MFOwnerID,
+				SinkIDs:   dataset.SinkIDs,
+			},
+			expectedDS: policies.Dataset{
+				Name:    validName,
+				SinkIDs: dataset.SinkIDs,
+			},
 			token: token,
 			err:   nil,
 		},
 		"update dataset with wrong credentials": {
-			ds:    newDataset,
+			ds: policies.Dataset{
+				ID:        dataset.ID,
+				Name:      nameID,
+				MFOwnerID: dataset.MFOwnerID,
+				SinkIDs:   dataset.SinkIDs,
+			},
 			token: "invalidToken",
 			err:   policies.ErrUnauthorizedAccess,
 		},
 		"update a non-existing dataset": {
 			ds:    wrongDataset,
 			token: token,
-			err:   policies.ErrMalformedEntity,
+			err:   policies.ErrNotFound,
+		},
+		"update a existing dataset without name": {
+			ds: policies.Dataset{
+				ID:        dataset.ID,
+				MFOwnerID: dataset.MFOwnerID,
+				SinkIDs:   dataset.SinkIDs,
+			},
+			expectedDS: policies.Dataset{
+				Name:    validName,
+				SinkIDs: dataset.SinkIDs,
+			},
+			token: token,
+			err:   nil,
+		},
+		"update a existing dataset with omitted sinkIDs": {
+			ds: policies.Dataset{
+				ID:        dataset.ID,
+				MFOwnerID: dataset.MFOwnerID,
+			},
+			expectedDS: policies.Dataset{
+				Name:    validName,
+				SinkIDs: dataset.SinkIDs,
+			},
+			token: token,
+			err:   nil,
+		},
+		"update a existing dataset with empty sinkIDs": {
+			ds: policies.Dataset{
+				ID:        dataset.ID,
+				MFOwnerID: dataset.MFOwnerID,
+				SinkIDs:   &emptySinkIDs,
+			},
+			expectedDS: policies.Dataset{
+				Name:    validName,
+				SinkIDs: dataset.SinkIDs,
+			},
+			token: token,
+			err:   errors.ErrMalformedEntity,
 		},
 	}
 
@@ -513,7 +671,8 @@ func TestEditDataset(t *testing.T) {
 		t.Run(desc, func(t *testing.T) {
 			res, err := svc.EditDataset(context.Background(), tc.token, tc.ds)
 			if err == nil {
-				assert.Equal(t, tc.ds.Name.String(), res.Name.String(), fmt.Sprintf("%s: expected name %s got %s", desc, tc.ds.Name.String(), res.Name.String()))
+				assert.Equal(t, tc.expectedDS.Name.String(), res.Name.String(), fmt.Sprintf("%s: expected name %s got %s", desc, tc.expectedDS.Name.String(), res.Name.String()))
+				assert.Equal(t, tc.expectedDS.SinkIDs, res.SinkIDs, fmt.Sprintf("%s: expected name %s got %s", desc, tc.expectedDS.SinkIDs, res.SinkIDs))
 			}
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected error %d got %d", desc, tc.err, err))
 		})
@@ -563,14 +722,16 @@ func TestValidateDataset(t *testing.T) {
 	policy := createPolicy(t, svc, "policy")
 	var nameID, _ = types.NewIdentifier("my-dataset")
 	var (
+		emptySinkIDs               []string
+		invalidSinkIDs             = []string{"invalid"}
 		sinkIDsArray               = []string{"f5b2d342-211d-a9ab-1233-63199a3fc16f", "03679425-aa69-4574-bf62-e0fe71b80939"}
-		dataset                    = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", PolicyID: policy.ID, SinkIDs: sinkIDsArray, Valid: true}
-		datasetEmptySinkID         = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", PolicyID: policy.ID, SinkIDs: []string{}, Valid: true}
-		datasetEmptyPolicyID       = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", PolicyID: "", SinkIDs: sinkIDsArray, Valid: true}
-		datasetEmptyAgentGroupID   = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "", PolicyID: policy.ID, SinkIDs: sinkIDsArray, Valid: true}
-		datasetInvalidSinkID       = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", PolicyID: policy.ID, SinkIDs: []string{"invalid"}, Valid: true}
-		datasetInvalidPolicyID     = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", PolicyID: "invalid", SinkIDs: sinkIDsArray, Valid: true}
-		datasetInvalidAgentGroupID = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "invalid", PolicyID: policy.ID, SinkIDs: sinkIDsArray, Valid: true}
+		dataset                    = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", PolicyID: policy.ID, SinkIDs: &sinkIDsArray, Valid: true}
+		datasetEmptySinkID         = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", PolicyID: policy.ID, SinkIDs: &emptySinkIDs, Valid: true}
+		datasetEmptyPolicyID       = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", PolicyID: "", SinkIDs: &sinkIDsArray, Valid: true}
+		datasetEmptyAgentGroupID   = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "", PolicyID: policy.ID, SinkIDs: &sinkIDsArray, Valid: true}
+		datasetInvalidSinkID       = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", PolicyID: policy.ID, SinkIDs: &invalidSinkIDs, Valid: true}
+		datasetInvalidPolicyID     = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "8fd6d12d-6a26-5d85-dc35-f9ba8f4d93db", PolicyID: "invalid", SinkIDs: &sinkIDsArray, Valid: true}
+		datasetInvalidAgentGroupID = policies.Dataset{Name: nameID, Tags: map[string]string{"region": "eu", "node_type": "dns"}, AgentGroupID: "invalid", PolicyID: policy.ID, SinkIDs: &sinkIDsArray, Valid: true}
 	)
 
 	cases := map[string]struct {
@@ -591,7 +752,7 @@ func TestValidateDataset(t *testing.T) {
 		"validate a dataset with a empty sink ID": {
 			dataset: datasetEmptySinkID,
 			token:   token,
-			err:     policies.ErrMalformedEntity,
+			err:     errors.ErrMalformedEntity,
 		},
 		"validate a dataset with a empty policy ID": {
 			dataset: datasetEmptyPolicyID,
@@ -606,7 +767,7 @@ func TestValidateDataset(t *testing.T) {
 		"validate a dataset with a invalid sink ID": {
 			dataset: datasetInvalidSinkID,
 			token:   token,
-			err:     policies.ErrMalformedEntity,
+			err:     errors.ErrMalformedEntity,
 		},
 		"validate a dataset with a invalid policy ID": {
 			dataset: datasetInvalidPolicyID,
@@ -801,7 +962,7 @@ func TestListPoliciesByGroupIDInternal(t *testing.T) {
 			Name:         validName,
 			PolicyID:     policy.ID,
 			AgentGroupID: agentGroupID.String(),
-			SinkIDs:      sinkIDs,
+			SinkIDs:      &sinkIDs,
 		}
 
 		ds, err := svc.AddDataset(context.Background(), token, dataset)
@@ -939,7 +1100,7 @@ func TestListDatasetsByPolicyIDInternal(t *testing.T) {
 			Name:         validName,
 			PolicyID:     policy.ID,
 			AgentGroupID: agentGroupID.String(),
-			SinkIDs:      sinkIDs,
+			SinkIDs:      &sinkIDs,
 		}
 
 		ds, err := svc.AddDataset(context.Background(), token, dataset)
@@ -1051,7 +1212,7 @@ func TestInactivateDatasetsByGroupID(t *testing.T) {
 			Name:         validName,
 			PolicyID:     policy.ID,
 			AgentGroupID: agentGroupID.String(),
-			SinkIDs:      sinkIDs,
+			SinkIDs:      &sinkIDs,
 		}
 
 		ds, err := svc.AddDataset(context.Background(), token, dataset)
@@ -1101,12 +1262,17 @@ func createPolicy(t *testing.T, svc policies.Service, name string) policies.Poli
 	validName, err := types.NewIdentifier(name)
 	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
 
+	description := "example policy"
 	policy := policies.Policy{
-		ID:         ID.String(),
-		Name:       validName,
-		Backend:    "pktvisor",
-		Format:     format,
-		PolicyData: policy_data,
+		ID:          ID.String(),
+		Name:        validName,
+		Backend:     "pktvisor",
+		Format:      format,
+		PolicyData:  policy_data,
+		Description: &description,
+		OrbTags: types.Tags{
+			"test": "tags",
+		},
 	}
 
 	res, err := svc.AddPolicy(context.Background(), token, policy)
@@ -1140,7 +1306,7 @@ func createDataset(t *testing.T, svc policies.Service, name string) policies.Dat
 		Name:         validName,
 		PolicyID:     policyID.String(),
 		AgentGroupID: agentGroupID.String(),
-		SinkIDs:      sinkIDs,
+		SinkIDs:      &sinkIDs,
 	}
 
 	res, err := svc.AddDataset(context.Background(), token, dataset)
@@ -1182,7 +1348,7 @@ func TestDeleteSinkFromDataset(t *testing.T) {
 			Name:         validName,
 			PolicyID:     policy.ID,
 			AgentGroupID: agentGroupID.String(),
-			SinkIDs:      sinkIDs,
+			SinkIDs:      &sinkIDs,
 		}
 
 		ds, err := svc.AddDataset(context.Background(), token, dataset)
@@ -1258,7 +1424,7 @@ func TestInactivateDatasetByID(t *testing.T) {
 			Name:         validName,
 			PolicyID:     policy.ID,
 			AgentGroupID: agentGroupID.String(),
-			SinkIDs:      sinkIDs,
+			SinkIDs:      &sinkIDs,
 		}
 
 		ds, err := svc.AddDataset(context.Background(), token, dataset)
@@ -1333,7 +1499,7 @@ func TestDeleteAGroupFromDataset(t *testing.T) {
 			Name:         validName,
 			PolicyID:     policy.ID,
 			AgentGroupID: agentGroupID.String(),
-			SinkIDs:      sinkIDs,
+			SinkIDs:      &sinkIDs,
 		}
 
 		ds, err := svc.AddDataset(context.Background(), token, dataset)

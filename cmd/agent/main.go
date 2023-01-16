@@ -139,7 +139,7 @@ func mergeOrError(path string) {
 	v.SetDefault("orb.cloud.api.token", "")
 	v.SetDefault("orb.cloud.config.agent_name", "")
 	v.SetDefault("orb.cloud.config.auto_provision", true)
-	v.SetDefault("orb.cloud.mqtt.address", "tls://orb.live:8883")
+	v.SetDefault("orb.cloud.mqtt.address", "tls://agents.orb.live:8883")
 	v.SetDefault("orb.cloud.mqtt.id", "")
 	v.SetDefault("orb.cloud.mqtt.key", "")
 	v.SetDefault("orb.cloud.mqtt.channel_id", "")

@@ -96,7 +96,13 @@ func (a *agentGroupRepositoryMock) Update(ctx context.Context, ownerID string, g
 		if a.agentGroupMock[group.ID].MFOwnerID != ownerID {
 			return fleet.AgentGroup{}, fleet.ErrUpdateEntity
 		}
-		a.agentGroupMock[group.ID] = group
+		currentGroup := a.agentGroupMock[group.ID]
+		currentGroup.Name = group.Name
+		currentGroup.Description = group.Description
+		currentGroup.Tags = group.Tags
+
+		a.agentGroupMock[group.ID] = currentGroup
+
 		return a.agentGroupMock[group.ID], nil
 	}
 	return fleet.AgentGroup{}, fleet.ErrNotFound

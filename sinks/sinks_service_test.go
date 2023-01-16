@@ -33,10 +33,11 @@ const (
 )
 
 var (
-	nameID, _ = types.NewIdentifier("my-sink")
-	sink      = sinks.Sink{
+	nameID, _   = types.NewIdentifier("my-sink")
+	description = "An example prometheus sink"
+	sink        = sinks.Sink{
 		Name:        nameID,
-		Description: "An example prometheus sink",
+		Description: &description,
 		Backend:     "prometheus",
 		State:       sinks.Unknown,
 		Error:       "",
@@ -63,9 +64,10 @@ func newService(tokens map[string]string) sinks.SinkService {
 func TestCreateSink(t *testing.T) {
 	service := newService(map[string]string{token: email})
 
+	description := "An example prometheus sink"
 	var invalidBackendSink = sinks.Sink{
 		Name:        nameID,
-		Description: "An example prometheus sink",
+		Description: &description,
 		Backend:     "invalid",
 		State:       sinks.Unknown,
 		Error:       "",
@@ -98,7 +100,7 @@ func TestCreateSink(t *testing.T) {
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
 			_, err := service.CreateSink(context.Background(), tc.token, tc.sink)
-			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, err, tc.err))
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
 			t.Log(tc.token)
 		})
 	}
@@ -116,36 +118,200 @@ func TestUpdateSink(t *testing.T) {
 	wrongSink := sinks.Sink{ID: wrongID.String()}
 	sink.ID = sk.ID
 
+	noConfig := sk
+	noConfig.Config = make(map[string]interface{})
+
+	description := "An example prometheus sink"
+	newDescription := "new description"
+
+	nameTestConfigAttribute, _ := types.NewIdentifier("configSink")
+	sinkTestConfigAttribute, err := service.CreateSink(context.Background(), token, sinks.Sink{
+		Name:        nameTestConfigAttribute,
+		Description: &description,
+		Backend:     "prometheus",
+		State:       sinks.Unknown,
+		Error:       "",
+		Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
+		Tags:        map[string]string{"cloud": "aws"},
+	})
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	nameTestDescriptionAttribute, _ := types.NewIdentifier("emptyDescSink")
+	sinkTestDescriptionAttribute, err := service.CreateSink(context.Background(), token, sinks.Sink{
+		Name:        nameTestDescriptionAttribute,
+		Description: &description,
+		Backend:     "prometheus",
+		State:       sinks.Unknown,
+		Error:       "",
+		Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
+		Tags:        map[string]string{"cloud": "aws"},
+	})
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	emptyTagsSinkName, _ := types.NewIdentifier("emptyTagsSink")
+	emptyTagsSink, err := service.CreateSink(context.Background(), token, sinks.Sink{
+		Name:        emptyTagsSinkName,
+		Description: &description,
+		Backend:     "prometheus",
+		State:       sinks.Unknown,
+		Error:       "",
+		Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
+		Tags:        map[string]string{"cloud": "aws"},
+	})
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
+	addTagsToSinkName, _ := types.NewIdentifier("addTagsToSinkName")
+	addTagsToSink, err := service.CreateSink(context.Background(), token, sinks.Sink{
+		Name:        addTagsToSinkName,
+		Description: &description,
+		Backend:     "prometheus",
+		State:       sinks.Unknown,
+		Error:       "",
+		Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
+		Tags:        map[string]string{"cloud": "aws"},
+	})
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+
 	cases := map[string]struct {
-		sink  sinks.Sink
-		token string
-		err   error
+		incomingSink sinks.Sink
+		expectedSink sinks.Sink
+		token        string
+		err          error
 	}{
 		"update existing sink": {
-			sink:  sk,
+			incomingSink: sk,
+			expectedSink: sk,
+			token:        token,
+			err:          nil,
+		},
+		"update sink with wrong credentials": {
+			incomingSink: sink,
+			token:        invalidToken,
+			err:          sinks.ErrUnauthorizedAccess,
+		},
+		"update a non-existing sink": {
+			incomingSink: wrongSink,
+			token:        token,
+			err:          sinks.ErrNotFound,
+		},
+		"update sink read only fields": {
+			incomingSink: sink,
+			token:        token,
+			err:          errors.ErrUpdateEntity,
+		},
+		"update existing sink - only updating config": {
+			incomingSink: sinks.Sink{
+				ID: sinkTestConfigAttribute.ID,
+				Config: types.Metadata{
+					"test": "config",
+				},
+				Error: "",
+			},
+			expectedSink: sinks.Sink{
+				Name: sinkTestConfigAttribute.Name,
+				Config: types.Metadata{
+					"test": "config",
+				},
+				Description: sinkTestConfigAttribute.Description,
+				Tags:        sinkTestConfigAttribute.Tags,
+			},
 			token: token,
 			err:   nil,
 		},
-		"update sink with wrong credentials": {
-			sink:  sink,
-			token: invalidToken,
-			err:   sinks.ErrUnauthorizedAccess,
-		},
-		"update a non-existing sink": {
-			sink:  wrongSink,
+		"update existing sink - omitted config": {
+			incomingSink: sinks.Sink{
+				ID:    sink.ID,
+				Error: "",
+			},
+			expectedSink: sinks.Sink{
+				Name:        sink.Name,
+				Config:      sink.Config,
+				Description: sink.Description,
+				Tags:        sink.Tags,
+			},
 			token: token,
-			err:   sinks.ErrNotFound,
+			err:   nil,
 		},
-		"update sink read only fields": {
-			sink:  sink,
+		"update existing sink using empty tags": {
+			incomingSink: sinks.Sink{
+				ID:    emptyTagsSink.ID,
+				Error: "",
+				Tags:  make(map[string]string),
+			},
+			expectedSink: sinks.Sink{
+				Name:        emptyTagsSink.Name,
+				Config:      emptyTagsSink.Config,
+				Description: emptyTagsSink.Description,
+				Tags:        make(map[string]string),
+			},
 			token: token,
-			err:   errors.ErrUpdateEntity,
+			err:   nil,
+		},
+		"update existing sink - only updating description": {
+			incomingSink: sinks.Sink{
+				ID:          sinkTestDescriptionAttribute.ID,
+				Description: &newDescription,
+			},
+			expectedSink: sinks.Sink{
+				Name:        sinkTestDescriptionAttribute.Name,
+				Description: &newDescription,
+				Tags:        sinkTestDescriptionAttribute.Tags,
+				Config:      sinkTestDescriptionAttribute.Config,
+			},
+			token: token,
+			err:   nil,
+		},
+		"update existing sink - omitted description": {
+			incomingSink: sinks.Sink{
+				ID: sink.ID,
+			},
+			expectedSink: sinks.Sink{
+				Name:        sink.Name,
+				Description: sink.Description,
+				Tags:        sink.Tags,
+				Config:      sink.Config,
+			},
+			token: token,
+			err:   nil,
+		},
+		"update sink tags with new tags": {
+			incomingSink: sinks.Sink{
+				ID:   addTagsToSink.ID,
+				Tags: map[string]string{"cloud": "aws", "test": "true"},
+			},
+			expectedSink: sinks.Sink{
+				Name:        addTagsToSink.Name,
+				Config:      addTagsToSink.Config,
+				Description: addTagsToSink.Description,
+				Tags:        types.Tags{"cloud": "aws", "test": "true"},
+			},
+			token: token,
+			err:   nil,
+		},
+		"update sink tags with omitted tags": {
+			incomingSink: sinks.Sink{
+				ID: sink.ID,
+			},
+			expectedSink: sinks.Sink{
+				Name:        sink.Name,
+				Config:      sink.Config,
+				Description: sink.Description,
+				Tags:        sink.Tags,
+			},
+			token: token,
+			err:   nil,
 		},
 	}
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
-			_, err := service.UpdateSink(context.Background(), tc.token, tc.sink)
+			res, err := service.UpdateSink(context.Background(), tc.token, tc.incomingSink)
+			if err == nil {
+				assert.Equal(t, tc.expectedSink.Config, res.Config, fmt.Sprintf("%s: expected %s got %s", desc, tc.expectedSink.Config, res.Config))
+				assert.Equal(t, tc.expectedSink.Name.String(), res.Name.String(), fmt.Sprintf("%s: expected name %s got %s", desc, tc.expectedSink.Name.String(), res.Name.String()))
+				assert.Equal(t, *tc.expectedSink.Description, *res.Description, fmt.Sprintf("%s: expected description %s got %s", desc, *tc.expectedSink.Description, *res.Description))
+				assert.Equal(t, tc.expectedSink.Tags, res.Tags, fmt.Sprintf("%s: expected tags %s got %s", desc, tc.expectedSink.Tags, res.Tags))
+			}
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %d got %d", desc, tc.err, err))
 		})
 	}
@@ -405,6 +571,8 @@ func TestDeleteSink(t *testing.T) {
 func TestValidateSink(t *testing.T) {
 	service := newService(map[string]string{token: email})
 
+	description := "An example prometheus sink"
+
 	cases := map[string]struct {
 		sink  sinks.Sink
 		token string
@@ -423,7 +591,7 @@ func TestValidateSink(t *testing.T) {
 		"validate a sink with a invalid backend": {
 			sink: sinks.Sink{
 				Name:        nameID,
-				Description: "An example prometheus sink",
+				Description: &description,
 				Backend:     "invalid",
 				Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
 				Tags:        map[string]string{"cloud": "aws"},

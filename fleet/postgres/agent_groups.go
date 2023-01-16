@@ -232,6 +232,8 @@ func (a agentGroupRepository) Update(ctx context.Context, ownerID string, group 
 			switch pqErr.Code.Name() {
 			case db.ErrInvalid, db.ErrTruncation:
 				return fleet.AgentGroup{}, errors.Wrap(fleet.ErrMalformedEntity, err)
+			case db.ErrDuplicate:
+				return fleet.AgentGroup{}, errors.Wrap(errors.ErrConflict, err)
 			}
 		}
 		return fleet.AgentGroup{}, errors.Wrap(fleet.ErrUpdateEntity, err)
@@ -383,10 +385,17 @@ type dbMatchingGroups struct {
 
 func toDBAgentGroup(group fleet.AgentGroup) (dbAgentGroup, error) {
 
+	var description string
+	if group.Description == nil {
+		description = ""
+	} else {
+		description = *group.Description
+	}
+
 	return dbAgentGroup{
 		ID:          group.ID,
 		Name:        group.Name,
-		Description: group.Description,
+		Description: description,
 		MFOwnerID:   group.MFOwnerID,
 		MFChannelID: group.MFChannelID,
 		Tags:        db.Tags(group.Tags),
@@ -398,7 +407,7 @@ func toAgentGroup(dba dbAgentGroup) (fleet.AgentGroup, error) {
 	return fleet.AgentGroup{
 		ID:             dba.ID,
 		Name:           dba.Name,
-		Description:    dba.Description,
+		Description:    &dba.Description,
 		MFOwnerID:      dba.MFOwnerID,
 		MFChannelID:    dba.MFChannelID,
 		Created:        dba.Created,

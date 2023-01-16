@@ -9,6 +9,7 @@ function run() {
   cd $DIR
   echo "${INPUT_HEADER}" > CHANGELOG
   echo "`git log --pretty=format:"$ad• %s [%an]" --since=7.days`" >> CHANGELOG
+  sed -i -e "s/- /• /g" CHANGELOG
   result=$(cat CHANGELOG)
   export CHANGELOG_RESULT=$result
 }

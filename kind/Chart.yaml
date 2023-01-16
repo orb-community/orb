@@ -1,0 +1,21 @@
+apiVersion: v2
+name: orb-live
+description: A Helm chart for orb.live Orb SaaS site
+
+type: application
+
+# This is the chart version. This version number should be incremented each time you make changes
+# to the chart and its templates, including the app version.
+# Versions are expected to follow Semantic Versioning (https://semver.org/)
+version: 1.0.0
+
+# This is the version number of the application being deployed. This version number should be
+# incremented each time you make changes to the application. Versions are not expected to
+# follow Semantic Versioning. They should reflect the version the application is using.
+# It is recommended to use it with quotes.
+appVersion: "1.0.0"
+
+dependencies:
+  - name: orb
+    version: "1.0.39"
+    repository: "@ns1labs-orb"

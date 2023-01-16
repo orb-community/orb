@@ -7,6 +7,7 @@ import requests
 configs = TestConfig.configs()
 sink_name_prefix = "test_sink_label_name_"
 orb_url = configs.get('orb_url')
+verify_ssl_bool = eval(configs.get('verify_ssl').title())
 
 
 @given("that the user has the prometheus/grafana credentials")
@@ -212,7 +213,7 @@ def create_new_sink(token, name_label, remote_host, username, password, descript
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*',
                        'Authorization': f'Bearer {token}'}
 
-    response = requests.post(orb_url + '/api/v1/sinks', json=json_request, headers=headers_request)
+    response = requests.post(orb_url + '/api/v1/sinks', json=json_request, headers=headers_request, verify=verify_ssl_bool)
     try:
         response_json = response.json()
     except ValueError:
@@ -232,7 +233,8 @@ def get_sink(token, sink_id):
     :returns: (dict) the fetched sink
     """
 
-    get_sink_response = requests.get(orb_url + '/api/v1/sinks/' + sink_id, headers={'Authorization': f'Bearer {token}'})
+    get_sink_response = requests.get(orb_url + '/api/v1/sinks/' + sink_id, headers={'Authorization': f'Bearer {token}'},
+                                     verify=verify_ssl_bool)
 
     try:
         response_json = get_sink_response.json()
@@ -278,7 +280,7 @@ def list_up_to_limit_sinks(token, limit=100, offset=0):
     """
 
     response = requests.get(orb_url + '/api/v1/sinks', headers={'Authorization': f'Bearer {token}'},
-                            params={'limit': limit, 'offset': offset})
+                            params={'limit': limit, 'offset': offset}, verify=verify_ssl_bool)
 
     assert_that(response.status_code, equal_to(200),
                 'Request to list sinks failed with status=' + str(response.status_code) + ': '
@@ -309,7 +311,7 @@ def delete_sink(token, sink_id):
     """
 
     response = requests.delete(orb_url + '/api/v1/sinks/' + sink_id,
-                               headers={'Authorization': f'Bearer {token}'})
+                               headers={'Authorization': f'Bearer {token}'}, verify=verify_ssl_bool)
 
     assert_that(response.status_code, equal_to(204), 'Request to delete sink id='
                 + sink_id + ' failed with status=' + str(response.status_code))
@@ -345,7 +347,7 @@ def edit_sink(token, sink_id, sink_body, expected_status_code=200):
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
 
     response = requests.put(orb_url + '/api/v1/sinks/' + sink_id, json=sink_body,
-                            headers=headers_request)
+                            headers=headers_request, verify=verify_ssl_bool)
 
     assert_that(response.status_code, equal_to(expected_status_code),
                 'Request to edit sink failed with status=' + str(response.status_code) + ":" + str(response.json()))

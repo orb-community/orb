@@ -44,11 +44,12 @@ const (
 )
 
 var (
-	agentGroup = fleet.AgentGroup{
+	description = "An example agent group representing european dns nodes"
+	agentGroup  = fleet.AgentGroup{
 		ID:          "",
 		MFOwnerID:   "",
 		Name:        types.Identifier{},
-		Description: "",
+		Description: &description,
 		MFChannelID: "",
 		Tags:        nil,
 		Created:     time.Time{},
@@ -123,7 +124,7 @@ func TestCreateAgentGroup(t *testing.T) {
 	validAgent := fleet.AgentGroup{
 		MFOwnerID:   ownerID.String(),
 		Name:        nameID,
-		Description: "An example agent group representing european dns nodes",
+		Description: &description,
 		Tags:        make(map[string]string),
 		Created:     time.Time{},
 	}
@@ -326,18 +327,21 @@ func TestUpdateAgentGroup(t *testing.T) {
 	}
 	_, err = fleetService.CreateAgent(context.Background(), token, agent)
 
-	matching := types.Metadata{"total": 0, "online": 0}
-	wrongAgentGroup := fleet.AgentGroup{ID: wrongID}
-	readyOnlyAgentGroup := fleet.AgentGroup{ID: wrongID, MatchingAgents: matching}
+	emptyDescription := ""
+
+	groupTestDescriptionAttribute, err := createAgentGroup(t, "test-description", fleetService)
+
 	cases := map[string]struct {
-		group fleet.AgentGroup
-		token string
-		err   error
+		group         fleet.AgentGroup
+		expectedGroup fleet.AgentGroup
+		token         string
+		err           error
 	}{
 		"update existing agent": {
-			group: ag,
-			token: token,
-			err:   nil,
+			group:         ag,
+			expectedGroup: ag,
+			token:         token,
+			err:           nil,
 		},
 		"update group with wrong credentials": {
 			group: ag,
@@ -345,20 +349,98 @@ func TestUpdateAgentGroup(t *testing.T) {
 			err:   fleet.ErrUnauthorizedAccess,
 		},
 		"update a non-existing group": {
-			group: wrongAgentGroup,
+			group: fleet.AgentGroup{ID: wrongID},
 			token: token,
 			err:   fleet.ErrNotFound,
 		},
 		"update group read only fields": {
-			group: readyOnlyAgentGroup,
+			group: fleet.AgentGroup{
+				ID:             wrongID,
+				MatchingAgents: types.Metadata{"total": 0, "online": 0},
+			},
 			token: token,
 			err:   errors.ErrUpdateEntity,
+		},
+		"update existing agent with omitted name": {
+			group: fleet.AgentGroup{
+				ID:        ag.ID,
+				MFOwnerID: ag.MFOwnerID,
+			},
+			expectedGroup: fleet.AgentGroup{
+				Name:        ag.Name,
+				Tags:        ag.Tags,
+				Description: ag.Description,
+			},
+			token: token,
+			err:   nil,
+		},
+		"update existing agent with omitted description": {
+			group: fleet.AgentGroup{
+				ID:        ag.ID,
+				Name:      ag.Name,
+				MFOwnerID: ag.MFOwnerID,
+			},
+			expectedGroup: fleet.AgentGroup{
+				Name:        ag.Name,
+				Tags:        ag.Tags,
+				Description: ag.Description,
+			},
+			token: token,
+			err:   nil,
+		},
+		"update existing agent group with empty description": {
+			group: fleet.AgentGroup{
+				ID:          groupTestDescriptionAttribute.ID,
+				Name:        groupTestDescriptionAttribute.Name,
+				MFOwnerID:   groupTestDescriptionAttribute.MFOwnerID,
+				Description: &emptyDescription,
+			},
+			expectedGroup: fleet.AgentGroup{
+				Name:        groupTestDescriptionAttribute.Name,
+				Tags:        groupTestDescriptionAttribute.Tags,
+				Description: &emptyDescription,
+			},
+			token: token,
+			err:   nil,
+		},
+		"update existing agent group with tags empty": {
+			group: fleet.AgentGroup{
+				ID:        ag.ID,
+				Name:      ag.Name,
+				MFOwnerID: ag.MFOwnerID,
+				Tags:      map[string]string{},
+			},
+			expectedGroup: fleet.AgentGroup{
+				Name:        ag.Name,
+				Tags:        map[string]string{},
+				Description: ag.Description,
+			},
+			token: token,
+			err:   nil,
+		},
+		"update existing agent group with tags omitted": {
+			group: fleet.AgentGroup{
+				ID:        ag.ID,
+				Name:      ag.Name,
+				MFOwnerID: ag.MFOwnerID,
+			},
+			expectedGroup: fleet.AgentGroup{
+				Name:        ag.Name,
+				Tags:        ag.Tags,
+				Description: ag.Description,
+			},
+			token: token,
+			err:   nil,
 		},
 	}
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
-			_, err := fleetService.EditAgentGroup(context.Background(), tc.token, tc.group)
+			agentGroupTest, err := fleetService.EditAgentGroup(context.Background(), tc.token, tc.group)
+			if err == nil {
+				assert.Equal(t, *tc.expectedGroup.Description, *agentGroupTest.Description, fmt.Sprintf("%s: expected %s got %s", desc, *tc.expectedGroup.Description, *agentGroupTest.Description))
+				assert.Equal(t, tc.expectedGroup.Name, agentGroupTest.Name, fmt.Sprintf("%s: expected %s got %s", desc, tc.expectedGroup.Name, agentGroupTest.Name))
+			}
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %d got %d", desc, tc.err, err))
 		})
 	}
@@ -418,6 +500,10 @@ func createAgentGroup(t *testing.T, name string, svc fleet.AgentGroupService) (f
 		return fleet.AgentGroup{}, err
 	}
 	agCopy.Name = validName
+	agCopy.Description = &description
+	agCopy.Tags = map[string]string{
+		"tag": "test",
+	}
 	ag, err := svc.CreateAgentGroup(context.Background(), token, agCopy)
 	if err != nil {
 		return fleet.AgentGroup{}, err
@@ -458,7 +544,7 @@ func TestValidateAgentGroup(t *testing.T) {
 	validAgent := fleet.AgentGroup{
 		MFOwnerID:   ownerID.String(),
 		Name:        nameID,
-		Description: "An example agent group representing european dns nodes",
+		Description: &description,
 		Tags:        make(map[string]string),
 	}
 

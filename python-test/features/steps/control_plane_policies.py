@@ -2,7 +2,7 @@ from hamcrest import *
 import requests
 from behave import given, then, step
 from utils import random_string, filter_list_by_parameter_start_with, safe_load_json, remove_empty_from_json, \
-    threading_wait_until, UtilsManager, create_tags_set
+    threading_wait_until, UtilsManager, create_tags_set, is_json, values_to_boolean
 from local_agent import get_orb_agent_logs
 from test_config import TestConfig
 from datetime import datetime
@@ -13,7 +13,9 @@ import json
 import ciso8601
 
 policy_name_prefix = "test_policy_name_"
-orb_url = TestConfig.configs().get('orb_url')
+configs = TestConfig.configs()
+orb_url = configs.get('orb_url')
+verify_ssl_bool = eval(configs.get('verify_ssl').title())
 
 
 @step("a new policy is requested to be created with the same name as an existent one and: {kwargs}")
@@ -42,10 +44,11 @@ def create_policy_with_conflict_name(context, kwargs):
     context.error_message = create_policy(context.token, policy_json, expected_status_code=409)
 
 
-@step(
-    "a {handler} policy {input_type} with tap_selector matching {match_type} of {condition} tap tags ands settings: {"
-    "settings} is applied to the group")
-def apply_policy_using_tap_selector(context, handler, input_type, match_type, condition, settings):
+@step("a {handler} policy {input_type} with tap_selector matching {match_type} tag(s) of the tap from {condition}, "
+      "{metric_groups_enabled} metric_groups enabled, {metric_groups_disabled} metric_groups disabled and settings: {"
+      "settings} is applied to the group")
+def apply_policy_using_tap_selector(context, handler, input_type, match_type, condition, metric_groups_enabled,
+                                    metric_groups_disabled, settings):
     module_name = f"{handler}_{random_string(5)}"
     policy_name = policy_name_prefix + random_string(10)
     if condition == "0 agent" and match_type == "any":
@@ -70,19 +73,25 @@ def apply_policy_using_tap_selector(context, handler, input_type, match_type, co
     if handler.lower() == "pcap":
         policy.add_pcap_module(module_name)
     elif handler.lower() == "dns":
-        policy.add_dns_module(module_name)
+        policy.add_dns_module(module_name, settings)
     elif handler.lower() == "net":
-        policy.add_net_module(module_name)
+        policy.add_net_module(module_name, settings)
     elif handler.lower() == "dhcp":
         policy.add_dhcp_module(module_name)
     elif handler.lower() == "bgp":
         policy.add_bgp_module(module_name)
     elif handler.lower() == "flow":
-        policy.add_flow_module(module_name)
+        policy.add_flow_module(module_name, settings)
+    elif handler.lower() == "netprobe":
+        policy.add_netprobe_module(module_name)
     else:
         raise ValueError("Invalid policy handler. It must be one of pcap, dns, net, dhcp, bpg or flow.")
-
-    context.policy = create_policy(context.token, policy.policy)
+    if metric_groups_enabled.lower() != "default" and metric_groups_enabled.lower() != "none":
+        policy.enable_metric_groups(module_name, metric_groups_enabled.split(", "))
+    if metric_groups_disabled.lower() != "default" and metric_groups_disabled.lower() != "none":
+        policy.disable_metric_groups(module_name, metric_groups_disabled.split(", "))
+    json_for_create_policy = remove_empty_from_json(policy.policy)
+    context.policy = create_policy(context.token, json_for_create_policy)
     check_policies(context)
     create_new_dataset(context, 1, 'last', 1, 'sink')
 
@@ -97,6 +106,8 @@ def check_policy_error_detail(context, message):
 def create_new_policy(context, kwargs):
     if kwargs.split(", ")[-1].split("=")[-1] == "flow":
         kwargs_dict = parse_flow_policy_params(kwargs)
+    elif kwargs.split(", ")[-1].split("=")[-1] == "netprobe":
+        kwargs_dict = parse_netprobe_policy_params(kwargs)
     else:
         kwargs_dict = parse_policy_params(kwargs)
     if kwargs_dict["handler"] == "flow":
@@ -108,6 +119,14 @@ def create_new_policy(context, kwargs):
                                             kwargs_dict['only_ips'], kwargs_dict['only_ports'],
                                             kwargs_dict['only_interfaces'], kwargs_dict['geoloc_notfound'],
                                             kwargs_dict['asn_notfound'], kwargs_dict['backend_type'])
+    elif kwargs_dict["handler"] == "netprobe":
+        policy_json = make_policy_netprobe_json(kwargs_dict["name"], kwargs_dict['handle_label'],
+                                                kwargs_dict["handler"], kwargs_dict["description"], kwargs_dict["tap"],
+                                                kwargs_dict["input_type"], kwargs_dict["test_type"],
+                                                kwargs_dict["interval_msec"], kwargs_dict["timeout_msec"],
+                                                kwargs_dict["packets_per_test"], kwargs_dict["packets_interval_msec"],
+                                                kwargs_dict["packet_payload_size"], kwargs_dict["targets"],
+                                                kwargs_dict["backend_type"])
     else:
         policy_json = make_policy_json(kwargs_dict["name"], kwargs_dict['handle_label'],
                                        kwargs_dict["handler"], kwargs_dict["description"], kwargs_dict["tap"],
@@ -467,7 +486,7 @@ def create_duplicated_policy(token, policy_id, new_policy_name=None, status_code
     headers_request = {'Content-type': 'application/json', 'Accept': 'application/json',
                        'Authorization': f'Bearer {token}'}
     post_url = f"{orb_url}/api/v1/policies/agent/{policy_id}/duplicate"
-    response = requests.post(post_url, json=json_request, headers=headers_request)
+    response = requests.post(post_url, json=json_request, headers=headers_request, verify=verify_ssl_bool)
     assert_that(response.status_code, equal_to(status_code),
                 'Request to create duplicated policy failed with status=' + str(response.status_code) + ': '
                 + str(response.json()))
@@ -506,7 +525,8 @@ def create_policy(token, json_request, expected_status_code=201):
 
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
 
-    response = requests.post(orb_url + '/api/v1/policies/agent', json=json_request, headers=headers_request)
+    response = requests.post(orb_url + '/api/v1/policies/agent', json=json_request, headers=headers_request,
+                             verify=verify_ssl_bool)
     try:
         response_json = response.json()
     except ValueError:
@@ -531,7 +551,7 @@ def edit_policy(token, policy_id, json_request, expected_status_code=200):
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
 
     response = requests.put(orb_url + f"/api/v1/policies/agent/{policy_id}", json=json_request,
-                            headers=headers_request)
+                            headers=headers_request, verify=verify_ssl_bool)
     try:
         response_json = response.json()
     except ValueError:
@@ -671,6 +691,57 @@ def make_policy_flow_json(name, handler_label, handler, description=None, tap="d
     return json_request
 
 
+def make_policy_netprobe_json(name, handler_label, handler, description=None, tap="default_netprobe",
+                              input_type="flow", test_type='ping', interval_msec=None, timeout_msec=None,
+                              packets_per_test=None, packets_interval_msec=None, packet_payload_size=None, targets=None,
+                              backend_type="pktvisor"):
+    """
+
+    Generate a policy json
+
+    :param (str) name:  of the policy to be created
+    :param (str) handler_label:  of the handler
+    :param (str) handler: to be added
+    :param (str) description: description of policy
+    :param tap: named, host specific connection specifications for the raw input streams accessed by pktvisor
+    :param input_type: this must reference a tap name, or application of the policy will fail
+    :param backend_type: Agent backend this policy is for. Cannot change once created. Default: pktvisor
+    :return: (dict) a dictionary containing the created policy data
+    """
+    assert_that(handler, equal_to("netprobe"), "Unexpected handler for policy")
+    assert_that(name, not_none(), "Unable to create policy without name")
+
+    #netprobe configs are on tap level
+    json_request = {"name": name,
+                    "description": description,
+                    "backend": backend_type,
+                    "policy": {
+                        "kind": "collection",
+                        "input": {
+                            "tap": tap,
+                            "input_type": input_type,
+                            "config": {"test_type": test_type,
+                                       "interval_msec": interval_msec,
+                                       "timeout_msec": timeout_msec,
+                                       "packets_per_test": packets_per_test,
+                                       "packets_interval_msec": packets_interval_msec,
+                                       "packet_payload_size": packet_payload_size,
+                                       "targets": targets}},
+                        "handlers": {
+                            "modules": {
+                                handler_label: {
+                                    "type": handler,
+                                    "config": {},
+                                    "filter": {}
+                                }
+                            }
+                        }
+                    }
+                    }
+    json_request = remove_empty_from_json(json_request.copy())
+    return json_request
+
+
 def get_policy(token, policy_id, expected_status_code=200):
     """
     Gets a policy from Orb control plane
@@ -682,7 +753,7 @@ def get_policy(token, policy_id, expected_status_code=200):
     """
 
     get_policy_response = requests.get(orb_url + '/api/v1/policies/agent/' + policy_id,
-                                       headers={'Authorization': f'Bearer {token}'})
+                                       headers={'Authorization': f'Bearer {token}'}, verify=verify_ssl_bool)
     try:
         response_json = get_policy_response.json()
     except ValueError:
@@ -727,7 +798,7 @@ def list_up_to_limit_policies(token, limit=100, offset=0):
     """
 
     response = requests.get(orb_url + '/api/v1/policies/agent', headers={'Authorization': f'Bearer {token}'},
-                            params={'limit': limit, 'offset': offset})
+                            params={'limit': limit, 'offset': offset}, verify=verify_ssl_bool)
 
     assert_that(response.status_code, equal_to(200),
                 'Request to list policies failed with status=' + str(response.status_code) + ': '
@@ -758,7 +829,7 @@ def delete_policy(token, policy_id):
     """
 
     response = requests.delete(orb_url + '/api/v1/policies/agent/' + policy_id,
-                               headers={'Authorization': f'Bearer {token}'})
+                               headers={'Authorization': f'Bearer {token}'}, verify=verify_ssl_bool)
 
     assert_that(response.status_code, equal_to(204), 'Request to delete policy id='
                 + policy_id + ' failed with status=' + str(response.status_code))
@@ -888,6 +959,15 @@ def return_policies_type(k, policies_type='mixed', input_type="pcap"):
         simple = {
             'simple_flow': "handler=flow"
         }
+    elif input_type == "netprobe":
+        advanced = {
+            "advanced_netprobe_1": "handler=netprobe, test_type=ping, interval_msec=3000, timeout_msec=1000, packets_per_test=2, packets_interval_msec=30, packet_payload_size=56",
+            "advanced_netprobe_2": "handler=netprobe, test_type=ping, packet_payload_size=56",
+            "advanced_netprobe_3": "handler=netprobe, test_type=ping, interval_msec=900, timeout_msec=500, packets_per_test=5, packets_interval_msec=45"
+        }
+        simple = {
+            'simple_netprobe': "handler=netprobe, test_type=ping"
+        }
     else:
         advanced = {
             'advanced_dns_libpcap_0': "handler=dns, description='policy_dns', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap, only_qname_suffix=[.orb.live/ .google.com], only_rcode=0",
@@ -896,16 +976,17 @@ def return_policies_type(k, policies_type='mixed', input_type="pcap"):
             'advanced_dns_libpcap_5': "handler=dns, description='policy_dns', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap, only_qname_suffix=[.orb.live/ .google.com], only_rcode=5",
 
             'advanced_net': "handler=net, description='policy_net', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap",
-
-            'advanced_dhcp': "handler=dhcp, description='policy_dhcp', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap",
         }
 
         simple = {
 
             'simple_dns': "handler=dns",
-            'simple_net': "handler=net",
-            # 'simple_dhcp': "handler=dhcp",
+            'simple_net': "handler=net"
         }
+
+        if input_type != "dnstap":
+            advanced['advanced_dhcp'] = "handler=dhcp, description='policy_dhcp', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap"
+            simple['simple_dhcp'] = "handler=dhcp"
 
     mixed = dict()
     mixed.update(advanced)
@@ -1049,6 +1130,28 @@ def parse_flow_policy_params(kwargs):
     return kwargs_dict
 
 
+def parse_netprobe_policy_params(kwargs):
+    name = policy_name_prefix + random_string(10)
+
+    kwargs_dict = {'name': name, 'handler': None, 'description': None, 'tap': "default_netprobe",
+                   'input_type': "netprobe", 'test_type': 'ping', 'interval_msec': None, 'timeout_msec': None,
+                   'packets_per_test': None, 'packets_interval_msec': None, 'packet_payload_size': None,
+                   'targets': None, 'backend_type': "pktvisor"}
+
+    for i in kwargs.split(", "):
+        assert_that(i, matches_regexp("^.+=.+$"), f"Unexpected format for param {i}")
+        item = i.split("=")
+        kwargs_dict[item[0]] = item[1]
+
+    if policy_name_prefix not in kwargs_dict["name"]:
+        kwargs_dict["name"] + policy_name_prefix + kwargs_dict["name"]
+
+    assert_that(kwargs_dict["handler"], equal_to("netprobe"), "Unexpected handler for policy")
+    kwargs_dict['handle_label'] = f"default_{kwargs_dict['handler']}_{random_string(3)}"
+
+    return kwargs_dict
+
+
 class HandlerConfigs(UtilsManager):
     def __init__(self):
         self.handler_configs = dict()
@@ -1080,7 +1183,7 @@ class HandlerModules(HandlerConfigs):
 
                 "filter": {
                 },
-                "metrics_groups": {
+                "metric_groups": {
                 }
             }
         }
@@ -1089,21 +1192,31 @@ class HandlerModules(HandlerConfigs):
 
         self.handler_modules.update(module)
 
-    def add_dns_module(self, name, public_suffix_list=None, only_rcode=None, exclude_noerror=None,
-                       only_dnssec_response=None, answer_count=None,
-                       only_qtype=None, only_qname_suffix=None, geoloc_notfound=None, asn_notfound=None,
-                       dnstap_msg_type=None):
+    def __parse_module_settings(self, settings):
+        if settings is None or settings == "default":
+            settings_json = {}
+        else:
+            settings_is_json, settings_json = is_json(settings)
+            assert_that(settings_is_json, is_(True), f"settings must be written in json format. Current settings: "
+                                                     f"{settings}")
+            settings_json = values_to_boolean(settings_json)
+        return settings_json
+
+    def add_dns_module(self, name, settings=None):
+
+        settings_json = self.__parse_module_settings(settings)
+
         self.name = name
-        self.public_suffix_list = {'public_suffix_list': public_suffix_list}
-        self.only_rcode = {'only_rcode': only_rcode}
-        self.exclude_noerror = {'exclude_noerror': exclude_noerror}
-        self.only_dnssec_response = {'only_dnssec_response': only_dnssec_response}
-        self.answer_count = {'answer_count': answer_count}
-        self.only_qtype = {'only_qtype': only_qtype}
-        self.only_qname_suffix = {'only_qname_suffix': only_qname_suffix}
-        self.geoloc_notfound = {'geoloc_notfound': geoloc_notfound}
-        self.asn_notfound = {'asn_notfound': asn_notfound}
-        self.dnstap_msg_type = {'dnstap_msg_type': dnstap_msg_type}
+        self.public_suffix_list = {'public_suffix_list': settings_json.get('public_suffix_list', None)}
+        self.only_rcode = {'only_rcode': settings_json.get("only_rcode", None)}
+        self.exclude_noerror = {'exclude_noerror': settings_json.get("exclude_noerror", None)}
+        self.only_dnssec_response = {'only_dnssec_response': settings_json.get("only_dnssec_response", None)}
+        self.answer_count = {'answer_count': settings_json.get("answer_count", None)}
+        self.only_qtype = {'only_qtype': settings_json.get("only_qtype", None)}
+        self.only_qname_suffix = {'only_qname_suffix': settings_json.get("only_qname_suffix", None)}
+        self.geoloc_notfound = {'geoloc_notfound': settings_json.get("geoloc_notfound", None)}
+        self.asn_notfound = {'asn_notfound': settings_json.get("asn_notfound", None)}
+        self.dnstap_msg_type = {'dnstap_msg_type': settings_json.get("dnstap_msg_type", None)}
 
         dns_configs = [self.public_suffix_list]
 
@@ -1114,13 +1227,15 @@ class HandlerModules(HandlerConfigs):
         self.__build_module(self.name, "dns", dns_configs, dns_filters)
         return self.handler_modules
 
-    def add_net_module(self, name, geoloc_notfound=None, asn_notfound=None, only_geoloc_prefix=None,
-                       only_asn_number=None):
+    def add_net_module(self, name, settings=None):
+
+        settings_json = self.__parse_module_settings(settings)
+
         self.name = name
-        self.geoloc_notfound = {'geoloc_notfound': geoloc_notfound}
-        self.asn_notfound = {'asn_notfound': asn_notfound}
-        self.only_geoloc_prefix = {'only_geoloc_prefix': only_geoloc_prefix}
-        self.only_asn_number = {'only_asn_number': only_asn_number}
+        self.geoloc_notfound = {'geoloc_notfound': settings_json.get('geoloc_notfound', None)}
+        self.asn_notfound = {'asn_notfound': settings_json.get('asn_notfound', None)}
+        self.only_geoloc_prefix = {'only_geoloc_prefix': settings_json.get('only_geoloc_prefix', None)}
+        self.only_asn_number = {'only_asn_number': settings_json.get('only_asn_number', None)}
 
         net_configs = []
 
@@ -1159,17 +1274,19 @@ class HandlerModules(HandlerConfigs):
         self.__build_module(self.name, "pcap", pcap_configs, pcap_filters)
         return self.handler_modules
 
-    def add_flow_module(self, name, sample_rate_scaling=None, recorded_stream=None, only_devices=None, only_ips=None,
-                        only_ports=None, only_interfaces=None, geoloc_notfound=None, asn_notfound=None):
+    def add_flow_module(self, name, settings=None):
+
+        settings_json = self.__parse_module_settings(settings)
+
         self.name = name
-        self.sample_rate_scaling = {'sample_rate_scaling': sample_rate_scaling}
-        self.recorded_stream = {'recorded_stream': recorded_stream}
-        self.only_devices = {'only_devices': only_devices}
-        self.only_ips = {'only_ips': only_ips}
-        self.only_ports = {'only_ports': only_ports}
-        self.only_interfaces = {'only_interfaces': only_interfaces}
-        self.geoloc_notfound = {'geoloc_notfound': geoloc_notfound}
-        self.asn_notfound = {'asn_notfound': asn_notfound}
+        self.sample_rate_scaling = {'sample_rate_scaling': settings_json.get("sample_rate_scaling", None)}
+        self.recorded_stream = {'recorded_stream': settings_json.get("recorded_stream", None)}
+        self.only_devices = {'only_devices': settings_json.get("only_devices", None)}
+        self.only_ips = {'only_ips': settings_json.get("only_ips", None)}
+        self.only_ports = {'only_ports': settings_json.get("only_ports", None)}
+        self.only_interfaces = {'only_interfaces': settings_json.get("only_interfaces", None)}
+        self.geoloc_notfound = {'geoloc_notfound': settings_json.get("geoloc_notfound", None)}
+        self.asn_notfound = {'asn_notfound': settings_json.get("asn_notfound", None)}
 
         flow_configs = [self.sample_rate_scaling, self.recorded_stream]
 
@@ -1177,6 +1294,16 @@ class HandlerModules(HandlerConfigs):
                         self.asn_notfound]
 
         self.__build_module(self.name, "flow", flow_configs, flow_filters)
+        return self.handler_modules
+
+    def add_netprobe_module(self, name):
+        self.name = name
+
+        netprobe_configs = []
+
+        netprobe_filters = []
+
+        self.__build_module(self.name, "netprobe", netprobe_configs, netprobe_filters)
         return self.handler_modules
 
     def add_configs(self, name, **kwargs):
@@ -1194,44 +1321,44 @@ class HandlerModules(HandlerConfigs):
 
         return self.handler_modules
 
-    def enable_metrics_group(self, name, *args):
-        self.metrics_group = self.handler_modules[name]["metrics_groups"]
+    def enable_metric_groups(self, name, args):
+        self.metric_groups = self.handler_modules[name]["metric_groups"]
         metrics_enable = list()
-        if 'enable' not in self.metrics_group.keys():
-            self.metrics_group.update({"enable": metrics_enable})
+        if 'enable' not in self.metric_groups.keys():
+            self.metric_groups.update({"enable": metrics_enable})
 
         for metric in args:
             metrics_enable.append(metric)
-            if 'disable' in self.metrics_group.keys() and metric in self.metrics_group['disable']:
-                self.metrics_group['disable'].remove(metric)
+            if 'disable' in self.metric_groups.keys() and metric in self.metric_groups['disable']:
+                self.metric_groups['disable'].remove(metric)
 
-        self.metrics_group['enable'] = metrics_enable
+        self.metric_groups['enable'] = metrics_enable
 
         return self.handler_modules
 
-    def disable_metrics_group(self, name, *args):
-        self.metrics_group = self.handler_modules[name]["metrics_groups"]
+    def disable_metric_groups(self, name, args):
+        self.metric_groups = self.handler_modules[name]["metric_groups"]
         metrics_disable = list()
-        if 'disable' not in self.metrics_group.keys():
-            self.metrics_group.update({"disable": metrics_disable})
+        if 'disable' not in self.metric_groups.keys():
+            self.metric_groups.update({"disable": metrics_disable})
 
         for metric in args:
             metrics_disable.append(metric)
-            if 'enable' in self.metrics_group.keys() and metric in self.metrics_group['enable']:
-                self.metrics_group['enable'].remove(metric)
+            if 'enable' in self.metric_groups.keys() and metric in self.metric_groups['enable']:
+                self.metric_groups['enable'].remove(metric)
 
-        self.metrics_group['disable'] = metrics_disable
+        self.metric_groups['disable'] = metrics_disable
 
         return self.handler_modules
 
-    def remove_metrics_group(self, name, *args):
-        self.metrics_group = self.handler_modules[name]["metrics_groups"]
+    def remove_metric_groups(self, name, args):
+        self.metric_groups = self.handler_modules[name]["metric_groups"]
 
         for metric in args:
-            if 'enable' in self.metrics_group.keys() and metric in self.metrics_group['enable']:
-                self.metrics_group['enable'].remove(metric)
-            if 'disable' in self.metrics_group.keys() and metric in self.metrics_group['disable']:
-                self.metrics_group['disable'].remove(metric)
+            if 'enable' in self.metric_groups.keys() and metric in self.metric_groups['enable']:
+                self.metric_groups['enable'].remove(metric)
+            if 'disable' in self.metric_groups.keys() and metric in self.metric_groups['disable']:
+                self.metric_groups['disable'].remove(metric)
 
         return self.handler_modules
 

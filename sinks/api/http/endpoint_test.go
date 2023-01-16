@@ -40,10 +40,11 @@ const (
 )
 
 var (
-	nameID, _ = types.NewIdentifier("my-sink")
-	sink      = sinks.Sink{
+	nameID, _   = types.NewIdentifier("my-sink")
+	description = "An example prometheus sink"
+	sink        = sinks.Sink{
 		Name:        nameID,
-		Description: "An example prometheus sink",
+		Description: &description,
 		Backend:     "prometheus",
 		Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
 		Tags:        map[string]string{"cloud": "aws"},
@@ -117,8 +118,44 @@ func TestCreateSinks(t *testing.T) {
 	_, err = service.CreateSink(context.Background(), token, sinkConflict)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	var invalidNameJson = "{\n    \"name\": \"s\",\n    \"backend\": \"prometheus\",\n    \"config\": {\n        \"remote_host\": \"my.prometheus-host.com\",\n        \"username\": \"dbuser\"\n    },\n    \"description\": \"An example prometheus sink\",\n    \"tags\": {\n        \"cloud\": \"aws\"\n    },\n    \"validate_only\": false\n}"
-	var emptyNameJson = "{\n    \"name\": \"\",\n    \"backend\": \"prometheus\",\n    \"config\": {\n        \"remote_host\": \"my.prometheus-host.com\",\n        \"username\": \"dbuser\"\n    },\n    \"description\": \"An example prometheus sink\",\n    \"tags\": {\n        \"cloud\": \"aws\"\n    },\n    \"validate_only\": false\n}"
+	invalidNameJson := toJSON(addReq{
+		Name:    "s",
+		Backend: "prometheus",
+		Config: types.Metadata{
+			"username":    "test",
+			"remote_host": "my.prometheus-host.com",
+			"description": "An example prometheus sink",
+		},
+		Tags: map[string]string{
+			"cloud": "aws",
+		},
+	})
+
+	emptyNameJson := toJSON(addReq{
+		Name:    "",
+		Backend: "prometheus",
+		Config: types.Metadata{
+			"username":    "test",
+			"remote_host": "my.prometheus-host.com",
+			"description": "An example prometheus sink",
+		},
+		Tags: map[string]string{
+			"cloud": "aws",
+		},
+	})
+
+	jsonSinkTestConfigNoConfig := toJSON(addReq{
+		Name:    "sinkConfig",
+		Backend: "prometheus",
+	})
+
+	jsonSinkTestConfig := toJSON(addReq{
+		Name:    "sinkConfig",
+		Backend: "prometheus",
+		Config: types.Metadata{
+			"user": "test",
+		},
+	})
 
 	cases := map[string]struct {
 		req         string
@@ -176,6 +213,20 @@ func TestCreateSinks(t *testing.T) {
 			status:      http.StatusBadRequest,
 			location:    "/sinks",
 		},
+		"add sink with missing config": {
+			req:         string(jsonSinkTestConfigNoConfig),
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/sinks",
+		},
+		"add sink with only 1 key on config": {
+			req:         string(jsonSinkTestConfig),
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/sinks",
+		},
 	}
 
 	for desc, tc := range cases {
@@ -204,13 +255,6 @@ func TestUpdateSink(t *testing.T) {
 	sk, err := service.CreateSink(context.Background(), token, sink)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	data := toJSON(updateSinkReq{
-		Name:        sk.Name.String(),
-		Description: sk.Description,
-		Config:      sink.Config,
-		Tags:        sk.Tags,
-	})
-
 	dataInvalidName := toJSON(updateSinkReq{
 		Name:        invalidName,
 		Description: sk.Description,
@@ -233,7 +277,12 @@ func TestUpdateSink(t *testing.T) {
 		status      int
 	}{
 		"update existing sink": {
-			req:         data,
+			req: toJSON(updateSinkReq{
+				Name:        sk.Name.String(),
+				Description: sk.Description,
+				Config:      sink.Config,
+				Tags:        sk.Tags,
+			}),
 			id:          sk.ID,
 			contentType: contentType,
 			auth:        token,
@@ -247,42 +296,72 @@ func TestUpdateSink(t *testing.T) {
 			status:      http.StatusBadRequest,
 		},
 		"update sink with a invalid id": {
-			req:         data,
+			req: toJSON(updateSinkReq{
+				Name:        sk.Name.String(),
+				Description: sk.Description,
+				Config:      sink.Config,
+				Tags:        sk.Tags,
+			}),
 			id:          "invalid",
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusNotFound,
 		},
 		"update non-existing sink": {
-			req:         data,
+			req: toJSON(updateSinkReq{
+				Name:        sk.Name.String(),
+				Description: sk.Description,
+				Config:      sink.Config,
+				Tags:        sk.Tags,
+			}),
 			id:          wrongID.String(),
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusNotFound,
 		},
 		"update sink with invalid user token": {
-			req:         data,
+			req: toJSON(updateSinkReq{
+				Name:        sk.Name.String(),
+				Description: sk.Description,
+				Config:      sink.Config,
+				Tags:        sk.Tags,
+			}),
 			id:          sk.ID,
 			contentType: contentType,
 			auth:        "invalid",
 			status:      http.StatusUnauthorized,
 		},
 		"update sink with empty user token": {
-			req:         data,
+			req: toJSON(updateSinkReq{
+				Name:        sk.Name.String(),
+				Description: sk.Description,
+				Config:      sink.Config,
+				Tags:        sk.Tags,
+			}),
 			id:          sk.ID,
 			contentType: contentType,
 			auth:        "",
 			status:      http.StatusUnauthorized,
 		},
 		"update sink with invalid content type": {
-			req:         data,
+			req: toJSON(updateSinkReq{
+				Name:        sk.Name.String(),
+				Description: sk.Description,
+				Config:      sink.Config,
+				Tags:        sk.Tags,
+			}),
 			id:          sk.ID,
 			contentType: "invalid",
 			auth:        token,
 			status:      http.StatusUnsupportedMediaType,
 		},
 		"update sink without content type": {
-			req:         data,
+			req: toJSON(updateSinkReq{
+				Name:        sk.Name.String(),
+				Description: sk.Description,
+				Config:      sink.Config,
+				Tags:        sk.Tags,
+			}),
 			id:          sk.ID,
 			contentType: "",
 			auth:        token,
@@ -351,11 +430,10 @@ func TestListSinks(t *testing.T) {
 	for i := 0; i < 20; i++ {
 		var skName, _ = types.NewIdentifier(fmt.Sprintf("name%d", i))
 		snk := sinks.Sink{
-			Name:        skName,
-			Description: "An example prometheus sink",
-			Backend:     "prometheus",
-			Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
-			Tags:        map[string]string{"cloud": "aws"},
+			Name:    skName,
+			Backend: "prometheus",
+			Config:  map[string]interface{}{"remote_host": "data", "username": "dbuser"},
+			Tags:    map[string]string{"cloud": "aws"},
 		}
 
 		sk, err := svc.CreateSink(context.Background(), token, snk)
@@ -693,7 +771,7 @@ func TestViewSink(t *testing.T) {
 	data := toJSON(sinkRes{
 		ID:          sk.ID,
 		Name:        sk.Name.String(),
-		Description: sk.Description,
+		Description: *sk.Description,
 		Backend:     sk.Backend,
 		Config:      sk.Config,
 		Tags:        sk.Tags,

@@ -133,6 +133,17 @@ def check_logs_contain_message_and_name(logs, expected_message, name, name_key):
     return False, "Logs doesn't contain the message and name expected"
 
 
+def values_to_boolean(json_file):
+    """
+    Transform boolean string values into boolean
+
+    """
+    for key, value in list(json_file.items()):
+        if isinstance(value, str) and (value.lower() == "true" or value.lower() == "false"):
+            json_file[key] = eval(value.title())
+    return json_file
+
+
 def remove_empty_from_json(json_file):
     """
     Delete keys with the value "None" in a dictionary, recursively.
@@ -291,11 +302,24 @@ class UtilsManager(ABC):
             if list(module_config.values())[0] is not None:
                 dict_object[name]["config"].update(module_config)
 
-            for tap_filter in filters_list:
-                if list(tap_filter.values())[0] is not None:
-                    dict_object[name]["filter"].update(tap_filter)
+        for tap_filter in filters_list:
+            if list(tap_filter.values())[0] is not None:
+                dict_object[name]["filter"].update(tap_filter)
         return dict_object
 
     @abstractmethod
     def json(self):
         pass
+
+
+def is_json(json_string):
+    """
+    Test if some string can be converted to json.
+    :param json_string: string to be tested
+    :return: bool: is string is a valid json, error_message or string in json
+    """
+    try:
+        json_converted = json.loads(json_string)
+    except ValueError as e:
+        return False, e
+    return True, json_converted

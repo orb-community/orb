@@ -37,6 +37,25 @@ func (req addReq) validate() error {
 		return errors.ErrUnauthorizedAccess
 	}
 
+	keySize := 0
+	if req.Config == nil {
+		return errors.ErrMalformedEntity
+	} else if !req.Config.IsApplicable(func(key string, value interface{}) bool {
+		if key != "" {
+			keySize++
+		}
+		//currently, with only prometheus, 2 keys is enough, maybe change latter
+		if keySize >= 2 {
+			//minimal number of keys passed, valid config
+			return true
+		}
+		//still not get enough keys to create sink, check if there are more keys on map
+		return false
+	}) {
+		//not get enough keys to create sink, invalid config
+		return errors.ErrMalformedEntity
+	}
+
 	if req.Name == "" {
 		return errors.ErrMalformedEntity
 	}
@@ -52,7 +71,7 @@ func (req addReq) validate() error {
 type updateSinkReq struct {
 	Name        string         `json:"name,omitempty"`
 	Config      types.Metadata `json:"config,omitempty"`
-	Description string         `json:"description,omitempty"`
+	Description *string        `json:"description,omitempty"`
 	Tags        types.Tags     `json:"tags,omitempty"`
 	id          string
 	token       string
@@ -63,13 +82,12 @@ func (req updateSinkReq) validate() error {
 		return errors.ErrUnauthorizedAccess
 	}
 
-	if req.Name == "" {
+	if req.id == "" {
 		return errors.ErrMalformedEntity
 	}
 
-	_, err := types.NewIdentifier(req.Name)
-	if err != nil {
-		return errors.Wrap(errors.ErrMalformedEntity, err)
+	if req.Description == nil && req.Name == "" && len(req.Config) == 0 && req.Tags == nil {
+		return errors.ErrMalformedEntity
 	}
 
 	return nil

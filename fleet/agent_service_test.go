@@ -257,32 +257,48 @@ func TestUpdateAgent(t *testing.T) {
 		Tags: map[string]string{"test": "true"},
 	})
 
-	wrongAgentGroup := fleet.Agent{MFThingID: wrongID}
 	cases := map[string]struct {
-		group fleet.Agent
-		token string
-		err   error
+		agent         fleet.Agent
+		expectedAgent fleet.Agent
+		token         string
+		err           error
 	}{
 		"update existing agent": {
-			group: ag,
-			token: token,
-			err:   nil,
+			agent:         ag,
+			expectedAgent: ag,
+			token:         token,
+			err:           nil,
 		},
 		"update group with wrong credentials": {
-			group: ag,
+			agent: ag,
 			token: invalidToken,
 			err:   fleet.ErrUnauthorizedAccess,
 		},
 		"update a non-existing group": {
-			group: wrongAgentGroup,
+			agent: fleet.Agent{MFThingID: wrongID},
 			token: token,
 			err:   fleet.ErrNotFound,
+		},
+		"update existing agent without name": {
+			agent: fleet.Agent{
+				MFThingID: ag.MFThingID,
+				MFOwnerID: ag.MFOwnerID,
+			},
+			expectedAgent: fleet.Agent{
+				Name:    ag.Name,
+				OrbTags: ag.OrbTags,
+			},
+			token: token,
+			err:   nil,
 		},
 	}
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
-			_, err := fleetService.EditAgent(context.Background(), tc.token, tc.group)
+			agentTest, err := fleetService.EditAgent(context.Background(), tc.token, tc.agent)
+			if err == nil {
+				assert.Equal(t, tc.expectedAgent.Name, agentTest.Name, fmt.Sprintf("%s: expected %s got %s", desc, tc.expectedAgent.Name, agentTest.Name))
+			}
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %d got %d", desc, tc.err, err))
 		})
 	}

@@ -61,7 +61,7 @@ type PolicyStateInfo struct {
 	Datasets        []string  `json:"datasets,omitempty"`
 	State           string    `json:"state"`
 	Error           string    `json:"error,omitempty"`
-	Version         int32     `json:"version,omitempty"`
+	Version         int32     `json:"version"`
 	LastScrapeBytes int64     `json:"last_scrape_bytes,omitempty"`
 	LastScrapeTS    time.Time `json:"last_scrape_ts,omitempty"`
 	Backend         string    `json:"backend,omitempty"`

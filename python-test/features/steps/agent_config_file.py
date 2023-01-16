@@ -33,7 +33,7 @@ class FleetAgent:
 
         assert_that(auto_provision, any_of(equal_to(True), equal_to(False)), "Unexpected value for auto_provision "
                                                                              "on agent pcap config file creation")
-        assert_that(input_type, any_of(equal_to("pcap"), equal_to("flow"), equal_to("dnstap")),
+        assert_that(input_type, any_of(equal_to("pcap"), equal_to("flow"), equal_to("dnstap"), equal_to("netprobe")),
                     "Unexpect type of input type.")
         if "iface" in settings.keys() and settings["iface"] == "default":
             settings['iface'] = iface
@@ -42,6 +42,8 @@ class FleetAgent:
             tap.add_pcap(tap_name, **settings)
         elif input_type == "flow":
             tap.add_flow(tap_name, **settings)
+        elif input_type == "netprobe":
+            tap.add_netprobe(tap_name, **settings)
         else:
             tap.add_dnstap(tap_name, **settings)
         if input_tags is not None and input_tags != '0':

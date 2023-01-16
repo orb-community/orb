@@ -1,0 +1,137 @@
+orb:
+  defaults:
+    logLevel: "info"
+    image:
+      pullPolicy: "IfNotPresent"
+      repository: "ns1labs"
+      tag: "develop"
+      mfRepository: "mainflux"
+      mfTag: "0.13.0"
+    replicaCount: 1
+
+  sinks:
+    image:
+      name: "orb-sinks"
+      pullPolicy: "IfNotPresent"
+      repository: "ns1labs"
+      tag: "develop"
+
+  policies:
+    image:
+      name: "orb-policies"
+      pullPolicy: "IfNotPresent"
+      repository: "ns1labs"
+      tag: "develop"
+
+  fleet:
+    image:
+      name: "orb-fleet"
+      pullPolicy: "IfNotPresent"
+      repository: "ns1labs"
+      tag: "develop"
+
+  sinker:
+    image:
+      name: "orb-sinker"
+      pullPolicy: "IfNotPresent"
+      repository: "ns1labs"
+      tag: "develop"
+
+  sinkerOtel:
+    image:
+      name: "orb-sinker"
+      pullPolicy: "IfNotPresent"
+      tag: "develop"
+    otel:
+      enabled: true
+    kafka:
+      host: kind-orb-kafka
+      port: 9092
+
+  ui:
+    image:
+      name: orb-ui
+      pullPolicy: "IfNotPresent"
+      tag: "develop"
+
+  ingress:
+    hostname: "kubernetes.docker.internal"
+
+  users:
+    image:
+      name: "users"
+      repository: mainflux
+      tag: 0.13.0
+
+  jaeger-operator:
+    enabled: true
+    jaeger:
+      create: true
+    rbac:
+      pspEnabled: true
+      clusterRole: true
+
+  nats:
+    replicaCount: 1
+
+  kafka:
+    enabled: true
+    replicaCount: 1
+    zookeeper:
+      enabled: false
+    externalZookeeper:
+      servers:
+        - kind-orb-zookeeper
+
+  zookeeper:
+    enabled: true
+    replicaCount: 1
+    auth:
+      enabled: false
+    allowAnonymousLogin: true
+
+  nginx_internal:
+    kindDeploy: true
+
+  keto:
+    keto:
+      autoMigrate: true
+      config:
+        dsn: "postgres://postgres:orb@kind-orb-postgresql-keto:5432/keto"
+
+  maestro:
+    replicaCount: 1
+    kafka:
+      host: kind-orb-kafka.orb.svc.cluster.local
+      port: 9092
+    image:
+      name: "orb-maestro"
+      pullPolicy: "IfNotPresent"
+      repository: ns1labs
+      tag: "develop" #0.22.0-develop-478d318
+    rbac:
+      create: true
+      serviceAccountName: "k8s-maestro-role"
+      serviceAccountNamespace: "orb"
+      ClusterRole: "cluster-admin"
+
+  migrate:
+    image:
+      name: "orb-migrate"
+      pullPolicy: "IfNotPresent"
+      repository: ns1labs
+      tag: "0.17.0-11889e3a"
+    autoMigrate: false
+    logLevel: "debug"
+
+  redis-streams:
+    replica:
+      replicaCount: 0
+
+  redis-sinker:
+    replica:
+      replicaCount: 0
+
+  redis-auth:
+    replica:
+      replicaCount: 0

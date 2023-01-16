@@ -24,7 +24,8 @@ import (
 )
 
 var (
-	logger, _ = zap.NewDevelopment()
+	logger, _   = zap.NewDevelopment()
+	description = "An example prometheus sink"
 )
 
 func TestSinkSave(t *testing.T) {
@@ -45,7 +46,7 @@ func TestSinkSave(t *testing.T) {
 
 	sink := sinks.Sink{
 		Name:        nameID,
-		Description: "An example prometheus sink",
+		Description: &description,
 		Backend:     "prometheus",
 		ID:          skID.String(),
 		Created:     time.Now(),
@@ -58,7 +59,7 @@ func TestSinkSave(t *testing.T) {
 
 	invalidOwnerSink := sinks.Sink{
 		Name:        nameID,
-		Description: "An example prometheus sink",
+		Description: &description,
 		Backend:     "prometheus",
 		ID:          skID.String(),
 		Created:     time.Now(),
@@ -71,7 +72,7 @@ func TestSinkSave(t *testing.T) {
 
 	sinkMalformedOwnerID := sinks.Sink{
 		Name:        nameID,
-		Description: "An example prometheus sink",
+		Description: &description,
 		Backend:     "prometheus",
 		ID:          skID.String(),
 		Created:     time.Now(),
@@ -136,7 +137,7 @@ func TestSinkUpdate(t *testing.T) {
 
 	sink := sinks.Sink{
 		Name:        nameID,
-		Description: "An example prometheus sink",
+		Description: &description,
 		Backend:     "prometheus",
 		Created:     time.Now(),
 		MFOwnerID:   oID.String(),
@@ -148,6 +149,21 @@ func TestSinkUpdate(t *testing.T) {
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
 
 	sink.ID = sinkID
+
+	nameConflict, err := types.NewIdentifier("my-sink-conflict")
+	require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+	sinkConflictName := sinks.Sink{
+		Name:        nameConflict,
+		Description: &description,
+		Backend:     "prometheus",
+		Created:     time.Now(),
+		MFOwnerID:   oID.String(),
+		Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
+		Tags:        map[string]string{"cloud": "aws"},
+	}
+
+	_, err = sinkRepo.Save(context.Background(), sinkConflictName)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
 
 	cases := map[string]struct {
 		sink sinks.Sink
@@ -185,6 +201,17 @@ func TestSinkUpdate(t *testing.T) {
 			},
 			err: errors.ErrMalformedEntity,
 		},
+		"update a existing sink with conflict name": {
+			sink: sinks.Sink{
+				ID:        sinkID,
+				Name:      nameConflict,
+				Backend:   "prometheus",
+				MFOwnerID: oID.String(),
+				Config:    map[string]interface{}{"remote_host": "data", "username": "dbuser"},
+				Tags:      map[string]string{"cloud": "aws"},
+			},
+			err: errors.ErrConflict,
+		},
 	}
 
 	for desc, tc := range cases {
@@ -208,7 +235,7 @@ func TestSinkRetrieve(t *testing.T) {
 
 	sink := sinks.Sink{
 		Name:        nameID,
-		Description: "An example prometheus sink",
+		Description: &description,
 		Backend:     "prometheus",
 		Created:     time.Now(),
 		MFOwnerID:   oID.String(),
@@ -262,7 +289,7 @@ func TestMultiSinkRetrieval(t *testing.T) {
 
 		sink := sinks.Sink{
 			Name:        nameID,
-			Description: "An example prometheus sink",
+			Description: &description,
 			Backend:     "prometheus",
 			Created:     time.Now(),
 			MFOwnerID:   oID.String(),
@@ -387,7 +414,7 @@ func TestSinkRemoval(t *testing.T) {
 
 	sink := sinks.Sink{
 		Name:        sinkName,
-		Description: "An example prometheus sink",
+		Description: &description,
 		Backend:     "prometheus",
 		Created:     time.Now(),
 		MFOwnerID:   oID.String(),
@@ -437,7 +464,7 @@ func TestSinkRetrieveInternal(t *testing.T) {
 
 	sink := sinks.Sink{
 		Name:        nameID,
-		Description: "An example prometheus sink",
+		Description: &description,
 		Backend:     "prometheus",
 		Created:     time.Now(),
 		MFOwnerID:   oID.String(),
@@ -502,7 +529,7 @@ func TestUpdateSinkState(t *testing.T) {
 
 	sink := sinks.Sink{
 		Name:        nameID,
-		Description: "An example prometheus sink",
+		Description: &description,
 		Backend:     "prometheus",
 		Created:     time.Now(),
 		MFOwnerID:   oID.String(),
