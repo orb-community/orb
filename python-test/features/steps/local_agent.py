@@ -1,4 +1,4 @@
-from utils import safe_load_json, random_string, threading_wait_until, return_port_to_run_docker_container
+from utils import safe_load_json, random_string, threading_wait_until, return_port_by_availability
 from behave import then, step
 from hamcrest import *
 from test_config import TestConfig, LOCAL_AGENT_CONTAINER_NAME
@@ -50,7 +50,7 @@ def run_local_agent_container(context, status_port, **kwargs):
     image_tag = ':' + configs.get('agent_docker_tag', 'latest')
     agent_image = agent_docker_image + image_tag
 
-    context.port = return_port_to_run_docker_container(context, availability[status_port])
+    context.port = return_port_by_availability(context, availability[status_port])
 
     if context.port != 10583:
         env_vars["ORB_BACKENDS_PKTVISOR_API_PORT"] = str(context.port)
@@ -150,7 +150,7 @@ def check_last_container_status_after_time(context, order, status, seconds):
 def run_container_using_ui_command(context, status_port):
     assert_that(status_port, any_of(equal_to("available"), equal_to("unavailable")), "Unexpected value for port")
     availability = {"available": True, "unavailable": False}
-    context.port = return_port_to_run_docker_container(context, availability[status_port])
+    context.port = return_port_by_availability(context, availability[status_port])
     include_otel_env_var = configs.get("include_otel_env_var")
     enable_otel = configs.get("enable_otel")
     verify_ssl = configs.get("verify_ssl")

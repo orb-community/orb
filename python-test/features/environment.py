@@ -25,5 +25,6 @@ def after_scenario(context, scenario):
         context.driver.quit()
     if "mocked_interface" in scenario.tags and scenario.status == Status.passed:
         context.execute_steps('''
+        Then remove virtual switch
         Then remove dummy interface
         ''')

@@ -318,13 +318,15 @@ def provision_agent_using_config_file(context, input_type, settings, provision, 
                                              f"{settings}")
     if ("tcp" in settings.keys() and settings["tcp"].split(":")[1] == "available_port") or (
             "port" in settings.keys() and settings["port"] == "available_port"):
-        port_to_attach = return_port_to_run_docker_container(context)
+        port_to_attach = return_port_by_availability(context)
         if "tcp" in settings.keys():
             ip = settings["tcp"].split(":")[0]
             tcp = f"{ip}:{port_to_attach}"
             settings["tcp"] = tcp
         else:
             settings["port"] = port_to_attach
+    if "port" in settings.keys() and settings["port"] == "switch":
+        settings["port"] = context.switch_port
     if 'input_tags' in settings.keys():
         input_tags = settings['input_tags']
         settings.pop('input_tags')
@@ -349,7 +351,7 @@ def provision_agent_using_config_file(context, input_type, settings, provision, 
         interface = configs.get('orb_agent_interface', 'auto')
     orb_url = configs.get('orb_url')
     base_orb_address = configs.get('orb_address')
-    context.port = return_port_to_run_docker_container(context, True)
+    context.port = return_port_by_availability(context, True)
     if "tap_name" in context:
         tap_name = context.tap_name
     else:

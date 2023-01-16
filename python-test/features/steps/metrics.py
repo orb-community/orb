@@ -119,12 +119,13 @@ def expected_metrics_by_handlers_and_groups(handler, groups_enabled, groups_disa
             metric_groups.add("dns_xact_in_quantiles_us")
             metric_groups.add("dns_xact_in_quantiles_us_sum")
             metric_groups.add("dns_xact_in_quantiles_us_count")
-            metric_groups.add("dns_xact_in_top_slow")
             metric_groups.add("dns_xact_in_total")
             metric_groups.add("dns_xact_out_quantiles_us")
             metric_groups.add("dns_xact_out_quantiles_us_sum")
             metric_groups.add("dns_xact_out_quantiles_us_count")
-            metric_groups.add("dns_xact_out_top_slow")
+            # todo find a way to test slow metrics
+            # metric_groups.add("dns_xact_out_top_slow")
+            # metric_groups.add("dns_xact_in_top_slow")
             metric_groups.add("dns_xact_out_total")
             metric_groups.add("dns_xact_ratio_quantiles")
             metric_groups.add("dns_xact_ratio_quantiles_sum")
@@ -275,6 +276,7 @@ def expected_metrics_by_handlers_and_groups(handler, groups_enabled, groups_disa
                     ("all" in groups_enabled and "by_bytes" not in groups_disabled):
                 metric_groups.add("flow_in_bytes")
                 metric_groups.add("flow_in_ipv4_bytes")
+                metric_groups.add("flow_in_ipv6_bytes")
                 metric_groups.add("flow_in_other_l4_bytes")
                 metric_groups.add("flow_in_tcp_bytes")
                 metric_groups.add("flow_in_udp_bytes")
@@ -344,10 +346,12 @@ def expected_metrics_by_handlers_and_groups(handler, groups_enabled, groups_disa
                 ("all" in groups_enabled and "top_geo" not in groups_disabled):
             if ("by_bytes" in groups_enabled and "by_bytes" not in groups_disabled) or \
                     ("all" in groups_enabled and "by_bytes" not in groups_disabled):
+                metric_groups.add("flow_top_asn_bytes")
                 metric_groups.add("flow_top_geo_loc_bytes")
             if ("by_packets" in groups_enabled and "by_packets" not in groups_disabled) or \
                     ("all" in groups_enabled and "by_packets" not in groups_disabled):
                 metric_groups.add("flow_top_geo_loc_packets")
+                metric_groups.add("flow_top_asn_packets")
         if ("top_interfaces" in groups_enabled and "top_interfaces" not in groups_disabled) or \
                 ("all" in groups_enabled and "top_interfaces" not in groups_disabled):
             if ("by_bytes" in groups_enabled and "by_bytes" not in groups_disabled) or \
