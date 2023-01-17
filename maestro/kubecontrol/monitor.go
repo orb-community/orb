@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"github.com/go-redis/redis/v8"
 	maestroconfig "github.com/ns1labs/orb/maestro/config"
 	maestroredis "github.com/ns1labs/orb/maestro/redis"
-	"github.com/ns1labs/orb/pkg/errors"
 	sinkspb "github.com/ns1labs/orb/sinks/pb"
 	"go.uber.org/zap"
 	"io"
@@ -226,21 +226,24 @@ func (svc *monitorService) publishSinkStateChange(sink *sinkspb.SinkRes, status 
 func (svc *monitorService) analyzeLogs(logEntry []string) (status string, err error) {
 	var lastTimeStamp string
 	for _, logLine := range logEntry {
-		lastTimeStamp = logLine[0:24]
-		if strings.Contains(logLine, "error") {
-			errStringLog := strings.TrimRight(logLine, "error")
-			jsonError := strings.Split(errStringLog, "\t")[4]
-			errorJson := make(map[string]interface{})
-			err := json.Unmarshal([]byte(jsonError), &errorJson)
-			if err != nil {
-				return "fail", err
-			}
-			if errorJson != nil && errorJson["error"] != nil {
-				errorMessage := errorJson["error"].(string)
-				if strings.Contains(errorMessage, "429") {
-					return "warning", errors.New(errorMessage)
-				} else {
-					return "error", errors.New(errorMessage)
+		if len(logLine) > 24 {
+			lastTimeStamp = logLine[0:24]
+			svc.logger.Info("DEBUG LOG LINE", zap.String("log", logLine))
+			if strings.Contains(logLine, "error") {
+				errStringLog := strings.TrimRight(logLine, "error")
+				jsonError := strings.Split(errStringLog, "\t")[4]
+				errorJson := make(map[string]interface{})
+				err := json.Unmarshal([]byte(jsonError), &errorJson)
+				if err != nil {
+					return "fail", err
+				}
+				if errorJson != nil && errorJson["error"] != nil {
+					errorMessage := errorJson["error"].(string)
+					if strings.Contains(errorMessage, "429") {
+						return "warning", errors.New(errorMessage)
+					} else {
+						return "error", errors.New(errorMessage)
+					}
 				}
 			}
 		}
