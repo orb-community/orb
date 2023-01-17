@@ -228,7 +228,6 @@ func (svc *monitorService) analyzeLogs(logEntry []string) (status string, err er
 	for _, logLine := range logEntry {
 		if len(logLine) > 24 {
 			lastTimeStamp = logLine[0:24]
-			svc.logger.Info("DEBUG LOG LINE", zap.String("log", logLine))
 			if strings.Contains(logLine, "error") {
 				errStringLog := strings.TrimRight(logLine, "error")
 				jsonError := strings.Split(errStringLog, "\t")[4]
