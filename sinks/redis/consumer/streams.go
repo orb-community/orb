@@ -15,8 +15,6 @@ const (
 	sinkerPrefix = "sinker."
 	sinkerUpdate = sinkerPrefix + "update"
 
-	otelYamlPrefix = "otel.yaml.sinker."
-
 	exists = "BUSYGROUP Consumer Group name already exists"
 )
 
@@ -63,7 +61,7 @@ func (es eventStore) Subscribe(context context.Context) error {
 			var err error
 			switch event["operation"] {
 			case sinkerUpdate:
-				rte := decodeSinkerStateUpdate(event)
+				rte := es.decodeSinkerStateUpdate(event)
 				err = es.handleSinkerStateUpdate(context, rte)
 			}
 			if err != nil {
@@ -83,14 +81,18 @@ func (es eventStore) handleSinkerStateUpdate(ctx context.Context, event stateUpd
 	return nil
 }
 
-func decodeSinkerStateUpdate(event map[string]interface{}) stateUpdateEvent {
+func (es eventStore) decodeSinkerStateUpdate(event map[string]interface{}) stateUpdateEvent {
 	val := stateUpdateEvent{
 		ownerID:   read(event, "owner", ""),
 		sinkID:    read(event, "sink_id", ""),
 		msg:       read(event, "msg", ""),
 		timestamp: time.Time{},
 	}
-	val.state.Scan(event["state"])
+	err := val.state.Scan(event["state"])
+	if err != nil {
+		es.logger.Error("error parsing the state", zap.Error(err))
+		return stateUpdateEvent{}
+	}
 	return val
 }
 

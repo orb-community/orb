@@ -12,6 +12,11 @@ import (
 	"time"
 )
 
+const (
+	SinkerPrefix = "sinker."
+	SinkerUpdate = SinkerPrefix + "update"
+)
+
 type SinksUpdateEvent struct {
 	SinkID    string
 	Owner     string
@@ -34,6 +39,7 @@ func (cse SinkerUpdateEvent) Encode() map[string]interface{} {
 		"state":     cse.State,
 		"msg":       cse.Msg,
 		"timestamp": cse.Timestamp.Unix(),
+		"operation": SinkerUpdate,
 	}
 }
 

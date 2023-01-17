@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/go-redis/redis/v8"
 	maestroconfig "github.com/ns1labs/orb/maestro/config"
+	maestroredis "github.com/ns1labs/orb/maestro/redis"
 	"github.com/ns1labs/orb/pkg/errors"
 	sinkspb "github.com/ns1labs/orb/sinks/pb"
 	"go.uber.org/zap"
@@ -166,6 +166,7 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 		status, logsErr := svc.analyzeLogs(logs)
 		if status == "fail" {
 			svc.logger.Error("error during analyze logs", zap.Error(logsErr))
+			continue
 		}
 		if data.State.String() != status {
 			if err != nil {
@@ -173,30 +174,31 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			} else {
 				svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status))
 			}
-			keyPrefix := "sinker_key"
-			skey := fmt.Sprintf("%s-%s:%s", keyPrefix, data.OwnerID, data.SinkID)
-			svc.logger.Info("debugging ownerID", zap.String("dest", data.OwnerID), zap.String("orig", sink.OwnerID))
-			err := data.State.SetFromString(status)
-			if err != nil {
-				svc.logger.Error("error during analyze logs", zap.Error(err))
-			}
-			if logsErr != nil {
-				data.Msg = logsErr.Error()
-			}
-			if err := svc.redisClient.Del(ctx, skey).Err(); err != nil {
-				svc.logger.Error("error during analyze logs", zap.Error(err))
-			}
-			byteSink, err := json.Marshal(data)
-			if err != nil {
-				svc.logger.Error("error during analyze logs", zap.Error(err))
-			}
-			if err = svc.redisClient.Set(context.Background(), skey, byteSink, 0).Err(); err != nil {
-				svc.logger.Error("error during analyze logs", zap.Error(err))
-			}
+			svc.publishSinkStateChange(sink, status, logsErr, err)
 		}
 		return
 	}
 
+}
+
+func (svc *monitorService) publishSinkStateChange(sink *sinkspb.SinkRes, status string, logsErr error, err error) {
+	streamID := "orb.sinker"
+	event := maestroredis.SinkerUpdateEvent{
+		SinkID:    sink.Id,
+		Owner:     sink.OwnerID,
+		State:     status,
+		Msg:       logsErr.Error(),
+		Timestamp: time.Now(),
+	}
+
+	record := &redis.XAddArgs{
+		Stream: streamID,
+		Values: event.Encode(),
+	}
+	err = svc.redisClient.XAdd(context.Background(), record).Err()
+	if err != nil {
+		svc.logger.Error("error sending event to event store", zap.Error(err))
+	}
 }
 
 // analyzeLogs, will check for errors in exporter, and will return as follows
