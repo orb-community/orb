@@ -161,10 +161,12 @@ func (es eventStore) handleSinkerCreateCollector(ctx context.Context, event redi
 	es.logger.Info("Received maestro CREATE event from sinker, sink state", zap.String("state", event.State), zap.String("sinkdID", event.SinkID), zap.String("ownerID", event.Owner))
 	deploymentEntry, err := es.GetDeploymentEntryFromSinkId(ctx, event.SinkID)
 	if err != nil {
+		es.logger.Error("could not find deployment entry from sink-id", zap.String("sinkID", event.SinkID), zap.Error(err))
 		return err
 	}
 	err = es.kubecontrol.CreateOtelCollector(ctx, event.Owner, event.SinkID, deploymentEntry)
 	if err != nil {
+		es.logger.Error("could not find deployment entry from sink-id", zap.String("sinkID", event.SinkID), zap.Error(err))
 		return err
 	}
 	return nil

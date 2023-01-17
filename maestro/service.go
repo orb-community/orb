@@ -11,6 +11,7 @@ package maestro
 import (
 	"context"
 	"encoding/json"
+	"strings"
 
 	"github.com/go-redis/redis/v8"
 	maestroconfig "github.com/ns1labs/orb/maestro/config"
@@ -71,6 +72,12 @@ func (svc *maestroService) Start(ctx context.Context, cancelFunction context.Can
 		return err
 	}
 
+	pods, err := svc.monitor.GetRunningPods(ctx)
+	if err != nil {
+		loadCancelFunction()
+		return err
+	}
+
 	for _, sinkRes := range sinksRes.Sinks {
 		sinkContext := context.WithValue(loadCtx, "sink-id", sinkRes.Id)
 		var data maestroconfig.SinkData
@@ -81,18 +88,24 @@ func (svc *maestroService) Start(ctx context.Context, cancelFunction context.Can
 
 		if val, _ := svc.eventStore.GetDeploymentEntryFromSinkId(ctx, sinkRes.Id); val != "" {
 			svc.logger.Info("Skipping deploymentEntry because it is already created")
-			continue
+		} else {
+			err := svc.eventStore.CreateDeploymentEntry(sinkContext, sinkRes.Id, data.Url, data.User, data.Password)
+			if err != nil {
+				svc.logger.Warn("failed to create deploymentEntry for sink, skipping", zap.String("sink-id", sinkRes.Id))
+				continue
+			}
+			svc.logger.Info("successfully created deploymentEntry for sink", zap.String("sink-id", sinkRes.Id), zap.String("state", sinkRes.State))
 		}
 
-		err := svc.eventStore.CreateDeploymentEntry(sinkContext, sinkRes.Id, data.Url, data.User, data.Password)
-		if err != nil {
-			svc.logger.Warn("failed to create deploymentEntry for sink, skipping", zap.String("sink-id", sinkRes.Id))
-			continue
+		isDeployed := false
+		for _, pod := range pods {
+			if strings.Contains(pod, sinkRes.Id) {
+				isDeployed = true
+				break
+			}
 		}
-		svc.logger.Info("successfully created deploymentEntry for sink", zap.String("sink-id", sinkRes.Id), zap.String("state", sinkRes.State))
-
 		// if State is Active, deploy OtelCollector
-		if sinkRes.State == "1" || sinkRes.State == "active" {
+		if (sinkRes.State == "1" || sinkRes.State == "active") && !isDeployed {
 			deploymentEntry, err := svc.eventStore.GetDeploymentEntryFromSinkId(sinkContext, sinkRes.Id)
 			if err != nil {
 				svc.logger.Warn("failed to fetch deploymentEntry for sink, skipping", zap.String("sink-id", sinkRes.Id))

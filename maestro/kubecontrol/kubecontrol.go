@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/go-redis/redis/v8"
 	"os"
 	"os/exec"
@@ -78,14 +79,17 @@ func (svc *deployService) collectorDeploy(ctx context.Context, operation, ownerI
 	_, _, err = execCmd(ctx, cmd, svc.logger, stdOutListenFunction)
 
 	if err == nil {
+		svc.logger.Info(fmt.Sprintf("successfully %s the otel-collector for sink-id: %s", operation, sinkId))
 		if operation == "apply" {
 			err := svc.setNewDeploymentState(ctx, ownerID, sinkId, "new")
 			if err != nil {
+				svc.logger.Error("error setting the new state", zap.Error(err))
 				return err
 			}
 		} else if operation == "delete" {
 			err := svc.setNewDeploymentState(ctx, ownerID, sinkId, "stopped")
 			if err != nil {
+				svc.logger.Error("error setting the new state", zap.Error(err))
 				return err
 			}
 		}

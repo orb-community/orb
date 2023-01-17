@@ -33,6 +33,7 @@ func NewMonitorService(logger *zap.Logger, sinksClient *sinkspb.SinkServiceClien
 
 type MonitorService interface {
 	Start(ctx context.Context, cancelFunc context.CancelFunc) error
+	GetRunningPods(ctx context.Context) ([]string, error)
 }
 
 type monitorService struct {
@@ -100,6 +101,18 @@ func (svc *monitorService) getPodLogs(ctx context.Context, pod k8scorev1.Pod) ([
 	splitLogs := strings.Split(str, "\n")
 	svc.logger.Info("logs length", zap.Int("amount line logs", len(splitLogs)))
 	return splitLogs, nil
+}
+
+func (svc *monitorService) GetRunningPods(ctx context.Context) (runningSinks []string, err error) {
+	pods, err := svc.getRunningPods(ctx)
+	if err != nil {
+		svc.logger.Error("error getting running collectors")
+		return
+	}
+	for i, pod := range pods {
+		runningSinks[i] = strings.TrimPrefix(pod.Name, "otel-")
+	}
+	return
 }
 
 func (svc *monitorService) getRunningPods(ctx context.Context) ([]k8scorev1.Pod, error) {
