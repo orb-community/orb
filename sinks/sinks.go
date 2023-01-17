@@ -48,8 +48,6 @@ const (
 	Active
 	Error
 	Idle
-	Warning
-	New
 )
 
 type State int
@@ -59,8 +57,6 @@ var stateMap = [...]string{
 	"active",
 	"error",
 	"idle",
-	"warning",
-	"new",
 }
 
 const MetadataLabelOtel = "opentelemetry"
@@ -75,11 +71,10 @@ var stateRevMap = map[string]State{
 	"active":  Active,
 	"error":   Error,
 	"idle":    Idle,
-	"warning": Warning,
 }
 
-func (s *State) String() string {
-	return stateMap[*s]
+func (s State) String() string {
+	return stateMap[s]
 }
 
 func (s *State) Scan(value interface{}) error {
@@ -91,10 +86,10 @@ func (s *State) Scan(value interface{}) error {
 		}
 		asString = string(asBytes)
 	}
-	*s = stateRevMap[asString]
+	*s = stateRevMap[string(asString)]
 	return nil
 }
-func (s *State) Value() (driver.Value, error) { return s.String(), nil }
+func (s State) Value() (driver.Value, error) { return s.String(), nil }
 
 type Sink struct {
 	ID          string
