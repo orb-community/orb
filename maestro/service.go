@@ -108,12 +108,12 @@ func (svc *maestroService) Start(ctx context.Context, cancelFunction context.Can
 		if sinkRes.State == "active" && !isDeployed {
 			deploymentEntry, err := svc.eventStore.GetDeploymentEntryFromSinkId(sinkContext, sinkRes.Id)
 			if err != nil {
-				svc.logger.Warn("failed to fetch deploymentEntry for sink, skipping", zap.String("sink-id", sinkRes.Id))
+				svc.logger.Warn("failed to fetch deploymentEntry for sink, skipping", zap.String("sink-id", sinkRes.Id), zap.Error(err))
 				continue
 			}
 			err = svc.kubecontrol.CreateOtelCollector(sinkContext, sinkRes.OwnerID, sinkRes.Id, deploymentEntry)
 			if err != nil {
-				svc.logger.Warn("failed to deploy OtelCollector for sink, skipping", zap.String("sink-id", sinkRes.Id))
+				svc.logger.Warn("failed to deploy OtelCollector for sink, skipping", zap.String("sink-id", sinkRes.Id), zap.Error(err))
 				continue
 			}
 			svc.logger.Info("successfully created otel collector for sink", zap.String("sink-id", sinkRes.Id))
