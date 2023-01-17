@@ -3,15 +3,15 @@ package kubecontrol
 import (
 	"bufio"
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/go-redis/redis/v8"
+	"go.uber.org/zap"
+	k8smetav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	"os"
 	"os/exec"
 	"strings"
-	"time"
-
-	"go.uber.org/zap"
 )
 
 const namespace = "otelcollectors"
@@ -45,6 +45,7 @@ func (svc *deployService) collectorDeploy(ctx context.Context, operation, ownerI
 	newContent := strings.Join(tmp[1:], "\n")
 	status, err := svc.getDeploymentState(ctx, ownerID, sinkId)
 	if err != nil {
+		svc.logger.Error("error getting deployment state", zap.Error(err))
 		return err
 	}
 	if operation == "apply" {
@@ -80,19 +81,6 @@ func (svc *deployService) collectorDeploy(ctx context.Context, operation, ownerI
 
 	if err == nil {
 		svc.logger.Info(fmt.Sprintf("successfully %s the otel-collector for sink-id: %s", operation, sinkId))
-		if operation == "apply" {
-			err := svc.setNewDeploymentState(ctx, ownerID, sinkId, "new")
-			if err != nil {
-				svc.logger.Error("error setting the new state", zap.Error(err))
-				return err
-			}
-		} else if operation == "delete" {
-			err := svc.setNewDeploymentState(ctx, ownerID, sinkId, "stopped")
-			if err != nil {
-				svc.logger.Error("error setting the new state", zap.Error(err))
-				return err
-			}
-		}
 	}
 
 	return nil
@@ -115,36 +103,24 @@ func execCmd(_ context.Context, cmd *exec.Cmd, logger *zap.Logger, stdOutFunc fu
 	return stdoutScanner, stderrScanner, err
 }
 
-func (svc *deployService) getDeploymentState(ctx context.Context, ownerID, sinkId string) (string, error) {
-	key := CollectorStatusKey
-	cmd := svc.redisClient.HGet(ctx, key, sinkId)
-	collectorStatusAsString, err := cmd.Result()
+func (svc *deployService) getDeploymentState(ctx context.Context, _, sinkId string) (string, error) {
+	config, err := rest.InClusterConfig()
 	if err != nil {
-		return "", cmd.Err()
-	}
-	var collectorStatus CollectorStatusSortedSetEntry
-	err = json.Unmarshal([]byte(collectorStatusAsString), &collectorStatus)
-	if err != nil {
+		svc.logger.Error("error on get cluster config", zap.Error(err))
 		return "", err
 	}
-	return collectorStatus.Status, nil
-}
-
-func (svc *deployService) setNewDeploymentState(ctx context.Context, ownerID, sinkId, state string) error {
-	key := CollectorStatusKey
-	entry := redis.Z{
-		Score: float64(time.Now().Unix()),
-		Member: CollectorStatusSortedSetEntry{
-			SinkID:       sinkId,
-			Status:       state,
-			ErrorMessage: nil,
-		},
+	clientSet, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		svc.logger.Error("error on get client", zap.Error(err))
+		return "", err
 	}
-	intCmd := svc.redisClient.HSet(ctx, key, &entry)
-	if intCmd.Err() != nil {
-		return intCmd.Err()
+	pods, err := clientSet.CoreV1().Pods(namespace).List(ctx, k8smetav1.ListOptions{})
+	for _, pod := range pods.Items {
+		if strings.Contains(pod.Name, sinkId) {
+			return "active", nil
+		}
 	}
-	return nil
+	return "deleted", nil
 }
 
 func (svc *deployService) CreateOtelCollector(ctx context.Context, ownerID, sinkID, deploymentEntry string) error {
