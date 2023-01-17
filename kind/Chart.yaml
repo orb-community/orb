@@ -18,4 +18,4 @@ appVersion: "1.0.0"
 dependencies:
   - name: orb
     version: "1.0.40"
-    repository: "@ns1labs-orb"
+    repository: ""
