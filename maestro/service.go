@@ -105,7 +105,7 @@ func (svc *maestroService) Start(ctx context.Context, cancelFunction context.Can
 			}
 		}
 		// if State is Active, deploy OtelCollector
-		if (sinkRes.State == "1" || sinkRes.State == "active") && !isDeployed {
+		if sinkRes.State == "active" && !isDeployed {
 			deploymentEntry, err := svc.eventStore.GetDeploymentEntryFromSinkId(sinkContext, sinkRes.Id)
 			if err != nil {
 				svc.logger.Warn("failed to fetch deploymentEntry for sink, skipping", zap.String("sink-id", sinkRes.Id))
