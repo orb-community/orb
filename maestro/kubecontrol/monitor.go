@@ -109,8 +109,11 @@ func (svc *monitorService) GetRunningPods(ctx context.Context) (runningSinks []s
 		svc.logger.Error("error getting running collectors")
 		return
 	}
-	for i, pod := range pods {
-		runningSinks[i] = strings.TrimPrefix(pod.Name, "otel-")
+	if len(pods) > 0 {
+		for i, pod := range pods {
+			runningSinks[i] = strings.TrimPrefix(pod.Name, "otel-")
+		}
+		return
 	}
 	return
 }

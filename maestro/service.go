@@ -98,10 +98,12 @@ func (svc *maestroService) Start(ctx context.Context, cancelFunction context.Can
 		}
 
 		isDeployed := false
-		for _, pod := range pods {
-			if strings.Contains(pod, sinkRes.Id) {
-				isDeployed = true
-				break
+		if len(pods) > 0 {
+			for _, pod := range pods {
+				if strings.Contains(pod, sinkRes.Id) {
+					isDeployed = true
+					break
+				}
 			}
 		}
 		// if State is Active, deploy OtelCollector
