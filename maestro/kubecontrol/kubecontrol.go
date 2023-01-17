@@ -116,8 +116,8 @@ func execCmd(_ context.Context, cmd *exec.Cmd, logger *zap.Logger, stdOutFunc fu
 }
 
 func (svc *deployService) getDeploymentState(ctx context.Context, ownerID, sinkId string) (string, error) {
-	key := CollectorStatusKey + "." + ownerID + "." + sinkId
-	cmd := svc.redisClient.Get(ctx, key)
+	key := CollectorStatusKey
+	cmd := svc.redisClient.HGet(ctx, key, sinkId)
 	collectorStatusAsString, err := cmd.Result()
 	if err != nil {
 		return "", cmd.Err()
@@ -131,7 +131,7 @@ func (svc *deployService) getDeploymentState(ctx context.Context, ownerID, sinkI
 }
 
 func (svc *deployService) setNewDeploymentState(ctx context.Context, ownerID, sinkId, state string) error {
-	key := CollectorStatusKey + "." + ownerID + "." + sinkId
+	key := CollectorStatusKey
 	entry := redis.Z{
 		Score: float64(time.Now().Unix()),
 		Member: CollectorStatusSortedSetEntry{
@@ -140,7 +140,7 @@ func (svc *deployService) setNewDeploymentState(ctx context.Context, ownerID, si
 			ErrorMessage: nil,
 		},
 	}
-	intCmd := svc.redisClient.Set(ctx, key, &entry, 0)
+	intCmd := svc.redisClient.HSet(ctx, key, &entry)
 	if intCmd.Err() != nil {
 		return intCmd.Err()
 	}
