@@ -39,6 +39,20 @@ func (s *Metadata) RestrictKeys(predicate func(string) bool) {
 	}
 }
 
+func (s *Metadata) Merge(metadataToAdd Metadata) {
+	for k, v := range metadataToAdd {
+		(*s)[k] = v
+	}
+}
+
+func (s *Metadata) RemoveKeys(keys []string) {
+	for _, key := range keys {
+		if _, ok := (*s)[key]; ok {
+			delete(*s, key)
+		}
+	}
+}
+
 func (s *Metadata) IsApplicable(filterFunc func(string, interface{}) bool) bool {
 	for key, value := range *s {
 		if filterFunc(key, value) {
