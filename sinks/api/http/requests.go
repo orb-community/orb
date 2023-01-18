@@ -71,7 +71,7 @@ func (req addReq) validate() error {
 type updateSinkReq struct {
 	Name        string         `json:"name,omitempty"`
 	Config      types.Metadata `json:"config,omitempty"`
-	Description string         `json:"description,omitempty"`
+	Description *string        `json:"description,omitempty"`
 	Tags        types.Tags     `json:"tags,omitempty"`
 	id          string
 	token       string
@@ -86,7 +86,7 @@ func (req updateSinkReq) validate() error {
 		return errors.ErrMalformedEntity
 	}
 
-	if req.Description == "" && req.Name == "" && len(req.Config) == 0 && req.Tags == nil {
+	if req.Description == nil && req.Name == "" && len(req.Config) == 0 && req.Tags == nil {
 		return errors.ErrMalformedEntity
 	}
 
