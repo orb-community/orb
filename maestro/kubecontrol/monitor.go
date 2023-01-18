@@ -103,19 +103,20 @@ func (svc *monitorService) getPodLogs(ctx context.Context, pod k8scorev1.Pod) ([
 	return splitLogs, nil
 }
 
-func (svc *monitorService) GetRunningPods(ctx context.Context) (runningSinks []string, err error) {
+func (svc *monitorService) GetRunningPods(ctx context.Context) ([]string, error) {
 	pods, err := svc.getRunningPods(ctx)
 	if err != nil {
 		svc.logger.Error("error getting running collectors")
-		return
+		return nil, err
 	}
+	runningSinks := make([]string, len(pods))
 	if len(pods) > 0 {
 		for i, pod := range pods {
 			runningSinks[i] = strings.TrimPrefix(pod.Name, "otel-")
 		}
-		return
+		return runningSinks, nil
 	}
-	return
+	return nil, nil
 }
 
 func (svc *monitorService) getRunningPods(ctx context.Context) ([]k8scorev1.Pod, error) {
@@ -192,18 +193,21 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			}
 			svc.publishSinkStateChange(sink, status, logsErr, err)
 		}
-		return
 	}
 
 }
 
 func (svc *monitorService) publishSinkStateChange(sink *sinkspb.SinkRes, status string, logsErr error, err error) {
 	streamID := "orb.sinker"
+	logMessage := ""
+	if logsErr != nil {
+		logMessage = logsErr.Error()
+	}
 	event := maestroredis.SinkerUpdateEvent{
 		SinkID:    sink.Id,
 		Owner:     sink.OwnerID,
 		State:     status,
-		Msg:       logsErr.Error(),
+		Msg:       logMessage,
 		Timestamp: time.Now(),
 	}
 

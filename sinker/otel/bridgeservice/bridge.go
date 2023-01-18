@@ -43,20 +43,25 @@ func (bs *SinkerOtelBridgeService) NotifyActiveSink(_ context.Context, mfOwnerId
 		bs.logger.Error("unable to retrieve the sink config", zap.Error(err))
 		return err
 	}
-	err = cfgRepo.State.SetFromString(newState)
-	if err != nil {
-		bs.logger.Error("unable to set state", zap.String("new_state", newState), zap.Error(err))
-		return err
-	}
-	if cfgRepo.State == config.Error {
-		cfgRepo.Msg = message
-	} else if cfgRepo.State == config.Active {
-		cfgRepo.LastRemoteWrite = time.Now()
-	}
-	err = bs.sinkerCache.Edit(cfgRepo)
-	if err != nil {
-		bs.logger.Error("error during update sink cache", zap.String("sinkId", sinkId), zap.Error(err))
-		return err
+	// only updates if not Idle or Unknown
+	if cfgRepo.State == config.Idle || cfgRepo.State == config.Unknown {
+		err = cfgRepo.State.SetFromString(newState)
+		if err != nil {
+			bs.logger.Error("unable to set state", zap.String("new_state", newState), zap.Error(err))
+			return err
+		}
+		if cfgRepo.State == config.Error {
+			cfgRepo.Msg = message
+		} else if cfgRepo.State == config.Active {
+			cfgRepo.LastRemoteWrite = time.Now()
+		}
+		err = bs.sinkerCache.Edit(cfgRepo)
+		if err != nil {
+			bs.logger.Error("error during update sink cache", zap.String("sinkId", sinkId), zap.Error(err))
+			return err
+		}
+	} else {
+		bs.logger.Info("sink is already active, no need to update state")
 	}
 
 	return nil
