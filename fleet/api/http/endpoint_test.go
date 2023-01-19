@@ -301,7 +301,7 @@ func TestListAgentGroup(t *testing.T) {
 			ID:             ag.ID,
 			Name:           ag.Name.String(),
 			Description:    *ag.Description,
-			Tags:           ag.Tags,
+			Tags:           *ag.Tags,
 			TsCreated:      ag.Created,
 			MatchingAgents: nil,
 		})
@@ -480,7 +480,7 @@ func TestUpdateAgentGroup(t *testing.T) {
 			req: toJSON(updateAgentGroupReq{
 				Name:        ag.Name.String(),
 				Description: *ag.Description,
-				Tags:        ag.Tags,
+				Tags:        *ag.Tags,
 			}),
 			id:          ag.ID,
 			contentType: contentType,
@@ -498,7 +498,7 @@ func TestUpdateAgentGroup(t *testing.T) {
 			req: toJSON(updateAgentGroupReq{
 				Name:        ag.Name.String(),
 				Description: *ag.Description,
-				Tags:        ag.Tags,
+				Tags:        *ag.Tags,
 			}),
 			id:          "invalid",
 			contentType: contentType,
@@ -509,7 +509,7 @@ func TestUpdateAgentGroup(t *testing.T) {
 			req: toJSON(updateAgentGroupReq{
 				Name:        ag.Name.String(),
 				Description: *ag.Description,
-				Tags:        ag.Tags,
+				Tags:        *ag.Tags,
 			}),
 			id:          wrongID,
 			contentType: contentType,
@@ -520,7 +520,7 @@ func TestUpdateAgentGroup(t *testing.T) {
 			req: toJSON(updateAgentGroupReq{
 				Name:        ag.Name.String(),
 				Description: *ag.Description,
-				Tags:        ag.Tags,
+				Tags:        *ag.Tags,
 			}),
 			id:          ag.ID,
 			contentType: contentType,
@@ -531,7 +531,7 @@ func TestUpdateAgentGroup(t *testing.T) {
 			req: toJSON(updateAgentGroupReq{
 				Name:        ag.Name.String(),
 				Description: *ag.Description,
-				Tags:        ag.Tags,
+				Tags:        *ag.Tags,
 			}),
 			id:          ag.ID,
 			contentType: contentType,
@@ -542,7 +542,7 @@ func TestUpdateAgentGroup(t *testing.T) {
 			req: toJSON(updateAgentGroupReq{
 				Name:        ag.Name.String(),
 				Description: *ag.Description,
-				Tags:        ag.Tags,
+				Tags:        *ag.Tags,
 			}),
 			id:          ag.ID,
 			contentType: "invalid",
@@ -553,7 +553,7 @@ func TestUpdateAgentGroup(t *testing.T) {
 			req: toJSON(updateAgentGroupReq{
 				Name:        ag.Name.String(),
 				Description: *ag.Description,
-				Tags:        ag.Tags,
+				Tags:        *ag.Tags,
 			}),
 			id:          ag.ID,
 			contentType: "",
@@ -585,7 +585,7 @@ func TestUpdateAgentGroup(t *testing.T) {
 			req: toJSON(updateAgentGroupReq{
 				Name:        "g",
 				Description: *ag.Description,
-				Tags:        ag.Tags,
+				Tags:        *ag.Tags,
 			}),
 			id:          ag.ID,
 			contentType: contentType,
@@ -601,12 +601,12 @@ func TestUpdateAgentGroup(t *testing.T) {
 			id:          ag.ID,
 			contentType: contentType,
 			auth:        token,
-			status:      http.StatusOK,
+			status:      http.StatusBadRequest,
 		},
 		"update existing agent group with omitted name": {
 			req: toJSON(updateAgentGroupReq{
 				Description: *ag.Description,
-				Tags:        ag.Tags,
+				Tags:        *ag.Tags,
 			}),
 			id:          ag.ID,
 			contentType: contentType,
@@ -1633,7 +1633,7 @@ func createAgentGroup(t *testing.T, name string, cli *clientServer) (fleet.Agent
 	validName, err := types.NewIdentifier(name)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 	agCopy.Name = validName
-	agCopy.Tags = tags
+	agCopy.Tags = &tags
 
 	description := "description example"
 	agCopy.Description = &description

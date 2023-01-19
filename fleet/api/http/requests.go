@@ -53,9 +53,9 @@ func (req addAgentGroupReq) validate() error {
 type updateAgentGroupReq struct {
 	id          string
 	token       string
-	Name        string     `json:"name,omitempty"`
-	Description *string    `json:"description,omitempty"`
-	Tags        types.Tags `json:"tags"`
+	Name        string      `json:"name,omitempty"`
+	Description *string     `json:"description,omitempty"`
+	Tags        *types.Tags `json:"tags"`
 }
 
 func (req updateAgentGroupReq) validate() error {
@@ -65,6 +65,11 @@ func (req updateAgentGroupReq) validate() error {
 	}
 	if req.Name == "" && req.Tags == nil && req.Description == nil {
 		return errors.ErrMalformedEntity
+	}
+	if req.Tags != nil {
+		if len(*req.Tags) == 0 {
+			return errors.ErrMalformedEntity
+		}
 	}
 
 	return nil

@@ -300,7 +300,7 @@ func (svc fleetService) ValidateAgentGroup(ctx context.Context, token string, ag
 	}
 
 	ag.MFOwnerID = mfOwnerID
-	res, err := svc.agentRepo.RetrieveMatchingAgents(ctx, mfOwnerID, ag.Tags)
+	res, err := svc.agentRepo.RetrieveMatchingAgents(ctx, mfOwnerID, *ag.Tags)
 	if err != nil {
 		return AgentGroup{}, err
 	}

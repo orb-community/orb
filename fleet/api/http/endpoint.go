@@ -31,7 +31,7 @@ func addAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
 		group := fleet.AgentGroup{
 			Name:        nID,
 			Description: &req.Description,
-			Tags:        req.Tags,
+			Tags:        &req.Tags,
 		}
 		saved, err := svc.CreateAgentGroup(c, req.token, group)
 		if err != nil {
@@ -42,7 +42,7 @@ func addAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
 			ID:             saved.ID,
 			Name:           saved.Name.String(),
 			Description:    *saved.Description,
-			Tags:           saved.Tags,
+			Tags:           *saved.Tags,
 			MatchingAgents: saved.MatchingAgents,
 			created:        true,
 		}
@@ -65,7 +65,7 @@ func viewAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
 			ID:             agentGroup.ID,
 			Name:           agentGroup.Name.String(),
 			Description:    *agentGroup.Description,
-			Tags:           agentGroup.Tags,
+			Tags:           *agentGroup.Tags,
 			TsCreated:      agentGroup.Created,
 			MatchingAgents: agentGroup.MatchingAgents,
 		}
@@ -100,7 +100,7 @@ func listAgentGroupsEndpoint(svc fleet.Service) endpoint.Endpoint {
 				ID:             ag.ID,
 				Name:           ag.Name.String(),
 				Description:    *ag.Description,
-				Tags:           ag.Tags,
+				Tags:           *ag.Tags,
 				TsCreated:      ag.Created,
 				MatchingAgents: ag.MatchingAgents,
 			}
@@ -124,11 +124,16 @@ func editAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
 				return agentGroupRes{}, errors.Wrap(errors.ErrMalformedEntity, err)
 			}
 		}
+		var groupTags *types.Tags
+		if req.Tags != nil {
+			groupTags = req.Tags
+		}
+
 		ag := fleet.AgentGroup{
 			ID:          req.id,
 			Name:        validName,
 			Description: req.Description,
-			Tags:        req.Tags,
+			Tags:        groupTags,
 		}
 
 		data, err := svc.EditAgentGroup(ctx, req.token, ag)
@@ -140,7 +145,7 @@ func editAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
 			ID:             data.ID,
 			Name:           data.Name.String(),
 			Description:    *data.Description,
-			Tags:           data.Tags,
+			Tags:           *data.Tags,
 			TsCreated:      data.Created,
 			MatchingAgents: data.MatchingAgents,
 		}
@@ -330,7 +335,7 @@ func validateAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
 
 		group := fleet.AgentGroup{
 			Name: nID,
-			Tags: req.Tags,
+			Tags: &req.Tags,
 		}
 		validated, err := svc.ValidateAgentGroup(c, req.token, group)
 		if err != nil {
@@ -339,7 +344,7 @@ func validateAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
 
 		res := validateAgentGroupRes{
 			Name:           validated.Name.String(),
-			Tags:           validated.Tags,
+			Tags:           *validated.Tags,
 			MatchingAgents: validated.MatchingAgents,
 		}
 

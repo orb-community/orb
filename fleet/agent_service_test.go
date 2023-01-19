@@ -251,10 +251,11 @@ func TestUpdateAgent(t *testing.T) {
 
 	validName, err := types.NewIdentifier("group")
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
-
 	_, _ = fleetService.CreateAgentGroup(context.Background(), "token", fleet.AgentGroup{
 		Name: validName,
-		Tags: map[string]string{"test": "true"},
+		Tags: &types.Tags{
+			"test": "true",
+		},
 	})
 
 	cases := map[string]struct {

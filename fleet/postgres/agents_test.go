@@ -815,7 +815,7 @@ func TestMultiAgentRetrievalByAgentGroup(t *testing.T) {
 		Name:        groupNameID,
 		MFOwnerID:   oID.String(),
 		MFChannelID: chID.String(),
-		Tags:        tags,
+		Tags:        &tags,
 	}
 
 	id, err := agentGroupRepo.Save(context.Background(), group)
