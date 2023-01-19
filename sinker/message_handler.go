@@ -200,7 +200,6 @@ func (svc SinkerService) SinkPolicy(agent fleet.Agent, metricsPayload fleet.Agen
 			"policy", metricsPayload.PolicyName,
 			"sink_id", id,
 			"owner_id", agent.MFOwnerID,
-			"warning", "Deprecated, soon we will substitute for openTelemetry, check https://orb.community/documentation to how enable openTelemetry in your agent",
 		}
 		svc.requestCounter.With(labels...).Add(1)
 		svc.requestGauge.With(labels...).Add(float64(len(metricsPayload.Data)))
