@@ -28,9 +28,10 @@ func (svc SinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, owner
 		svc.logger.Error("unable to retrieve the sink config", zap.Error(err))
 		return err
 	}
+	ctx := context.Background()
 	if cfgRepo.Opentelemetry == "enabled" {
-		svc.logger.Info("ignoring sink state update on OpenTelemetry sinks")
-		return nil	
+		svc.logger.Info("deprecate warning opentelemetry sink scraping legacy agent", zap.String("sink-ID", cfgRepo.SinkID))
+		ctx = context.WithValue(ctx, "deprecation", "opentelemetry")
 	}
 	cfg := prometheus.NewConfig(
 		prometheus.WriteURLOption(cfgRepo.Url),
@@ -44,7 +45,7 @@ func (svc SinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, owner
 
 	var headers = make(map[string]string)
 	headers["Authorization"] = svc.encodeBase64(cfgRepo.User, cfgRepo.Password)
-	result, writeErr := promClient.WriteTimeSeries(context.Background(), tsList, prometheus.WriteOptions{Headers: headers})
+	result, writeErr := promClient.WriteTimeSeries(ctx, tsList, prometheus.WriteOptions{Headers: headers})
 	if err := error(writeErr); err != nil {
 		if cfgRepo.State != config.Error || cfgRepo.Msg != fmt.Sprint(err) {
 			cfgRepo.State = config.Error
@@ -199,6 +200,7 @@ func (svc SinkerService) SinkPolicy(agent fleet.Agent, metricsPayload fleet.Agen
 			"policy", metricsPayload.PolicyName,
 			"sink_id", id,
 			"owner_id", agent.MFOwnerID,
+			"warning", "Deprecated, soon we will substitute for openTelemetry, check https://orb.community/documentation to how enable openTelemetry in your agent",
 		}
 		svc.requestCounter.With(labels...).Add(1)
 		svc.requestGauge.With(labels...).Add(float64(len(metricsPayload.Data)))
