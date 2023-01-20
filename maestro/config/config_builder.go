@@ -208,12 +208,6 @@ func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig, sinkId, sinkUrl
 			},
 		},
 		Extensions: &Extensions{
-			HealthCheckExtConfig: &HealthCheckExtension{
-				Endpoint: "0.0.0.0:13133",
-				Path:     "/health/status",
-				CollectorPipeline: &CollectorPipelineExtension{
-					Enabled: "true", Interval: "5m", FailureThreshold: 4},
-			},
 			PProf: &PProfExtension{
 				Endpoint: "0.0.0.0:1888", // Leaving default for now, will need to change with more processes
 			},
