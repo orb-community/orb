@@ -37,7 +37,7 @@ type SinkerOtelBridgeService struct {
 	fleetClient    fleetpb.FleetServiceClient
 }
 
-func (bs *SinkerOtelBridgeService) NotifyActiveSink(_ context.Context, mfOwnerId, sinkId, newState, message string) error {
+func (bs *SinkerOtelBridgeService) NotifyActiveSink(ctx context.Context, mfOwnerId, sinkId, newState, message string) error {
 	cfgRepo, err := bs.sinkerCache.Get(mfOwnerId, sinkId)
 	if err != nil {
 		bs.logger.Error("unable to retrieve the sink config", zap.Error(err))
@@ -55,7 +55,7 @@ func (bs *SinkerOtelBridgeService) NotifyActiveSink(_ context.Context, mfOwnerId
 		} else if cfgRepo.State == config.Active {
 			cfgRepo.LastRemoteWrite = time.Now()
 		}
-		err = bs.sinkerCache.Edit(cfgRepo)
+		err = bs.sinkerCache.DeployCollector(ctx, cfgRepo)
 		if err != nil {
 			bs.logger.Error("error during update sink cache", zap.String("sinkId", sinkId), zap.Error(err))
 			return err

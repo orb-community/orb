@@ -13,9 +13,9 @@ import (
 )
 
 const (
-	streamSinker = "orb.sinker"
-	streamSinks  = "orb.sinks"
-	group        = "orb.collectors"
+	streamMaestro = "orb.maestro"
+	streamSinks   = "orb.sinks"
+	group         = "orb.collectors"
 
 	sinkerPrefix = "sinker."
 	sinkerUpdate = sinkerPrefix + "update"
@@ -57,7 +57,7 @@ func NewEventStore(client *redis.Client, kafkaUrl string, kubecontrol kubecontro
 
 func (es eventStore) SubscribeSinker(context context.Context) error {
 	//listening sinker events
-	err := es.client.XGroupCreateMkStream(context, streamSinker, group, "$").Err()
+	err := es.client.XGroupCreateMkStream(context, streamMaestro, group, "$").Err()
 	if err != nil && err.Error() != exists {
 		return err
 	}
@@ -66,7 +66,7 @@ func (es eventStore) SubscribeSinker(context context.Context) error {
 		streams, err := es.client.XReadGroup(context, &redis.XReadGroupArgs{
 			Group:    group,
 			Consumer: es.esconsumer,
-			Streams:  []string{streamSinker, ">"},
+			Streams:  []string{streamMaestro, ">"},
 			Count:    100,
 		}).Result()
 		if err != nil || len(streams) == 0 {
@@ -89,7 +89,7 @@ func (es eventStore) SubscribeSinker(context context.Context) error {
 				es.logger.Error("Failed to handle sinker event", zap.String("operation", event["operation"].(string)), zap.Error(err))
 				break
 			}
-			es.client.XAck(context, streamSinker, group, msg.ID)
+			es.client.XAck(context, streamMaestro, group, msg.ID)
 		}
 	}
 }
