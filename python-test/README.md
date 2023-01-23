@@ -18,6 +18,10 @@ Activate your virtual environment: `source name_of_virtualenv/bin/activate`
 Install the required libraries: `pip install -r requirements.txt`
 
 
+Scenarios with @mocked_interface tag requires tcpreplay to replay PCAP files into mock interface. Open VSwitch is used to create a virtual switch that export Flow Metrics (Sflow/NetFlow/IPFIX). You can install it using the following command:
+
+`sudo apt -y install tcpreplay openvswitch-switch openvswitch-common`
+
 ### Additional configuration of your Python environment for UI tests
 - Install Google Chrome :
 ```
