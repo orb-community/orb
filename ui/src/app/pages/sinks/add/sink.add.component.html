@@ -126,10 +126,6 @@
           </ng-template>
           <form [formGroup]="secondFormGroup">
             <ng-container *ngFor="let control of selectedSinkSetting;let i = index; first as isFirst">
-              <ng-container *ngIf="control.prop !== 'opentelemetry'">
-                <label class="font-weight-bold">{{control.label}}</label>
-                <span *ngIf="control.required" class="required">*</span>
-              </ng-container>
               <ng-container [ngSwitch]="control.input">
                 <input *ngSwitchCase="'text'"
                        [attr.data-orb-qa-id]="control.prop"
