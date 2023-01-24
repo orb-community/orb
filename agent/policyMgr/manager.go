@@ -6,6 +6,7 @@ package manager
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/ns1labs/orb/agent/backend"
@@ -195,7 +196,12 @@ func (a *policyManager) applyPolicy(payload fleet.AgentPolicyRPCPayload, be back
 	err := be.ApplyPolicy(*pd, updatePolicy)
 	if err != nil {
 		a.logger.Warn("policy failed to apply", zap.String("policy_id", payload.ID), zap.String("policy_name", payload.Name), zap.Error(err))
-		pd.State = policies.FailedToApply
+		switch {
+		case strings.Contains(err.Error(), "422"):
+			pd.State = policies.NoTapMatch
+		default:
+			pd.State = policies.FailedToApply
+		}
 		pd.BackendErr = err.Error()
 	} else {
 		a.logger.Info("policy applied successfully", zap.String("policy_id", payload.ID), zap.String("policy_name", payload.Name))
