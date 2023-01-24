@@ -21,6 +21,11 @@ type eventStore struct {
 	logger    *zap.Logger
 }
 
+// DeployCollector only used in maestro
+func (e eventStore) DeployCollector(ctx context.Context, config config.SinkConfig) error {
+	return nil
+}
+
 func (e eventStore) Exists(ownerID string, sinkID string) bool {
 	return e.sinkCache.Exists(ownerID, sinkID)
 }
