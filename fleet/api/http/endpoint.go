@@ -118,8 +118,8 @@ func editAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
 		}
 
 		var validName types.Identifier
-		if req.Name != "" {
-			validName, err = types.NewIdentifier(req.Name)
+		if req.Name != nil {
+			validName, err = types.NewIdentifier(*req.Name)
 			if err != nil {
 				return agentGroupRes{}, errors.Wrap(errors.ErrMalformedEntity, err)
 			}
@@ -183,7 +183,7 @@ func addAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
 
 		agent := fleet.Agent{
 			Name:      nID,
-			OrbTags:   req.OrbTags,
+			OrbTags:   &req.OrbTags,
 			AgentTags: req.AgentTags,
 		}
 		saved, err := svc.CreateAgent(c, req.token, agent)
@@ -196,7 +196,7 @@ func addAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
 			ID:            saved.MFThingID,
 			State:         saved.State.String(),
 			Key:           saved.MFKeyID,
-			OrbTags:       saved.OrbTags,
+			OrbTags:       *saved.OrbTags,
 			AgentTags:     saved.AgentTags,
 			AgentMetadata: saved.AgentMetadata,
 			LastHBData:    saved.LastHBData,
@@ -227,7 +227,7 @@ func viewAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
 			Name:          ag.Name.String(),
 			ChannelID:     ag.MFChannelID,
 			AgentTags:     ag.AgentTags,
-			OrbTags:       ag.OrbTags,
+			OrbTags:       *ag.OrbTags,
 			TsCreated:     ag.Created,
 			AgentMetadata: ag.AgentMetadata,
 			State:         ag.State.String(),
@@ -308,7 +308,7 @@ func listAgentsEndpoint(svc fleet.Service) endpoint.Endpoint {
 				Name:        ag.Name.String(),
 				ChannelID:   ag.MFChannelID,
 				AgentTags:   ag.AgentTags,
-				OrbTags:     ag.OrbTags,
+				OrbTags:     *ag.OrbTags,
 				TsCreated:   ag.Created,
 				State:       ag.State.String(),
 				TsLastHB:    ag.LastHB,
@@ -361,16 +361,21 @@ func editAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
 		}
 
 		var validName types.Identifier
-		if req.Name != "" {
-			validName, err = types.NewIdentifier(req.Name)
+		if req.Name != nil {
+			validName, err = types.NewIdentifier(*req.Name)
 			if err != nil {
 				return nil, errors.Wrap(errors.ErrMalformedEntity, err)
 			}
 		}
+		var agentOrbTags *types.Tags
+		if req.Tags != nil {
+			agentOrbTags = req.Tags
+		}
+
 		agent := fleet.Agent{
 			Name:      validName,
 			MFThingID: req.id,
-			OrbTags:   req.Tags,
+			OrbTags:   agentOrbTags,
 		}
 
 		ag, err := svc.EditAgent(ctx, req.token, agent)
@@ -383,7 +388,7 @@ func editAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
 			Name:          ag.Name.String(),
 			ChannelID:     ag.MFChannelID,
 			AgentTags:     ag.AgentTags,
-			OrbTags:       ag.OrbTags,
+			OrbTags:       *ag.OrbTags,
 			TsCreated:     ag.Created,
 			AgentMetadata: ag.AgentMetadata,
 			State:         ag.State.String(),
@@ -410,7 +415,7 @@ func validateAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
 
 		agent := fleet.Agent{
 			Name:    nID,
-			OrbTags: req.OrbTags,
+			OrbTags: &req.OrbTags,
 		}
 		validated, err := svc.ValidateAgent(c, req.token, agent)
 		if err != nil {
@@ -419,7 +424,7 @@ func validateAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
 
 		res := validateAgentRes{
 			Name:    validated.Name.String(),
-			OrbTags: validated.OrbTags,
+			OrbTags: *validated.OrbTags,
 		}
 		return res, nil
 	}
