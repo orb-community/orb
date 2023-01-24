@@ -44,7 +44,7 @@ func (svc sinkService) CreateSink(ctx context.Context, token string, sink Sink) 
 
 	// add default values
 	defaultMetadata := make(types.Metadata, 1)
-	defaultMetadata["openTelemetry"] = "enabled"
+	defaultMetadata["opentelemetry"] = "enabled"
 	sink.Config.Merge(defaultMetadata)
 
 	id, err := svc.sinkRepo.Save(ctx, sink)
