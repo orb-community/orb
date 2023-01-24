@@ -10,8 +10,7 @@ import (
 )
 
 const (
-	streamID  = "orb.sinker"
-	streamLen = 1000
+	streamID = "orb.sinker"
 )
 
 var _ config.ConfigRepo = (*eventStore)(nil)
@@ -20,6 +19,11 @@ type eventStore struct {
 	sinkCache config.ConfigRepo
 	client    *redis.Client
 	logger    *zap.Logger
+}
+
+// DeployCollector only used in maestro
+func (e eventStore) DeployCollector(ctx context.Context, config config.SinkConfig) error {
+	return nil
 }
 
 func (e eventStore) Exists(ownerID string, sinkID string) bool {
@@ -40,9 +44,8 @@ func (e eventStore) Add(config config.SinkConfig) error {
 		Timestamp: time.Now(),
 	}
 	record := &redis.XAddArgs{
-		Stream:       streamID,
-		MaxLenApprox: streamLen,
-		Values:       event.Encode(),
+		Stream: streamID,
+		Values: event.Encode(),
 	}
 	err = e.client.XAdd(context.Background(), record).Err()
 	if err != nil {
@@ -64,9 +67,8 @@ func (e eventStore) Remove(ownerID string, sinkID string) error {
 		Timestamp: time.Now(),
 	}
 	record := &redis.XAddArgs{
-		Stream:       streamID,
-		MaxLenApprox: streamLen,
-		Values:       event.Encode(),
+		Stream: streamID,
+		Values: event.Encode(),
 	}
 	err = e.client.XAdd(context.Background(), record).Err()
 	if err != nil {
@@ -93,9 +95,8 @@ func (e eventStore) Edit(config config.SinkConfig) error {
 		Timestamp: time.Now(),
 	}
 	record := &redis.XAddArgs{
-		Stream:       streamID,
-		MaxLenApprox: streamLen,
-		Values:       event.Encode(),
+		Stream: streamID,
+		Values: event.Encode(),
 	}
 	err = e.client.XAdd(context.Background(), record).Err()
 	if err != nil {

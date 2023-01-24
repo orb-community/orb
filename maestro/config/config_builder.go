@@ -80,7 +80,7 @@ var k8sOtelCollector = `
             "containers": [
               {
                 "name": "otel-collector",
-                "image": "otel/opentelemetry-collector-contrib:0.60.0",
+                "image": "otel/opentelemetry-collector-contrib:0.68.0",
                 "ports": [
                   {
                     "containerPort": 13133,
@@ -208,9 +208,6 @@ func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig, sinkId, sinkUrl
 			},
 		},
 		Extensions: &Extensions{
-			HealthCheckExtConfig: &HealthCheckExtension{
-				Endpoint: "0.0.0.0:13133",
-			},
 			PProf: &PProfExtension{
 				Endpoint: "0.0.0.0:1888", // Leaving default for now, will need to change with more processes
 			},
@@ -228,6 +225,11 @@ func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig, sinkId, sinkUrl
 					Authenticator string `json:"authenticator" yaml:"authenticator"`
 				}{Authenticator: "basicauth/exporter"},
 			},
+			LoggingExporter: &LoggingExporterConfig{
+				Verbosity:          "detailed",
+				SamplingInitial:    5,
+				SamplingThereAfter: 50,
+			},
 		},
 		Service: ServiceConfig{
 			Extensions: []string{"pprof", "health_check", "basicauth/exporter"},
@@ -244,7 +246,7 @@ func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig, sinkId, sinkUrl
 					Exporters  []string `json:"exporters" yaml:"exporters"`
 				}{
 					Receivers: []string{"kafka"},
-					Exporters: []string{"prometheusremotewrite"},
+					Exporters: []string{"prometheusremotewrite", "logging"},
 				},
 			},
 		},
@@ -291,12 +293,15 @@ type Extensions struct {
 }
 
 type HealthCheckExtension struct {
-	Endpoint          string `json:"endpoint" yaml:"endpoint"`
-	CollectorPipeline *struct {
-		Enabled          bool   `json:"enabled" yaml:"enabled"`
-		Interval         string `json:"interval" yaml:"interval"`
-		FailureThreshold int32  `json:"exporter_failure_threshold" yaml:"exporter_failure_threshold"`
-	} `json:"check_collector_pipeline,omitempty" yaml:"check_collector_pipeline,omitempty"`
+	Endpoint          string                      `json:"endpoint" yaml:"endpoint"`
+	Path              string                      `json:"path" yaml:"path"`
+	CollectorPipeline *CollectorPipelineExtension `json:"check_collector_pipeline,omitempty" yaml:"check_collector_pipeline,omitempty"`
+}
+
+type CollectorPipelineExtension struct {
+	Enabled          string `json:"enabled" yaml:"enabled"`
+	Interval         string `json:"interval" yaml:"interval"`
+	FailureThreshold int32  `json:"exporter_failure_threshold" yaml:"exporter_failure_threshold"`
 }
 
 type PProfExtension struct {
@@ -316,6 +321,13 @@ type BasicAuthenticationExtension struct {
 
 type Exporters struct {
 	PrometheusRemoteWrite *PrometheusRemoteWriteExporterConfig `json:"prometheusremotewrite,omitempty" yaml:"prometheusremotewrite,omitempty"`
+	LoggingExporter       *LoggingExporterConfig               `json:"logging,omitempty" yaml:"logging,omitempty"`
+}
+
+type LoggingExporterConfig struct {
+	Verbosity          string `json:"verbosity,omitempty" yaml:"verbosity,omitempty"`
+	SamplingInitial    int    `json:"sampling_initial,omitempty" yaml:"sampling_initial,omitempty"`
+	SamplingThereAfter int    `json:"sampling_thereafter,omitempty" yaml:"sampling_thereafter,omitempty"`
 }
 
 type PrometheusRemoteWriteExporterConfig struct {

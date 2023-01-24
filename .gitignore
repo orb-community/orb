@@ -32,3 +32,6 @@ python-test/behave_orb
 test_agent_name*
 docker/otel-collector-config.yaml
 !docker/otel-collector-config.yaml.tpl
+
+kind/*
+!kind/README.md

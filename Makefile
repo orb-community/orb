@@ -189,6 +189,7 @@ kind-install-orb:
 
 kind-upgrade-orb:
 	helm upgrade -n orb kind-orb ./kind
+	kubectl rollout restart deployment -n orb
 
 kind-delete-orb:
 	kubectl delete -f ./kind/nginx.yaml
