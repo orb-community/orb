@@ -34,7 +34,7 @@ func retrieveSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 		res := sinkRes{
 			id:          sink.ID,
 			name:        sink.Name.String(),
-			description: sink.Description,
+			description: *sink.Description,
 			tags:        tagData,
 			state:       sink.State.String(),
 			error:       sink.Error,
@@ -84,7 +84,7 @@ func buildSinkResponse(sink sinks.Sink) (sinkRes, error) {
 		id:          sink.ID,
 		mfOwnerId:   sink.MFOwnerID,
 		name:        sink.Name.String(),
-		description: sink.Description,
+		description: *sink.Description,
 		tags:        tagData,
 		state:       sink.State.String(),
 		error:       sink.Error,

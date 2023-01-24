@@ -30,7 +30,7 @@ func addAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
 
 		group := fleet.AgentGroup{
 			Name:        nID,
-			Description: req.Description,
+			Description: &req.Description,
 			Tags:        req.Tags,
 		}
 		saved, err := svc.CreateAgentGroup(c, req.token, group)
@@ -41,7 +41,7 @@ func addAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
 		res := agentGroupRes{
 			ID:             saved.ID,
 			Name:           saved.Name.String(),
-			Description:    saved.Description,
+			Description:    *saved.Description,
 			Tags:           saved.Tags,
 			MatchingAgents: saved.MatchingAgents,
 			created:        true,
@@ -64,7 +64,7 @@ func viewAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
 		res := agentGroupRes{
 			ID:             agentGroup.ID,
 			Name:           agentGroup.Name.String(),
-			Description:    agentGroup.Description,
+			Description:    *agentGroup.Description,
 			Tags:           agentGroup.Tags,
 			TsCreated:      agentGroup.Created,
 			MatchingAgents: agentGroup.MatchingAgents,
@@ -99,7 +99,7 @@ func listAgentGroupsEndpoint(svc fleet.Service) endpoint.Endpoint {
 			view := agentGroupRes{
 				ID:             ag.ID,
 				Name:           ag.Name.String(),
-				Description:    ag.Description,
+				Description:    *ag.Description,
 				Tags:           ag.Tags,
 				TsCreated:      ag.Created,
 				MatchingAgents: ag.MatchingAgents,
@@ -139,7 +139,7 @@ func editAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {
 		res := agentGroupRes{
 			ID:             data.ID,
 			Name:           data.Name.String(),
-			Description:    data.Description,
+			Description:    *data.Description,
 			Tags:           data.Tags,
 			TsCreated:      data.Created,
 			MatchingAgents: data.MatchingAgents,

@@ -300,7 +300,7 @@ func TestAgentPoliciesRetrieveByGroup(t *testing.T) {
 		Valid:        true,
 		AgentGroupID: groupID.String(),
 		PolicyID:     policyID,
-		SinkIDs:      sinkIDs,
+		SinkIDs:      &sinkIDs,
 		Metadata:     types.Metadata{"testkey": "testvalue"},
 		Created:      time.Time{},
 	}

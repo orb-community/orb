@@ -720,10 +720,17 @@ func toDBPolicy(policy policies.Policy) (dbPolicy, error) {
 		return dbPolicy{}, errors.Wrap(errors.ErrMalformedEntity, err)
 	}
 
+	var description string
+	if policy.Description == nil {
+		description = ""
+	} else {
+		description = *policy.Description
+	}
+
 	return dbPolicy{
 		ID:            policy.ID,
 		Name:          policy.Name,
-		Description:   policy.Description,
+		Description:   description,
 		Version:       policy.Version,
 		MFOwnerID:     uID.String(),
 		Backend:       policy.Backend,
@@ -794,7 +801,7 @@ func toPolicy(dba dbPolicy) policies.Policy {
 	policy := policies.Policy{
 		ID:            dba.ID,
 		Name:          dba.Name,
-		Description:   dba.Description,
+		Description:   &dba.Description,
 		MFOwnerID:     dba.MFOwnerID,
 		Backend:       dba.Backend,
 		SchemaVersion: dba.SchemaVersion,
@@ -819,11 +826,15 @@ func toDataset(dba dbDataset) policies.Dataset {
 		Valid:        dba.Valid,
 		AgentGroupID: dba.AgentGroupID.String,
 		PolicyID:     dba.PolicyID.String,
-		SinkIDs:      dba.SinkIDs,
+		SinkIDs:      (*[]string)(&dba.SinkIDs),
 		Metadata:     types.Metadata(dba.Metadata),
 		Created:      dba.TsCreated,
 		Tags:         types.Tags(dba.Tags),
 	}
+
+	//var sinkIDs []string
+	//sinkIDs = dba.SinkIDs
+	//dataset.SinkIDs = &sinkIDs
 
 	return dataset
 }

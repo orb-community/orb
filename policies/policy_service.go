@@ -158,6 +158,14 @@ func (s policiesService) EditPolicy(ctx context.Context, token string, pol Polic
 		pol.Name = currentPol.Name
 	}
 
+	if pol.Description == nil {
+		pol.Description = currentPol.Description
+	}
+
+	if pol.OrbTags == nil {
+		pol.OrbTags = currentPol.OrbTags
+	}
+
 	pol.Version++
 	err = s.repo.UpdatePolicy(ctx, ownerID, pol)
 	if err != nil {
@@ -286,17 +294,26 @@ func (s policiesService) EditDataset(ctx context.Context, token string, ds Datas
 	}
 	ds.MFOwnerID = mfOwnerID
 
-	err = s.validateDatasetSink(ctx, ds.MFOwnerID, ds.SinkIDs)
+	currentDataset, err := s.repo.RetrieveDatasetByID(ctx, ds.ID, ds.MFOwnerID)
 	if err != nil {
 		return Dataset{}, err
 	}
 
 	if ds.Name.String() == "" {
-		currentDataset, err := s.repo.RetrieveDatasetByID(ctx, ds.ID, ds.MFOwnerID)
-		if err != nil {
-			return Dataset{}, err
-		}
 		ds.Name = currentDataset.Name
+	}
+
+	if ds.Tags == nil {
+		ds.Tags = currentDataset.Tags
+	}
+
+	if ds.SinkIDs == nil {
+		ds.SinkIDs = currentDataset.SinkIDs
+	}
+
+	err = s.validateDatasetSink(ctx, ds.MFOwnerID, *ds.SinkIDs)
+	if err != nil {
+		return Dataset{}, err
 	}
 
 	err = s.repo.UpdateDataset(ctx, mfOwnerID, ds)
@@ -343,7 +360,7 @@ func (s policiesService) ValidateDataset(ctx context.Context, token string, d Da
 
 	d.MFOwnerID = mfOwnerID
 
-	err = s.validateDatasetSink(ctx, d.MFOwnerID, d.SinkIDs)
+	err = s.validateDatasetSink(ctx, d.MFOwnerID, *d.SinkIDs)
 	if err != nil {
 		return Dataset{}, err
 	}
@@ -398,12 +415,12 @@ func (s policiesService) InactivateDatasetByIDInternal(ctx context.Context, owne
 func (s policiesService) validateDatasetSink(ctx context.Context, ownerID string, sinkIDs []string) error {
 
 	if len(sinkIDs) == 0 {
-		return errors.Wrap(ErrMalformedEntity, errors.New("empty sink IDs"))
+		return errors.Wrap(errors.ErrMalformedEntity, errors.New("empty sink IDs"))
 	}
 	for _, sinkID := range sinkIDs {
 		_, err := uuid.FromString(sinkID)
 		if err != nil {
-			return errors.Wrap(errors.New("invalid sink id"), ErrMalformedEntity)
+			return errors.Wrap(errors.New("invalid sink id"), errors.ErrMalformedEntity)
 		}
 
 		_, err = s.sinksGrpcClient.RetrieveSink(ctx, &sinkpb.SinkByIDReq{

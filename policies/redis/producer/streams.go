@@ -247,7 +247,7 @@ func (e eventStore) AddDataset(ctx context.Context, token string, d policies.Dat
 		name:         ds.Name.String(),
 		agentGroupID: ds.AgentGroupID,
 		policyID:     ds.PolicyID,
-		sinkIDs:      strings.Join(ds.SinkIDs, ","),
+		sinkIDs:      strings.Join(*ds.SinkIDs, ","),
 	}
 	record := &redis.XAddArgs{
 		Stream:       streamID,
