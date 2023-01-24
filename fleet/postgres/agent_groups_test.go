@@ -454,7 +454,7 @@ func TestAgentGroupRetrieveAllByAgent(t *testing.T) {
 		MFThingID:   thID.String(),
 		MFOwnerID:   oID.String(),
 		MFChannelID: chID.String(),
-		OrbTags:     types.Tags{"testkey": "testvalue"},
+		OrbTags:     &types.Tags{"testkey": "testvalue"},
 		AgentTags:   types.Tags{"testkey": "testvalue"},
 		LastHBData:  types.Metadata{"heartbeatdata": "testvalue"},
 	}
@@ -495,7 +495,7 @@ func TestAgentGroupRetrieveAllByAgent(t *testing.T) {
 				MFThingID:   wrongID.String(),
 				MFOwnerID:   oID.String(),
 				MFChannelID: chID.String(),
-				OrbTags:     types.Tags{"testkey": "testvalue"},
+				OrbTags:     &types.Tags{"testkey": "testvalue"},
 				AgentTags:   types.Tags{"testkey": "testvalue"},
 				LastHBData:  types.Metadata{"heartbeatdata": "testvalue"},
 			},
@@ -537,7 +537,7 @@ func TestRetrieveMatchingGroups(t *testing.T) {
 		MFThingID:   thID.String(),
 		MFOwnerID:   oID.String(),
 		MFChannelID: chID.String(),
-		OrbTags:     types.Tags{"testkey": "testvalue"},
+		OrbTags:     &types.Tags{"testkey": "testvalue"},
 		LastHBData:  types.Metadata{"heartbeatdata": "testvalue"},
 	}
 

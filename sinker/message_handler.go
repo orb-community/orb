@@ -30,7 +30,7 @@ func (svc SinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, owner
 	}
 	if cfgRepo.Opentelemetry == "enabled" {
 		svc.logger.Info("ignoring sink state update on OpenTelemetry sinks")
-		return nil	
+		return nil
 	}
 	cfg := prometheus.NewConfig(
 		prometheus.WriteURLOption(cfgRepo.Url),
@@ -128,7 +128,7 @@ func (svc SinkerService) handleMetrics(ctx context.Context, agentID string, chan
 		MFOwnerID:   agentPb.OwnerID,
 		MFThingID:   agentID,
 		MFChannelID: channelID,
-		OrbTags:     agentPb.OrbTags,
+		OrbTags:     (*types.Tags)(&agentPb.OrbTags),
 		AgentTags:   agentPb.AgentTags,
 	}
 

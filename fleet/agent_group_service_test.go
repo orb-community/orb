@@ -416,6 +416,21 @@ func TestUpdateAgentGroup(t *testing.T) {
 			token: token,
 			err:   nil,
 		},
+		"update existing agent group with tags empty": {
+			group: fleet.AgentGroup{
+				ID:        ag.ID,
+				Name:      ag.Name,
+				MFOwnerID: ag.MFOwnerID,
+				Tags:      &emptyTags,
+			},
+			expectedGroup: fleet.AgentGroup{
+				Name:        ag.Name,
+				Tags:        ag.Tags,
+				Description: ag.Description,
+			},
+			token: token,
+			err:   errors.ErrMalformedEntity,
+		},
 	}
 
 	for desc, tc := range cases {
@@ -424,6 +439,7 @@ func TestUpdateAgentGroup(t *testing.T) {
 			if err == nil {
 				assert.Equal(t, *tc.expectedGroup.Description, *agentGroupTest.Description, fmt.Sprintf("%s: expected %s got %s", desc, *tc.expectedGroup.Description, *agentGroupTest.Description))
 				assert.Equal(t, tc.expectedGroup.Name, agentGroupTest.Name, fmt.Sprintf("%s: expected %s got %s", desc, tc.expectedGroup.Name, agentGroupTest.Name))
+				assert.Equal(t, tc.expectedGroup.Tags, agentGroupTest.Tags, fmt.Sprintf("%s: expected %p got %p", desc, tc.expectedGroup.Tags, agentGroupTest.Tags))
 			}
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %d got %d", desc, tc.err, err))
 		})

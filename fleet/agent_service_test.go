@@ -244,8 +244,8 @@ func TestUpdateAgent(t *testing.T) {
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
 	ag, err := fleetService.CreateAgent(context.Background(), "token", fleet.Agent{
-		Name:      validAgentName,
-		AgentTags: map[string]string{"test": "true"},
+		Name:    validAgentName,
+		OrbTags: &types.Tags{"test": "true"},
 	})
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
@@ -257,6 +257,14 @@ func TestUpdateAgent(t *testing.T) {
 			"test": "true",
 		},
 	})
+
+	validAgentNameTestAttributeTags, err := types.NewIdentifier("tagsTest")
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+	agentTestAttributeTags, err := fleetService.CreateAgent(context.Background(), "token", fleet.Agent{
+		Name:    validAgentNameTestAttributeTags,
+		OrbTags: &types.Tags{"test": "true"},
+	})
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
 	cases := map[string]struct {
 		agent         fleet.Agent
@@ -280,7 +288,7 @@ func TestUpdateAgent(t *testing.T) {
 			token: token,
 			err:   fleet.ErrNotFound,
 		},
-		"update existing agent without name": {
+		"update existing agent with omitted name": {
 			agent: fleet.Agent{
 				MFThingID: ag.MFThingID,
 				MFOwnerID: ag.MFOwnerID,
@@ -292,6 +300,31 @@ func TestUpdateAgent(t *testing.T) {
 			token: token,
 			err:   nil,
 		},
+		"update existing agent with empty tags": {
+			agent: fleet.Agent{
+				MFThingID: ag.MFThingID,
+				MFOwnerID: ag.MFOwnerID,
+				OrbTags:   &emptyTags,
+			},
+			expectedAgent: fleet.Agent{
+				Name:    ag.Name,
+				OrbTags: &emptyTags,
+			},
+			token: token,
+			err:   nil,
+		},
+		"update existing agent with omitted tags": {
+			agent: fleet.Agent{
+				MFThingID: agentTestAttributeTags.MFThingID,
+				MFOwnerID: agentTestAttributeTags.MFOwnerID,
+			},
+			expectedAgent: fleet.Agent{
+				Name:    agentTestAttributeTags.Name,
+				OrbTags: agentTestAttributeTags.OrbTags,
+			},
+			token: token,
+			err:   nil,
+		},
 	}
 
 	for desc, tc := range cases {
@@ -299,6 +332,7 @@ func TestUpdateAgent(t *testing.T) {
 			agentTest, err := fleetService.EditAgent(context.Background(), tc.token, tc.agent)
 			if err == nil {
 				assert.Equal(t, tc.expectedAgent.Name, agentTest.Name, fmt.Sprintf("%s: expected %s got %s", desc, tc.expectedAgent.Name, agentTest.Name))
+				assert.Equal(t, tc.expectedAgent.OrbTags, agentTest.OrbTags, fmt.Sprintf("%s: expected %p got %p", desc, tc.expectedAgent.OrbTags, agentTest.OrbTags))
 			}
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %d got %d", desc, tc.err, err))
 		})
@@ -315,12 +349,13 @@ func TestValidateAgent(t *testing.T) {
 	nameID, err := types.NewIdentifier("eu-agents")
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
+	emptyTags := types.Tags{}
 	validAgent := fleet.Agent{
 		MFOwnerID: ownerID.String(),
 		Name:      nameID,
-		OrbTags:   make(map[string]string),
+		OrbTags:   &emptyTags,
 	}
-	validAgent.OrbTags = map[string]string{
+	validAgent.OrbTags = &types.Tags{
 		"region":    "eu",
 		"node_type": "dns",
 	}
@@ -361,13 +396,14 @@ func TestCreateAgent(t *testing.T) {
 
 	conflictCase, err := createAgent(t, "agent", fleetService)
 
+	emptyTags := types.Tags{}
 	validAgent := fleet.Agent{
 		MFOwnerID: ownerID.String(),
 		Name:      nameID,
-		OrbTags:   make(map[string]string),
+		OrbTags:   &emptyTags,
 		Created:   time.Time{},
 	}
-	validAgent.OrbTags = map[string]string{
+	validAgent.OrbTags = &types.Tags{
 		"region":    "eu",
 		"node_type": "dns",
 	}
@@ -536,7 +572,7 @@ func TestViewAgentInfoByChannelIDInternal(t *testing.T) {
 		t.Run(desc, func(t *testing.T) {
 			agent, err := fleetService.ViewAgentInfoByChannelIDInternal(context.Background(), tc.channelID)
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
-			assert.Equal(t, tc.agent, agent, fmt.Sprintf("%s: expected %s got %s", desc, tc.agent, agent))
+			assert.Equal(t, tc.agent, agent, fmt.Sprintf("%s: expected %v got %v", desc, tc.agent, agent))
 		})
 	}
 }

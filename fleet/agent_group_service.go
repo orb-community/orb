@@ -131,6 +131,8 @@ func (svc fleetService) EditAgentGroup(ctx context.Context, token string, group 
 
 	if group.Tags == nil {
 		group.Tags = currentAgentGroup.Tags
+	} else if group.Tags != nil && len(*group.Tags) == 0 {
+		return AgentGroup{}, errors.Wrap(errors.ErrMalformedEntity, errors.New("group tags can not be empty"))
 	}
 
 	ag, err := svc.agentGroupRepository.Update(ctx, ownerID, group)
