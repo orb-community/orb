@@ -237,18 +237,20 @@ func (svc *monitorService) analyzeLogs(logEntry []string) (status string, err er
 			lastTimeStamp = logLine[0:24]
 			if strings.Contains(logLine, "error") {
 				errStringLog := strings.TrimRight(logLine, "error")
-				jsonError := strings.Split(errStringLog, "\t")[4]
-				errorJson := make(map[string]interface{})
-				err := json.Unmarshal([]byte(jsonError), &errorJson)
-				if err != nil {
-					return "fail", err
-				}
-				if errorJson != nil && errorJson["error"] != nil {
-					errorMessage := errorJson["error"].(string)
-					if strings.Contains(errorMessage, "429") {
-						return "warning", errors.New(errorMessage)
-					} else {
-						return "error", errors.New(errorMessage)
+				if len(errStringLog) > 4 {
+					jsonError := strings.Split(errStringLog, "\t")[4]
+					errorJson := make(map[string]interface{})
+					err := json.Unmarshal([]byte(jsonError), &errorJson)
+					if err != nil {
+						return "fail", err
+					}
+					if errorJson != nil && errorJson["error"] != nil {
+						errorMessage := errorJson["error"].(string)
+						if strings.Contains(errorMessage, "429") {
+							return "warning", errors.New(errorMessage)
+						} else {
+							return "error", errors.New(errorMessage)
+						}
 					}
 				}
 			}
