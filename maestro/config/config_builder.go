@@ -232,7 +232,7 @@ func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig, sinkId, sinkUrl
 			},
 		},
 		Service: ServiceConfig{
-			Extensions: []string{"pprof", "health_check", "basicauth/exporter"},
+			Extensions: []string{"pprof", "basicauth/exporter"},
 			Pipelines: struct {
 				Metrics struct {
 					Receivers  []string `json:"receivers" yaml:"receivers"`
