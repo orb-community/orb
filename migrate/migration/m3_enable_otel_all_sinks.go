@@ -97,7 +97,7 @@ func (m M3SinksOpenTelemetry) Down() (err error) {
 
 func (m M3SinksOpenTelemetry) addOpenTelemetryFlag(sink sinks.Sink) (sinks.Sink, error) {
 	newMetadata := types.Metadata{
-		"openTelemetry": "enabled",
+		"opentelemetry": "enabled",
 		"migrated":      "m3",
 	}
 	sink.Config.Merge(newMetadata)
@@ -108,6 +108,6 @@ func (m M3SinksOpenTelemetry) rollbackOpenTelemetryFlag(sink sinks.Sink) (sinks.
 	if _, ok := sink.Config["migrated"]; !ok {
 		return sinks.Sink{}, errors.New("skip")
 	}
-	sink.Config.RemoveKeys([]string{"openTelemetry", "migrated"})
+	sink.Config.RemoveKeys([]string{"opentelemetry", "migrated"})
 	return sink, nil
 }
