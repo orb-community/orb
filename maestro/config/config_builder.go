@@ -246,7 +246,7 @@ func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig, sinkId, sinkUrl
 					Exporters  []string `json:"exporters" yaml:"exporters"`
 				}{
 					Receivers: []string{"kafka"},
-					Exporters: []string{"prometheusremotewrite", "logging"},
+					Exporters: []string{"prometheusremotewrite"},
 				},
 			},
 		},
