@@ -194,6 +194,9 @@ func (svc fleetService) EditAgent(ctx context.Context, token string, agent Agent
 	if newName := agent.Name.String(); newName == "" {
 		agent.Name = currentAgent.Name
 	}
+	if agent.OrbTags == nil {
+		agent.OrbTags = currentAgent.OrbTags
+	}
 
 	err = svc.agentRepo.UpdateAgentByID(ctx, ownerID, agent)
 	if err != nil {

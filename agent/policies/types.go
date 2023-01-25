@@ -50,7 +50,7 @@ var policyStateMap = [...]string{
 	"running",
 	"failed_to_apply",
 	"offline",
-	"NoTapMatch",
+	"no_tap_match",
 }
 
 var policyStateRevMap = map[string]PolicyState{

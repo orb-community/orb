@@ -17,7 +17,7 @@ type AgentGroup struct {
 	Name           types.Identifier
 	Description    *string
 	MFChannelID    string
-	Tags           types.Tags
+	Tags           *types.Tags
 	Created        time.Time
 	MatchingAgents types.Metadata
 }
