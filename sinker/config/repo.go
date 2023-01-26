@@ -4,6 +4,8 @@
 
 package config
 
+import "context"
+
 type ConfigRepo interface {
 	Exists(ownerID string, sinkID string) bool
 	Add(config SinkConfig) error
@@ -12,4 +14,5 @@ type ConfigRepo interface {
 	Edit(config SinkConfig) error
 	GetAll(ownerID string) ([]SinkConfig, error)
 	GetAllOwners() ([]string, error)
+	DeployCollector(ctx context.Context, config SinkConfig) error
 }

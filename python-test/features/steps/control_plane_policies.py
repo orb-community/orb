@@ -94,6 +94,8 @@ def apply_policy_using_tap_selector(context, handler, input_type, match_type, co
     context.policy = create_policy(context.token, json_for_create_policy)
     check_policies(context)
     create_new_dataset(context, 1, 'last', 1, 'sink')
+    context.metric_groups_enabled = metric_groups_enabled
+    context.metric_groups_disabled = metric_groups_disabled
 
 
 @step("the policy application error details must show that {message}")

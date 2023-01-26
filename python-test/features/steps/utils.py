@@ -11,6 +11,8 @@ import json
 import jsonschema
 from jsonschema import validate
 from abc import ABC, abstractmethod
+import shlex
+import subprocess
 
 tag_prefix = "test_tag_"
 
@@ -187,7 +189,7 @@ def threading_wait_until(func):
     return wait_event
 
 
-def return_port_to_run_docker_container(context, available=True, time_to_wait=5):
+def return_port_by_availability(context, available=True, time_to_wait=5):
     """
 
     :param (bool) available: Status of the port on which agent must try to run. Default: available.
@@ -323,3 +325,11 @@ def is_json(json_string):
     except ValueError as e:
         return False, e
     return True, json_converted
+
+
+def send_terminal_commands(command, cwd_run=None):
+    args = shlex.split(command)
+    p = subprocess.Popen(args, stdin=subprocess.PIPE, stderr=subprocess.PIPE,
+                         stdout=subprocess.PIPE, cwd=cwd_run, universal_newlines=True)
+    subprocess_return_terminal = p.communicate()
+    return subprocess_return_terminal

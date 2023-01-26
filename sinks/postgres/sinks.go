@@ -14,6 +14,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gofrs/uuid"
+	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/ns1labs/orb/pkg/db"
 	"github.com/ns1labs/orb/pkg/errors"
@@ -43,7 +44,12 @@ func (s sinksRepository) SearchAllSinks(ctx context.Context, filter sinks.Filter
 	if err != nil {
 		return nil, errors.Wrap(errors.ErrSelectEntity, err)
 	}
-	defer rows.Close()
+	defer func(rows *sqlx.Rows) {
+		err := rows.Close()
+		if err != nil {
+			s.logger.Error("error closing rows", zap.Error(err))
+		}
+	}(rows)
 
 	items := make([]sinks.Sink, 0)
 	for rows.Next() {
@@ -310,13 +316,20 @@ func toDBSink(sink sinks.Sink) (dbSink, error) {
 		return dbSink{}, errors.Wrap(errors.ErrMalformedEntity, err)
 	}
 
+	var description string
+	if sink.Description == nil {
+		description = ""
+	} else {
+		description = *sink.Description
+	}
+
 	return dbSink{
 		ID:          sink.ID,
 		Name:        sink.Name,
 		MFOwnerID:   uID.String(),
 		Metadata:    db.Metadata(sink.Config),
 		Backend:     sink.Backend,
-		Description: sink.Description,
+		Description: description,
 		State:       sink.State,
 		Error:       sink.Error,
 		Tags:        db.Tags(sink.Tags),
@@ -330,7 +343,7 @@ func toSink(dba dbSink) (sinks.Sink, error) {
 		Name:        dba.Name,
 		MFOwnerID:   dba.MFOwnerID,
 		Backend:     dba.Backend,
-		Description: dba.Description,
+		Description: &dba.Description,
 		State:       dba.State,
 		Error:       dba.Error,
 		Config:      types.Metadata(dba.Metadata),

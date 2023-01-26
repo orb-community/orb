@@ -49,7 +49,7 @@ func addEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			Name:        nID,
 			Backend:     req.Backend,
 			Config:      req.Config,
-			Description: req.Description,
+			Description: &req.Description,
 			Tags:        req.Tags,
 		}
 		saved, err := svc.CreateSink(ctx, req.token, sink)
@@ -60,7 +60,7 @@ func addEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 		res := sinkRes{
 			ID:          saved.ID,
 			Name:        saved.Name.String(),
-			Description: saved.Description,
+			Description: *saved.Description,
 			Tags:        saved.Tags,
 			State:       saved.State.String(),
 			Error:       saved.Error,
@@ -102,7 +102,7 @@ func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 		res := sinkRes{
 			ID:          sinkEdited.ID,
 			Name:        sinkEdited.Name.String(),
-			Description: sinkEdited.Description,
+			Description: *sinkEdited.Description,
 			Tags:        sinkEdited.Tags,
 			State:       sinkEdited.State.String(),
 			Error:       sinkEdited.Error,
@@ -140,15 +140,17 @@ func listSinksEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 
 		for _, sink := range page.Sinks {
 			view := sinkRes{
-				ID:          sink.ID,
-				Name:        sink.Name.String(),
-				Description: sink.Description,
-				Tags:        sink.Tags,
-				State:       sink.State.String(),
-				Error:       sink.Error,
-				Backend:     sink.Backend,
-				Config:      omitSecretInformation(sink.Config),
-				TsCreated:   sink.Created,
+				ID:        sink.ID,
+				Name:      sink.Name.String(),
+				Tags:      sink.Tags,
+				State:     sink.State.String(),
+				Error:     sink.Error,
+				Backend:   sink.Backend,
+				Config:    omitSecretInformation(sink.Config),
+				TsCreated: sink.Created,
+			}
+			if sink.Description != nil {
+				view.Description = *sink.Description
 			}
 			res.Sinks = append(res.Sinks, view)
 		}
@@ -218,7 +220,7 @@ func viewSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 		res := sinkRes{
 			ID:          sink.ID,
 			Name:        sink.Name.String(),
-			Description: sink.Description,
+			Description: *sink.Description,
 			Tags:        sink.Tags,
 			State:       sink.State.String(),
 			Error:       sink.Error,
@@ -226,6 +228,10 @@ func viewSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			Config:      omitSecretInformation(sink.Config),
 			TsCreated:   sink.Created,
 		}
+		if sink.Description != nil {
+			res.Description = *sink.Description
+		}
+
 		return res, err
 	}
 }
@@ -263,7 +269,7 @@ func validateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			Name:        nID,
 			Backend:     req.Backend,
 			Config:      req.Config,
-			Description: req.Description,
+			Description: &req.Description,
 			Tags:        req.Tags,
 		}
 
@@ -275,7 +281,7 @@ func validateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 		res := validateSinkRes{
 			ID:          validated.ID,
 			Name:        validated.Name.String(),
-			Description: validated.Description,
+			Description: *validated.Description,
 			Tags:        validated.Tags,
 			State:       validated.State.String(),
 			Error:       validated.Error,

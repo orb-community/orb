@@ -109,7 +109,7 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 		sink.Tags = currentSink.Tags
 	}
 
-	if sink.Description == "" {
+	if sink.Description == nil {
 		sink.Description = currentSink.Description
 	}
 

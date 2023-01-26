@@ -35,7 +35,8 @@ class FleetAgent:
                                                                              "on agent pcap config file creation")
         assert_that(input_type, any_of(equal_to("pcap"), equal_to("flow"), equal_to("dnstap"), equal_to("netprobe")),
                     "Unexpect type of input type.")
-        if "iface" in settings.keys() and settings["iface"] == "default":
+        if "iface" in settings.keys() and isinstance(settings["iface"], str) and \
+                (settings["iface"].lower() == "default" or settings["iface"].lower() == "mocked"):
             settings['iface'] = iface
         tap = Taps()
         if input_type == "pcap":

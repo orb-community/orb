@@ -21,6 +21,10 @@ import (
 	"testing"
 )
 
+var (
+	description = "example description"
+)
+
 func TestAgentGroupSave(t *testing.T) {
 	dbMiddleware := postgres.NewDatabase(db)
 	agentGroupRepository := postgres.NewAgentGroupRepository(dbMiddleware, logger)
@@ -41,7 +45,7 @@ func TestAgentGroupSave(t *testing.T) {
 		Name:        nameID,
 		MFOwnerID:   oID.String(),
 		MFChannelID: chID.String(),
-		Tags:        types.Tags{"testkey": "testvalue"},
+		Tags:        &types.Tags{"testkey": "testvalue"},
 	}
 
 	groupCopy := group
@@ -95,10 +99,10 @@ func TestAgentGroupRetrieve(t *testing.T) {
 
 	group := fleet.AgentGroup{
 		Name:        nameID,
-		Description: "a example",
+		Description: &description,
 		MFOwnerID:   oID.String(),
 		MFChannelID: chID.String(),
-		Tags:        types.Tags{"testkey": "testvalue"},
+		Tags:        &types.Tags{"testkey": "testvalue"},
 	}
 
 	id, err := agentGroupRepo.Save(context.Background(), group)
@@ -140,7 +144,7 @@ func TestAgentGroupRetrieve(t *testing.T) {
 				assert.Equal(t, nameID, ag.Name, fmt.Sprintf("%s: expected %s got %s\n", desc, nameID, ag.Name))
 			}
 			if len(tc.tags) > 0 {
-				assert.Equal(t, tc.tags, ag.Tags)
+				assert.Equal(t, tc.tags, *ag.Tags)
 			}
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
 		})
@@ -168,10 +172,10 @@ func TestMultiAgentGroupRetrieval(t *testing.T) {
 
 		group := fleet.AgentGroup{
 			Name:        nameID,
-			Description: "a example",
+			Description: &description,
 			MFOwnerID:   oID.String(),
 			MFChannelID: chID.String(),
-			Tags:        types.Tags{"testkey": "testvalue"},
+			Tags:        &types.Tags{"testkey": "testvalue"},
 		}
 
 		ag, err := agentGroupRepo.Save(context.Background(), group)
@@ -293,7 +297,7 @@ func TestAgentGroupUpdate(t *testing.T) {
 		Name:        nameID,
 		MFOwnerID:   oID.String(),
 		MFChannelID: chID.String(),
-		Tags:        types.Tags{"testkey": "testvalue"},
+		Tags:        &types.Tags{"testkey": "testvalue"},
 	}
 
 	groupID, err := groupRepo.Save(context.Background(), group)
@@ -307,7 +311,7 @@ func TestAgentGroupUpdate(t *testing.T) {
 		Name:        nameConflict,
 		MFOwnerID:   oID.String(),
 		MFChannelID: chID.String(),
-		Tags:        types.Tags{"testkey": "testvalue"},
+		Tags:        &types.Tags{"testkey": "testvalue"},
 	}
 
 	_, err = groupRepo.Save(context.Background(), groupConflictName)
@@ -355,7 +359,7 @@ func TestAgentGroupUpdate(t *testing.T) {
 				Name:        nameConflict,
 				MFOwnerID:   oID.String(),
 				MFChannelID: chID.String(),
-				Tags:        types.Tags{"testkey": "testvalue"},
+				Tags:        &types.Tags{"testkey": "testvalue"},
 			},
 			err: errors.ErrConflict,
 		},
@@ -389,7 +393,7 @@ func TestAgentGroupDelete(t *testing.T) {
 		Name:        nameID,
 		MFOwnerID:   oID.String(),
 		MFChannelID: chID.String(),
-		Tags:        types.Tags{"testkey": "testvalue"},
+		Tags:        &types.Tags{"testkey": "testvalue"},
 	}
 
 	groupID, err := groupRepo.Save(context.Background(), group)
@@ -450,7 +454,7 @@ func TestAgentGroupRetrieveAllByAgent(t *testing.T) {
 		MFThingID:   thID.String(),
 		MFOwnerID:   oID.String(),
 		MFChannelID: chID.String(),
-		OrbTags:     types.Tags{"testkey": "testvalue"},
+		OrbTags:     &types.Tags{"testkey": "testvalue"},
 		AgentTags:   types.Tags{"testkey": "testvalue"},
 		LastHBData:  types.Metadata{"heartbeatdata": "testvalue"},
 	}
@@ -466,10 +470,10 @@ func TestAgentGroupRetrieveAllByAgent(t *testing.T) {
 
 		group := fleet.AgentGroup{
 			Name:        nameID,
-			Description: "a example",
+			Description: &description,
 			MFOwnerID:   oID.String(),
 			MFChannelID: chID.String(),
-			Tags:        types.Tags{"testkey": "testvalue"},
+			Tags:        &types.Tags{"testkey": "testvalue"},
 		}
 
 		ag, err := agentGroupRepo.Save(context.Background(), group)
@@ -491,7 +495,7 @@ func TestAgentGroupRetrieveAllByAgent(t *testing.T) {
 				MFThingID:   wrongID.String(),
 				MFOwnerID:   oID.String(),
 				MFChannelID: chID.String(),
-				OrbTags:     types.Tags{"testkey": "testvalue"},
+				OrbTags:     &types.Tags{"testkey": "testvalue"},
 				AgentTags:   types.Tags{"testkey": "testvalue"},
 				LastHBData:  types.Metadata{"heartbeatdata": "testvalue"},
 			},
@@ -533,7 +537,7 @@ func TestRetrieveMatchingGroups(t *testing.T) {
 		MFThingID:   thID.String(),
 		MFOwnerID:   oID.String(),
 		MFChannelID: chID.String(),
-		OrbTags:     types.Tags{"testkey": "testvalue"},
+		OrbTags:     &types.Tags{"testkey": "testvalue"},
 		LastHBData:  types.Metadata{"heartbeatdata": "testvalue"},
 	}
 
@@ -548,10 +552,10 @@ func TestRetrieveMatchingGroups(t *testing.T) {
 
 		group := fleet.AgentGroup{
 			Name:        nameID,
-			Description: "a example",
+			Description: &description,
 			MFOwnerID:   oID.String(),
 			MFChannelID: chID.String(),
-			Tags:        types.Tags{"testkey": "testvalue"},
+			Tags:        &types.Tags{"testkey": "testvalue"},
 		}
 
 		ag, err := agentGroupRepo.Save(context.Background(), group)

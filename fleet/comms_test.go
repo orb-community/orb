@@ -226,7 +226,9 @@ func TestNotifyAgentAllDatasets(t *testing.T) {
 
 	group, err := fleetSVC.CreateAgentGroup(context.Background(), "token", fleet.AgentGroup{
 		Name: validGroupName,
-		Tags: map[string]string{"test": "true"},
+		Tags: &types.Tags{
+			"test": "true",
+		},
 	})
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
@@ -365,7 +367,9 @@ func TestNotifyAgentGroupMembership(t *testing.T) {
 
 	_, err = fleetSVC.CreateAgentGroup(context.Background(), "token", fleet.AgentGroup{
 		Name: validGroupName,
-		Tags: map[string]string{"test": "true"},
+		Tags: &types.Tags{
+			"test": "true",
+		},
 	})
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
@@ -497,7 +501,9 @@ func TestNotifyAgentNewGroupMembership(t *testing.T) {
 
 	_, err = fleetSVC.CreateAgentGroup(context.Background(), "token", fleet.AgentGroup{
 		Name: validGroupName,
-		Tags: map[string]string{"test": "true"},
+		Tags: &types.Tags{
+			"test": "true",
+		},
 	})
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
@@ -590,14 +596,13 @@ input:
 kind: collection`
 
 	policy := policies.Policy{
-		Name:        validName,
-		MFOwnerID:   ID.String(),
-		Description: "An example policy",
-		Backend:     "pktvisor",
-		Version:     0,
-		OrbTags:     map[string]string{"region": "eu"},
-		PolicyData:  policy_data,
-		Format:      "yaml",
+		Name:       validName,
+		MFOwnerID:  ID.String(),
+		Backend:    "pktvisor",
+		Version:    0,
+		OrbTags:    map[string]string{"region": "eu"},
+		PolicyData: policy_data,
+		Format:     "yaml",
 	}
 	res, err := svc.AddPolicy(context.Background(), token, policy)
 	require.Nil(t, err, fmt.Sprintf("Unexpected error: %s", err))
@@ -627,7 +632,7 @@ func createDataset(t *testing.T, svc policies.Service, name string, groupID stri
 		Name:         validName,
 		PolicyID:     policyID.String(),
 		AgentGroupID: groupID,
-		SinkIDs:      sinkIDs,
+		SinkIDs:      &sinkIDs,
 	}
 
 	res, err := svc.AddDataset(context.Background(), token, dataset)

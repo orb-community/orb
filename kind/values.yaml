@@ -100,7 +100,7 @@ orb:
         dsn: "postgres://postgres:orb@kind-orb-postgresql-keto:5432/keto"
 
   maestro:
-    replicaCount: 1
+    replicaCount: 2
     kafka:
       host: kind-orb-kafka.orb.svc.cluster.local
       port: 9092
@@ -120,7 +120,7 @@ orb:
       name: "orb-migrate"
       pullPolicy: "IfNotPresent"
       repository: ns1labs
-      tag: "0.17.0-11889e3a"
+      tag: "develop"
     autoMigrate: false
     logLevel: "debug"
 

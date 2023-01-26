@@ -54,7 +54,7 @@ var (
 		ID:          "",
 		MFOwnerID:   "",
 		Name:        types.Identifier{},
-		Description: "",
+		Description: nil,
 		MFChannelID: "",
 		Tags:        nil,
 		Created:     time.Time{},
@@ -76,6 +76,7 @@ var (
 	metadata    = map[string]interface{}{"type": "orb_agent"}
 	tags        = types.Tags{"region": "us", "node_type": "dns"}
 	invalidName = strings.Repeat("m", maxNameSize+1)
+	emptyName   = ""
 )
 
 type testRequest struct {
@@ -300,8 +301,8 @@ func TestListAgentGroup(t *testing.T) {
 		data = append(data, agentGroupRes{
 			ID:             ag.ID,
 			Name:           ag.Name.String(),
-			Description:    ag.Description,
-			Tags:           ag.Tags,
+			Description:    *ag.Description,
+			Tags:           *ag.Tags,
 			TsCreated:      ag.Created,
 			MatchingAgents: nil,
 		})
@@ -469,6 +470,8 @@ func TestUpdateAgentGroup(t *testing.T) {
 	ag, err := createAgentGroup(t, "ue-agent-group", &cli)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
+	groupName := ag.Name.String()
+
 	cases := map[string]struct {
 		req         string
 		id          string
@@ -478,7 +481,7 @@ func TestUpdateAgentGroup(t *testing.T) {
 	}{
 		"update existing agent group": {
 			req: toJSON(updateAgentGroupReq{
-				Name:        ag.Name.String(),
+				Name:        &groupName,
 				Description: ag.Description,
 				Tags:        ag.Tags,
 			}),
@@ -496,7 +499,7 @@ func TestUpdateAgentGroup(t *testing.T) {
 		},
 		"update agent group with a invalid id": {
 			req: toJSON(updateAgentGroupReq{
-				Name:        ag.Name.String(),
+				Name:        &groupName,
 				Description: ag.Description,
 				Tags:        ag.Tags,
 			}),
@@ -507,7 +510,7 @@ func TestUpdateAgentGroup(t *testing.T) {
 		},
 		"update non-existing agent group": {
 			req: toJSON(updateAgentGroupReq{
-				Name:        ag.Name.String(),
+				Name:        &groupName,
 				Description: ag.Description,
 				Tags:        ag.Tags,
 			}),
@@ -518,7 +521,7 @@ func TestUpdateAgentGroup(t *testing.T) {
 		},
 		"update agent group with invalid user token": {
 			req: toJSON(updateAgentGroupReq{
-				Name:        ag.Name.String(),
+				Name:        &groupName,
 				Description: ag.Description,
 				Tags:        ag.Tags,
 			}),
@@ -529,7 +532,7 @@ func TestUpdateAgentGroup(t *testing.T) {
 		},
 		"update agent group with empty user token": {
 			req: toJSON(updateAgentGroupReq{
-				Name:        ag.Name.String(),
+				Name:        &groupName,
 				Description: ag.Description,
 				Tags:        ag.Tags,
 			}),
@@ -540,7 +543,7 @@ func TestUpdateAgentGroup(t *testing.T) {
 		},
 		"update agent group with invalid content type": {
 			req: toJSON(updateAgentGroupReq{
-				Name:        ag.Name.String(),
+				Name:        &groupName,
 				Description: ag.Description,
 				Tags:        ag.Tags,
 			}),
@@ -551,7 +554,7 @@ func TestUpdateAgentGroup(t *testing.T) {
 		},
 		"update agent group without content type": {
 			req: toJSON(updateAgentGroupReq{
-				Name:        ag.Name.String(),
+				Name:        &groupName,
 				Description: ag.Description,
 				Tags:        ag.Tags,
 			}),
@@ -583,7 +586,7 @@ func TestUpdateAgentGroup(t *testing.T) {
 		},
 		"add a agent group with invalid name": {
 			req: toJSON(updateAgentGroupReq{
-				Name:        "g",
+				Name:        &invalidName,
 				Description: ag.Description,
 				Tags:        ag.Tags,
 			}),
@@ -594,14 +597,24 @@ func TestUpdateAgentGroup(t *testing.T) {
 		},
 		"update existing agent group with empty tags": {
 			req: toJSON(updateAgentGroupReq{
-				Name:        ag.Name.String(),
+				Name:        &groupName,
 				Description: ag.Description,
-				Tags:        map[string]string{},
+				Tags:        &types.Tags{},
 			}),
 			id:          ag.ID,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusBadRequest,
+		},
+		"update existing agent group with omitted tags": {
+			req: toJSON(updateAgentGroupReq{
+				Name:        &groupName,
+				Description: ag.Description,
+			}),
+			id:          ag.ID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusOK,
 		},
 		"update existing agent group with omitted name": {
 			req: toJSON(updateAgentGroupReq{
@@ -613,15 +626,16 @@ func TestUpdateAgentGroup(t *testing.T) {
 			auth:        token,
 			status:      http.StatusOK,
 		},
-		"update existing agent group with omitted tags": {
+		"update existing agent group with empty name": {
 			req: toJSON(updateAgentGroupReq{
-				Name:        ag.Name.String(),
+				Name:        &emptyName,
 				Description: ag.Description,
+				Tags:        ag.Tags,
 			}),
 			id:          ag.ID,
 			contentType: contentType,
 			auth:        token,
-			status:      http.StatusOK,
+			status:      http.StatusBadRequest,
 		},
 	}
 
@@ -909,7 +923,7 @@ func TestListAgent(t *testing.T) {
 			Name:          ag.Name.String(),
 			ChannelID:     ag.MFChannelID,
 			AgentTags:     ag.AgentTags,
-			OrbTags:       ag.OrbTags,
+			OrbTags:       *ag.OrbTags,
 			TsCreated:     ag.Created,
 			AgentMetadata: ag.AgentMetadata,
 			State:         ag.State.String(),
@@ -1080,6 +1094,8 @@ func TestUpdateAgent(t *testing.T) {
 	ag, err := createAgent(t, "my-agent1", &cli)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
+	agentName := ag.Name.String()
+
 	cases := map[string]struct {
 		req         string
 		id          string
@@ -1089,7 +1105,7 @@ func TestUpdateAgent(t *testing.T) {
 	}{
 		"update existing agent": {
 			req: toJSON(updateAgentReq{
-				Name: ag.Name.String(),
+				Name: &agentName,
 				Tags: ag.OrbTags,
 			}),
 			id:          ag.MFThingID,
@@ -1106,7 +1122,7 @@ func TestUpdateAgent(t *testing.T) {
 		},
 		"update agent with a invalid id": {
 			req: toJSON(updateAgentReq{
-				Name: ag.Name.String(),
+				Name: &agentName,
 				Tags: ag.OrbTags,
 			}),
 			id:          "invalid",
@@ -1116,7 +1132,7 @@ func TestUpdateAgent(t *testing.T) {
 		},
 		"update non-existing agent": {
 			req: toJSON(updateAgentReq{
-				Name: ag.Name.String(),
+				Name: &agentName,
 				Tags: ag.OrbTags,
 			}),
 			id:          wrongID,
@@ -1126,7 +1142,7 @@ func TestUpdateAgent(t *testing.T) {
 		},
 		"update agent with invalid user token": {
 			req: toJSON(updateAgentReq{
-				Name: ag.Name.String(),
+				Name: &agentName,
 				Tags: ag.OrbTags,
 			}),
 			id:          ag.MFThingID,
@@ -1136,7 +1152,7 @@ func TestUpdateAgent(t *testing.T) {
 		},
 		"update agent with empty user token": {
 			req: toJSON(updateAgentReq{
-				Name: ag.Name.String(),
+				Name: &agentName,
 				Tags: ag.OrbTags,
 			}),
 			id:          ag.MFThingID,
@@ -1146,7 +1162,7 @@ func TestUpdateAgent(t *testing.T) {
 		},
 		"update agent with invalid content type": {
 			req: toJSON(updateAgentReq{
-				Name: ag.Name.String(),
+				Name: &agentName,
 				Tags: ag.OrbTags,
 			}),
 			id:          ag.MFThingID,
@@ -1156,7 +1172,7 @@ func TestUpdateAgent(t *testing.T) {
 		},
 		"update agent without content type": {
 			req: toJSON(updateAgentReq{
-				Name: ag.Name.String(),
+				Name: &agentName,
 				Tags: ag.OrbTags,
 			}),
 			id:          ag.MFThingID,
@@ -1187,7 +1203,7 @@ func TestUpdateAgent(t *testing.T) {
 		},
 		"update existing agent with invalid name": {
 			req: toJSON(updateAgentReq{
-				Name: "a",
+				Name: &invalidName,
 				Tags: ag.OrbTags,
 			}),
 			id:          ag.MFThingID,
@@ -1195,9 +1211,38 @@ func TestUpdateAgent(t *testing.T) {
 			auth:        token,
 			status:      http.StatusBadRequest,
 		},
-		"update existing agent without name": {
+		"update existing agent with omitted name": {
 			req: toJSON(updateAgentReq{
 				Tags: ag.OrbTags,
+			}),
+			id:          ag.MFThingID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusOK,
+		},
+		"update existing agent with empty name": {
+			req: toJSON(updateAgentReq{
+				Name: &emptyName,
+				Tags: ag.OrbTags,
+			}),
+			id:          ag.MFThingID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+		},
+		"update existing agent with empty tags": {
+			req: toJSON(updateAgentReq{
+				Name: &agentName,
+				Tags: &types.Tags{},
+			}),
+			id:          ag.MFThingID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusOK,
+		},
+		"update existing agent with omitted tags": {
+			req: toJSON(updateAgentReq{
+				Name: &agentName,
 			}),
 			id:          ag.MFThingID,
 			contentType: contentType,
@@ -1633,7 +1678,10 @@ func createAgentGroup(t *testing.T, name string, cli *clientServer) (fleet.Agent
 	validName, err := types.NewIdentifier(name)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 	agCopy.Name = validName
-	agCopy.Tags = tags
+	agCopy.Tags = &tags
+
+	description := "description example"
+	agCopy.Description = &description
 	ag, err := cli.service.CreateAgentGroup(context.Background(), token, agCopy)
 	if err != nil {
 		return fleet.AgentGroup{}, err
@@ -1647,7 +1695,7 @@ func createAgent(t *testing.T, name string, cli *clientServer) (fleet.Agent, err
 	validName, err := types.NewIdentifier(name)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 	aCopy.Name = validName
-	aCopy.OrbTags = tags
+	aCopy.OrbTags = &tags
 	a, err := cli.service.CreateAgent(context.Background(), token, aCopy)
 	if err != nil {
 		return fleet.Agent{}, err
@@ -1709,13 +1757,13 @@ type agentsPageRes struct {
 
 type updateAgentGroupReq struct {
 	token       string
-	Name        string     `json:"name,omitempty"`
-	Description string     `json:"description,omitempty"`
-	Tags        types.Tags `json:"tags"`
+	Name        *string     `json:"name,omitempty"`
+	Description *string     `json:"description,omitempty"`
+	Tags        *types.Tags `json:"tags"`
 }
 
 type updateAgentReq struct {
 	token string
-	Name  string     `json:"name,omitempty"`
-	Tags  types.Tags `json:"orb_tags"`
+	Name  *string     `json:"name,omitempty"`
+	Tags  *types.Tags `json:"orb_tags,omitempty"`
 }

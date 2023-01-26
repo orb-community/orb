@@ -55,7 +55,7 @@ func TestDatasetSave(t *testing.T) {
 		Valid:        true,
 		AgentGroupID: groupID.String(),
 		PolicyID:     policyID.String(),
-		SinkIDs:      sinkIDs,
+		SinkIDs:      &sinkIDs,
 		Metadata:     types.Metadata{"testkey": "testvalue"},
 		Created:      time.Time{},
 	}
@@ -86,7 +86,7 @@ func TestDatasetSave(t *testing.T) {
 				Valid:        true,
 				AgentGroupID: groupID.String(),
 				PolicyID:     policyID.String(),
-				SinkIDs:      sinkIDs,
+				SinkIDs:      &sinkIDs,
 			},
 			err: errors.ErrMalformedEntity,
 		},
@@ -132,7 +132,7 @@ func TestDatasetUpdate(t *testing.T) {
 		Valid:        true,
 		AgentGroupID: groupID.String(),
 		PolicyID:     policyID.String(),
-		SinkIDs:      sinkIDs,
+		SinkIDs:      &sinkIDs,
 		Metadata:     types.Metadata{"testkey": "testvalue"},
 		Created:      time.Time{},
 	}
@@ -157,7 +157,7 @@ func TestDatasetUpdate(t *testing.T) {
 				Valid:        true,
 				AgentGroupID: groupID.String(),
 				PolicyID:     policyID.String(),
-				SinkIDs:      sinkIDs,
+				SinkIDs:      &sinkIDs,
 				Metadata:     types.Metadata{"testkey": "testvalue"},
 				Created:      time.Time{},
 				ID:           wrongID.String(),
@@ -206,7 +206,7 @@ func TestDatasetDelete(t *testing.T) {
 		Valid:        true,
 		AgentGroupID: groupID.String(),
 		PolicyID:     policyID.String(),
-		SinkIDs:      sinkIDs,
+		SinkIDs:      &sinkIDs,
 		Metadata:     types.Metadata{"testkey": "testvalue"},
 		Created:      time.Time{},
 	}
@@ -270,7 +270,7 @@ func TestDatasetRetrieveByID(t *testing.T) {
 		Valid:        true,
 		AgentGroupID: groupID.String(),
 		PolicyID:     policyID.String(),
-		SinkIDs:      sinkIDs,
+		SinkIDs:      &sinkIDs,
 		Metadata:     types.Metadata{"testkey": "testvalue"},
 		Created:      time.Time{},
 	}
@@ -456,7 +456,7 @@ func TestInactivateDatasetByGroupID(t *testing.T) {
 		Valid:        true,
 		AgentGroupID: groupID.String(),
 		PolicyID:     policyID.String(),
-		SinkIDs:      sinkIDs,
+		SinkIDs:      &sinkIDs,
 		Metadata:     types.Metadata{"testkey": "testvalue"},
 		Created:      time.Time{},
 	}
@@ -525,7 +525,7 @@ func TestInactivateDatasetByPolicyID(t *testing.T) {
 		Valid:        true,
 		AgentGroupID: groupID.String(),
 		PolicyID:     policyID.String(),
-		SinkIDs:      sinkIDs,
+		SinkIDs:      &sinkIDs,
 		Metadata:     types.Metadata{"testkey": "testvalue"},
 		Created:      time.Time{},
 	}
@@ -660,7 +660,7 @@ func TestInactivateDatasetByID(t *testing.T) {
 		Valid:        true,
 		AgentGroupID: groupID.String(),
 		PolicyID:     policyID.String(),
-		SinkIDs:      sinkIDs,
+		SinkIDs:      &sinkIDs,
 		Metadata:     types.Metadata{"testkey": "testvalue"},
 		Created:      time.Time{},
 	}
@@ -751,10 +751,12 @@ func TestDeleteSinkFromDataset(t *testing.T) {
 		Valid:        true,
 		AgentGroupID: groupID.String(),
 		PolicyID:     policyID.String(),
-		SinkIDs:      sinkIDs,
+		SinkIDs:      &sinkIDs,
 		Metadata:     types.Metadata{"testkey": "testvalue"},
 		Created:      time.Time{},
 	}
+
+	deleteSinkArray := []string{sinkIDs[0]}
 
 	dataset2 := dataset
 	dataset2.Name = nameID2
@@ -779,7 +781,7 @@ func TestDeleteSinkFromDataset(t *testing.T) {
 	}{
 		"delete a sink from existing dataset": {
 			owner:    dataset.MFOwnerID,
-			sinkID:   dataset.SinkIDs[0],
+			sinkID:   deleteSinkArray[0],
 			contains: false,
 			dataset:  dataset,
 			err:      nil,
@@ -792,7 +794,7 @@ func TestDeleteSinkFromDataset(t *testing.T) {
 			err:      nil,
 		},
 		"delete a sink from a dataset with an invalid ownerID": {
-			sinkID:   dataset2.SinkIDs[0],
+			sinkID:   deleteSinkArray[0],
 			owner:    "",
 			contains: true,
 			dataset:  dataset2,
@@ -808,9 +810,9 @@ func TestDeleteSinkFromDataset(t *testing.T) {
 			for _, d := range dataset {
 				switch tc.contains {
 				case false:
-					assert.NotContains(t, d.SinkIDs, tc.sinkID, fmt.Sprintf("%s: expected '%s' to not contains '%s'", desc, d.SinkIDs, tc.sinkID))
+					assert.NotContains(t, *d.SinkIDs, tc.sinkID, fmt.Sprintf("%s: expected '%p' to not contains '%s'", desc, d.SinkIDs, tc.sinkID))
 				case true:
-					assert.Contains(t, d.SinkIDs, tc.sinkID, fmt.Sprintf("%s: expected '%s' to contains '%s'", desc, d.SinkIDs, tc.sinkID))
+					assert.Contains(t, *d.SinkIDs, tc.sinkID, fmt.Sprintf("%s: expected '%p' to contains '%s'", desc, d.SinkIDs, tc.sinkID))
 				}
 			}
 		})
@@ -852,7 +854,7 @@ func TestActivateDatasetByID(t *testing.T) {
 		Valid:        false,
 		AgentGroupID: groupID.String(),
 		PolicyID:     policyID.String(),
-		SinkIDs:      sinkIDs,
+		SinkIDs:      &sinkIDs,
 		Metadata:     types.Metadata{"testkey": "testvalue"},
 		Created:      time.Time{},
 	}
@@ -943,7 +945,7 @@ func TestDeleteAgentGroupFromDataset(t *testing.T) {
 		Valid:        true,
 		AgentGroupID: groupID.String(),
 		PolicyID:     policyID.String(),
-		SinkIDs:      sinkIDs,
+		SinkIDs:      &sinkIDs,
 		Metadata:     types.Metadata{"testkey": "testvalue"},
 		Created:      time.Time{},
 	}
@@ -1042,7 +1044,7 @@ func TestDeleteAllDatasetsPolicy(t *testing.T) {
 		Valid:        true,
 		AgentGroupID: groupID.String(),
 		PolicyID:     policyID.String(),
-		SinkIDs:      sinkIDs,
+		SinkIDs:      &sinkIDs,
 		Metadata:     types.Metadata{"testkey": "testvalue"},
 		Created:      time.Time{},
 	}
@@ -1125,7 +1127,7 @@ func TestDatasetsRetrieveByGroup(t *testing.T) {
 		Valid:        true,
 		AgentGroupID: groupID.String(),
 		PolicyID:     policyID,
-		SinkIDs:      sinkIDs,
+		SinkIDs:      &sinkIDs,
 		Metadata:     types.Metadata{"testkey": "testvalue"},
 		Created:      time.Time{},
 	}

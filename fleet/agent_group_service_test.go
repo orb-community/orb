@@ -44,17 +44,19 @@ const (
 )
 
 var (
-	agentGroup = fleet.AgentGroup{
+	description = "An example agent group representing european dns nodes"
+	agentGroup  = fleet.AgentGroup{
 		ID:          "",
 		MFOwnerID:   "",
 		Name:        types.Identifier{},
-		Description: "",
+		Description: &description,
 		MFChannelID: "",
 		Tags:        nil,
 		Created:     time.Time{},
 	}
 	invalidName = strings.Repeat("m", maxNameSize+1)
 	metadata    = map[string]interface{}{"meta": "data"}
+	emptyTags   = types.Tags{}
 )
 
 func generateChannels() map[string]things.Channel {
@@ -123,14 +125,12 @@ func TestCreateAgentGroup(t *testing.T) {
 	validAgent := fleet.AgentGroup{
 		MFOwnerID:   ownerID.String(),
 		Name:        nameID,
-		Description: "An example agent group representing european dns nodes",
-		Tags:        make(map[string]string),
-		Created:     time.Time{},
-	}
-
-	validAgent.Tags = map[string]string{
-		"region":    "eu",
-		"node_type": "dns",
+		Description: &description,
+		Tags: &types.Tags{
+			"region":    "eu",
+			"node_type": "dns",
+		},
+		Created: time.Time{},
 	}
 
 	cases := map[string]struct {
@@ -326,6 +326,10 @@ func TestUpdateAgentGroup(t *testing.T) {
 	}
 	_, err = fleetService.CreateAgent(context.Background(), token, agent)
 
+	emptyDescription := ""
+
+	groupTestDescriptionAttribute, err := createAgentGroup(t, "test-description", fleetService)
+
 	cases := map[string]struct {
 		group         fleet.AgentGroup
 		expectedGroup fleet.AgentGroup
@@ -356,7 +360,7 @@ func TestUpdateAgentGroup(t *testing.T) {
 			token: token,
 			err:   errors.ErrUpdateEntity,
 		},
-		"update existing agent without name": {
+		"update existing agent with omitted name": {
 			group: fleet.AgentGroup{
 				ID:        ag.ID,
 				MFOwnerID: ag.MFOwnerID,
@@ -383,35 +387,20 @@ func TestUpdateAgentGroup(t *testing.T) {
 			token: token,
 			err:   nil,
 		},
-		"update existing agent group with description empty": {
+		"update existing agent group with empty description": {
 			group: fleet.AgentGroup{
-				ID:          ag.ID,
-				Name:        ag.Name,
-				MFOwnerID:   ag.MFOwnerID,
-				Description: "",
+				ID:          groupTestDescriptionAttribute.ID,
+				Name:        groupTestDescriptionAttribute.Name,
+				MFOwnerID:   groupTestDescriptionAttribute.MFOwnerID,
+				Description: &emptyDescription,
 			},
 			expectedGroup: fleet.AgentGroup{
-				Name:        ag.Name,
-				Tags:        ag.Tags,
-				Description: ag.Description,
+				Name:        groupTestDescriptionAttribute.Name,
+				Tags:        groupTestDescriptionAttribute.Tags,
+				Description: &emptyDescription,
 			},
 			token: token,
 			err:   nil,
-		},
-		"update existing agent group with tags empty": {
-			group: fleet.AgentGroup{
-				ID:        ag.ID,
-				Name:      ag.Name,
-				MFOwnerID: ag.MFOwnerID,
-				Tags:      map[string]string{},
-			},
-			expectedGroup: fleet.AgentGroup{
-				Name:        ag.Name,
-				Tags:        ag.Tags,
-				Description: ag.Description,
-			},
-			token: token,
-			err:   errors.ErrMalformedEntity,
 		},
 		"update existing agent group with tags omitted": {
 			group: fleet.AgentGroup{
@@ -427,14 +416,30 @@ func TestUpdateAgentGroup(t *testing.T) {
 			token: token,
 			err:   nil,
 		},
+		"update existing agent group with tags empty": {
+			group: fleet.AgentGroup{
+				ID:        ag.ID,
+				Name:      ag.Name,
+				MFOwnerID: ag.MFOwnerID,
+				Tags:      &emptyTags,
+			},
+			expectedGroup: fleet.AgentGroup{
+				Name:        ag.Name,
+				Tags:        ag.Tags,
+				Description: ag.Description,
+			},
+			token: token,
+			err:   errors.ErrMalformedEntity,
+		},
 	}
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
 			agentGroupTest, err := fleetService.EditAgentGroup(context.Background(), tc.token, tc.group)
 			if err == nil {
-				assert.Equal(t, tc.expectedGroup.Description, agentGroupTest.Description, fmt.Sprintf("%s: expected %s got %s", desc, tc.expectedGroup.Description, agentGroupTest.Description))
+				assert.Equal(t, *tc.expectedGroup.Description, *agentGroupTest.Description, fmt.Sprintf("%s: expected %s got %s", desc, *tc.expectedGroup.Description, *agentGroupTest.Description))
 				assert.Equal(t, tc.expectedGroup.Name, agentGroupTest.Name, fmt.Sprintf("%s: expected %s got %s", desc, tc.expectedGroup.Name, agentGroupTest.Name))
+				assert.Equal(t, tc.expectedGroup.Tags, agentGroupTest.Tags, fmt.Sprintf("%s: expected %p got %p", desc, tc.expectedGroup.Tags, agentGroupTest.Tags))
 			}
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %d got %d", desc, tc.err, err))
 		})
@@ -495,8 +500,8 @@ func createAgentGroup(t *testing.T, name string, svc fleet.AgentGroupService) (f
 		return fleet.AgentGroup{}, err
 	}
 	agCopy.Name = validName
-	agCopy.Description = "example"
-	agCopy.Tags = map[string]string{
+	agCopy.Description = &description
+	agCopy.Tags = &types.Tags{
 		"tag": "test",
 	}
 	ag, err := svc.CreateAgentGroup(context.Background(), token, agCopy)
@@ -539,13 +544,11 @@ func TestValidateAgentGroup(t *testing.T) {
 	validAgent := fleet.AgentGroup{
 		MFOwnerID:   ownerID.String(),
 		Name:        nameID,
-		Description: "An example agent group representing european dns nodes",
-		Tags:        make(map[string]string),
-	}
-
-	validAgent.Tags = map[string]string{
-		"region":    "eu",
-		"node_type": "dns",
+		Description: &description,
+		Tags: &types.Tags{
+			"region":    "eu",
+			"node_type": "dns",
+		},
 	}
 
 	cases := map[string]struct {

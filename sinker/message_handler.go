@@ -129,7 +129,7 @@ func (svc SinkerService) handleMetrics(ctx context.Context, agentID string, chan
 		MFOwnerID:   agentPb.OwnerID,
 		MFThingID:   agentID,
 		MFChannelID: channelID,
-		OrbTags:     agentPb.OrbTags,
+		OrbTags:     (*types.Tags)(&agentPb.OrbTags),
 		AgentTags:   agentPb.AgentTags,
 	}
 

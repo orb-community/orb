@@ -14,7 +14,7 @@ import (
 type Policy struct {
 	ID            string
 	Name          types.Identifier
-	Description   string
+	Description   *string
 	MFOwnerID     string
 	Backend       string
 	SchemaVersion string
@@ -37,7 +37,7 @@ type Dataset struct {
 	Metadata     types.Metadata
 	Created      time.Time
 	Tags         types.Tags
-	SinkIDs      []string
+	SinkIDs      *[]string
 }
 
 type PolicyInDataset struct {

@@ -34,7 +34,7 @@ func retrieveSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 		res := sinkRes{
 			id:          sink.ID,
 			name:        sink.Name.String(),
-			description: sink.Description,
+			description: *sink.Description,
 			tags:        tagData,
 			state:       sink.State.String(),
 			error:       sink.Error,
@@ -50,6 +50,7 @@ func retrieveSinksEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 		req := request.(sinksFilter)
 		filter := sinks.Filter{
 			OpenTelemetry: req.isOtel,
+			StateFilter:   req.state,
 		}
 		sinksInternal, err := svc.ListSinksInternal(ctx, filter)
 		if err != nil {
@@ -81,8 +82,9 @@ func buildSinkResponse(sink sinks.Sink) (sinkRes, error) {
 
 	return sinkRes{
 		id:          sink.ID,
+		mfOwnerId:   sink.MFOwnerID,
 		name:        sink.Name.String(),
-		description: sink.Description,
+		description: *sink.Description,
 		tags:        tagData,
 		state:       sink.State.String(),
 		error:       sink.Error,

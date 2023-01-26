@@ -40,6 +40,7 @@ const (
 	Running
 	FailedToApply
 	Offline
+	NoTapMatch
 )
 
 type PolicyState int
@@ -49,6 +50,7 @@ var policyStateMap = [...]string{
 	"running",
 	"failed_to_apply",
 	"offline",
+	"no_tap_match",
 }
 
 var policyStateRevMap = map[string]PolicyState{
@@ -56,6 +58,7 @@ var policyStateRevMap = map[string]PolicyState{
 	"running":         Running,
 	"failed_to_apply": FailedToApply,
 	"offline":         Offline,
+	"no_tap_match":    NoTapMatch,
 }
 
 func (s PolicyState) String() string {

@@ -141,7 +141,7 @@ Scenario: tap_selector - any - matching 0 of all tags from an agent
     Then 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
-        And this agent's heartbeat shows that 1 policies are applied and all has status failed_to_apply
+        And this agent's heartbeat shows that 1 policies are applied and all has status no_tap_match
         And the policy application error details must show that 422 no tap match found for specified 'input.tap_selector' tags
         And remove the agent .yaml generated on each scenario
 
@@ -193,7 +193,7 @@ Scenario: tap_selector - all - matching 0 of all tags from an agent
     Then 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
-        And this agent's heartbeat shows that 1 policies are applied and all has status failed_to_apply
+        And this agent's heartbeat shows that 1 policies are applied and all has status no_tap_match
         And the policy application error details must show that 422 no tap match found for specified 'input.tap_selector' tags
         And remove the agent .yaml generated on each scenario
 
