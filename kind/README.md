@@ -28,6 +28,8 @@ If you need help to setup a **Docker Environment**, follow the [steps from here]
 <a name="helm-3"></a>
 ## ⚓ Helm 3 (Requirement)
 
+[Helm](https://helm.sh/) is a package manager for Kubernetes. A Helm Chart is a package that allows you to customize your deployment on Kubernetes.
+
 Quick install a **Helm 3** executing:
 ```shell
 make install-helm
@@ -197,3 +199,6 @@ After changing you can simply execute
 ```shell
 make kind-upgrade-all
 ```
+
+<br>
+❌ Is it not working correctly? Found a bug? Come talk to us [live on Slack](https://netdev.chat/) in the `#orb` channel, or [file a GitHub issue here](https://github.com/orb-community/orb/issues/new/choose).
