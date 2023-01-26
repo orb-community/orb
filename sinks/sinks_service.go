@@ -11,6 +11,7 @@ package sinks
 import (
 	"context"
 	"github.com/ns1labs/orb/pkg/errors"
+	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/sinks/backend"
 )
 
@@ -42,9 +43,9 @@ func (svc sinkService) CreateSink(ctx context.Context, token string, sink Sink) 
 	}
 
 	//// add default values
-	//defaultMetadata := make(types.Metadata, 1)
-	//defaultMetadata["opentelemetry"] = "enabled"
-	//sink.Config.Merge(defaultMetadata)
+	defaultMetadata := make(types.Metadata, 1)
+	defaultMetadata["opentelemetry"] = "enabled"
+	sink.Config.Merge(defaultMetadata)
 
 	id, err := svc.sinkRepo.Save(ctx, sink)
 	if err != nil {
