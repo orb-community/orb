@@ -23,6 +23,26 @@ type eventStore struct {
 
 // DeployCollector only used in maestro
 func (e eventStore) DeployCollector(ctx context.Context, config config.SinkConfig) error {
+	err := e.sinkCache.Edit(config)
+	if err != nil {
+		return err
+	}
+
+	event := SinkerUpdateEvent{
+		SinkID:    config.SinkID,
+		Owner:     config.OwnerID,
+		State:     config.State.String(),
+		Msg:       config.Msg,
+		Timestamp: time.Now(),
+	}
+	record := &redis.XAddArgs{
+		Stream: streamID,
+		Values: event.Encode(),
+	}
+	err = e.client.XAdd(context.Background(), record).Err()
+	if err != nil {
+		e.logger.Error("error sending event to event store", zap.Error(err))
+	}
 	return nil
 }
 
