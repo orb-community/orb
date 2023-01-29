@@ -165,16 +165,16 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 		}
 		var data maestroconfig.SinkData
 		if err := json.Unmarshal(sink.Config, &data); err != nil {
-			svc.logger.Warn("failed to unmarshal sink, skipping", zap.String("sink-id", sink.Id))
+			svc.logger.Warn("failed to unmarshal sink config, skipping", zap.String("sink-id", sink.Id))
 			continue
 		}
-		if data.LastRemoteWrite.After(time.Now().Add(-TimeDiffActiveIdle)) {
-			svc.logger.Warn("collector recently updated, skipping", zap.String("sink-id", sink.Id))
-			continue
-		}
+// 		if data.LastRemoteWrite.After(time.Now().Add(-TimeDiffActiveIdle)) {
+// 			svc.logger.Warn("collector recently updated, skipping", zap.String("sink-id", sink.Id))
+// 			continue
+// 		}
 		data.SinkID = sink.Id
 		data.OwnerID = sink.OwnerID
-		data.LastRemoteWrite = time.Now()
+		// data.LastRemoteWrite = time.Now()
 		logs, err := svc.getPodLogs(ctx, *sinkCollector)
 		if err != nil {
 			svc.logger.Error("error on getting logs, skipping", zap.Error(err))
@@ -189,8 +189,8 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 		// this state can be 'error', if any error was found on otel collector during analyzeLogs() or
 		// we can set it as idle when we see that lastRemoteWrite is older than 30 minutes, however this 
 		// monitoring state function already exists on sinker
-		if data.State.String() == "active" {
-			if data.State.String() != status {
+		if sink.GetState() == "active" {
+			if sink.GetState() != status {
 				if err != nil {
 					svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("error_message (opt)", err.Error()), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
 				} else {
