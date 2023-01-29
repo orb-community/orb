@@ -185,13 +185,19 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			svc.logger.Error("error during analyze logs", zap.Error(logsErr))
 			continue
 		}
-		if data.State.String() != status {
-			if err != nil {
-				svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("error_message (opt)", err.Error()))
-			} else {
-				svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status))
+		// we should change sink state just when it is 'active'.
+		// this state can be 'error', if any error was found on otel collector during analyzeLogs() or
+		// we can set it as idle when we see that lastRemoteWrite is older than 30 minutes, however this 
+		// monitoring state function already exists on sinker
+		if data.State.String() == "active" {
+			if data.State.String() != status {
+				if err != nil {
+					svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("error_message (opt)", err.Error()), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
+				} else {
+					svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
+				}
+				svc.publishSinkStateChange(sink, status, logsErr, err)
 			}
-			svc.publishSinkStateChange(sink, status, logsErr, err)
 		}
 	}
 
@@ -231,10 +237,18 @@ func (svc *monitorService) publishSinkStateChange(sink *sinkspb.SinkRes, status 
 //
 // TODO changing the logs from otel-collector to a json format that we can read and check for errors, will affect this
 func (svc *monitorService) analyzeLogs(logEntry []string) (status string, err error) {
-	var lastTimeStamp string
-	for _, logLine := range logEntry {
+		for _, logLine := range logEntry {
 		if len(logLine) > 24 {
-			lastTimeStamp = logLine[0:24]
+			// known errors
+			if strings.Contains(logLine, "Permanent error: remote write returned HTTP status 401 Unauthorized") {
+				errorMessage := "Permanent error: remote write returned HTTP status 401 Unauthorized"
+				return "error", errors.New(errorMessage)
+			}
+			if strings.Contains(logLine, "Permanent error: remote write returned HTTP status 429 Too Many Requests") {
+				errorMessage := "Permanent error: remote write returned HTTP status 429 Too Many Requests"
+				return "warning", errors.New(errorMessage)
+			}
+			// other errors
 			if strings.Contains(logLine, "error") {
 				errStringLog := strings.TrimRight(logLine, "error")
 				if len(errStringLog) > 4 {
@@ -246,23 +260,12 @@ func (svc *monitorService) analyzeLogs(logEntry []string) (status string, err er
 					}
 					if errorJson != nil && errorJson["error"] != nil {
 						errorMessage := errorJson["error"].(string)
-						if strings.Contains(errorMessage, "429") {
-							return "warning", errors.New(errorMessage)
-						} else {
-							return "error", errors.New(errorMessage)
-						}
+						return "error", errors.New(errorMessage)
 					}
 				}
 			}
 		}
 	}
-	lastLogTime, err := time.Parse(time.RFC3339, lastTimeStamp)
-	if err != nil {
-		return "fail", err
-	}
-	if lastLogTime.After(time.Now().Add(-TimeDiffActiveIdle)) {
-		return "idle", nil
-	} else {
-		return "active", nil
-	}
+	// if nothing happens is active, cuz idle state sinker mciro service already is handling
+	return "active", nil
 }
