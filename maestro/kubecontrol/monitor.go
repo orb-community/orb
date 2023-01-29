@@ -5,29 +5,32 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
+	"strings"
+	"time"
+
 	"github.com/go-redis/redis/v8"
 	maestroconfig "github.com/ns1labs/orb/maestro/config"
 	maestroredis "github.com/ns1labs/orb/maestro/redis"
 	sinkspb "github.com/ns1labs/orb/sinks/pb"
 	"go.uber.org/zap"
-	"io"
 	k8scorev1 "k8s.io/api/core/v1"
 	k8smetav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"strings"
-	"time"
 )
 
 const MonitorFixedDuration = 1 * time.Minute
 const TimeDiffActiveIdle = 5 * time.Minute
 
 func NewMonitorService(logger *zap.Logger, sinksClient *sinkspb.SinkServiceClient, redisClient *redis.Client, kubecontrol *Service) MonitorService {
+	deploymentChecks := make(map[string]int)
 	return &monitorService{
-		logger:      logger,
-		sinksClient: *sinksClient,
-		redisClient: redisClient,
-		kubecontrol: *kubecontrol,
+		logger:           logger,
+		sinksClient:      *sinksClient,
+		redisClient:      redisClient,
+		kubecontrol:      *kubecontrol,
+		deploymentChecks: deploymentChecks,
 	}
 }
 
@@ -37,10 +40,11 @@ type MonitorService interface {
 }
 
 type monitorService struct {
-	logger      *zap.Logger
-	sinksClient sinkspb.SinkServiceClient
-	redisClient *redis.Client
-	kubecontrol Service
+	logger           *zap.Logger
+	sinksClient      sinkspb.SinkServiceClient
+	redisClient      *redis.Client
+	kubecontrol      Service
+	deploymentChecks map[string]int //to check deployment error
 }
 
 func (svc *monitorService) Start(ctx context.Context, cancelFunc context.CancelFunc) error {
@@ -160,9 +164,14 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			}
 		}
 		if sinkCollector == nil {
-			svc.logger.Warn("collector not found for sink, set state as error", zap.String("sinkID", sink.Id))
-			err := errors.New("Permanent error: OpenTelemetry collector deployment error")
-			svc.publishSinkStateChange(sink, "error", err, err)
+			svc.logger.Warn("collector not found for sink, checking to set state as error", zap.String("sinkID", sink.Id))
+			// if collector dont spin up in 10 minutes should report error on collector deployment
+			svc.deploymentChecks[sink.Id]++
+			if svc.deploymentChecks[sink.Id] >= 10 {
+				err := errors.New("Permanent error: OpenTelemetry collector deployment error")
+				svc.publishSinkStateChange(sink, "error", err, err)
+				svc.deploymentChecks[sink.Id] = 0
+			}
 			continue
 		}
 		var data maestroconfig.SinkData
@@ -172,6 +181,7 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 		}
 		data.SinkID = sink.Id
 		data.OwnerID = sink.OwnerID
+		data.LastRemoteWrite = time.Now()
 		logs, err := svc.getPodLogs(ctx, *sinkCollector)
 		if err != nil {
 			svc.logger.Error("error on getting logs, skipping", zap.Error(err))
@@ -184,17 +194,22 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 		}
 		// we should change sink state just when it is 'active'.
 		// this state can be 'error', if any error was found on otel collector during analyzeLogs() or
-		// we can set it as idle when we see that lastRemoteWrite is older than 30 minutes, however this 
+		// we can set it as idle when we see that lastRemoteWrite is older than 30 minutes, however this
 		// monitoring state function already exists on sinker
 		if sink.GetState() == "active" {
-			if sink.GetState() != status {
+			if data.State.String() != status {
 				if err != nil {
 					svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("error_message (opt)", err.Error()), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
 				} else {
 					svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
 				}
 				svc.publishSinkStateChange(sink, status, logsErr, err)
+
+			} else {
+				// TODO: update sinker cache LastRemoteWrite
+
 			}
+
 		}
 	}
 
@@ -225,13 +240,13 @@ func (svc *monitorService) publishSinkStateChange(sink *sinkspb.SinkRes, status 
 }
 
 // analyzeLogs, will check for errors in exporter, and will return as follows
+//
 //		for errors 429 will send a "warning" state, plus message of too many requests
 //		for any other errors, will add error and message
 //		if no error message on exporter, will log as active
 //	 logs from otel-collector are coming in the standard from https://pkg.go.dev/log,
-//
 func (svc *monitorService) analyzeLogs(logEntry []string) (status string, err error) {
-		for _, logLine := range logEntry {
+	for _, logLine := range logEntry {
 		if len(logLine) > 24 {
 			// known errors
 			if strings.Contains(logLine, "Permanent error: remote write returned HTTP status 401 Unauthorized") {
