@@ -228,14 +228,11 @@ func (svc *monitorService) publishSinkStateChange(sink *sinkspb.SinkRes, status 
 }
 
 // analyzeLogs, will check for errors in exporter, and will return as follows
-//
-//		for active, the timestamp should not be longer than 5 minutes of the last metric export
-//		for errors 479 will send a "warning" state, plus message of too many requests
+//		for errors 429 will send a "warning" state, plus message of too many requests
 //		for any other errors, will add error and message
 //		if no error message on exporter, will log as active
 //	 logs from otel-collector are coming in the standard from https://pkg.go.dev/log,
 //
-// TODO changing the logs from otel-collector to a json format that we can read and check for errors, will affect this
 func (svc *monitorService) analyzeLogs(logEntry []string) (status string, err error) {
 		for _, logLine := range logEntry {
 		if len(logLine) > 24 {
