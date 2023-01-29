@@ -58,7 +58,7 @@ func (svc *deployService) collectorDeploy(ctx context.Context, operation, ownerI
 		}
 	}
 
-	err = os.WriteFile("/tmp/otel-collector-"+sinkId+".json", []byte(newContent), 0644)
+	err := os.WriteFile("/tmp/otel-collector-"+sinkId+".json", []byte(newContent), 0644)
 	if err != nil {
 		svc.logger.Error("failed to write file content", zap.Error(err))
 		return err
