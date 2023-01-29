@@ -21,10 +21,12 @@ var _ Service = (*deployService)(nil)
 type deployService struct {
 	logger      *zap.Logger
 	redisClient *redis.Client
+	deploymentState map[string]bool
 }
 
 func NewService(logger *zap.Logger, redisClient *redis.Client) Service {
-	return &deployService{logger: logger, redisClient: redisClient}
+	deploymentState := make(map[string]bool)
+	return &deployService{logger: logger, redisClient: redisClient, deploymentState: deploymentState}
 }
 
 type Service interface {
@@ -43,19 +45,15 @@ func (svc *deployService) collectorDeploy(ctx context.Context, operation, ownerI
 	fileContent := []byte(manifest)
 	tmp := strings.Split(string(fileContent), "\n")
 	newContent := strings.Join(tmp[1:], "\n")
-	status, err := svc.getDeploymentState(ctx, ownerID, sinkId)
-	if err != nil {
-		svc.logger.Error("error getting deployment state", zap.Error(err))
-		return err
-	}
+
 	if operation == "apply" {
-		if status != "deleted" {
-			svc.logger.Info("Already applied Sink ID", zap.String("ownerID", ownerID), zap.String("sinkID", sinkId), zap.String("status", status))
+		if value, ok := svc.deploymentState[sinkId]; ok && value {
+			svc.logger.Info("Already applied Sink ID=" + sinkId)
 			return nil
 		}
 	} else if operation == "delete" {
-		if status == "deleted" {
-			svc.logger.Info("Already deleted Sink ID", zap.String("ownerID", ownerID), zap.String("sinkID", sinkId), zap.String("status", status))
+		if value, ok := svc.deploymentState[sinkId]; ok && !value {
+			svc.logger.Info("Already deleted Sink ID=" + sinkId)
 			return nil
 		}
 	}
@@ -81,6 +79,11 @@ func (svc *deployService) collectorDeploy(ctx context.Context, operation, ownerI
 
 	if err == nil {
 		svc.logger.Info(fmt.Sprintf("successfully %s the otel-collector for sink-id: %s", operation, sinkId))
+		if operation == "apply" {
+			svc.deploymentState[sinkId] = true
+		} else if operation == "delete" {
+			svc.deploymentState[sinkId] = false
+		}
 	}
 
 	return nil
