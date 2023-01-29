@@ -46,9 +46,8 @@ func (svc *deployService) collectorDeploy(ctx context.Context, operation, ownerI
 	tmp := strings.Split(string(fileContent), "\n")
 	newContent := strings.Join(tmp[1:], "\n")
 	
-	// we should control it internally using a map or redis for more maestro replicas, and not with k8s
-	// cuz its generating wrong status during sink update operation due the delay in k8s api to answer
-	// sink update operation is crucial for the system once that is responsible to permit user fix its otel collector in errored cases
+	// due the delay in k8s api to answer, we should control it internally using a map or redis for more maestro replicas, and not with k8s
+	// otherwise can generate wrong deployment status during sink update operation
 	if operation == "apply" {
 		if value, ok := svc.deploymentState[sinkId]; ok && value {
 			svc.logger.Info("Already applied Sink ID=" + sinkId)
