@@ -160,7 +160,8 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			}
 		}
 		if sinkCollector == nil {
-			svc.logger.Warn("collector not found for sink, skipping", zap.String("sinkID", sink.Id))
+			svc.logger.Warn("collector not found for sink, set state as error", zap.String("sinkID", sink.Id))
+			svc.publishSinkStateChange(sink, "error", "Permanent error: OpenTelemetry collector deployment error", errors.New("Permanent error: OpenTelemetry collector deployment error"))
 			continue
 		}
 		var data maestroconfig.SinkData
