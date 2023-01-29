@@ -61,12 +61,8 @@ func (bs *SinkerOtelBridgeService) NotifyActiveSink(ctx context.Context, mfOwner
 			return err
 		}
 	} else {
-		// if status is Error during metrics export just update error message
-		if cfgRepo.State == config.Error {
-			bs.logger.Info("sink have error status, updating Msg")
-			cfgRepo.Msg = message
 		// if status remains Active during regular metrics export just update LastRemoteWrite
-		} else if cfgRepo.State == config.Active {
+		if cfgRepo.State == config.Active {
 			bs.logger.Info("sink is already active, updating LastRemoteWrite")
 			cfgRepo.LastRemoteWrite = time.Now()
 		}
