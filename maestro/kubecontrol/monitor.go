@@ -200,12 +200,12 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			continue
 		}
 		// here we should check if LastRemoteWrite is up-to-date, otherwise we need to set sink as idle
-		lastActivity, activityErr := svc.GetActivity(sink.OwnerID, sink.Id)
+		lastActivity, activityErr := svc.GetActivity(sink.Id)
 		if activityErr != nil {
 			svc.logger.Error("error on getting last collector activity, skipping", zap.Error(activityErr))
 			continue
 		}
-		idleLimit := lastActivity + 1800
+		idleLimit := lastActivity + 1800 // 30 minutes
 		// we should change sink state just when it is 'active'.
 		// this state can be 'error', if any error was found on otel collector during analyzeLogs() or
 		// we can set it as idle when we see that lastRemoteWrite is older than 30 minutes, however this
@@ -221,17 +221,16 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 
 			}
 
-			if idleLimit >= time.Now().Unix() {
+			if time.Now().Unix() >= idleLimit {
 				svc.publishSinkStateChange(sink, "idle", logsErr, err)
 			}
 		}
 	}
-
 }
 
 // check last collector activity
-func (svc *monitorService) GetActivity(ownerID string, sinkID string) (int64, error) {
-	if ownerID == "" || sinkID == "" {
+func (svc *monitorService) GetActivity(sinkID string) (int64, error) {
+	if sinkID == "" {
 		return 0, errors.New("invalid parameters")
 	}
 	skey := fmt.Sprintf("%s:%s", activityPrefix, sinkID)
