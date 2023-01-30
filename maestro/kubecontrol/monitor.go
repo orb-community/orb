@@ -211,7 +211,10 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 		// we can set it as idle when we see that lastRemoteWrite is older than 30 minutes, however this
 		// monitoring state function already exists on sinker
 		if sink.GetState() == "active" {
-			if sink.GetState() != status {
+			// check if idle
+			if time.Now().Unix() >= idleLimit {
+				svc.publishSinkStateChange(sink, "idle", logsErr, err)
+			} else if sink.GetState() != status { //updating status
 				if err != nil {
 					svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("error_message (opt)", err.Error()), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
 				} else {
@@ -219,10 +222,6 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 				}
 				svc.publishSinkStateChange(sink, status, logsErr, err)
 
-			}
-
-			if time.Now().Unix() >= idleLimit {
-				svc.publishSinkStateChange(sink, "idle", logsErr, err)
 			}
 		}
 	}
