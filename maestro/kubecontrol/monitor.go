@@ -5,7 +5,9 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
+	"strconv"
 	"strings"
 	"time"
 
@@ -20,15 +22,19 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-const MonitorFixedDuration = 1 * time.Minute
-const TimeDiffActiveIdle = 5 * time.Minute
+const (
+	activityPrefix       = "sinker_activity"
+	MonitorFixedDuration = 1 * time.Minute
+	TimeDiffActiveIdle   = 5 * time.Minute
+)
 
-func NewMonitorService(logger *zap.Logger, sinksClient *sinkspb.SinkServiceClient, redisClient *redis.Client, kubecontrol *Service) MonitorService {
+func NewMonitorService(logger *zap.Logger, sinksClient *sinkspb.SinkServiceClient, redisClient *redis.Client, redisCache *redis.Client, kubecontrol *Service) MonitorService {
 	deploymentChecks := make(map[string]int)
 	return &monitorService{
 		logger:           logger,
 		sinksClient:      *sinksClient,
 		redisClient:      redisClient,
+		redisCache:       redisCache,
 		kubecontrol:      *kubecontrol,
 		deploymentChecks: deploymentChecks,
 	}
@@ -43,6 +49,7 @@ type monitorService struct {
 	logger           *zap.Logger
 	sinksClient      sinkspb.SinkServiceClient
 	redisClient      *redis.Client
+	redisCache       *redis.Client
 	kubecontrol      Service
 	deploymentChecks map[string]int //to check deployment error
 }
@@ -168,7 +175,7 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			// if collector dont spin up in 10 minutes should report error on collector deployment
 			svc.deploymentChecks[sink.Id]++
 			if svc.deploymentChecks[sink.Id] >= 10 {
-				err := errors.New("Permanent error: OpenTelemetry collector deployment error")
+				err := errors.New("permanent error: opentelemetry collector deployment error")
 				svc.publishSinkStateChange(sink, "error", err, err)
 				svc.deploymentChecks[sink.Id] = 0
 			}
@@ -193,7 +200,12 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			continue
 		}
 		// here we should check if LastRemoteWrite is up-to-date, otherwise we need to set sink as idle
-
+		lastActivity, activityErr := svc.GetActivity(sink.OwnerID, sink.Id)
+		if activityErr != nil {
+			svc.logger.Error("error on getting last collector activity, skipping", zap.Error(activityErr))
+			continue
+		}
+		idleLimit := lastActivity + 1800
 		// we should change sink state just when it is 'active'.
 		// this state can be 'error', if any error was found on otel collector during analyzeLogs() or
 		// we can set it as idle when we see that lastRemoteWrite is older than 30 minutes, however this
@@ -208,9 +220,27 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 				svc.publishSinkStateChange(sink, status, logsErr, err)
 
 			}
+
+			if idleLimit >= time.Now().Unix() {
+				svc.publishSinkStateChange(sink, "idle", logsErr, err)
+			}
 		}
 	}
 
+}
+
+// check last collector activity
+func (svc *monitorService) GetActivity(ownerID string, sinkID string) (int64, error) {
+	if ownerID == "" || sinkID == "" {
+		return 0, errors.New("invalid parameters")
+	}
+	skey := fmt.Sprintf("%s:%s", activityPrefix, sinkID)
+	secs, err := svc.redisCache.Get(context.Background(), skey).Result()
+	if err != nil {
+		return 0, err
+	}
+	lastActivity, _ := strconv.ParseInt(secs, 10, 64)
+	return lastActivity, nil
 }
 
 func (svc *monitorService) publishSinkStateChange(sink *sinkspb.SinkRes, status string, logsErr error, err error) {
