@@ -172,9 +172,9 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 		}
 		if sinkCollector == nil {
 			svc.logger.Warn("collector not found for sink, checking to set state as error", zap.String("sinkID", sink.Id))
-			// if collector dont spin up in 10 minutes should report error on collector deployment
+			// if collector dont spin up in 30 minutes should report error on collector deployment
 			svc.deploymentChecks[sink.Id]++
-			if svc.deploymentChecks[sink.Id] >= 10 {
+			if svc.deploymentChecks[sink.Id] >= 30 {
 				err := errors.New("permanent error: opentelemetry collector deployment error")
 				svc.publishSinkStateChange(sink, "error", err, err)
 				svc.deploymentChecks[sink.Id] = 0
