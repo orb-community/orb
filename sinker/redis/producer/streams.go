@@ -125,6 +125,14 @@ func (e eventStore) Edit(config config.SinkConfig) error {
 	return nil
 }
 
+func (e eventStore) GetActivity(ownerID string, sinkID string) (int64, error) {
+	return e.sinkCache.GetActivity(ownerID, sinkID)
+}
+
+func (e eventStore) AddActivity(ownerID string, sinkID string) error {
+	return e.sinkCache.AddActivity(ownerID, sinkID)
+}
+
 func (e eventStore) GetAll(ownerID string) ([]config.SinkConfig, error) {
 	return e.sinkCache.GetAll(ownerID)
 }

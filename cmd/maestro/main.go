@@ -11,13 +11,6 @@ package main
 import (
 	"context"
 	"fmt"
-	sinksgrpc "github.com/ns1labs/orb/sinks/api/grpc"
-	"github.com/opentracing/opentracing-go"
-	"github.com/spf13/viper"
-	jconfig "github.com/uber/jaeger-client-go/config"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/credentials/insecure"
 	"io"
 	"os"
 	"os/signal"
@@ -25,6 +18,14 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	sinksgrpc "github.com/ns1labs/orb/sinks/api/grpc"
+	"github.com/opentracing/opentracing-go"
+	"github.com/spf13/viper"
+	jconfig "github.com/uber/jaeger-client-go/config"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/ns1labs/orb/maestro"
 	"github.com/ns1labs/orb/pkg/config"
@@ -220,8 +221,7 @@ func loadSinkerEsConfig(prefix string) config.EsConfig {
 
 	cfg.SetDefault("url", "localhost:6378")
 	cfg.SetDefault("pass", "")
-	cfg.SetDefault("db", "0")
-	cfg.SetDefault("consumer", fmt.Sprintf("%s-sinker-es-consumer", prefix))
+	cfg.SetDefault("db", "1")
 
 	cfg.AllowEmptyEnv(true)
 	cfg.AutomaticEnv()
