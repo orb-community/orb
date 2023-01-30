@@ -3,10 +3,13 @@ package redis
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"github.com/ns1labs/orb/sinker/redis/producer"
+	"strconv"
 	"strings"
 	"time"
+
+	"github.com/ns1labs/orb/sinker/redis/producer"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/ns1labs/orb/sinker"
@@ -15,8 +18,9 @@ import (
 )
 
 const (
-	keyPrefix = "sinker_key"
-	idPrefix  = "orb.maestro"
+	keyPrefix      = "sinker_key"
+	activityPrefix = "sinker_activity"
+	idPrefix       = "orb.maestro"
 )
 
 var _ sinkerconfig.ConfigRepo = (*sinkerCache)(nil)
@@ -86,6 +90,35 @@ func (s *sinkerCache) Edit(config sinkerconfig.SinkConfig) error {
 	}
 	return nil
 }
+
+// check collector activity
+
+func (s *sinkerCache) GetActivity(ownerID string, sinkID string) (int64, error) {
+	if ownerID == "" || sinkID == "" {
+		return 0, errors.New("invalid parameters")
+	}
+	skey := fmt.Sprintf("%s:%s", activityPrefix, sinkID)
+	secs, err := s.client.Get(context.Background(), skey).Result()
+	if err != nil {
+		return 0, err
+	}
+	lastActivity, _ := strconv.ParseInt(secs, 10, 64)
+	return lastActivity, nil
+}
+
+func (s *sinkerCache) AddActivity(ownerID string, sinkID string) error {
+	if ownerID == "" || sinkID == "" {
+		return errors.New("invalid parameters")
+	}
+	skey := fmt.Sprintf("%s:%s", activityPrefix, sinkID)
+	lastActivity := strconv.FormatInt(time.Now().Unix(), 10)
+	if err := s.client.Set(context.Background(), skey, lastActivity, 0).Err(); err != nil {
+		return err
+	}
+	return nil
+}
+
+//
 
 func (s *sinkerCache) DeployCollector(ctx context.Context, config sinkerconfig.SinkConfig) error {
 	event := producer.SinkerUpdateEvent{

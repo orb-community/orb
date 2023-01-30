@@ -61,7 +61,15 @@ func (bs *SinkerOtelBridgeService) NotifyActiveSink(ctx context.Context, mfOwner
 			return err
 		}
 	} else {
-		bs.logger.Info("sink is already active, skipping")
+		// update LastRemoteWrite on redis sinker for this collector
+		if cfgRepo.State == config.Active {
+			bs.logger.Info("sink is already active, skipping")
+			err = bs.sinkerCache.AddActivity(mfOwnerId, sinkId)
+			if err != nil {
+				bs.logger.Error("error during update last remote write", zap.String("sinkId", sinkId), zap.Error(err))
+				return err
+			}
+		}
 	}
 
 	return nil

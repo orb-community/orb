@@ -15,4 +15,6 @@ type ConfigRepo interface {
 	GetAll(ownerID string) ([]SinkConfig, error)
 	GetAllOwners() ([]string, error)
 	DeployCollector(ctx context.Context, config SinkConfig) error
+	AddActivity(ownerID string, sinkID string) error
+	GetActivity(ownerID string, sinkID string) (int64, error)
 }
