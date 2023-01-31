@@ -230,7 +230,7 @@ func (e *exporter) pushMetrics(ctx context.Context, md pmetric.Metrics) error {
 	e.logger.Info("request metrics count per policyID", zap.String("policyID", e.policyID), zap.Int("metric_count", md.MetricCount()))
 	err = e.export(ctx, e.config.MetricsTopic, request)
 	if err != nil {
-		defer ctx.Done()
+		ctx.Done()
 		return err
 	}
 	return err
@@ -240,11 +240,12 @@ func (e *exporter) pushLogs(_ context.Context, _ plog.Logs) error {
 	return fmt.Errorf("not implemented")
 }
 
-func (e *exporter) export(_ context.Context, metricsTopic string, request []byte) error {
+func (e *exporter) export(ctx context.Context, metricsTopic string, request []byte) error {
 	compressedPayload := e.compressBrotli(request)
 	c := *e.config.Client
 	if token := c.Publish(metricsTopic, 1, false, compressedPayload); token.Wait() && token.Error() != nil {
 		e.logger.Error("error sending metrics RPC", zap.String("topic", metricsTopic), zap.Error(token.Error()))
+		e.config.OrbAgentService.NotifyAgentDisconnection(ctx, token.Error())
 		return token.Error()
 	}
 	e.logger.Info("scraped and published metrics", zap.String("topic", metricsTopic), zap.Int("payload_size_b", len(request)), zap.Int("compressed_payload_size_b", len(compressedPayload)))
