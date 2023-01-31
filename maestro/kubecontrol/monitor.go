@@ -310,6 +310,8 @@ func (svc *monitorService) analyzeLogs(logEntry []string) (status string, err er
 					} else {
 						return "error", errors.New("sink configuration error: please review your sink parameters")
 					}
+				} else {
+					return "error", errors.New("sink configuration error: please review your sink parameters")
 				}
 			}
 		}
