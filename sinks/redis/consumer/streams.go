@@ -75,7 +75,6 @@ func (es eventStore) Subscribe(context context.Context) error {
 }
 
 func (es eventStore) handleSinkerStateUpdate(ctx context.Context, event stateUpdateEvent) error {
-	es.logger.Info("handleSinkerStateUpdate:", zap.String("event", event.state.String()), zap.String("sinkID:", event.sinkID), zap.String("ownerID:", event.ownerID), zap.String("state:", event.state.String()))
 	err := es.sinkService.ChangeSinkStateInternal(ctx, event.sinkID, event.msg, event.ownerID, event.state)
 	if err != nil {
 		return err

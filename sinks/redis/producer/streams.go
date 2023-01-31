@@ -67,8 +67,6 @@ func (es eventStore) CreateSink(ctx context.Context, token string, s sinks.Sink)
 		err = es.client.XAdd(ctx, record).Err()
 		if err != nil {
 			es.logger.Error("error sending event to sinker event store", zap.Error(err))
-		} else {
-			es.logger.Info("Sent event to sinker event store", zap.Any("recordToSinker", record))
 		}
 
 		// send event to maestro
@@ -86,8 +84,6 @@ func (es eventStore) CreateSink(ctx context.Context, token string, s sinks.Sink)
 		err = es.client.XAdd(ctx, recordToMaestro).Err()
 		if err != nil {
 			es.logger.Error("error sending event to maestro event store", zap.Error(err))
-		} else {
-			es.logger.Info("Sent event to maestro event store", zap.Any("recordToMaestro", recordToMaestro))
 		}
 	}()
 
