@@ -294,15 +294,21 @@ func (svc *monitorService) analyzeLogs(logEntry []string) (status string, err er
 			if strings.Contains(logLine, "error") {
 				errStringLog := strings.TrimRight(logLine, "error")
 				if len(errStringLog) > 4 {
-					jsonError := strings.Split(errStringLog, "\t")[4]
-					errorJson := make(map[string]interface{})
-					err := json.Unmarshal([]byte(jsonError), &errorJson)
-					if err != nil {
-						return "fail", err
-					}
-					if errorJson != nil && errorJson["error"] != nil {
-						errorMessage := errorJson["error"].(string)
-						return "error", errors.New(errorMessage)
+					aux := strings.Split(errStringLog, "\t")
+					numItems := len(aux)
+					if numItems > 3 {
+						jsonError := aux[4]
+						errorJson := make(map[string]interface{})
+						err := json.Unmarshal([]byte(jsonError), &errorJson)
+						if err != nil {
+							return "fail", err
+						}
+						if errorJson != nil && errorJson["error"] != nil {
+							errorMessage := errorJson["error"].(string)
+							return "error", errors.New(errorMessage)
+						}
+					} else {
+						return "error", errors.New("sink configuration error: please review your sink parameters")
 					}
 				}
 			}
