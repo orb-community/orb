@@ -214,6 +214,14 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			// check if idle
 			if time.Now().Unix() >= idleLimit {
 				svc.publishSinkStateChange(sink, "idle", logsErr, err)
+
+				// TODOs:
+
+				// - set state on sinkerCache to idle too or remove from sinker redis
+				// - remove collector from k8s
+				// - remove sinkid from redis sinker_activity
+				//svc.kubecontrol.DeleteOtelCollector(sink.OwnerID, sink.Id, ?)
+
 			} else if sink.GetState() != status { //updating status
 				if err != nil {
 					svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("error_message (opt)", err.Error()), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
@@ -287,20 +295,28 @@ func (svc *monitorService) analyzeLogs(logEntry []string) (status string, err er
 			if strings.Contains(logLine, "error") {
 				errStringLog := strings.TrimRight(logLine, "error")
 				if len(errStringLog) > 4 {
-					jsonError := strings.Split(errStringLog, "\t")[4]
-					errorJson := make(map[string]interface{})
-					err := json.Unmarshal([]byte(jsonError), &errorJson)
-					if err != nil {
-						return "fail", err
+					aux := strings.Split(errStringLog, "\t")
+					numItems := len(aux)
+					if numItems > 3 {
+						jsonError := aux[4]
+						errorJson := make(map[string]interface{})
+						err := json.Unmarshal([]byte(jsonError), &errorJson)
+						if err != nil {
+							return "fail", err
+						}
+						if errorJson != nil && errorJson["error"] != nil {
+							errorMessage := errorJson["error"].(string)
+							return "error", errors.New(errorMessage)
+						}
+					} else {
+						return "error", errors.New("sink configuration error: please review your sink parameters")
 					}
-					if errorJson != nil && errorJson["error"] != nil {
-						errorMessage := errorJson["error"].(string)
-						return "error", errors.New(errorMessage)
-					}
+				} else {
+					return "error", errors.New("sink configuration error: please review your sink parameters")
 				}
 			}
 		}
 	}
-	// if nothing happens is active, cuz idle state sinker mciro service already is handling
+	// if nothing happens is active
 	return "active", nil
 }

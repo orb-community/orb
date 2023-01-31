@@ -3,12 +3,13 @@ package consumer
 import (
 	"context"
 	"encoding/json"
+	"time"
+
 	"github.com/ns1labs/orb/maestro/config"
 	"github.com/ns1labs/orb/maestro/redis"
 	"github.com/ns1labs/orb/pkg/types"
 	sinkspb "github.com/ns1labs/orb/sinks/pb"
 	"go.uber.org/zap"
-	"time"
 )
 
 const deploymentKey = "orb.sinks.deployment"
@@ -119,5 +120,6 @@ func decodeSinksEvent(event map[string]interface{}, operation string) (redis.Sin
 		val.Config = metadata
 		return val, nil
 	}
+
 	return val, nil
 }

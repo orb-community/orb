@@ -2,11 +2,12 @@ package consumer
 
 import (
 	"context"
+	"time"
+
 	"github.com/ns1labs/orb/maestro/kubecontrol"
 	redis2 "github.com/ns1labs/orb/maestro/redis"
 	"github.com/ns1labs/orb/pkg/types"
 	sinkspb "github.com/ns1labs/orb/sinks/pb"
-	"time"
 
 	"github.com/go-redis/redis/v8"
 	"go.uber.org/zap"
@@ -14,8 +15,8 @@ import (
 
 const (
 	streamMaestro = "orb.maestro"
-	streamSinks   = "orb.sinks"
-	group         = "orb.collectors"
+	groupSinker   = "orb.sinkerCollectors"
+	groupSinks    = "orb.sinksCollectors"
 
 	sinkerPrefix = "sinker."
 	sinkerUpdate = sinkerPrefix + "update"
@@ -55,17 +56,18 @@ func NewEventStore(client *redis.Client, kafkaUrl string, kubecontrol kubecontro
 	}
 }
 
+// to listen events from sinker to maestro
 func (es eventStore) SubscribeSinker(context context.Context) error {
 	//listening sinker events
-	err := es.client.XGroupCreateMkStream(context, streamMaestro, group, "$").Err()
+	err := es.client.XGroupCreateMkStream(context, streamMaestro, groupSinker, "$").Err()
 	if err != nil && err.Error() != exists {
 		return err
 	}
 
 	for {
 		streams, err := es.client.XReadGroup(context, &redis.XReadGroupArgs{
-			Group:    group,
-			Consumer: es.esconsumer,
+			Group:    groupSinker,
+			Consumer: "sinker.maestro",
 			Streams:  []string{streamMaestro, ">"},
 			Count:    100,
 		}).Result()
@@ -79,9 +81,7 @@ func (es eventStore) SubscribeSinker(context context.Context) error {
 			switch event["operation"] {
 			case sinkerUpdate:
 				rte := decodeSinkerStateUpdate(event)
-				if rte.State == "idle" {
-					err = es.handleSinkerDeleteCollector(context, rte) //sinker request delete collector
-				} else if rte.State == "active" {
+				if rte.State == "active" {
 					err = es.handleSinkerCreateCollector(context, rte) //sinker request create collector
 				}
 			}
@@ -89,21 +89,21 @@ func (es eventStore) SubscribeSinker(context context.Context) error {
 				es.logger.Error("Failed to handle sinker event", zap.String("operation", event["operation"].(string)), zap.Error(err))
 				break
 			}
-			es.client.XAck(context, streamMaestro, group, msg.ID)
+			es.client.XAck(context, streamMaestro, groupSinker, msg.ID)
 		}
 	}
 }
 
 func (es eventStore) SubscribeSinks(context context.Context) error {
-	err := es.client.XGroupCreateMkStream(context, streamSinks, group, "$").Err()
+	err := es.client.XGroupCreateMkStream(context, streamMaestro, groupSinks, "$").Err()
 	if err != nil && err.Error() != exists {
 		return nil
 	}
 	for {
 		streams, err := es.client.XReadGroup(context, &redis.XReadGroupArgs{
-			Group:    group,
-			Consumer: es.esconsumer,
-			Streams:  []string{streamSinks, ">"},
+			Group:    groupSinks,
+			Consumer: "sinks.maestro",
+			Streams:  []string{streamMaestro, ">"},
 			Count:    100,
 		}).Result()
 		if err != nil || len(streams) == 0 {
@@ -130,14 +130,16 @@ func (es eventStore) SubscribeSinks(context context.Context) error {
 				}
 
 			case sinksDelete:
-				err = es.handleSinksDeleteCollector(context, rte) //should delete collector
+				if v, ok := rte.Config["opentelemetry"]; ok && v.(string) == "enabled" {
+					err = es.handleSinksDeleteCollector(context, rte) //should delete collector
+				}
 
 			}
 			if err != nil {
 				es.logger.Error("Failed to handle sinks event", zap.Any("operation", event["operation"]), zap.Error(err))
 				break
 			}
-			es.client.XAck(context, streamSinks, group, msg.ID)
+			es.client.XAck(context, streamMaestro, groupSinks, msg.ID)
 		}
 	}
 }
@@ -179,6 +181,7 @@ func decodeSinkerStateUpdate(event map[string]interface{}) redis2.SinkerUpdateEv
 		State:     read(event, "state", ""),
 		Timestamp: time.Time{},
 	}
+
 	return val
 }
 

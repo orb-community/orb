@@ -10,7 +10,8 @@ import (
 )
 
 const (
-	streamID = "orb.sinker"
+	streamID  = "orb.sinker"
+	maestroID = "orb.maestro"
 )
 
 var _ config.ConfigRepo = (*eventStore)(nil)
@@ -28,21 +29,39 @@ func (e eventStore) DeployCollector(ctx context.Context, config config.SinkConfi
 		return err
 	}
 
-	event := SinkerUpdateEvent{
+	eventToSink := SinkerUpdateEvent{
 		SinkID:    config.SinkID,
 		Owner:     config.OwnerID,
 		State:     config.State.String(),
 		Msg:       config.Msg,
 		Timestamp: time.Now(),
 	}
-	record := &redis.XAddArgs{
+	recordToSink := &redis.XAddArgs{
 		Stream: streamID,
-		Values: event.Encode(),
+		Values: eventToSink.Encode(),
 	}
-	err = e.client.XAdd(context.Background(), record).Err()
+	err = e.client.XAdd(context.Background(), recordToSink).Err()
 	if err != nil {
-		e.logger.Error("error sending event to event store", zap.Error(err))
+		e.logger.Error("error sending event to sinker event store", zap.Error(err))
 	}
+
+	// sending same event to maestro event store
+	eventToMaestro := SinkerUpdateEvent{
+		SinkID:    config.SinkID,
+		Owner:     config.OwnerID,
+		State:     config.State.String(),
+		Msg:       config.Msg,
+		Timestamp: time.Now(),
+	}
+	recordToMaestro := &redis.XAddArgs{
+		Stream: maestroID,
+		Values: eventToMaestro.Encode(),
+	}
+	err = e.client.XAdd(context.Background(), recordToMaestro).Err()
+	if err != nil {
+		e.logger.Error("error sending event to maestro event store", zap.Error(err))
+	}
+
 	return nil
 }
 
