@@ -19,6 +19,7 @@ import (
 
 const (
 	streamID  = "orb.sinks"
+	maestroID = "orb.maestro"
 	streamLen = 1000
 )
 
@@ -65,7 +66,28 @@ func (es eventStore) CreateSink(ctx context.Context, token string, s sinks.Sink)
 
 		err = es.client.XAdd(ctx, record).Err()
 		if err != nil {
-			es.logger.Error("error sending event to event store", zap.Error(err))
+			es.logger.Error("error sending event to sinker event store", zap.Error(err))
+		} else {
+			es.logger.Info("Sent event to sinker event store", zap.Any("recordToSinker", record))
+		}
+
+		// send event to maestro
+		encodeToMaestro, err := event.Encode()
+		if err != nil {
+			es.logger.Error("error encoding object", zap.Error(err))
+		}
+
+		recordToMaestro := &redis.XAddArgs{
+			Stream:       maestroID,
+			MaxLenApprox: streamLen,
+			Values:       encodeToMaestro,
+		}
+
+		err = es.client.XAdd(ctx, recordToMaestro).Err()
+		if err != nil {
+			es.logger.Error("error sending event to maestro event store", zap.Error(err))
+		} else {
+			es.logger.Info("Sent event to maestro event store", zap.Any("recordToMaestro", recordToMaestro))
 		}
 	}()
 
@@ -93,7 +115,29 @@ func (es eventStore) UpdateSink(ctx context.Context, token string, s sinks.Sink)
 
 		err = es.client.XAdd(ctx, record).Err()
 		if err != nil {
-			es.logger.Error("error sending event to event store", zap.Error(err))
+			es.logger.Error("error sending event to sinker event store", zap.Error(err))
+		}
+		// send event to maestro
+		eventToMaestro := updateSinkEvent{
+			sinkID: sink.ID,
+			owner:  sink.MFOwnerID,
+			config: sink.Config,
+		}
+
+		encodeToMaestro, err := eventToMaestro.Encode()
+		if err != nil {
+			es.logger.Error("error encoding object", zap.Error(err))
+		}
+
+		recordToMaestro := &redis.XAddArgs{
+			Stream:       maestroID,
+			MaxLenApprox: streamLen,
+			Values:       encodeToMaestro,
+		}
+
+		err = es.client.XAdd(ctx, recordToMaestro).Err()
+		if err != nil {
+			es.logger.Error("error sending event to maestro event store", zap.Error(err))
 		}
 	}()
 
@@ -144,7 +188,29 @@ func (es eventStore) DeleteSink(ctx context.Context, token, id string) (err erro
 
 	err = es.client.XAdd(ctx, record).Err()
 	if err != nil {
-		es.logger.Error("error sending event to event store", zap.Error(err))
+		es.logger.Error("error sending event to sinker event store", zap.Error(err))
+		return err
+	}
+	// send event to maestro
+	eventToMaestro := deleteSinkEvent{
+		sinkID:  id,
+		ownerID: sink.MFOwnerID,
+	}
+
+	encodeToMaestro, err := eventToMaestro.Encode()
+	if err != nil {
+		es.logger.Error("error encoding object", zap.Error(err))
+	}
+
+	recordToMaestro := &redis.XAddArgs{
+		Stream:       maestroID,
+		MaxLenApprox: streamLen,
+		Values:       encodeToMaestro,
+	}
+
+	err = es.client.XAdd(ctx, recordToMaestro).Err()
+	if err != nil {
+		es.logger.Error("error sending event to maestro event store", zap.Error(err))
 		return err
 	}
 	return nil

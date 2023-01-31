@@ -214,6 +214,13 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			// check if idle
 			if time.Now().Unix() >= idleLimit {
 				svc.publishSinkStateChange(sink, "idle", logsErr, err)
+				// TODOs:
+
+				// - set state on sinkerCache to idle too or remove from sinker redis
+				// - remove collector from k8s
+				// - remove sinkid from redis sinker_activity
+				//svc.kubecontrol.DeleteOtelCollector(sink.OwnerID, sink.Id, ?)
+
 			} else if sink.GetState() != status { //updating status
 				if err != nil {
 					svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("error_message (opt)", err.Error()), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
