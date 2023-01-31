@@ -214,6 +214,7 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			// check if idle
 			if time.Now().Unix() >= idleLimit {
 				svc.publishSinkStateChange(sink, "idle", logsErr, err)
+
 				// TODOs:
 
 				// - set state on sinkerCache to idle too or remove from sinker redis
@@ -314,6 +315,6 @@ func (svc *monitorService) analyzeLogs(logEntry []string) (status string, err er
 			}
 		}
 	}
-	// if nothing happens is active, cuz idle state sinker mciro service already is handling
+	// if nothing happens is active
 	return "active", nil
 }

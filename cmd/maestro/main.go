@@ -222,7 +222,6 @@ func loadSinkerEsConfig(prefix string) config.EsConfig {
 	cfg.SetDefault("url", "localhost:6378")
 	cfg.SetDefault("pass", "")
 	cfg.SetDefault("db", "1")
-	cfg.SetDefault("consumer", fmt.Sprintf("%s-sinker-es-consumer", prefix))
 
 	cfg.AllowEmptyEnv(true)
 	cfg.AutomaticEnv()
