@@ -214,12 +214,12 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			if time.Now().Unix() >= idleLimit {
 				deployment, errDeploy := svc.GetDeploymentEntryFromSinkId(ctx, sink.Id)
 				if errDeploy != nil {
-					svc.logger.Error("error on getting collector deployment from redis", zap.Error(activityErr))
-					continue
-				}
-				svc.kubecontrol.DeleteOtelCollector(ctx, sink.OwnerID, sink.Id, deployment)
-				svc.publishSinkStateChange(sink, "idle", logsErr, err)
-				svc.RemoveSinkActivity(ctx, sink.Id)
+					svc.logger.Error("error on getting collector deployment from redis", zap.Error(errDeploy))
+				} else {
+					svc.kubecontrol.DeleteOtelCollector(ctx, sink.OwnerID, sink.Id, deployment)
+					svc.publishSinkStateChange(sink, "idle", logsErr, err)
+					svc.RemoveSinkActivity(ctx, sink.Id)
+				}				
 
 			} else if sink.GetState() != status { //updating status
 				if err != nil {
