@@ -212,14 +212,14 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 		// we can set it as idle when we see that lastActivity is older than 30 minutes
 		if sink.GetState() == "active" {
 			if time.Now().Unix() >= idleLimit {
-				svc.publishSinkStateChange(sink, "idle", logsErr, err)
-				svc.RemoveSinkActivity(ctx, sink.Id)
 				deployment, errDeploy := svc.GetDeploymentEntryFromSinkId(ctx, sink.Id)
 				if errDeploy != nil {
 					svc.logger.Error("error on getting collector deployment from redis", zap.Error(activityErr))
 					continue
 				}
 				svc.kubecontrol.DeleteOtelCollector(ctx, sink.OwnerID, sink.Id, deployment)
+				svc.publishSinkStateChange(sink, "idle", logsErr, err)
+				svc.RemoveSinkActivity(ctx, sink.Id)
 
 			} else if sink.GetState() != status { //updating status
 				if err != nil {
