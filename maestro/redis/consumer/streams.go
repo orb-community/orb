@@ -129,11 +129,8 @@ func (es eventStore) SubscribeSinks(context context.Context) error {
 					err = es.handleSinksUpdateCollector(context, rte) //should create collector
 				}
 
-			case sinksDelete:
-				if v, ok := rte.Config["opentelemetry"]; ok && v.(string) == "enabled" {
-					err = es.handleSinksDeleteCollector(context, rte) //should delete collector
-				}
-
+			case sinksDelete:				
+				err = es.handleSinksDeleteCollector(context, rte) //should delete collector
 			}
 			if err != nil {
 				es.logger.Error("Failed to handle sinks event", zap.Any("operation", event["operation"]), zap.Error(err))
