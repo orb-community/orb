@@ -2,10 +2,11 @@ package consumer
 
 import (
 	"context"
+	"time"
+
 	"github.com/go-redis/redis/v8"
 	"github.com/ns1labs/orb/sinks"
 	"go.uber.org/zap"
-	"time"
 )
 
 const (
