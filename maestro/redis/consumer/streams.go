@@ -118,6 +118,8 @@ func (es eventStore) SubscribeSinks(context context.Context) error {
 				es.logger.Error("error decoding sinks event", zap.Any("operation", event["operation"]), zap.Any("sink_event", event), zap.Error(err))
 				break
 			}
+			// TODO Temporary DEBUG
+			es.logger.Info("DEBUG", zap.Any("event", event))
 			switch event["operation"] {
 			case sinksCreate:
 				if v, ok := rte.Config["opentelemetry"]; ok && v.(string) == "enabled" {
