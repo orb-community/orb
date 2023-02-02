@@ -150,16 +150,12 @@ def expected_metrics_by_handlers_and_groups(handler, groups_enabled, groups_disa
             metric_groups.add("dns_top_udp_ports")
 
     elif isinstance(handler, str) and handler.lower() == "dns-v2":
-        # todo ARRUMAR
-    #     "dns_rates_events_sum",
-    # "dns_rates_events_count",
-    # "dns_rates_events"
         metric_groups = {
             "dns_observed_packets",
             "dns_deep_sampled_packets",
-            "base_event_rate",
-            "base_event_rate_count",
-            "base_event_rate_sum"
+            "dns_rates_events_sum",
+            "dns_rates_events_count",
+            "dns_rates_events"
         }
         if ("cardinality" in groups_enabled and "cardinality" not in groups_disabled) or \
                 ("all" in groups_enabled and "cardinality" not in groups_disabled):
