@@ -33,9 +33,10 @@ def default_enabled_metric_groups_by_handler(handler):
     """
     assert_that(isinstance(handler, str), equal_to(True), f"Invalid handler type {handler}. Handler must be str type")
     handler = handler.lower()
-    assert_that(handler, any_of("dns", "net", "dhcp", "bgp", "pcap", "flow", "netprobe"), "Invalid handler")
+    assert_that(handler, any_of("dns", "dns-v2", "net", "dhcp", "bgp", "pcap", "flow", "netprobe"), "Invalid handler")
     groups_default_enabled = {
         "dns": ["cardinality", "counters", "dns_transaction", "top_qnames", "top_ports"],
+        "dns-v2": ["cardinality", "counters", "top_qnames", "quantiles", "top_qtypes", "top_rcodes"],
         "net": ["cardinality", "counters", "top_geo", "top_ips"],
         "dhcp": [],
         "bgp": [],
@@ -148,6 +149,86 @@ def expected_metrics_by_handlers_and_groups(handler, groups_enabled, groups_disa
                 ("all" in groups_enabled and "top_ports" not in groups_disabled):
             metric_groups.add("dns_top_udp_ports")
 
+    elif isinstance(handler, str) and handler.lower() == "dns-v2":
+        # todo ARRUMAR
+    #     "dns_rates_events_sum",
+    # "dns_rates_events_count",
+    # "dns_rates_events"
+        metric_groups = {
+            "dns_observed_packets",
+            "dns_deep_sampled_packets",
+            "base_event_rate",
+            "base_event_rate_count",
+            "base_event_rate_sum"
+        }
+        if ("cardinality" in groups_enabled and "cardinality" not in groups_disabled) or \
+                ("all" in groups_enabled and "cardinality" not in groups_disabled):
+            metric_groups.add("dns_cardinality_qname")
+        if ("counters" in groups_enabled and "counters" not in groups_disabled) or \
+                ("all" in groups_enabled and "counters" not in groups_disabled):
+            metric_groups.add("dns_xacts")
+            metric_groups.add("dns_udp_xacts")
+            metric_groups.add("dns_timeout_queries")
+            metric_groups.add("dns_tcp_xacts")
+            metric_groups.add("dns_srvfail_xacts")
+            metric_groups.add("dns_refused_xacts")
+            metric_groups.add("dns_orphan_responses")
+            metric_groups.add("dns_nxdomain_xacts")
+            metric_groups.add("dns_noerror_xacts")
+            metric_groups.add("dns_nodata_xacts")
+            metric_groups.add("dns_ipv6_xacts")
+            metric_groups.add("dns_ipv4_xacts")
+            metric_groups.add("dns_filtered_packets")
+            metric_groups.add("dns_ecs_xacts")
+            metric_groups.add("dns_dot_xacts")
+            metric_groups.add("dns_doq_xacts")
+            metric_groups.add("dns_doh_xacts")
+            metric_groups.add("dns_dnscrypt_udp_xacts")
+            metric_groups.add("dns_dnscrypt_tcp_xacts")
+            metric_groups.add("dns_checking_disabled_xacts")
+            metric_groups.add("dns_authoritative_answer_xacts")
+            metric_groups.add("dns_authenticated_data_xacts")
+        if ("quantiles" in groups_enabled and "quantiles" not in groups_disabled) or \
+                ("all" in groups_enabled and "quantiles" not in groups_disabled):
+            metric_groups.add("dns_xact_rates_sum")
+            metric_groups.add("dns_xact_rates_count")
+            metric_groups.add("dns_xact_rates")
+        if ("top_ecs" in groups_enabled and "top_ecs" not in groups_disabled) or \
+                ("all" in groups_enabled and "top_ecs" not in groups_disabled):
+            metric_groups.add("dns_top_geo_loc_ecs_xacts")
+            metric_groups.add("dns_top_ecs_xacts")
+            metric_groups.add("dns_top_asn_ecs_xacts")
+        if ("top_ports" in groups_enabled and "top_ports" not in groups_disabled) or \
+                ("all" in groups_enabled and "top_ports" not in groups_disabled):
+            metric_groups.add("dns_top_udp_ports_xacts")
+        if ("top_qnames" in groups_enabled and "top_qnames" not in groups_disabled) or \
+                ("all" in groups_enabled and "top_qnames" not in groups_disabled):
+            metric_groups.add("dns_top_qname3_xacts")
+            metric_groups.add("dns_top_qname2_xacts")
+        if ("top_qtypes" in groups_enabled and "top_qtypes" not in groups_disabled) or \
+                ("all" in groups_enabled and "top_qtypes" not in groups_disabled):
+            metric_groups.add("dns_top_qtype_xacts")
+        if ("top_rcodes" in groups_enabled and "top_rcodes" not in groups_disabled) or \
+                ("all" in groups_enabled and "top_rcodes" not in groups_disabled):
+            metric_groups.add("dns_top_srvfail_xacts")
+            metric_groups.add("dns_top_refused_xacts")
+            metric_groups.add("dns_top_rcode_xacts")
+            metric_groups.add("dns_top_nxdomain_xacts")
+            metric_groups.add("dns_top_noerror_xacts")
+            metric_groups.add("dns_top_nodata_xacts")
+        if ("top_size" in groups_enabled and "top_size" not in groups_disabled) or \
+                ("all" in groups_enabled and "top_size" not in groups_disabled):
+            metric_groups.add("dns_top_response_bytes")
+            metric_groups.add("dns_response_query_size_ratio_sum")
+            metric_groups.add("dns_response_query_size_ratio_count")
+            metric_groups.add("dns_response_query_size_ratio")
+        if ("xact_times" in groups_enabled and "xact_times" not in groups_disabled) or \
+                ("all" in groups_enabled and "xact_times" not in groups_disabled):
+            metric_groups.add("dns_xact_time_us_sum")
+            metric_groups.add("dns_xact_time_us_count")
+            metric_groups.add("dns_xact_time_us")
+            # todo find a way to test slow metrics
+            # metric_groups.add("dns_top_slow_xacts")
     elif isinstance(handler, str) and handler.lower() == "net":
         metric_groups = {
             "packets_deep_samples",
@@ -332,16 +413,16 @@ def expected_metrics_by_handlers_and_groups(handler, groups_enabled, groups_disa
                 ("all" in groups_enabled and "top_ips_ports" not in groups_disabled):
             if ("by_bytes" in groups_enabled and "by_bytes" not in groups_disabled) or \
                     ("all" in groups_enabled and "by_bytes" not in groups_disabled):
-                metric_groups.add("flow_top_in_dst_ips_and_port_bytes")
-                metric_groups.add("flow_top_in_src_ips_and_port_bytes")
-                metric_groups.add("flow_top_out_dst_ips_and_port_bytes")
-                metric_groups.add("flow_top_out_src_ips_and_port_bytes")
+                metric_groups.add("flow_top_in_dst_ip_ports_bytes")
+                metric_groups.add("flow_top_in_src_ip_ports_bytes")
+                metric_groups.add("flow_top_out_dst_ip_ports_bytes")
+                metric_groups.add("flow_top_out_src_ip_ports_bytes")
             if ("by_packets" in groups_enabled and "by_packets" not in groups_disabled) or \
                     ("all" in groups_enabled and "by_packets" not in groups_disabled):
-                metric_groups.add("flow_top_in_dst_ips_and_port_packets")
-                metric_groups.add("flow_top_in_src_ips_and_port_packets")
-                metric_groups.add("flow_top_out_dst_ips_and_port_packets")
-                metric_groups.add("flow_top_out_src_ips_and_port_packets")
+                metric_groups.add("flow_top_in_dst_ip_ports_packets")
+                metric_groups.add("flow_top_in_src_ip_ports_packets")
+                metric_groups.add("flow_top_out_dst_ip_ports_packets")
+                metric_groups.add("flow_top_out_src_ip_ports_packets")
         if ("top_geo" in groups_enabled and "top_geo" not in groups_disabled) or \
                 ("all" in groups_enabled and "top_geo" not in groups_disabled):
             if ("by_bytes" in groups_enabled and "by_bytes" not in groups_disabled) or \

@@ -29,9 +29,13 @@ def check_metrics_by_handler(context, handler_type):
     expected_metrics_not_present = expected_metrics.difference(metrics_present)
     if expected_metrics_not_present == set():
         expected_metrics_not_present = None
+    else:
+        expected_metrics_not_present = sorted(expected_metrics_not_present)
     extra_metrics_present = metrics_present.difference(expected_metrics)
     if extra_metrics_present == set():
         extra_metrics_present = None
+    else:
+        extra_metrics_present = sorted(extra_metrics_present)
     assert_that(correct_metrics, equal_to(True), f"Metrics are not the expected. "
                                            f"Metrics expected that are not present: {expected_metrics_not_present}."
                                            f"Extra metrics present: {extra_metrics_present}")
