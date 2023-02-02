@@ -13,6 +13,7 @@ type SinkData struct {
 	Password        string          `json:"password"`
 	OpenTelemetry   string          `json:"opentelemetry"`
 	State           PrometheusState `json:"state,omitempty"`
+	Migrate         string          `json:"migrate,omitempty"`
 	Msg             string          `json:"msg,omitempty"`
 	LastRemoteWrite time.Time       `json:"last_remote_write,omitempty"`
 }

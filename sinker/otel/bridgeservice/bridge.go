@@ -43,7 +43,7 @@ func (bs *SinkerOtelBridgeService) NotifyActiveSink(ctx context.Context, mfOwner
 		bs.logger.Error("unable to retrieve the sink config", zap.Error(err))
 		return err
 	}
-	// only updates if not Idle or Unknown
+	// only updates sink state if status Idle or Unknown
 	if cfgRepo.State == config.Idle || cfgRepo.State == config.Unknown {
 		err = cfgRepo.State.SetFromString(newState)
 		if err != nil {
@@ -61,7 +61,15 @@ func (bs *SinkerOtelBridgeService) NotifyActiveSink(ctx context.Context, mfOwner
 			return err
 		}
 	} else {
-		bs.logger.Info("sink is already active, no need to update state")
+		// update LastRemoteWrite on redis sinker for this collector
+		if cfgRepo.State == config.Active {
+			bs.logger.Info("sink is already active, skipping")
+			err = bs.sinkerCache.AddActivity(mfOwnerId, sinkId)
+			if err != nil {
+				bs.logger.Error("error during update last remote write", zap.String("sinkId", sinkId), zap.Error(err))
+				return err
+			}
+		}
 	}
 
 	return nil

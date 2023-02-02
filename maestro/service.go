@@ -11,6 +11,7 @@ package maestro
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"github.com/go-redis/redis/v8"
@@ -42,11 +43,10 @@ type maestroService struct {
 func NewMaestroService(logger *zap.Logger, streamRedisClient *redis.Client, sinkerRedisClient *redis.Client, sinksGrpcClient sinkspb.SinkServiceClient, esCfg config.EsConfig, otelCfg config.OtelConfig) Service {
 	kubectr := kubecontrol.NewService(logger, streamRedisClient)
 	eventStore := rediscons1.NewEventStore(streamRedisClient, otelCfg.KafkaUrl, kubectr, esCfg.Consumer, sinksGrpcClient, logger)
-	monitor := kubecontrol.NewMonitorService(logger, &sinksGrpcClient, streamRedisClient, &kubectr)
+	monitor := kubecontrol.NewMonitorService(logger, &sinksGrpcClient, streamRedisClient, sinkerRedisClient, &kubectr)
 	return &maestroService{
 		logger:            logger,
 		streamRedisClient: streamRedisClient,
-		sinkerRedisClient: sinkerRedisClient,
 		sinksClient:       sinksGrpcClient,
 		kubecontrol:       kubectr,
 		monitor:           monitor,
@@ -94,6 +94,11 @@ func (svc *maestroService) Start(ctx context.Context, cancelFunction context.Can
 				svc.logger.Warn("failed to create deploymentEntry for sink, skipping", zap.String("sink-id", sinkRes.Id))
 				continue
 			}
+			err = svc.updateSinkCache(ctx, data)
+			if err != nil {
+				svc.logger.Warn("failed to update cache for sink", zap.String("sink-id", sinkRes.Id))
+				continue
+			}
 			svc.logger.Info("successfully created deploymentEntry for sink", zap.String("sink-id", sinkRes.Id), zap.String("state", sinkRes.State))
 		}
 
@@ -136,18 +141,35 @@ func (svc *maestroService) Start(ctx context.Context, cancelFunction context.Can
 	return nil
 }
 
+func (svc *maestroService) updateSinkCache(ctx context.Context, data maestroconfig.SinkData) (err error) {
+	data.State = maestroconfig.Unknown
+	keyPrefix := "sinker_key"
+	skey := fmt.Sprintf("%s-%s:%s", keyPrefix, data.OwnerID, data.SinkID)
+	bytes, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	if err = svc.sinkerRedisClient.Set(ctx, skey, bytes, 0).Err(); err != nil {
+		return err
+	}
+	if err != nil {
+		return err
+	}
+	return
+}
+
 func (svc *maestroService) subscribeToSinkerES(ctx context.Context) {
+	svc.logger.Info("Subscribed to Redis Event Store for sinker")
 	if err := svc.eventStore.SubscribeSinker(ctx); err != nil {
 		svc.logger.Error("Bootstrap service failed to subscribe to event sourcing sinker", zap.Error(err))
 		return
 	}
-	svc.logger.Info("Subscribed to Redis Event Store for sinker")
 }
 
 func (svc *maestroService) subscribeToSinksES(ctx context.Context) {
+	svc.logger.Info("Subscribed to Redis Event Store for sinks")
 	if err := svc.eventStore.SubscribeSinks(ctx); err != nil {
 		svc.logger.Error("Bootstrap service failed to subscribe to event sourcing sinks", zap.Error(err))
 		return
 	}
-	svc.logger.Info("Subscribed to Redis Event Store for sinks")
 }

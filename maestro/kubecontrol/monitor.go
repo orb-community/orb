@@ -5,29 +5,40 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"io"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/go-redis/redis/v8"
 	maestroconfig "github.com/ns1labs/orb/maestro/config"
 	maestroredis "github.com/ns1labs/orb/maestro/redis"
 	sinkspb "github.com/ns1labs/orb/sinks/pb"
 	"go.uber.org/zap"
-	"io"
 	k8scorev1 "k8s.io/api/core/v1"
 	k8smetav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"strings"
-	"time"
 )
 
-const MonitorFixedDuration = 1 * time.Minute
-const TimeDiffActiveIdle = 5 * time.Minute
+const (
+	activityPrefix       = "sinker_activity"
+	deploymentKey        = "orb.sinks.deployment"
+	idleTimeSeconds      = 1800
+	MonitorFixedDuration = 1 * time.Minute
+	TimeDiffActiveIdle   = 5 * time.Minute
+)
 
-func NewMonitorService(logger *zap.Logger, sinksClient *sinkspb.SinkServiceClient, redisClient *redis.Client, kubecontrol *Service) MonitorService {
+func NewMonitorService(logger *zap.Logger, sinksClient *sinkspb.SinkServiceClient, redisClient *redis.Client, redisCache *redis.Client, kubecontrol *Service) MonitorService {
+	deploymentChecks := make(map[string]int)
 	return &monitorService{
-		logger:      logger,
-		sinksClient: *sinksClient,
-		redisClient: redisClient,
-		kubecontrol: *kubecontrol,
+		logger:           logger,
+		sinksClient:      *sinksClient,
+		redisClient:      redisClient,
+		redisCache:       redisCache,
+		kubecontrol:      *kubecontrol,
+		deploymentChecks: deploymentChecks,
 	}
 }
 
@@ -37,10 +48,12 @@ type MonitorService interface {
 }
 
 type monitorService struct {
-	logger      *zap.Logger
-	sinksClient sinkspb.SinkServiceClient
-	redisClient *redis.Client
-	kubecontrol Service
+	logger           *zap.Logger
+	sinksClient      sinkspb.SinkServiceClient
+	redisClient      *redis.Client
+	redisCache       *redis.Client
+	kubecontrol      Service
+	deploymentChecks map[string]int //to check deployment error
 }
 
 func (svc *monitorService) Start(ctx context.Context, cancelFunc context.CancelFunc) error {
@@ -160,21 +173,23 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			}
 		}
 		if sinkCollector == nil {
-			svc.logger.Warn("collector not found for sink, skipping", zap.String("sinkID", sink.Id))
+			svc.logger.Warn("collector not found for sink, checking to set state as error", zap.String("sinkID", sink.Id))
+			// if collector dont spin up in 30 minutes should report error on collector deployment
+			svc.deploymentChecks[sink.Id]++
+			if svc.deploymentChecks[sink.Id] >= 30 {
+				err := errors.New("permanent error: opentelemetry collector deployment error")
+				svc.publishSinkStateChange(sink, "error", err, err)
+				svc.deploymentChecks[sink.Id] = 0
+			}
 			continue
 		}
 		var data maestroconfig.SinkData
 		if err := json.Unmarshal(sink.Config, &data); err != nil {
-			svc.logger.Warn("failed to unmarshal sink, skipping", zap.String("sink-id", sink.Id))
-			continue
-		}
-		if data.LastRemoteWrite.After(time.Now().Add(-TimeDiffActiveIdle)) {
-			svc.logger.Warn("collector recently updated, skipping", zap.String("sink-id", sink.Id))
+			svc.logger.Warn("failed to unmarshal sink config, skipping", zap.String("sink-id", sink.Id))
 			continue
 		}
 		data.SinkID = sink.Id
 		data.OwnerID = sink.OwnerID
-		data.LastRemoteWrite = time.Now()
 		logs, err := svc.getPodLogs(ctx, *sinkCollector)
 		if err != nil {
 			svc.logger.Error("error on getting logs, skipping", zap.Error(err))
@@ -185,16 +200,71 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			svc.logger.Error("error during analyze logs", zap.Error(logsErr))
 			continue
 		}
-		if data.State.String() != status {
-			if err != nil {
-				svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("error_message (opt)", err.Error()))
-			} else {
-				svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status))
+		// here we should check if LastActivity is up-to-date, otherwise we need to set sink as idle
+		lastActivity, activityErr := svc.GetActivity(sink.Id)
+		if activityErr != nil {
+			svc.logger.Error("error on getting last collector activity, skipping", zap.Error(activityErr))
+			continue
+		}
+		idleLimit := lastActivity + idleTimeSeconds // within 30 minutes
+		// we should change sink state just when it is 'active'.
+		// this state can be 'error', if any error was found on otel collector during analyzeLogs() or
+		// we can set it as idle when we see that lastActivity is older than 30 minutes
+		if sink.GetState() == "active" {
+			if time.Now().Unix() >= idleLimit {
+				svc.publishSinkStateChange(sink, "idle", logsErr, err)
+				svc.RemoveSinkActivity(ctx, sink.Id)
+				deployment, errDeploy := svc.GetDeploymentEntryFromSinkId(ctx, sink.Id)
+				if errDeploy != nil {
+					svc.logger.Error("error on getting collector deployment from redis", zap.Error(activityErr))
+					continue
+				}
+				svc.kubecontrol.DeleteOtelCollector(ctx, sink.OwnerID, sink.Id, deployment)
+
+			} else if sink.GetState() != status { //updating status
+				if err != nil {
+					svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("error_message (opt)", err.Error()), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
+				} else {
+					svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
+				}
+				svc.publishSinkStateChange(sink, status, logsErr, err)
+
 			}
-			svc.publishSinkStateChange(sink, status, logsErr, err)
 		}
 	}
+}
 
+// collector activity
+func (svc *monitorService) GetActivity(sinkID string) (int64, error) {
+	if sinkID == "" {
+		return 0, errors.New("invalid parameters")
+	}
+	skey := fmt.Sprintf("%s:%s", activityPrefix, sinkID)
+	secs, err := svc.redisCache.Get(context.Background(), skey).Result()
+	if err != nil {
+		return 0, err
+	}
+	lastActivity, _ := strconv.ParseInt(secs, 10, 64)
+	return lastActivity, nil
+}
+
+func (svc *monitorService) RemoveSinkActivity(ctx context.Context, sinkId string) error {
+	skey := fmt.Sprintf("%s:%s", activityPrefix, sinkId)
+	cmd := svc.redisCache.Del(ctx, skey, sinkId)
+	if err := cmd.Err(); err != nil {
+		svc.logger.Error("error during redis reading of SinkId", zap.String("sink-id", sinkId), zap.Error(err))
+		return err
+	}
+	return nil
+}
+
+func (svc *monitorService) GetDeploymentEntryFromSinkId(ctx context.Context, sinkId string) (string, error) {
+	cmd := svc.redisClient.HGet(ctx, deploymentKey, sinkId)
+	if err := cmd.Err(); err != nil {
+		svc.logger.Error("error during redis reading of SinkId", zap.String("sink-id", sinkId), zap.Error(err))
+		return "", err
+	}
+	return cmd.String(), nil
 }
 
 func (svc *monitorService) publishSinkStateChange(sink *sinkspb.SinkRes, status string, logsErr error, err error) {
@@ -222,47 +292,48 @@ func (svc *monitorService) publishSinkStateChange(sink *sinkspb.SinkRes, status 
 }
 
 // analyzeLogs, will check for errors in exporter, and will return as follows
-//
-//		for active, the timestamp should not be longer than 5 minutes of the last metric export
-//		for errors 479 will send a "warning" state, plus message of too many requests
-//		for any other errors, will add error and message
-//		if no error message on exporter, will log as active
-//	 logs from otel-collector are coming in the standard from https://pkg.go.dev/log,
-//
-// TODO changing the logs from otel-collector to a json format that we can read and check for errors, will affect this
+// for errors 429 will send a "warning" state, plus message of too many requests
+// for any other errors, will add error and message
+// if no error message on exporter, will log as active
+// logs from otel-collector are coming in the standard from https://pkg.go.dev/log,
 func (svc *monitorService) analyzeLogs(logEntry []string) (status string, err error) {
-	var lastTimeStamp string
 	for _, logLine := range logEntry {
 		if len(logLine) > 24 {
-			lastTimeStamp = logLine[0:24]
+			// known errors
+			if strings.Contains(logLine, "Permanent error: remote write returned HTTP status 401 Unauthorized") {
+				errorMessage := "Permanent error: remote write returned HTTP status 401 Unauthorized"
+				return "error", errors.New(errorMessage)
+			}
+			if strings.Contains(logLine, "Permanent error: remote write returned HTTP status 429 Too Many Requests") {
+				errorMessage := "Permanent error: remote write returned HTTP status 429 Too Many Requests"
+				return "warning", errors.New(errorMessage)
+			}
+			// other errors
 			if strings.Contains(logLine, "error") {
 				errStringLog := strings.TrimRight(logLine, "error")
 				if len(errStringLog) > 4 {
-					jsonError := strings.Split(errStringLog, "\t")[4]
-					errorJson := make(map[string]interface{})
-					err := json.Unmarshal([]byte(jsonError), &errorJson)
-					if err != nil {
-						return "fail", err
-					}
-					if errorJson != nil && errorJson["error"] != nil {
-						errorMessage := errorJson["error"].(string)
-						if strings.Contains(errorMessage, "429") {
-							return "warning", errors.New(errorMessage)
-						} else {
+					aux := strings.Split(errStringLog, "\t")
+					numItems := len(aux)
+					if numItems > 3 {
+						jsonError := aux[4]
+						errorJson := make(map[string]interface{})
+						err := json.Unmarshal([]byte(jsonError), &errorJson)
+						if err != nil {
+							return "fail", err
+						}
+						if errorJson != nil && errorJson["error"] != nil {
+							errorMessage := errorJson["error"].(string)
 							return "error", errors.New(errorMessage)
 						}
+					} else {
+						return "error", errors.New("sink configuration error: please review your sink parameters")
 					}
+				} else {
+					return "error", errors.New("sink configuration error: please review your sink parameters")
 				}
 			}
 		}
 	}
-	lastLogTime, err := time.Parse(time.RFC3339, lastTimeStamp)
-	if err != nil {
-		return "fail", err
-	}
-	if lastLogTime.After(time.Now().Add(-TimeDiffActiveIdle)) {
-		return "idle", nil
-	} else {
-		return "active", nil
-	}
+	// if nothing happens on logs is active
+	return "active", nil
 }

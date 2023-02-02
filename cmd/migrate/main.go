@@ -69,6 +69,7 @@ func main() {
 		dbs,
 		migration.NewM1KetoPolicies(log, dbs),
 		migration.NewM2SinksCredentials(log, sinksDB, sinksEncryptionKey),
+		migration.NewM3SinksOpenTelemetry(log, sinksDB),
 	)
 
 	rootCmd := &cobra.Command{
