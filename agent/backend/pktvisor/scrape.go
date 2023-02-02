@@ -206,6 +206,7 @@ func (p *pktvisorBackend) scrapeOpenTelemetry(ctx context.Context) {
 		select {
 		case <-exeCtx.Done():
 			ctx.Done()
+			p.cancelFunc()
 		case <-ctx.Done():
 			err := p.exporter[policyID].Shutdown(exeCtx)
 			if err != nil {

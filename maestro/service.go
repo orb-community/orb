@@ -85,6 +85,7 @@ func (svc *maestroService) Start(ctx context.Context, cancelFunction context.Can
 			svc.logger.Warn("failed to unmarshal sink, skipping", zap.String("sink-id", sinkRes.Id))
 			continue
 		}
+		svc.logger.Info("DEBUG sinkres", zap.Any("sinkres", sinkRes))
 
 		if val, _ := svc.eventStore.GetDeploymentEntryFromSinkId(ctx, sinkRes.Id); val != "" {
 			svc.logger.Info("Skipping deploymentEntry because it is already created")

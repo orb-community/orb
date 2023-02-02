@@ -46,5 +46,6 @@ func (b *BridgeService) RetrieveAgentInfoByPolicyName(policyName string) (*Agent
 }
 
 func (b *BridgeService) NotifyAgentDisconnection(ctx context.Context, err error) {
-
+	ctx.Done()
+	b.bridgeContext.Done()
 }
