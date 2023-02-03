@@ -196,22 +196,26 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			continue
 		}
 		status, logsErr := svc.analyzeLogs(logs)
+		var idleLimit int64 = 0
 		if status == "fail" {
 			svc.logger.Error("error during analyze logs", zap.Error(logsErr))
 			continue
 		}
-		// here we should check if LastActivity is up-to-date, otherwise we need to set sink as idle
 		lastActivity, activityErr := svc.GetActivity(sink.Id)
-		if activityErr != nil {
-			svc.logger.Error("error on getting last collector activity, skipping", zap.Error(activityErr))
-			continue
+		if status == "active" {
+			// if logs reported 'active' status
+			// here we should check if LastActivity is up-to-date, otherwise we need to set sink as idle
+			if activityErr != nil || lastActivity == 0 {
+				svc.logger.Error("error on getting last collector activity", zap.Error(activityErr))
+			} else {
+				idleLimit = lastActivity + idleTimeSeconds // within 30 minutes
+			}
 		}
-		idleLimit := lastActivity + idleTimeSeconds // within 30 minutes
-		// we should change sink state just when it is 'active'.
+		// only should change sink state just when its current status is 'active'.
 		// this state can be 'error', if any error was found on otel collector during analyzeLogs() or
-		// we can set it as idle when we see that lastActivity is older than 30 minutes
+		// we can set it as 'idle' when we see that lastActivity is older than 30 minutes
 		if sink.GetState() == "active" {
-			if time.Now().Unix() >= idleLimit {
+			if time.Now().Unix() >= idleLimit && lastActivity > 0 {
 				svc.publishSinkStateChange(sink, "idle", logsErr, err)
 				err := svc.RemoveSinkActivity(ctx, sink.Id)
 				if err != nil {
@@ -220,13 +224,12 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 				}
 				deployment, errDeploy := svc.GetDeploymentEntryFromSinkId(ctx, sink.Id)
 				if errDeploy != nil {
-					svc.logger.Error("error on getting collector deployment from redis", zap.Error(errDeploy))
+					svc.logger.Error("Remove collector: error on getting collector deployment from redis", zap.Error(activityErr))
 					continue
 				}
 				err = svc.kubecontrol.DeleteOtelCollector(ctx, sink.OwnerID, sink.Id, deployment)
 				if err != nil {
 					svc.logger.Error("error removing otel collector", zap.Error(err))
-					continue
 				}
 
 			} else if sink.GetState() != status { //updating status
@@ -236,7 +239,6 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 					svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
 				}
 				svc.publishSinkStateChange(sink, status, logsErr, err)
-
 			}
 		}
 	}
