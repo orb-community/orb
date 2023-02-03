@@ -103,6 +103,10 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 
 	if sink.Config == nil {
 		sink.Config = currentSink.Config
+	} else {
+		// This will keep the previous tags
+		currentSink.Config.Merge(sink.Config)
+		sink.Config = currentSink.Config
 	}
 
 	if sink.Tags == nil {
