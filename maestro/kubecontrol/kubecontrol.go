@@ -4,14 +4,16 @@ import (
 	"bufio"
 	"context"
 	"fmt"
-	"github.com/go-redis/redis/v8"
+	"github.com/ns1labs/orb/pkg/errors"
 	"go.uber.org/zap"
+	v1 "k8s.io/api/core/v1"
 	k8smetav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 )
 
 const namespace = "otelcollectors"
@@ -19,14 +21,11 @@ const namespace = "otelcollectors"
 var _ Service = (*deployService)(nil)
 
 type deployService struct {
-	logger      *zap.Logger
-	redisClient *redis.Client
-	deploymentState map[string]bool
+	logger *zap.Logger
 }
 
-func NewService(logger *zap.Logger, redisClient *redis.Client) Service {
-	deploymentState := make(map[string]bool)
-	return &deployService{logger: logger, redisClient: redisClient, deploymentState: deploymentState}
+func NewService(logger *zap.Logger) Service {
+	return &deployService{logger: logger}
 }
 
 type Service interface {
@@ -45,22 +44,27 @@ func (svc *deployService) collectorDeploy(ctx context.Context, operation, ownerI
 	fileContent := []byte(manifest)
 	tmp := strings.Split(string(fileContent), "\n")
 	newContent := strings.Join(tmp[1:], "\n")
-	
-	// due the delay in k8s api to answer, we should control it internally using a map or redis for more maestro replicas, and not with k8s
-	// otherwise can generate wrong deployment status during sink update operation
+
+	status, err := svc.getDeploymentState(ctx, ownerID, sinkId)
+	if err != nil {
+		if status == "broken" {
+			operation = "delete"
+
+		}
+	}
 	if operation == "apply" {
-		if value, ok := svc.deploymentState[sinkId]; ok && value {
+		if status == "active" {
 			svc.logger.Info("Already applied Sink ID=" + sinkId)
 			return nil
 		}
 	} else if operation == "delete" {
-		if value, ok := svc.deploymentState[sinkId]; ok && !value {
+		if status == "deleted" {
 			svc.logger.Info("Already deleted Sink ID=" + sinkId)
 			return nil
 		}
 	}
 
-	err := os.WriteFile("/tmp/otel-collector-"+sinkId+".json", []byte(newContent), 0644)
+	err = os.WriteFile("/tmp/otel-collector-"+sinkId+".json", []byte(newContent), 0644)
 	if err != nil {
 		svc.logger.Error("failed to write file content", zap.Error(err))
 		return err
@@ -83,9 +87,9 @@ func (svc *deployService) collectorDeploy(ctx context.Context, operation, ownerI
 		svc.logger.Info(fmt.Sprintf("successfully %s the otel-collector for sink-id: %s", operation, sinkId))
 		// update deployment state map
 		if operation == "apply" {
-			svc.deploymentState[sinkId] = true
+
 		} else if operation == "delete" {
-			svc.deploymentState[sinkId] = false
+
 		}
 	}
 
@@ -120,10 +124,25 @@ func (svc *deployService) getDeploymentState(ctx context.Context, _, sinkId stri
 		svc.logger.Error("error on get client", zap.Error(err))
 		return "", err
 	}
-	pods, err := clientSet.CoreV1().Pods(namespace).List(ctx, k8smetav1.ListOptions{})
-	for _, pod := range pods.Items {
-		if strings.Contains(pod.Name, sinkId) {
-			return "active", nil
+	// Since this can take a while to be retrieved, we need to have a wait mechanism
+	for i := 0; i < 5; i++ {
+		time.Sleep(30 * time.Second)
+		pods, err := clientSet.CoreV1().Pods(namespace).List(ctx, k8smetav1.ListOptions{})
+		if err != nil {
+			svc.logger.Error("error on reading pods", zap.Error(err))
+			return "", err
+		}
+		for _, pod := range pods.Items {
+			if strings.Contains(pod.Name, sinkId) {
+				if pod.Status.Phase == v1.PodFailed {
+					svc.logger.Error("error on retrieving collector, pod is broken")
+					return "broken", errors.New(pod.Status.Message)
+				}
+				if pod.Status.Phase != v1.PodRunning {
+					continue
+				}
+				return "active", nil
+			}
 		}
 	}
 	return "deleted", nil

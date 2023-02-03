@@ -3,6 +3,10 @@ package consumer
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
+	redis2 "github.com/go-redis/redis/v8"
+	"strconv"
 	"time"
 
 	"github.com/ns1labs/orb/maestro/config"
@@ -12,10 +16,13 @@ import (
 	"go.uber.org/zap"
 )
 
-const deploymentKey = "orb.sinks.deployment"
+const (
+	deploymentKey  = "orb.sinks.deployment"
+	activityPrefix = "sinker_activity"
+)
 
 func (es eventStore) GetDeploymentEntryFromSinkId(ctx context.Context, sinkId string) (string, error) {
-	cmd := es.client.HGet(ctx, deploymentKey, sinkId)
+	cmd := es.streamRedisClient.HGet(ctx, deploymentKey, sinkId)
 	if err := cmd.Err(); err != nil {
 		es.logger.Error("error during redis reading of SinkId", zap.String("sink-id", sinkId), zap.Error(err))
 		return "", err
@@ -35,7 +42,7 @@ func (es eventStore) handleSinksDeleteCollector(ctx context.Context, event redis
 	if err != nil {
 		return err
 	}
-	es.client.HDel(ctx, deploymentKey, event.SinkID)
+	es.streamRedisClient.HDel(ctx, deploymentKey, event.SinkID)
 	return nil
 }
 
@@ -71,7 +78,7 @@ func (es eventStore) CreateDeploymentEntry(ctx context.Context, sinkId, sinkUrl,
 		return err
 	}
 
-	es.client.HSet(ctx, deploymentKey, sinkId, deploy)
+	es.streamRedisClient.HSet(ctx, deploymentKey, sinkId, deploy)
 	return nil
 }
 
@@ -97,13 +104,76 @@ func (es eventStore) handleSinksUpdateCollector(ctx context.Context, event redis
 		es.logger.Error("error trying to get deployment json for sink ID", zap.String("sinkId", event.SinkID))
 		return err
 	}
-	es.client.HSet(ctx, deploymentKey, event.SinkID, deploy)
+	es.streamRedisClient.HSet(ctx, deploymentKey, event.SinkID, deploy)
 	err = es.kubecontrol.UpdateOtelCollector(ctx, event.Owner, event.SinkID, deploy)
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (es eventStore) UpdateSinkCache(ctx context.Context, data config.SinkData) (err error) {
+	data.State = config.Unknown
+	keyPrefix := "sinker_key"
+	skey := fmt.Sprintf("%s-%s:%s", keyPrefix, data.OwnerID, data.SinkID)
+	bytes, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	if err = es.sinkerKeyRedisClient.Set(ctx, skey, bytes, 0).Err(); err != nil {
+		return err
+	}
+	return
+}
+
+// GetActivity collector activity
+func (es eventStore) GetActivity(sinkID string) (int64, error) {
+	if sinkID == "" {
+		return 0, errors.New("invalid parameters")
+	}
+	skey := fmt.Sprintf("%s:%s", activityPrefix, sinkID)
+	secs, err := es.sinkerKeyRedisClient.Get(context.Background(), skey).Result()
+	if err != nil {
+		return 0, err
+	}
+	lastActivity, _ := strconv.ParseInt(secs, 10, 64)
+	return lastActivity, nil
+}
+
+func (es eventStore) RemoveSinkActivity(ctx context.Context, sinkId string) error {
+	skey := fmt.Sprintf("%s:%s", activityPrefix, sinkId)
+	cmd := es.sinkerKeyRedisClient.Del(ctx, skey, sinkId)
+	if err := cmd.Err(); err != nil {
+		es.logger.Error("error during redis reading of SinkId", zap.String("sink-id", sinkId), zap.Error(err))
+		return err
+	}
+	return nil
+}
+
+func (es eventStore) PublishSinkStateChange(sink *sinkspb.SinkRes, status string, logsErr error, err error) {
+	streamID := "orb.sinker"
+	logMessage := ""
+	if logsErr != nil {
+		logMessage = logsErr.Error()
+	}
+	event := redis.SinkerUpdateEvent{
+		SinkID: sink.Id,
+		Owner:  sink.OwnerID,
+		State:  status,
+
+		Msg:       logMessage,
+		Timestamp: time.Now(),
+	}
+
+	record := &redis2.XAddArgs{
+		Stream: streamID,
+		Values: event.Encode(),
+	}
+	err = es.sinkerKeyRedisClient.XAdd(context.Background(), record).Err()
+	if err != nil {
+		es.logger.Error("error sending event to event store", zap.Error(err))
+	}
 }
 
 func decodeSinksEvent(event map[string]interface{}, operation string) (redis.SinksUpdateEvent, error) {

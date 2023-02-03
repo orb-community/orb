@@ -1,19 +1,17 @@
-package kubecontrol
+package monitor
 
 import (
 	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
+	"github.com/ns1labs/orb/maestro/kubecontrol"
+	rediscons1 "github.com/ns1labs/orb/maestro/redis/consumer"
 	"io"
-	"strconv"
 	"strings"
 	"time"
 
-	"github.com/go-redis/redis/v8"
 	maestroconfig "github.com/ns1labs/orb/maestro/config"
-	maestroredis "github.com/ns1labs/orb/maestro/redis"
 	sinkspb "github.com/ns1labs/orb/sinks/pb"
 	"go.uber.org/zap"
 	k8scorev1 "k8s.io/api/core/v1"
@@ -23,20 +21,18 @@ import (
 )
 
 const (
-	activityPrefix       = "sinker_activity"
-	deploymentKey        = "orb.sinks.deployment"
-	idleTimeSeconds      = 1800
+	idleTimeSeconds      = 300
 	MonitorFixedDuration = 1 * time.Minute
 	TimeDiffActiveIdle   = 5 * time.Minute
+	namespace            = "otelcollectors"
 )
 
-func NewMonitorService(logger *zap.Logger, sinksClient *sinkspb.SinkServiceClient, redisClient *redis.Client, redisCache *redis.Client, kubecontrol *Service) MonitorService {
+func NewMonitorService(logger *zap.Logger, sinksClient *sinkspb.SinkServiceClient, eventStore rediscons1.Subscriber, kubecontrol *kubecontrol.Service) MonitorService {
 	deploymentChecks := make(map[string]int)
 	return &monitorService{
 		logger:           logger,
 		sinksClient:      *sinksClient,
-		redisClient:      redisClient,
-		redisCache:       redisCache,
+		eventStore:       eventStore,
 		kubecontrol:      *kubecontrol,
 		deploymentChecks: deploymentChecks,
 	}
@@ -50,9 +46,8 @@ type MonitorService interface {
 type monitorService struct {
 	logger           *zap.Logger
 	sinksClient      sinkspb.SinkServiceClient
-	redisClient      *redis.Client
-	redisCache       *redis.Client
-	kubecontrol      Service
+	eventStore       rediscons1.Subscriber
+	kubecontrol      kubecontrol.Service
 	deploymentChecks map[string]int //to check deployment error
 }
 
@@ -178,7 +173,7 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			svc.deploymentChecks[sink.Id]++
 			if svc.deploymentChecks[sink.Id] >= 30 {
 				err := errors.New("permanent error: opentelemetry collector deployment error")
-				svc.publishSinkStateChange(sink, "error", err, err)
+				svc.eventStore.PublishSinkStateChange(sink, "error", err, err)
 				svc.deploymentChecks[sink.Id] = 0
 			}
 			continue
@@ -201,7 +196,7 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			svc.logger.Error("error during analyze logs", zap.Error(logsErr))
 			continue
 		}
-		lastActivity, activityErr := svc.GetActivity(sink.Id)
+		lastActivity, activityErr := svc.eventStore.GetActivity(sink.Id)
 		if status == "active" {
 			// if logs reported 'active' status
 			// here we should check if LastActivity is up-to-date, otherwise we need to set sink as idle
@@ -216,13 +211,13 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 		// we can set it as 'idle' when we see that lastActivity is older than 30 minutes
 		if sink.GetState() == "active" {
 			if time.Now().Unix() >= idleLimit && lastActivity > 0 {
-				svc.publishSinkStateChange(sink, "idle", logsErr, err)
-				err := svc.RemoveSinkActivity(ctx, sink.Id)
+				svc.eventStore.PublishSinkStateChange(sink, "idle", logsErr, err)
+				err := svc.eventStore.RemoveSinkActivity(ctx, sink.Id)
 				if err != nil {
 					svc.logger.Error("error on remove sink activity", zap.Error(err))
 					continue
 				}
-				deployment, errDeploy := svc.GetDeploymentEntryFromSinkId(ctx, sink.Id)
+				deployment, errDeploy := svc.eventStore.GetDeploymentEntryFromSinkId(ctx, sink.Id)
 				if errDeploy != nil {
 					svc.logger.Error("Remove collector: error on getting collector deployment from redis", zap.Error(activityErr))
 					continue
@@ -238,66 +233,9 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 				} else {
 					svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
 				}
-				svc.publishSinkStateChange(sink, status, logsErr, err)
+				svc.eventStore.PublishSinkStateChange(sink, status, logsErr, err)
 			}
 		}
-	}
-}
-
-// collector activity
-func (svc *monitorService) GetActivity(sinkID string) (int64, error) {
-	if sinkID == "" {
-		return 0, errors.New("invalid parameters")
-	}
-	skey := fmt.Sprintf("%s:%s", activityPrefix, sinkID)
-	secs, err := svc.redisCache.Get(context.Background(), skey).Result()
-	if err != nil {
-		return 0, err
-	}
-	lastActivity, _ := strconv.ParseInt(secs, 10, 64)
-	return lastActivity, nil
-}
-
-func (svc *monitorService) RemoveSinkActivity(ctx context.Context, sinkId string) error {
-	skey := fmt.Sprintf("%s:%s", activityPrefix, sinkId)
-	cmd := svc.redisCache.Del(ctx, skey, sinkId)
-	if err := cmd.Err(); err != nil {
-		svc.logger.Error("error during redis reading of SinkId", zap.String("sink-id", sinkId), zap.Error(err))
-		return err
-	}
-	return nil
-}
-
-func (svc *monitorService) GetDeploymentEntryFromSinkId(ctx context.Context, sinkId string) (string, error) {
-	cmd := svc.redisClient.HGet(ctx, deploymentKey, sinkId)
-	if err := cmd.Err(); err != nil {
-		svc.logger.Error("error during redis reading of SinkId", zap.String("sink-id", sinkId), zap.Error(err))
-		return "", err
-	}
-	return cmd.String(), nil
-}
-
-func (svc *monitorService) publishSinkStateChange(sink *sinkspb.SinkRes, status string, logsErr error, err error) {
-	streamID := "orb.sinker"
-	logMessage := ""
-	if logsErr != nil {
-		logMessage = logsErr.Error()
-	}
-	event := maestroredis.SinkerUpdateEvent{
-		SinkID:    sink.Id,
-		Owner:     sink.OwnerID,
-		State:     status,
-		Msg:       logMessage,
-		Timestamp: time.Now(),
-	}
-
-	record := &redis.XAddArgs{
-		Stream: streamID,
-		Values: event.Encode(),
-	}
-	err = svc.redisClient.XAdd(context.Background(), record).Err()
-	if err != nil {
-		svc.logger.Error("error sending event to event store", zap.Error(err))
 	}
 }
 
