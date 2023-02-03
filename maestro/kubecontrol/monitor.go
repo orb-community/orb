@@ -204,14 +204,13 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 		lastActivity, activityErr := svc.GetActivity(sink.Id)
 		if activityErr != nil {
 			svc.logger.Error("error on getting last collector activity, skipping", zap.Error(activityErr))
-			continue
 		}
 		idleLimit := lastActivity + idleTimeSeconds // within 30 minutes
 		// we should change sink state just when it is 'active'.
 		// this state can be 'error', if any error was found on otel collector during analyzeLogs() or
 		// we can set it as idle when we see that lastActivity is older than 30 minutes
 		if sink.GetState() == "active" {
-			if time.Now().Unix() >= idleLimit {
+			if time.Now().Unix() >= idleLimit && lastActivity > 0 {
 				svc.publishSinkStateChange(sink, "idle", logsErr, err)
 				svc.RemoveSinkActivity(ctx, sink.Id)
 				deployment, errDeploy := svc.GetDeploymentEntryFromSinkId(ctx, sink.Id)
