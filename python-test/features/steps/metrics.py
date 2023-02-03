@@ -33,11 +33,13 @@ def default_enabled_metric_groups_by_handler(handler):
     """
     assert_that(isinstance(handler, str), equal_to(True), f"Invalid handler type {handler}. Handler must be str type")
     handler = handler.lower()
-    assert_that(handler, any_of("dns", "dns-v2", "net", "dhcp", "bgp", "pcap", "flow", "netprobe"), "Invalid handler")
+    assert_that(handler, any_of("dns", "dns-v2", "net", "net-v2", "dhcp", "bgp", "pcap", "flow", "netprobe"),
+                "Invalid handler")
     groups_default_enabled = {
         "dns": ["cardinality", "counters", "dns_transaction", "top_qnames", "top_ports"],
         "dns-v2": ["cardinality", "counters", "top_qnames", "quantiles", "top_qtypes", "top_rcodes"],
         "net": ["cardinality", "counters", "top_geo", "top_ips"],
+        "net-v2": ["cardinality", "counters", "top_geo", "top_ips", "quantiles"],
         "dhcp": [],
         "bgp": [],
         "pcap": [],
@@ -282,6 +284,49 @@ def expected_metrics_by_handlers_and_groups(handler, groups_enabled, groups_disa
                 ("all" in groups_enabled and "top_ips" not in groups_disabled):
             metric_groups.add("packets_top_ipv4")
             metric_groups.add("packets_top_ipv6")
+
+    elif isinstance(handler, str) and handler.lower() == "net-v2":
+        metric_groups = {
+            "net_deep_sampled_packets",
+            "net_observed_packets",
+            "net_rates_observed_pps",
+            "net_rates_observed_pps_count",
+            "net_rates_observed_pps_sum"
+        }
+        if ("cardinality" in groups_enabled and "cardinality" not in groups_disabled) or \
+                ("all" in groups_enabled and "cardinality" not in groups_disabled):
+            metric_groups.add("net_cardinality_ips")
+        if ("counters" in groups_enabled and "counters" not in groups_disabled) or \
+                ("all" in groups_enabled and "counters" not in groups_disabled):
+            metric_groups.add("net_filtered_packets")
+            metric_groups.add("net_ipv4_packets")
+            metric_groups.add("net_ipv6_packets")
+            metric_groups.add("net_other_l4_packets")
+            metric_groups.add("net_tcp_packets")
+            metric_groups.add("net_tcp_syn_packets")
+            metric_groups.add("net_total_packets")
+            metric_groups.add("net_udp_packets")
+
+        if ("top_geo" in groups_enabled and "top_geo" not in groups_disabled) or \
+                ("all" in groups_enabled and "top_geo" not in groups_disabled):
+            metric_groups.add("net_top_asn_packets")
+            metric_groups.add("net_top_geo_loc_packets")
+
+        if ("top_ips" in groups_enabled and "top_ips" not in groups_disabled) or \
+                ("all" in groups_enabled and "top_ips" not in groups_disabled):
+            metric_groups.add("net_top_ipv4_packets")
+            metric_groups.add("net_top_ipv6_packets")
+        if ("quantiles" in groups_enabled and "quantiles" not in groups_disabled) or \
+                ("all" in groups_enabled and "quantiles" not in groups_disabled):
+            metric_groups.add("net_payload_size_bytes")
+            metric_groups.add("net_payload_size_bytes_count")
+            metric_groups.add("net_payload_size_bytes_sum")
+            metric_groups.add("net_rates_bps")
+            metric_groups.add("net_rates_bps_count")
+            metric_groups.add("net_rates_bps_sum")
+            metric_groups.add("net_rates_pps")
+            metric_groups.add("net_rates_pps_count")
+            metric_groups.add("net_rates_pps_sum")
 
     elif isinstance(handler, str) and handler.lower() == "dhcp":
         metric_groups = {
