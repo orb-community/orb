@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"context"
 	"fmt"
-	"github.com/go-redis/redis/v8"
 	"github.com/ns1labs/orb/pkg/errors"
 	"go.uber.org/zap"
 	v1 "k8s.io/api/core/v1"
@@ -22,12 +21,11 @@ const namespace = "otelcollectors"
 var _ Service = (*deployService)(nil)
 
 type deployService struct {
-	logger      *zap.Logger
-	redisClient *redis.Client
+	logger *zap.Logger
 }
 
-func NewService(logger *zap.Logger, redisClient *redis.Client) Service {
-	return &deployService{logger: logger, redisClient: redisClient}
+func NewService(logger *zap.Logger) Service {
+	return &deployService{logger: logger}
 }
 
 type Service interface {
@@ -48,6 +46,12 @@ func (svc *deployService) collectorDeploy(ctx context.Context, operation, ownerI
 	newContent := strings.Join(tmp[1:], "\n")
 
 	status, err := svc.getDeploymentState(ctx, ownerID, sinkId)
+	if err != nil {
+		if status == "broken" {
+			operation = "delete"
+
+		}
+	}
 	if operation == "apply" {
 		if status == "active" {
 			svc.logger.Info("Already applied Sink ID=" + sinkId)
