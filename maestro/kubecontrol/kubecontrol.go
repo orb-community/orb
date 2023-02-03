@@ -5,7 +5,9 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-redis/redis/v8"
+	"github.com/ns1labs/orb/pkg/errors"
 	"go.uber.org/zap"
+	v1 "k8s.io/api/core/v1"
 	k8smetav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -128,6 +130,13 @@ func (svc *deployService) getDeploymentState(ctx context.Context, _, sinkId stri
 		}
 		for _, pod := range pods.Items {
 			if strings.Contains(pod.Name, sinkId) {
+				if pod.Status.Phase == v1.PodFailed {
+					svc.logger.Error("error on retrieving collector, pod is broken")
+					return "broken", errors.New(pod.Status.Message)
+				}
+				if pod.Status.Phase != v1.PodRunning {
+					continue
+				}
 				return "active", nil
 			}
 		}
