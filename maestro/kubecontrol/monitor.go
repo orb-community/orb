@@ -196,18 +196,19 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			continue
 		}
 		status, logsErr := svc.analyzeLogs(logs)
+		var idleLimit int64 = 0
 		if status == "fail" {
 			svc.logger.Error("error during analyze logs", zap.Error(logsErr))
 			continue
-		} else if status == "active" {
+		}
+		lastActivity, activityErr := svc.GetActivity(sink.Id)
+		if status == "active" {
 			// if logs reported 'active' status
 			// here we should check if LastActivity is up-to-date, otherwise we need to set sink as idle
-			lastActivity, activityErr := svc.GetActivity(sink.Id)
 			if activityErr != nil || lastActivity == 0 {
 				svc.logger.Error("error on getting last collector activity", zap.Error(activityErr))
-				idleLimit := 0;
 			} else {
-				idleLimit := lastActivity + idleTimeSeconds // within 30 minutes
+				idleLimit = lastActivity + idleTimeSeconds // within 30 minutes
 			}
 		}
 		// only should change sink state just when its current status is 'active'.
@@ -219,7 +220,7 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 				svc.RemoveSinkActivity(ctx, sink.Id)
 				deployment, errDeploy := svc.GetDeploymentEntryFromSinkId(ctx, sink.Id)
 				if errDeploy != nil {
-					svc.logger.Error("error on getting collector deployment from redis", zap.Error(activityErr))
+					svc.logger.Error("Remove collector: error on getting collector deployment from redis", zap.Error(activityErr))
 					continue
 				}
 				svc.kubecontrol.DeleteOtelCollector(ctx, sink.OwnerID, sink.Id, deployment)
