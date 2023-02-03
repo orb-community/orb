@@ -199,16 +199,21 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 		if status == "fail" {
 			svc.logger.Error("error during analyze logs", zap.Error(logsErr))
 			continue
+		} else if status == "active" {
+			// if logs reported 'active' status
+			// here we should check if LastActivity is up-to-date, otherwise we need to set sink as idle
+			lastActivity, activityErr := svc.GetActivity(sink.Id)
+			if activityErr != nil {
+				svc.logger.Error("error on getting last collector activity", zap.Error(activityErr))
+				idleLimit := 0;
+				lastActivity = 0;
+			} else {
+				idleLimit := lastActivity + idleTimeSeconds // within 30 minutes
+			}
 		}
-		// here we should check if LastActivity is up-to-date, otherwise we need to set sink as idle
-		lastActivity, activityErr := svc.GetActivity(sink.Id)
-		if activityErr != nil {
-			svc.logger.Error("error on getting last collector activity, skipping", zap.Error(activityErr))
-		}
-		idleLimit := lastActivity + idleTimeSeconds // within 30 minutes
-		// we should change sink state just when it is 'active'.
+		// only should change sink state just when its current status is 'active'.
 		// this state can be 'error', if any error was found on otel collector during analyzeLogs() or
-		// we can set it as idle when we see that lastActivity is older than 30 minutes
+		// we can set it as 'idle' when we see that lastActivity is older than 30 minutes
 		if sink.GetState() == "active" {
 			if time.Now().Unix() >= idleLimit && lastActivity > 0 {
 				svc.publishSinkStateChange(sink, "idle", logsErr, err)
@@ -227,7 +232,6 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 					svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
 				}
 				svc.publishSinkStateChange(sink, status, logsErr, err)
-
 			}
 		}
 	}
