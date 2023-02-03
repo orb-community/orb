@@ -174,7 +174,7 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 		}
 		if sinkCollector == nil {
 			svc.logger.Warn("collector not found for sink, checking to set state as error", zap.String("sinkID", sink.Id))
-			// if collector dont spin up in 30 minutes should report error on collector deployment
+			// if collector don't spin up in 30 minutes should report error on collector deployment
 			svc.deploymentChecks[sink.Id]++
 			if svc.deploymentChecks[sink.Id] >= 30 {
 				err := errors.New("permanent error: opentelemetry collector deployment error")
@@ -217,13 +217,20 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 		if sink.GetState() == "active" {
 			if time.Now().Unix() >= idleLimit && lastActivity > 0 {
 				svc.publishSinkStateChange(sink, "idle", logsErr, err)
-				svc.RemoveSinkActivity(ctx, sink.Id)
+				err := svc.RemoveSinkActivity(ctx, sink.Id)
+				if err != nil {
+					svc.logger.Error("error on remove sink activity", zap.Error(err))
+					continue
+				}
 				deployment, errDeploy := svc.GetDeploymentEntryFromSinkId(ctx, sink.Id)
 				if errDeploy != nil {
 					svc.logger.Error("Remove collector: error on getting collector deployment from redis", zap.Error(activityErr))
 					continue
 				}
-				svc.kubecontrol.DeleteOtelCollector(ctx, sink.OwnerID, sink.Id, deployment)
+				err = svc.kubecontrol.DeleteOtelCollector(ctx, sink.OwnerID, sink.Id, deployment)
+				if err != nil {
+					svc.logger.Error("error removing otel collector", zap.Error(err))
+				}
 
 			} else if sink.GetState() != status { //updating status
 				if err != nil {
