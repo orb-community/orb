@@ -14,7 +14,11 @@ type Tags map[string]string
 
 func (t *Tags) Merge(newTags map[string]string) {
 	for k, v := range newTags {
-		(*t)[k] = v
+		if v == "" {
+			delete(*t, k)
+		} else {
+			(*t)[k] = v
+		}
 	}
 }
 
@@ -41,7 +45,11 @@ func (s *Metadata) RestrictKeys(predicate func(string) bool) {
 
 func (s *Metadata) Merge(metadataToAdd Metadata) {
 	for k, v := range metadataToAdd {
-		(*s)[k] = v
+		if v == "" {
+			delete(*s, k)
+		} else {
+			(*s)[k] = v
+		}
 	}
 }
 

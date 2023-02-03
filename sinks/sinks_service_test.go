@@ -203,14 +203,14 @@ func TestUpdateSink(t *testing.T) {
 			incomingSink: sinks.Sink{
 				ID: sinkTestConfigAttribute.ID,
 				Config: types.Metadata{
-					"test": "config",
+					"remote_host": "new_url",
 				},
 				Error: "",
 			},
 			expectedSink: sinks.Sink{
 				Name: sinkTestConfigAttribute.Name,
 				Config: types.Metadata{
-					"test": "config",
+					"opentelemetry": "enabled", "remote_host": "new_url", "username": "dbuser",
 				},
 				Description: sinkTestConfigAttribute.Description,
 				Tags:        sinkTestConfigAttribute.Tags,
