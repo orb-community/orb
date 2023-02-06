@@ -125,7 +125,7 @@ func (svc *deployService) getDeploymentState(ctx context.Context, _, sinkId stri
 	}
 	// Since this can take a while to be retrieved, we need to have a wait mechanism
 	for i := 0; i < 5; i++ {
-		time.Sleep(3 * time.Second)
+		time.Sleep(5 * time.Second)
 		pods, err := clientSet.CoreV1().Pods(namespace).List(ctx, k8smetav1.ListOptions{})
 		if err != nil {
 			svc.logger.Error("error on reading pods", zap.Error(err))
