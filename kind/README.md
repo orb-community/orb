@@ -12,6 +12,8 @@ The following steps must be performed at the **root of the Orb project** to set 
 
 > **💡 Note:** If you have those installed, please skip to [Deploy Orb on Kind](#deploy-orb-kind).
 
+> ⚠️ You may need to permit ports 80 and 443 (*ingress*) because of [kubernetes](https://kubernetes.io/docs/concepts/services-networking/ingress/).
+
 <a name="docker"></a>
 ## 🐳 Docker Environment (Requirement)
 
@@ -59,9 +61,11 @@ kubectl version --client
 If you need help to install **Kubectl**, follow the [steps from here](https://kubernetes.io/docs/tasks/tools/).
 
 <a name="install-kind"></a>
+
 ## 🚢 Install Kind (Requirement)
 
 Kind is a tool for running local k8s clusters using docker container as nodes.
+
 
 Quick install a **Kind** on Linux executing:
 ```shell
@@ -108,6 +112,7 @@ make install-k9s
 
 <a name="deploy-orb-kind"></a>
 ## 🚀  Deploy Orb on Kind
+
 
 Add `kubernetes.docker.internal` host as `127.0.0.1` address in your hosts file:
 ```shell
