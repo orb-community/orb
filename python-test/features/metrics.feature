@@ -1514,7 +1514,7 @@ Scenario: net handler with default metric groups configuration (v2)
         And the Orb user logs in
         And that a sink already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
-    When an agent(input_type:pcap, settings: {"iface":"mocked", "host_spec":"fe80::a00:27ff:fed4:10bb/48,192.168.0.0/24,75.75.75.75/32"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
+    When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And a net policy pcap with tap_selector matching all tag(s) of the tap from an agent, default metric_groups enabled, default metric_groups disabled and settings: {"require_version":"2.0"} is applied to the group
@@ -1534,7 +1534,7 @@ Scenario: net handler with all metric groups enabled (v2)
         And the Orb user logs in
         And that a sink already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
-    When an agent(input_type:pcap, settings: {"iface":"mocked", "host_spec":"fe80::a00:27ff:fed4:10bb/48,192.168.0.0/24,75.75.75.75/32"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
+    When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And a net policy pcap with tap_selector matching all tag(s) of the tap from an agent, all metric_groups enabled, none metric_groups disabled and settings: {"require_version":"2.0"} is applied to the group
@@ -1554,7 +1554,7 @@ Scenario: net handler with all metric groups disabled (v2)
         And the Orb user logs in
         And that a sink already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
-    When an agent(input_type:pcap, settings: {"iface":"mocked", "host_spec":"fe80::a00:27ff:fed4:10bb/48,192.168.0.0/24,75.75.75.75/32"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
+    When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And a net policy pcap with tap_selector matching all tag(s) of the tap from an agent, none metric_groups enabled, all metric_groups disabled and settings: {"require_version":"2.0"} is applied to the group
@@ -1574,7 +1574,7 @@ Scenario: net handler with only cardinality metric groups enabled (v2)
         And the Orb user logs in
         And that a sink already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
-    When an agent(input_type:pcap, settings: {"iface":"mocked", "host_spec":"fe80::a00:27ff:fed4:10bb/48,192.168.0.0/24,75.75.75.75/32"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
+    When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And a net policy pcap with tap_selector matching all tag(s) of the tap from an agent, cardinality metric_groups enabled, quantiles, counters, top_geo, top_ips metric_groups disabled and settings: {"require_version":"2.0"} is applied to the group
@@ -1594,7 +1594,7 @@ Scenario: net handler with only counters metric groups enabled (v2)
         And the Orb user logs in
         And that a sink already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
-    When an agent(input_type:pcap, settings: {"iface":"mocked", "host_spec":"fe80::a00:27ff:fed4:10bb/48,192.168.0.0/24,75.75.75.75/32"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
+    When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And a net policy pcap with tap_selector matching all tag(s) of the tap from an agent, counters metric_groups enabled, quantiles, cardinality, top_geo, top_ips metric_groups disabled and settings: {"require_version":"2.0"} is applied to the group
@@ -1614,7 +1614,7 @@ Scenario: net handler with only top_geo metric groups enabled (v2)
         And the Orb user logs in
         And that a sink already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
-    When an agent(input_type:pcap, settings: {"iface":"mocked", "host_spec":"fe80::a00:27ff:fed4:10bb/48,192.168.0.0/24,75.75.75.75/32"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
+    When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And a net policy pcap with tap_selector matching all tag(s) of the tap from an agent, top_geo metric_groups enabled, quantiles, counters, cardinality, top_ips metric_groups disabled and settings: {"require_version":"2.0"} is applied to the group
@@ -1634,7 +1634,7 @@ Scenario: net handler with only top_ips metric groups enabled (v2)
         And the Orb user logs in
         And that a sink already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
-    When an agent(input_type:pcap, settings: {"iface":"mocked", "host_spec":"fe80::a00:27ff:fed4:10bb/48,192.168.0.0/24,75.75.75.75/32"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
+    When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And a net policy pcap with tap_selector matching all tag(s) of the tap from an agent, top_ips metric_groups enabled, quantiles, counters, top_geo, cardinality metric_groups disabled and settings: {"require_version":"2.0"} is applied to the group
@@ -1654,7 +1654,7 @@ Scenario: net handler with only quantiles metric groups enabled (v2)
         And the Orb user logs in
         And that a sink already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
-    When an agent(input_type:pcap, settings: {"iface":"mocked", "host_spec":"fe80::a00:27ff:fed4:10bb/48,192.168.0.0/24,75.75.75.75/32"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
+    When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And a net policy pcap with tap_selector matching all tag(s) of the tap from an agent, quantiles metric_groups enabled, top_ips, counters, top_geo, cardinality metric_groups disabled and settings: {"require_version":"2.0"} is applied to the group
