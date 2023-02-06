@@ -43,13 +43,14 @@ type maestroService struct {
 func NewMaestroService(logger *zap.Logger, streamRedisClient *redis.Client, sinkerRedisClient *redis.Client, sinksGrpcClient sinkspb.SinkServiceClient, esCfg config.EsConfig, otelCfg config.OtelConfig) Service {
 	kubectr := kubecontrol.NewService(logger)
 	eventStore := rediscons1.NewEventStore(streamRedisClient, sinkerRedisClient, otelCfg.KafkaUrl, kubectr, esCfg.Consumer, sinksGrpcClient, logger)
-	monitor := monitor.NewMonitorService(logger, &sinksGrpcClient, eventStore, &kubectr)
+	monitorService := monitor.NewMonitorService(logger, &sinksGrpcClient, eventStore, &kubectr)
 	return &maestroService{
 		logger:            logger,
 		streamRedisClient: streamRedisClient,
+		sinkerRedisClient: sinkerRedisClient,
 		sinksClient:       sinksGrpcClient,
 		kubecontrol:       kubectr,
-		monitor:           monitor,
+		monitor:           monitorService,
 		eventStore:        eventStore,
 		kafkaUrl:          otelCfg.KafkaUrl,
 	}
