@@ -170,7 +170,7 @@ func (es eventStore) PublishSinkStateChange(sink *sinkspb.SinkRes, status string
 		Stream: streamID,
 		Values: event.Encode(),
 	}
-	err = es.sinkerKeyRedisClient.XAdd(context.Background(), record).Err()
+	err = es.streamRedisClient.XAdd(context.Background(), record).Err()
 	if err != nil {
 		es.logger.Error("error sending event to event store", zap.Error(err))
 	}

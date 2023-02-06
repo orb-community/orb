@@ -115,6 +115,7 @@ func (s *sinkerCache) AddActivity(ownerID string, sinkID string) error {
 	if err := s.client.Set(context.Background(), skey, lastActivity, 0).Err(); err != nil {
 		return err
 	}
+	s.logger.Info("added activity for owner and sink ids", zap.String("owner", ownerID), zap.String("sinkID", sinkID))
 	return nil
 }
 
