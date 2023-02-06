@@ -22,7 +22,7 @@ const (
 )
 
 func (es eventStore) GetDeploymentEntryFromSinkId(ctx context.Context, sinkId string) (string, error) {
-	cmd := es.streamRedisClient.HGet(ctx, deploymentKey, sinkId)
+	cmd := es.sinkerKeyRedisClient.HGet(ctx, deploymentKey, sinkId)
 	if err := cmd.Err(); err != nil {
 		es.logger.Error("error during redis reading of SinkId", zap.String("sink-id", sinkId), zap.Error(err))
 		return "", err
@@ -42,7 +42,7 @@ func (es eventStore) handleSinksDeleteCollector(ctx context.Context, event redis
 	if err != nil {
 		return err
 	}
-	es.streamRedisClient.HDel(ctx, deploymentKey, event.SinkID)
+	es.sinkerKeyRedisClient.HDel(ctx, deploymentKey, event.SinkID)
 	return nil
 }
 
@@ -78,7 +78,7 @@ func (es eventStore) CreateDeploymentEntry(ctx context.Context, sinkId, sinkUrl,
 		return err
 	}
 
-	es.streamRedisClient.HSet(ctx, deploymentKey, sinkId, deploy)
+	es.sinkerKeyRedisClient.HSet(ctx, deploymentKey, sinkId, deploy)
 	return nil
 }
 
@@ -104,7 +104,7 @@ func (es eventStore) handleSinksUpdateCollector(ctx context.Context, event redis
 		es.logger.Error("error trying to get deployment json for sink ID", zap.String("sinkId", event.SinkID))
 		return err
 	}
-	es.streamRedisClient.HSet(ctx, deploymentKey, event.SinkID, deploy)
+	es.sinkerKeyRedisClient.HSet(ctx, deploymentKey, event.SinkID, deploy)
 	err = es.kubecontrol.UpdateOtelCollector(ctx, event.Owner, event.SinkID, deploy)
 	if err != nil {
 		return err

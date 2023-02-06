@@ -49,7 +49,6 @@ func (svc *deployService) collectorDeploy(ctx context.Context, operation, ownerI
 	if err != nil {
 		if status == "broken" {
 			operation = "delete"
-
 		}
 	}
 	if operation == "apply" {
@@ -139,7 +138,7 @@ func (svc *deployService) getDeploymentState(ctx context.Context, _, sinkId stri
 					return "broken", errors.New(pod.Status.Message)
 				}
 				if pod.Status.Phase != v1.PodRunning {
-					continue
+					break
 				}
 				return "active", nil
 			}

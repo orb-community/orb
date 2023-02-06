@@ -141,17 +141,17 @@ func (svc *maestroService) Start(ctx context.Context, cancelFunction context.Can
 }
 
 func (svc *maestroService) subscribeToSinkerES(ctx context.Context) {
-	svc.logger.Info("Subscribed to Redis Event Store for sinker")
 	if err := svc.eventStore.SubscribeSinker(ctx); err != nil {
 		svc.logger.Error("Bootstrap service failed to subscribe to event sourcing sinker", zap.Error(err))
 		return
 	}
+	svc.logger.Info("Subscribed to Redis Event Store for sinker")
 }
 
 func (svc *maestroService) subscribeToSinksES(ctx context.Context) {
-	svc.logger.Info("Subscribed to Redis Event Store for sinks")
 	if err := svc.eventStore.SubscribeSinks(ctx); err != nil {
 		svc.logger.Error("Bootstrap service failed to subscribe to event sourcing sinks", zap.Error(err))
 		return
 	}
+	svc.logger.Info("Subscribed to Redis Event Store for sinks")
 }
