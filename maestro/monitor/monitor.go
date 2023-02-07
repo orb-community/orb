@@ -21,10 +21,9 @@ import (
 )
 
 const (
-	idleTimeSeconds      = 300
-	MonitorFixedDuration = 1 * time.Minute
-	TimeDiffActiveIdle   = 5 * time.Minute
-	namespace            = "otelcollectors"
+	idleTimeSeconds = 300
+	TickerForScan   = 1 * time.Minute
+	namespace       = "otelcollectors"
 )
 
 func NewMonitorService(logger *zap.Logger, sinksClient *sinkspb.SinkServiceClient, eventStore rediscons1.Subscriber, kubecontrol *kubecontrol.Service) MonitorService {
@@ -53,7 +52,7 @@ type monitorService struct {
 
 func (svc *monitorService) Start(ctx context.Context, cancelFunc context.CancelFunc) error {
 	go func(ctx context.Context, cancelFunc context.CancelFunc) {
-		ticker := time.NewTicker(MonitorFixedDuration)
+		ticker := time.NewTicker(TickerForScan)
 		svc.logger.Info("start monitor routine", zap.Any("routine", ctx))
 		defer func() {
 			cancelFunc()
@@ -204,14 +203,14 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 				svc.logger.Error("error on getting last collector activity", zap.Error(activityErr))
 				status = "unknown"
 			} else {
-				idleLimit = lastActivity + idleTimeSeconds // within 30 minutes
+				idleLimit = time.Now().Unix() - idleTimeSeconds // within 30 minutes
 			}
 		}
 		// only should change sink state just when its current status is 'active'.
 		// this state can be 'error', if any error was found on otel collector during analyzeLogs() or
 		// we can set it as 'idle' when we see that lastActivity is older than 30 minutes
 		if sink.GetState() == "active" {
-			if time.Now().Unix() >= idleLimit && lastActivity > 0 {
+			if lastActivity >= idleLimit {
 				svc.eventStore.PublishSinkStateChange(sink, "idle", logsErr, err)
 				err := svc.eventStore.RemoveSinkActivity(ctx, sink.Id)
 				if err != nil {
