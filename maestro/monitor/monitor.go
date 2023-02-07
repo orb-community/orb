@@ -227,15 +227,14 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 				if err != nil {
 					svc.logger.Error("error removing otel collector", zap.Error(err))
 				}
-
-			} else if sink.GetState() != status { //updating status
-				if err != nil {
-					svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("error_message (opt)", err.Error()), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
-				} else {
-					svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
-				}
-				svc.eventStore.PublishSinkStateChange(sink, status, logsErr, err)
 			}
+		} else if sink.GetState() != status { //updating status
+			if err != nil {
+				svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("error_message (opt)", err.Error()), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
+			} else {
+				svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
+			}
+			svc.eventStore.PublishSinkStateChange(sink, status, logsErr, err)
 		}
 	}
 }
