@@ -161,6 +161,8 @@ func (svc *deployService) UpdateOtelCollector(ctx context.Context, ownerID, sink
 	if err != nil {
 		return err
 	}
+	// Time to wait until K8s completely removes before re-creating
+	time.Sleep(3 * time.Second)
 	err = svc.CreateOtelCollector(ctx, ownerID, sinkID, deploymentEntry)
 	if err != nil {
 		return err
