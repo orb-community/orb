@@ -2,13 +2,12 @@ package bridgeservice
 
 import (
 	"context"
-	"sort"
-	"time"
-
 	fleetpb "github.com/ns1labs/orb/fleet/pb"
 	policiespb "github.com/ns1labs/orb/policies/pb"
 	"github.com/ns1labs/orb/sinker/config"
 	"go.uber.org/zap"
+	"sort"
+	"time"
 )
 
 type BridgeService interface {
@@ -50,25 +49,25 @@ func (bs *SinkerOtelBridgeService) NotifyActiveSink(ctx context.Context, mfOwner
 			bs.logger.Error("unable to set state", zap.String("new_state", newState), zap.Error(err))
 			return err
 		}
-		if cfgRepo.State == config.Error {
-			cfgRepo.Msg = message
-		} else if cfgRepo.State == config.Active {
-			cfgRepo.LastRemoteWrite = time.Now()
-		}
 		err = bs.sinkerCache.DeployCollector(ctx, cfgRepo)
 		if err != nil {
 			bs.logger.Error("error during update sink cache", zap.String("sinkId", sinkId), zap.Error(err))
 			return err
 		}
-	} else {
-		// update LastRemoteWrite on redis sinker for this collector
-		if cfgRepo.State == config.Active {
-			bs.logger.Info("sink is already active, skipping")
-			err = bs.sinkerCache.AddActivity(mfOwnerId, sinkId)
-			if err != nil {
-				bs.logger.Error("error during update last remote write", zap.String("sinkId", sinkId), zap.Error(err))
-				return err
-			}
+		err = bs.sinkerCache.AddActivity(mfOwnerId, sinkId)
+		if err != nil {
+			bs.logger.Error("error during update last remote write", zap.String("sinkId", sinkId), zap.Error(err))
+			return err
+		}
+	} else if cfgRepo.State == config.Error {
+		cfgRepo.Msg = message
+	} else if cfgRepo.State == config.Active {
+		cfgRepo.LastRemoteWrite = time.Now()
+		bs.logger.Info("sink is already active, skipping")
+		err = bs.sinkerCache.AddActivity(mfOwnerId, sinkId)
+		if err != nil {
+			bs.logger.Error("error during update last remote write", zap.String("sinkId", sinkId), zap.Error(err))
+			return err
 		}
 	}
 
