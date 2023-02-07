@@ -249,11 +249,11 @@ func (svc *monitorService) analyzeLogs(logEntry []string) (status string, err er
 		if len(logLine) > 24 {
 			// known errors
 			if strings.Contains(logLine, "Permanent error: remote write returned HTTP status 401 Unauthorized") {
-				errorMessage := "Permanent error: remote write returned HTTP status 401 Unauthorized"
+				errorMessage := "permanent error: remote write returned HTTP status 401 Unauthorized"
 				return "error", errors.New(errorMessage)
 			}
 			if strings.Contains(logLine, "Permanent error: remote write returned HTTP status 429 Too Many Requests") {
-				errorMessage := "Permanent error: remote write returned HTTP status 429 Too Many Requests"
+				errorMessage := "permanent error: remote write returned HTTP status 429 Too Many Requests"
 				return "error", errors.New(errorMessage)
 			}
 			// other errors
