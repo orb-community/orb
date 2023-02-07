@@ -202,6 +202,7 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			// here we should check if LastActivity is up-to-date, otherwise we need to set sink as idle
 			if activityErr != nil || lastActivity == 0 {
 				svc.logger.Error("error on getting last collector activity", zap.Error(activityErr))
+				status = "unknown"
 			} else {
 				idleLimit = lastActivity + idleTimeSeconds // within 30 minutes
 			}

@@ -41,7 +41,7 @@ var (
 		Backend:     "prometheus",
 		State:       sinks.Unknown,
 		Error:       "",
-		Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
+		Config:      map[string]interface{}{"remote_host": "https://orb.community/", "username": "dbuser"},
 		Tags:        map[string]string{"cloud": "aws"},
 	}
 	wrongID, _ = uuid.NewV4()
@@ -131,7 +131,7 @@ func TestUpdateSink(t *testing.T) {
 		Backend:     "prometheus",
 		State:       sinks.Unknown,
 		Error:       "",
-		Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
+		Config:      map[string]interface{}{"remote_host": "https://orb.community/", "username": "dbuser"},
 		Tags:        map[string]string{"cloud": "aws"},
 	})
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
@@ -143,7 +143,7 @@ func TestUpdateSink(t *testing.T) {
 		Backend:     "prometheus",
 		State:       sinks.Unknown,
 		Error:       "",
-		Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
+		Config:      map[string]interface{}{"remote_host": "https://orb.community/", "username": "dbuser"},
 		Tags:        map[string]string{"cloud": "aws"},
 	})
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
@@ -155,7 +155,7 @@ func TestUpdateSink(t *testing.T) {
 		Backend:     "prometheus",
 		State:       sinks.Unknown,
 		Error:       "",
-		Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
+		Config:      map[string]interface{}{"remote_host": "https://orb.community/", "username": "dbuser"},
 		Tags:        map[string]string{"cloud": "aws"},
 	})
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
@@ -167,7 +167,7 @@ func TestUpdateSink(t *testing.T) {
 		Backend:     "prometheus",
 		State:       sinks.Unknown,
 		Error:       "",
-		Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
+		Config:      map[string]interface{}{"remote_host": "https://orb.community/", "username": "dbuser"},
 		Tags:        map[string]string{"cloud": "aws"},
 	})
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
@@ -203,14 +203,14 @@ func TestUpdateSink(t *testing.T) {
 			incomingSink: sinks.Sink{
 				ID: sinkTestConfigAttribute.ID,
 				Config: types.Metadata{
-					"remote_host": "new_url",
+					"remote_host": "https://orb.community/",
 				},
 				Error: "",
 			},
 			expectedSink: sinks.Sink{
 				Name: sinkTestConfigAttribute.Name,
 				Config: types.Metadata{
-					"opentelemetry": "enabled", "remote_host": "new_url", "username": "dbuser",
+					"opentelemetry": "enabled", "remote_host": "https://orb.community/", "username": "dbuser",
 				},
 				Description: sinkTestConfigAttribute.Description,
 				Tags:        sinkTestConfigAttribute.Tags,
