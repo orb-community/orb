@@ -40,7 +40,7 @@ func (svc sinkService) CreateSink(ctx context.Context, token string, sink Sink) 
 	// Validate remote_host
 	_, err = url.ParseRequestURI(sink.Config["remote_host"].(string))
 	if err != nil {
-		return Sink{}, errors.Wrap(ErrCreateSink, err)
+		return Sink{}, errors.Wrap(errors.New("invalid remote url"), err)
 	}
 
 	// encrypt data for the password

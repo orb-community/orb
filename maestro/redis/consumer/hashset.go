@@ -158,10 +158,9 @@ func (es eventStore) PublishSinkStateChange(sink *sinkspb.SinkRes, status string
 		logMessage = logsErr.Error()
 	}
 	event := redis.SinkerUpdateEvent{
-		SinkID: sink.Id,
-		Owner:  sink.OwnerID,
-		State:  status,
-
+		SinkID:    sink.Id,
+		Owner:     sink.OwnerID,
+		State:     status,
 		Msg:       logMessage,
 		Timestamp: time.Now(),
 	}
@@ -174,6 +173,7 @@ func (es eventStore) PublishSinkStateChange(sink *sinkspb.SinkRes, status string
 	if err != nil {
 		es.logger.Error("error sending event to event store", zap.Error(err))
 	}
+	es.logger.Info("Maestro notified change of status for sink", zap.String("newState", status), zap.String("sink-id", sink.Id))
 }
 
 func decodeSinksEvent(event map[string]interface{}, operation string) (redis.SinksUpdateEvent, error) {
