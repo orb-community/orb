@@ -254,7 +254,7 @@ func (svc *monitorService) analyzeLogs(logEntry []string) (status string, err er
 			}
 			if strings.Contains(logLine, "Permanent error: remote write returned HTTP status 429 Too Many Requests") {
 				errorMessage := "Permanent error: remote write returned HTTP status 429 Too Many Requests"
-				return "warning", errors.New(errorMessage)
+				return "error", errors.New(errorMessage)
 			}
 			// other errors
 			if strings.Contains(logLine, "error") {
