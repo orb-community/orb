@@ -16,8 +16,9 @@ import (
 
 const (
 	streamMaestro = "orb.maestro"
-	groupSinker   = "orb.sinkerCollectors"
-	groupSinks    = "orb.sinksCollectors"
+	streamSinks   = "orb.sinks"
+	streamSinker  = "orb.sinker"
+	groupMaestro  = "orb.maestro"
 
 	sinkerPrefix = "sinker."
 	sinkerUpdate = sinkerPrefix + "update"
@@ -65,19 +66,27 @@ func NewEventStore(streamRedisClient, sinkerKeyRedisClient *redis.Client, kafkaU
 	}
 }
 
-// to listen events from sinker to maestro
+// Subscribe to listen events from sinker to maestro
 func (es eventStore) Subscribe(context context.Context) error {
 	//listening sinker events
-	err := es.streamRedisClient.XGroupCreateMkStream(context, streamMaestro, groupSinker, "$").Err()
+	err := es.streamRedisClient.XGroupCreateMkStream(context, streamSinks, groupMaestro, "$").Err()
+	if err != nil && err.Error() != exists {
+		return err
+	}
+	err = es.streamRedisClient.XGroupCreateMkStream(context, streamSinker, groupMaestro, "$").Err()
+	if err != nil && err.Error() != exists {
+		return err
+	}
+	err = es.streamRedisClient.XGroupCreateMkStream(context, streamMaestro, groupMaestro, "$").Err()
 	if err != nil && err.Error() != exists {
 		return err
 	}
 
 	for {
 		streams, err := es.streamRedisClient.XReadGroup(context, &redis.XReadGroupArgs{
-			Group:    groupSinker,
+			Group:    groupMaestro,
 			Consumer: "sinker.maestro",
-			Streams:  []string{streamMaestro, ">"},
+			Streams:  []string{streamSinks, streamSinker, ">"},
 			Count:    100,
 		}).Result()
 		if err != nil || len(streams) == 0 {
@@ -121,7 +130,7 @@ func (es eventStore) Subscribe(context context.Context) error {
 				es.logger.Error("Failed to handle sinks event", zap.Any("operation", event["operation"]), zap.Error(err))
 				break
 			}
-			es.streamRedisClient.XAck(context, streamMaestro, groupSinks, msg.ID)
+			es.streamRedisClient.XAck(context, streamMaestro, groupMaestro, msg.ID)
 		}
 	}
 }

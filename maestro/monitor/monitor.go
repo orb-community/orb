@@ -26,7 +26,7 @@ const (
 	namespace       = "otelcollectors"
 )
 
-func NewMonitorService(logger *zap.Logger, sinksClient *sinkspb.SinkServiceClient, eventStore rediscons1.Subscriber, kubecontrol *kubecontrol.Service) MonitorService {
+func NewMonitorService(logger *zap.Logger, sinksClient *sinkspb.SinkServiceClient, eventStore rediscons1.Subscriber, kubecontrol *kubecontrol.Service) Service {
 	deploymentChecks := make(map[string]int)
 	return &monitorService{
 		logger:           logger,
@@ -37,7 +37,7 @@ func NewMonitorService(logger *zap.Logger, sinksClient *sinkspb.SinkServiceClien
 	}
 }
 
-type MonitorService interface {
+type Service interface {
 	Start(ctx context.Context, cancelFunc context.CancelFunc) error
 	GetRunningPods(ctx context.Context) ([]string, error)
 }
