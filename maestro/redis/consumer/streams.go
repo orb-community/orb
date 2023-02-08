@@ -86,7 +86,7 @@ func (es eventStore) Subscribe(context context.Context) error {
 		streams, err := es.streamRedisClient.XReadGroup(context, &redis.XReadGroupArgs{
 			Group:    groupMaestro,
 			Consumer: "sinker.maestro",
-			Streams:  []string{streamSinks, streamSinker, ">"},
+			Streams:  []string{streamMaestro, streamSinks, streamSinker, ">"},
 			Count:    100,
 		}).Result()
 		if err != nil || len(streams) == 0 {
