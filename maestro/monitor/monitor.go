@@ -161,6 +161,7 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 	for _, sink := range sinksRes.Sinks {
 		var sinkCollector *k8scorev1.Pod
 		for _, collector := range runningCollectors {
+			svc.logger.Info("Debug collector name, collector id", zap.String("name", collector.Name), zap.Any("collector", collector))
 			if strings.Contains(collector.Name, sink.Id) {
 				sinkCollector = &collector
 				break
@@ -168,12 +169,12 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 		}
 		if sinkCollector == nil {
 			svc.logger.Warn("collector not found for sink, checking to set state as error", zap.String("sinkID", sink.Id))
-			// if collector don't spin up in 30 minutes should report error on collector deployment
+			// if collector don't spin up in 5 minutes should report error on collector deployment
 			svc.deploymentChecks[sink.Id]++
-			if svc.deploymentChecks[sink.Id] >= 30 {
+			if svc.deploymentChecks[sink.Id] >= 5 {
 				err := errors.New("permanent error: opentelemetry collector deployment error")
-				svc.eventStore.PublishSinkStateChange(sink, "error", err, err)
-				svc.deploymentChecks[sink.Id] = 0
+				svc.eventStore.PublishSinkStateChange(sink, "error", err, nil)
+				delete(svc.deploymentChecks, sink.Id)
 			}
 			continue
 		}
@@ -210,7 +211,7 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 		// this state can be 'error', if any error was found on otel collector during analyzeLogs() or
 		// we can set it as 'idle' when we see that lastActivity is older than 30 minutes
 		if sink.GetState() == "active" {
-			if lastActivity >= idleLimit {
+			if idleLimit >= lastActivity {
 				svc.eventStore.PublishSinkStateChange(sink, "idle", logsErr, err)
 				err := svc.eventStore.RemoveSinkActivity(ctx, sink.Id)
 				if err != nil {
