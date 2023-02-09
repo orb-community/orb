@@ -250,6 +250,23 @@ Scenario: Provision agent with tag matching existing group with multiple policie
         And referred sink must have active state on response within 120 seconds
         And 20 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
+@sanity @sink_status_idle
+Scenario: Sink idle after 5 minutes without metrics flow
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that an agent with 1 orb tag(s) already exists and is online
+        And pktvisor state is running
+        And referred agent is subscribed to 1 group
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And that a sink already exists
+        And 2 simple policies are applied to the group
+        And this agent's heartbeat shows that 2 policies are applied and all has status running
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+        And referred sink must have active state on response within 120 seconds
+        And 2 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
+    When stop the orb-agent container
+    Then referred sink must have idle state on response after 360 seconds
 
 @smoke @sink_status_error
 Scenario: Sink with invalid endpoint
