@@ -161,8 +161,8 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 	for _, collector := range runningCollectors {
 		var sink *sinkspb.SinkRes
 		for _, sinkRes := range sinksRes.Sinks {
-			svc.logger.Info("Debug collector name, collector id", zap.String("name", collector.Name), zap.Any("collector", collector))
-			if strings.Contains(collector.Name, sink.Id) {
+			svc.logger.Info("Debug collector name, collector id", zap.String("name", collector.Name), zap.String("sinkID", sinkRes.Id))
+			if strings.Contains(collector.Name, sinkRes.Id) {
 				sink = sinkRes
 				break
 			}
