@@ -168,7 +168,18 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			}
 		}
 		if sink == nil {
-			svc.logger.Warn("collector not found for sink", zap.String("sinkID", sink.Id))
+			svc.logger.Warn("collector not found for sink, depleting collector", zap.String("collector name", collector.Name))
+			sinkId := collector.Name[5:52]
+			svc.logger.Info("Debug extracted sinkID", zap.String("sinkID", sinkId))
+			deployment, errDeploy := svc.eventStore.GetDeploymentEntryFromSinkId(ctx, sinkId)
+			if errDeploy != nil {
+				svc.logger.Error("Remove collector: error on getting collector deployment from redis", zap.Error(errDeploy))
+				continue
+			}
+			err = svc.kubecontrol.DeleteOtelCollector(ctx, sink.OwnerID, sink.Id, deployment)
+			if err != nil {
+				svc.logger.Error("error removing otel collector", zap.Error(err))
+			}
 			continue
 		}
 		var data maestroconfig.SinkData

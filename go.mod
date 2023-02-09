@@ -26,6 +26,7 @@ require (
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/ory/dockertest/v3 v3.8.1
 	github.com/pkg/profile v1.7.0
+	github.com/plgd-dev/kit/v2 v2.0.0-20211006190727-057b33161b90
 	github.com/prometheus/client_golang v1.13.0
 	github.com/prometheus/prometheus v0.38.0
 	github.com/rubenv/sql-migrate v1.1.1
@@ -177,6 +178,8 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.4.1 // indirect
 	github.com/uber/jaeger-lib v2.4.1+incompatible // indirect
+	github.com/ugorji/go v1.1.7 // indirect
+	github.com/ugorji/go/codec v1.1.7 // indirect
 	github.com/vultr/govultr/v2 v2.17.2 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
