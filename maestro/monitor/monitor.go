@@ -196,8 +196,10 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			svc.logger.Error("error during analyze logs", zap.Error(logsErr))
 			continue
 		}
-		lastActivity, activityErr := svc.eventStore.GetActivity(sink.Id)
+		var lastActivity int64
+		var activityErr error
 		if status == "active" {
+			lastActivity, activityErr = svc.eventStore.GetActivity(sink.Id)
 			// if logs reported 'active' status
 			// here we should check if LastActivity is up-to-date, otherwise we need to set sink as idle
 			if activityErr != nil || lastActivity == 0 {
@@ -206,26 +208,23 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			} else {
 				idleLimit = time.Now().Unix() - idleTimeSeconds // within 30 minutes
 			}
-		}
-		// only should change sink state just when its current status is 'active'.
-		// this state can be 'error', if any error was found on otel collector during analyzeLogs() or
-		// we can set it as 'idle' when we see that lastActivity is older than 30 minutes
-		if sink.GetState() == "active" {
-			if idleLimit >= lastActivity {
-				svc.eventStore.PublishSinkStateChange(sink, "idle", logsErr, err)
-				err := svc.eventStore.RemoveSinkActivity(ctx, sink.Id)
-				if err != nil {
-					svc.logger.Error("error on remove sink activity", zap.Error(err))
-					continue
-				}
-				deployment, errDeploy := svc.eventStore.GetDeploymentEntryFromSinkId(ctx, sink.Id)
-				if errDeploy != nil {
-					svc.logger.Error("Remove collector: error on getting collector deployment from redis", zap.Error(activityErr))
-					continue
-				}
-				err = svc.kubecontrol.DeleteOtelCollector(ctx, sink.OwnerID, sink.Id, deployment)
-				if err != nil {
-					svc.logger.Error("error removing otel collector", zap.Error(err))
+			if sink.GetState() == "active" {
+				if idleLimit >= lastActivity {
+					svc.eventStore.PublishSinkStateChange(sink, "idle", logsErr, err)
+					err := svc.eventStore.RemoveSinkActivity(ctx, sink.Id)
+					if err != nil {
+						svc.logger.Error("error on remove sink activity", zap.Error(err))
+						continue
+					}
+					deployment, errDeploy := svc.eventStore.GetDeploymentEntryFromSinkId(ctx, sink.Id)
+					if errDeploy != nil {
+						svc.logger.Error("Remove collector: error on getting collector deployment from redis", zap.Error(activityErr))
+						continue
+					}
+					err = svc.kubecontrol.DeleteOtelCollector(ctx, sink.OwnerID, sink.Id, deployment)
+					if err != nil {
+						svc.logger.Error("error removing otel collector", zap.Error(err))
+					}
 				}
 			}
 		} else if sink.GetState() != status { //updating status
@@ -248,7 +247,7 @@ func (svc *monitorService) analyzeLogs(logEntry []string) (status string, err er
 	for _, logLine := range logEntry {
 		if len(logLine) > 24 {
 			// known errors
-			if strings.Contains(logLine, "Permanent error: remote write returned HTTP status 401 Unauthorized") {
+			if strings.Contains(logLine, "401 Unauthorized") {
 				errorMessage := "permanent error: remote write returned HTTP status 401 Unauthorized"
 				return "error", errors.New(errorMessage)
 			}
