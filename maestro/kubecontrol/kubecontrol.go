@@ -5,9 +5,11 @@ import (
 	"context"
 	"fmt"
 	"github.com/ns1labs/orb/pkg/errors"
+	"github.com/plgd-dev/kit/v2/codec/json"
 	"go.uber.org/zap"
 	v1 "k8s.io/api/core/v1"
 	k8smetav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	k8sv1 "k8s.io/client-go/applyconfigurations/apps/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"os"
@@ -21,11 +23,22 @@ const namespace = "otelcollectors"
 var _ Service = (*deployService)(nil)
 
 type deployService struct {
-	logger *zap.Logger
+	logger    *zap.Logger
+	clientSet *kubernetes.Clientset
 }
 
 func NewService(logger *zap.Logger) Service {
-	return &deployService{logger: logger}
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		logger.Error("error on get cluster config", zap.Error(err))
+		return nil
+	}
+	clientSet, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		logger.Error("error on get client", zap.Error(err))
+		return nil
+	}
+	return &deployService{logger: logger, clientSet: clientSet}
 }
 
 type Service interface {
@@ -45,7 +58,7 @@ func (svc *deployService) collectorDeploy(ctx context.Context, operation, ownerI
 	tmp := strings.Split(string(fileContent), "\n")
 	newContent := strings.Join(tmp[1:], "\n")
 
-	status, err := svc.getDeploymentState(ctx, ownerID, sinkId)
+	_, status, err := svc.getDeploymentState(ctx, ownerID, sinkId)
 	if err != nil {
 		if status == "broken" {
 			operation = "delete"
@@ -84,14 +97,63 @@ func (svc *deployService) collectorDeploy(ctx context.Context, operation, ownerI
 
 	if err == nil {
 		svc.logger.Info(fmt.Sprintf("successfully %s the otel-collector for sink-id: %s", operation, sinkId))
-		// update deployment state map
-		if operation == "apply" {
+	}
+	svc.logger.Info(fmt.Sprintf("successfully %s the otel-collector for sink-id: %s", operation, sinkId))
 
-		} else if operation == "delete" {
+	return nil
+}
 
+func (svc *deployService) newCollectorDeploy(ctx context.Context, operation, ownerID, sinkId, manifest string) error {
+	fileContent := []byte(manifest)
+	tmp := strings.Split(string(fileContent), "\n")
+	newContent := strings.Join(tmp[1:], "\n")
+	deploymentName, status, err := svc.getDeploymentState(ctx, ownerID, sinkId)
+	if err != nil {
+		if status == "broken" {
+			operation = "delete"
 		}
 	}
-
+	fileName := "/tmp/otel-collector-" + sinkId + ".json"
+	err = os.WriteFile(fileName, []byte(newContent), 0644)
+	if err != nil {
+		svc.logger.Error("failed to write file content", zap.Error(err))
+		return err
+	}
+	if operation == "apply" {
+		if status == "active" {
+			err := os.Remove(fileName)
+			if err != nil {
+				svc.logger.Info("failed to remove file", zap.Error(err))
+				return err
+			}
+			svc.logger.Info("Already applied collector for Sink ID", zap.String("sinkID", sinkId))
+			return nil
+		}
+		var applyConfig k8sv1.DeploymentApplyConfiguration
+		err := json.Decode(fileContent, applyConfig)
+		if err != nil {
+			return err
+		}
+		svc.logger.Info("DEBUG applyConfig", zap.Any("applyConfig", applyConfig))
+		result, err := svc.clientSet.AppsV1().Deployments(namespace).Apply(ctx, &applyConfig, k8smetav1.ApplyOptions{
+			Force: true,
+		})
+		if err != nil {
+			svc.logger.Info("failed to apply deployment", zap.Error(err))
+			return err
+		}
+		svc.logger.Info("DEBUG result", zap.Any("result", result))
+	} else if operation == "delete" {
+		if status == "deleted" {
+			svc.logger.Info("Already deleted collector for Sink ID", zap.String("sinkID", sinkId))
+			return nil
+		}
+		err := svc.clientSet.AppsV1().Deployments(namespace).Delete(ctx, deploymentName, k8smetav1.DeleteOptions{})
+		if err != nil {
+			svc.logger.Info("failed to remove deployment", zap.Error(err))
+			return err
+		}
+	}
 	return nil
 }
 
@@ -112,43 +174,36 @@ func execCmd(_ context.Context, cmd *exec.Cmd, logger *zap.Logger, stdOutFunc fu
 	return stdoutScanner, stderrScanner, err
 }
 
-func (svc *deployService) getDeploymentState(ctx context.Context, _, sinkId string) (string, error) {
-	config, err := rest.InClusterConfig()
-	if err != nil {
-		svc.logger.Error("error on get cluster config", zap.Error(err))
-		return "", err
-	}
-	clientSet, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		svc.logger.Error("error on get client", zap.Error(err))
-		return "", err
-	}
+func (svc *deployService) getDeploymentState(ctx context.Context, _, sinkId string) (deploymentName string, status string, err error) {
 	// Since this can take a while to be retrieved, we need to have a wait mechanism
 	for i := 0; i < 5; i++ {
 		time.Sleep(5 * time.Second)
-		pods, err := clientSet.CoreV1().Pods(namespace).List(ctx, k8smetav1.ListOptions{})
-		if err != nil {
-			svc.logger.Error("error on reading pods", zap.Error(err))
-			return "", err
+		pods, err2 := svc.clientSet.CoreV1().Pods(namespace).List(ctx, k8smetav1.ListOptions{})
+		if err2 != nil {
+			svc.logger.Error("error on reading pods", zap.Error(err2))
+			return "", "", err2
 		}
 		for _, pod := range pods.Items {
 			if strings.Contains(pod.Name, sinkId) {
+				deploymentName = pod.Name
 				if pod.Status.Phase == v1.PodFailed {
 					svc.logger.Error("error on retrieving collector, pod is broken")
-					return "broken", errors.New(pod.Status.Message)
+					return "", "broken", errors.New(pod.Status.Message)
 				}
 				if pod.Status.Phase != v1.PodRunning {
 					break
 				}
-				return "active", nil
+				status = "active"
+				return
 			}
 		}
 	}
-	return "deleted", nil
+	status = "deleted"
+	return "", "deleted", nil
 }
 
 func (svc *deployService) CreateOtelCollector(ctx context.Context, ownerID, sinkID, deploymentEntry string) error {
-	err := svc.collectorDeploy(ctx, "apply", ownerID, sinkID, deploymentEntry)
+	err := svc.newCollectorDeploy(ctx, "apply", ownerID, sinkID, deploymentEntry)
 	if err != nil {
 		return err
 	}
@@ -171,7 +226,7 @@ func (svc *deployService) UpdateOtelCollector(ctx context.Context, ownerID, sink
 }
 
 func (svc *deployService) DeleteOtelCollector(ctx context.Context, ownerID, sinkID, deploymentEntry string) error {
-	err := svc.collectorDeploy(ctx, "delete", ownerID, sinkID, deploymentEntry)
+	err := svc.newCollectorDeploy(ctx, "delete", ownerID, sinkID, deploymentEntry)
 	if err != nil {
 		return err
 	}

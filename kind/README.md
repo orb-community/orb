@@ -12,6 +12,8 @@ The following steps must be performed at the **root of the Orb project** to set 
 
 > **💡 Note:** If you have those installed, please skip to [Deploy Orb on Kind](#deploy-orb-kind).
 
+> ⚠️ You may need to permit ports 80 and 443 (*ingress*) because of [kubernetes](https://kubernetes.io/docs/concepts/services-networking/ingress/).
+
 <a name="docker"></a>
 ## 🐳 Docker Environment (Requirement)
 

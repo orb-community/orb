@@ -21,13 +21,12 @@ import (
 )
 
 const (
-	idleTimeSeconds      = 300
-	MonitorFixedDuration = 1 * time.Minute
-	TimeDiffActiveIdle   = 5 * time.Minute
-	namespace            = "otelcollectors"
+	idleTimeSeconds = 300
+	TickerForScan   = 1 * time.Minute
+	namespace       = "otelcollectors"
 )
 
-func NewMonitorService(logger *zap.Logger, sinksClient *sinkspb.SinkServiceClient, eventStore rediscons1.Subscriber, kubecontrol *kubecontrol.Service) MonitorService {
+func NewMonitorService(logger *zap.Logger, sinksClient *sinkspb.SinkServiceClient, eventStore rediscons1.Subscriber, kubecontrol *kubecontrol.Service) Service {
 	deploymentChecks := make(map[string]int)
 	return &monitorService{
 		logger:           logger,
@@ -38,7 +37,7 @@ func NewMonitorService(logger *zap.Logger, sinksClient *sinkspb.SinkServiceClien
 	}
 }
 
-type MonitorService interface {
+type Service interface {
 	Start(ctx context.Context, cancelFunc context.CancelFunc) error
 	GetRunningPods(ctx context.Context) ([]string, error)
 }
@@ -53,7 +52,7 @@ type monitorService struct {
 
 func (svc *monitorService) Start(ctx context.Context, cancelFunc context.CancelFunc) error {
 	go func(ctx context.Context, cancelFunc context.CancelFunc) {
-		ticker := time.NewTicker(MonitorFixedDuration)
+		ticker := time.NewTicker(TickerForScan)
 		svc.logger.Info("start monitor routine", zap.Any("routine", ctx))
 		defer func() {
 			cancelFunc()
@@ -162,6 +161,7 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 	for _, sink := range sinksRes.Sinks {
 		var sinkCollector *k8scorev1.Pod
 		for _, collector := range runningCollectors {
+			svc.logger.Info("Debug collector name, collector id", zap.String("name", collector.Name), zap.Any("collector", collector))
 			if strings.Contains(collector.Name, sink.Id) {
 				sinkCollector = &collector
 				break
@@ -169,12 +169,12 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 		}
 		if sinkCollector == nil {
 			svc.logger.Warn("collector not found for sink, checking to set state as error", zap.String("sinkID", sink.Id))
-			// if collector don't spin up in 30 minutes should report error on collector deployment
+			// if collector don't spin up in 5 minutes should report error on collector deployment
 			svc.deploymentChecks[sink.Id]++
-			if svc.deploymentChecks[sink.Id] >= 30 {
+			if svc.deploymentChecks[sink.Id] >= 5 {
 				err := errors.New("permanent error: opentelemetry collector deployment error")
-				svc.eventStore.PublishSinkStateChange(sink, "error", err, err)
-				svc.deploymentChecks[sink.Id] = 0
+				svc.eventStore.PublishSinkStateChange(sink, "error", err, nil)
+				delete(svc.deploymentChecks, sink.Id)
 			}
 			continue
 		}
@@ -204,14 +204,14 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 				svc.logger.Error("error on getting last collector activity", zap.Error(activityErr))
 				status = "unknown"
 			} else {
-				idleLimit = lastActivity + idleTimeSeconds // within 30 minutes
+				idleLimit = time.Now().Unix() - idleTimeSeconds // within 30 minutes
 			}
 		}
 		// only should change sink state just when its current status is 'active'.
 		// this state can be 'error', if any error was found on otel collector during analyzeLogs() or
 		// we can set it as 'idle' when we see that lastActivity is older than 30 minutes
 		if sink.GetState() == "active" {
-			if time.Now().Unix() >= idleLimit && lastActivity > 0 {
+			if idleLimit >= lastActivity {
 				svc.eventStore.PublishSinkStateChange(sink, "idle", logsErr, err)
 				err := svc.eventStore.RemoveSinkActivity(ctx, sink.Id)
 				if err != nil {
@@ -249,12 +249,12 @@ func (svc *monitorService) analyzeLogs(logEntry []string) (status string, err er
 		if len(logLine) > 24 {
 			// known errors
 			if strings.Contains(logLine, "Permanent error: remote write returned HTTP status 401 Unauthorized") {
-				errorMessage := "Permanent error: remote write returned HTTP status 401 Unauthorized"
+				errorMessage := "permanent error: remote write returned HTTP status 401 Unauthorized"
 				return "error", errors.New(errorMessage)
 			}
 			if strings.Contains(logLine, "Permanent error: remote write returned HTTP status 429 Too Many Requests") {
-				errorMessage := "Permanent error: remote write returned HTTP status 429 Too Many Requests"
-				return "warning", errors.New(errorMessage)
+				errorMessage := "permanent error: remote write returned HTTP status 429 Too Many Requests"
+				return "error", errors.New(errorMessage)
 			}
 			// other errors
 			if strings.Contains(logLine, "error") {

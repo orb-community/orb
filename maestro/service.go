@@ -30,7 +30,7 @@ type maestroService struct {
 	serviceCancelFunc context.CancelFunc
 
 	kubecontrol       kubecontrol.Service
-	monitor           monitor.MonitorService
+	monitor           monitor.Service
 	logger            *zap.Logger
 	streamRedisClient *redis.Client
 	sinkerRedisClient *redis.Client
@@ -127,8 +127,7 @@ func (svc *maestroService) Start(ctx context.Context, cancelFunction context.Can
 		}
 	}
 
-	go svc.subscribeToSinksES(ctx)
-	go svc.subscribeToSinkerES(ctx)
+	go svc.subscribeToEventStore(ctx)
 
 	monitorCtx := context.WithValue(ctx, "routine", "monitor")
 	err = svc.monitor.Start(monitorCtx, cancelFunction)
@@ -141,18 +140,10 @@ func (svc *maestroService) Start(ctx context.Context, cancelFunction context.Can
 	return nil
 }
 
-func (svc *maestroService) subscribeToSinkerES(ctx context.Context) {
-	if err := svc.eventStore.SubscribeSinker(ctx); err != nil {
-		svc.logger.Error("Bootstrap service failed to subscribe to event sourcing sinker", zap.Error(err))
+func (svc *maestroService) subscribeToEventStore(ctx context.Context) {
+	if err := svc.eventStore.Subscribe(ctx); err != nil {
+		svc.logger.Error("Bootstrap service failed to subscribe to event sourcing", zap.Error(err))
 		return
 	}
-	svc.logger.Info("Subscribed to Redis Event Store for sinker")
-}
-
-func (svc *maestroService) subscribeToSinksES(ctx context.Context) {
-	if err := svc.eventStore.SubscribeSinks(ctx); err != nil {
-		svc.logger.Error("Bootstrap service failed to subscribe to event sourcing sinks", zap.Error(err))
-		return
-	}
-	svc.logger.Info("Subscribed to Redis Event Store for sinks")
+	svc.logger.Info("Subscribed to Redis Event Store")
 }
