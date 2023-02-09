@@ -158,24 +158,17 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 		return
 	}
 	svc.logger.Info("reading logs from collectors", zap.Int("collectors_length", len(sinksRes.Sinks)))
-	for _, sink := range sinksRes.Sinks {
-		var sinkCollector *k8scorev1.Pod
-		for _, collector := range runningCollectors {
+	for _, collector := range runningCollectors {
+		var sink *sinkspb.SinkRes
+		for _, sinkRes := range sinksRes.Sinks {
 			svc.logger.Info("Debug collector name, collector id", zap.String("name", collector.Name), zap.Any("collector", collector))
 			if strings.Contains(collector.Name, sink.Id) {
-				sinkCollector = &collector
+				sink = sinkRes
 				break
 			}
 		}
-		if sinkCollector == nil {
-			svc.logger.Warn("collector not found for sink, checking to set state as error", zap.String("sinkID", sink.Id))
-			// if collector don't spin up in 5 minutes should report error on collector deployment
-			svc.deploymentChecks[sink.Id]++
-			if svc.deploymentChecks[sink.Id] >= 5 {
-				err := errors.New("permanent error: opentelemetry collector deployment error")
-				svc.eventStore.PublishSinkStateChange(sink, "error", err, nil)
-				delete(svc.deploymentChecks, sink.Id)
-			}
+		if sink == nil {
+			svc.logger.Warn("collector not found for sink", zap.String("sinkID", sink.Id))
 			continue
 		}
 		var data maestroconfig.SinkData
@@ -185,7 +178,7 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 		}
 		data.SinkID = sink.Id
 		data.OwnerID = sink.OwnerID
-		logs, err := svc.getPodLogs(ctx, *sinkCollector)
+		logs, err := svc.getPodLogs(ctx, collector)
 		if err != nil {
 			svc.logger.Error("error on getting logs, skipping", zap.Error(err))
 			continue
