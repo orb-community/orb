@@ -1,13 +1,11 @@
 <img src="docs/images/ORB-logo-black@3x.png" alt="Orb" width="500"/>
-<img src="docs/images/OrbUIPreview.png" alt="Orb UI Preview" width="500"/>
+<img src="https://user-images.githubusercontent.com/97463920/218170067-16a95078-6709-4828-b137-9791376b972e.png" alt="Orb UI Preview" width="500"/>
 
-[![Total alerts](https://img.shields.io/lgtm/alerts/g/ns1labs/orb.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/ns1labs/orb/alerts/)
+
 [![Go Report Card](https://goreportcard.com/badge/github.com/ns1labs/orb)](https://goreportcard.com/report/github.com/ns1labs/orb)
 [![CodeCov](https://codecov.io/gh/ns1labs/orb/branch/develop/graph/badge.svg)](https://app.codecov.io/gh/ns1labs/orb/tree/develop)
-[![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/ns1labs/orb.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/ns1labs/orb/context:javascript)
 
-**Orb** is a new kind of observability platform that helps operators, developers, and end users understand their
-networks, distributed applications, and traffic flows in real time.
+**Orb** is a modern network observability platform built to provide critical visibility into increasingly complex and distributed networks. It can analyze network traffic, run synthetic network probes, and connect the resulting telemetry directly to your existing observability stacks with OpenTelemetry. Orb differentiates from other solutions by pushing analysis close to the traffic sources (reducing inactionable metrics and processing costs), and allows for dynamic reconfiguration of remote agents in real time.
 
 Ready to dive in? See [orb.community](https://orb.community) for [installation instructions](https://orb.community/documentation/install/).
 
@@ -25,7 +23,7 @@ resulting in light-weight, actionable metrics.
 Based on the [pktvisor observability agent](https://pktvisor.dev), Orb's goal is to push analysis to the edge, where
 high resolution data can be analysed in real time without the need to send raw data to a central location for batch
 processing.
-[Current analysis](https://github.com/ns1labs/pktvisor/wiki/Current-Metrics) focuses on L2-L3 Network, DNS, and DHCP
+[Current analysis](https://github.com/orb-community/pktvisor/wiki/Current-Metrics) focuses on L2-L3 Network, DNS, and DHCP
 with more analyzers in the works.
 
 ## Realtime Agent Orchestration
@@ -64,9 +62,9 @@ making [open source, dynamic edge observability a reality](https://ns1.com/blog/
 ***
 
 * [Installation Instructions](https://orb.community/documentation/install/)
-* [View our Wiki](https://github.com/ns1labs/orb/wiki) for technical and architectural information
-* [File an issue](https://github.com/ns1labs/orb/issues/new)
-* Follow our [public work board](https://github.com/ns1labs/orb/projects/2)
-* Start a [Discussion](https://github.com/ns1labs/orb/discussions)
-* [Join us on Slack](https://join.slack.com/t/ns1labs/shared_invite/zt-qqsm5cb4-9fsq1xa~R3h~nX6W0sJzmA)
+* [View our Wiki](https://github.com/orb-community/orb/wiki) for technical and architectural information
+* [File an issue](https://github.com/orb-community/orb/issues/new)
+* Follow our [public work board](https://github.com/orb-community/orb/projects/2)
+* Start a [Discussion](https://github.com/orb-community/orb/discussions)
+* [Join us on Slack](https://join.slack.com/t/netdev-community/shared_invite/zt-1ovv03gwn-S30LtO1qQFvHuvfsEZfjvg)
 * Send mail to [info@pktvisor.dev](mailto:info@pktvisor.dev)
