@@ -169,7 +169,7 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 		}
 		if sink == nil {
 			svc.logger.Warn("collector not found for sink, depleting collector", zap.String("collector name", collector.Name))
-			sinkId := collector.Name[5:52]
+			sinkId := collector.Name[5:51]
 			svc.logger.Info("Debug extracted sinkID", zap.String("sinkID", sinkId))
 			deployment, errDeploy := svc.eventStore.GetDeploymentEntryFromSinkId(ctx, sinkId)
 			if errDeploy != nil {
