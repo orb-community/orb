@@ -152,7 +152,6 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 		return
 	}
 	sinksRes, err := svc.sinksClient.RetrieveSinks(ctx, &sinkspb.SinksFilterReq{OtelEnabled: "enabled"})
-
 	if err != nil {
 		svc.logger.Error("error collecting sinks", zap.Error(err))
 		return
@@ -161,8 +160,8 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 	for _, collector := range runningCollectors {
 		var sink *sinkspb.SinkRes
 		for _, sinkRes := range sinksRes.Sinks {
-			svc.logger.Info("Debug collector name, collector id", zap.String("name", collector.Name), zap.String("sinkID", sinkRes.Id))
 			if strings.Contains(collector.Name, sinkRes.Id) {
+				svc.logger.Warn("collector found for sink", zap.String("collector name", collector.Name), zap.String("sink", sinkRes.Id))
 				sink = sinkRes
 				break
 			}
