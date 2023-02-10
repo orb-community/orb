@@ -6,7 +6,7 @@ import (
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/plgd-dev/kit/v2/codec/json"
 	"go.uber.org/zap"
-	v1 "k8s.io/api/core/v1"
+	k8sappsv1 "k8s.io/api/apps/v1"
 	k8smetav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sv1 "k8s.io/client-go/applyconfigurations/apps/v1"
 	"k8s.io/client-go/kubernetes"
@@ -142,20 +142,18 @@ func (svc *deployService) getDeploymentState(ctx context.Context, _, sinkId stri
 	// Since this can take a while to be retrieved, we need to have a wait mechanism
 	for i := 0; i < 5; i++ {
 		time.Sleep(5 * time.Second)
-		pods, err2 := svc.clientSet.CoreV1().Pods(namespace).List(ctx, k8smetav1.ListOptions{})
+		deploymentList, err2 := svc.clientSet.AppsV1().Deployments(namespace).List(ctx, k8smetav1.ListOptions{})
 		if err2 != nil {
 			svc.logger.Error("error on reading pods", zap.Error(err2))
 			return "", "", err2
 		}
-		for _, pod := range pods.Items {
-			if strings.Contains(pod.Name, sinkId) {
-				deploymentName = pod.Name
-				if pod.Status.Phase == v1.PodFailed {
-					svc.logger.Error("error on retrieving collector, pod is broken")
-					return "", "broken", errors.New(pod.Status.Message)
-				}
-				if pod.Status.Phase != v1.PodRunning {
-					break
+		for _, deployment := range deploymentList.Items {
+			if strings.Contains(deployment.Name, sinkId) {
+				svc.logger.Info("found deployment for sink")
+				deploymentName = deployment.Name
+				if len(deployment.Status.Conditions) == 0 || deployment.Status.Conditions[0].Type == k8sappsv1.DeploymentReplicaFailure {
+					svc.logger.Error("error on retrieving collector, deployment is broken")
+					return "", "broken", errors.New("error on retrieving collector, deployment is broken")
 				}
 				status = "active"
 				return
