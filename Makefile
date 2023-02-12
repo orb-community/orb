@@ -164,7 +164,7 @@ kind-create-all: kind-create-cluster kind-install-orb
 kind-upgrade-all: kind-load-images kind-upgrade-orb
 
 kind-create-cluster:
-	kind create cluster --image kindest/node:v1.23.0 --config=./kind/config.yaml
+	kind create cluster --image kindest/node:v1.22.15 --config=./kind/config.yaml
 
 kind-delete-cluster:
 	kind delete cluster
