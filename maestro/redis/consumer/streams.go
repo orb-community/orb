@@ -81,7 +81,7 @@ func (es eventStore) Subscribe(context context.Context) error {
 		streams, err := es.streamRedisClient.XReadGroup(context, &redis.XReadGroupArgs{
 			Group:    groupMaestro,
 			Consumer: "orb_maestro-es-consumer",
-			Streams:  []string{streamSinks, streamSinker},
+			Streams:  []string{streamSinks, streamSinker, ">"},
 			Count:    100,
 		}).Result()
 		if err != nil || len(streams) == 0 {
@@ -128,7 +128,6 @@ func (es eventStore) Subscribe(context context.Context) error {
 					es.logger.Error("Failed to handle sinks event", zap.Any("operation", event["operation"]), zap.Error(err))
 					break
 				}
-
 			}
 		}
 	}

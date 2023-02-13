@@ -72,7 +72,6 @@ func (e eventStore) Add(config config.SinkConfig) error {
 	if err != nil {
 		e.logger.Error("error sending event to event store", zap.Error(err))
 	}
-	e.logger.Info("DEBUG sinker.update event with information", zap.Any("sinkID", event.SinkID))
 	return nil
 }
 
@@ -96,7 +95,6 @@ func (e eventStore) Remove(ownerID string, sinkID string) error {
 	if err != nil {
 		e.logger.Error("error sending event to event store", zap.Error(err))
 	}
-	e.logger.Info("DEBUG sinker.update event with information", zap.Any("sinkID", event.SinkID))
 	return nil
 }
 
@@ -125,7 +123,6 @@ func (e eventStore) Edit(config config.SinkConfig) error {
 	if err != nil {
 		e.logger.Error("error sending event to event store", zap.Error(err))
 	}
-	e.logger.Info("DEBUG sinker.update event with information", zap.Any("sinkID", event.SinkID))
 	return nil
 }
 
