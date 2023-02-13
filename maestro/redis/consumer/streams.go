@@ -81,55 +81,54 @@ func (es eventStore) Subscribe(context context.Context) error {
 		streams, err := es.streamRedisClient.XReadGroup(context, &redis.XReadGroupArgs{
 			Group:    groupMaestro,
 			Consumer: "orb_maestro-es-consumer",
-			Streams:  []string{streamSinks, streamSinker},
+			Streams:  []string{streamSinks, streamSinker, ">"},
 			Count:    100,
 		}).Result()
 		if err != nil || len(streams) == 0 {
 			continue
 		}
-		for _, stream := range streams {
-			for _, msg := range stream.Messages {
-				event := msg.Values
-				switch event["operation"] {
-				case sinkerUpdate:
-					rte := decodeSinkerStateUpdate(event)
-					if rte.State == "active" {
-						err = es.handleSinkerCreateCollector(context, rte) //sinker request create collector
-					}
-					es.streamRedisClient.XAck(context, streamSinker, groupMaestro, msg.ID)
-				case sinksCreate:
-					rte, err := decodeSinksEvent(event, event["operation"].(string))
-					if err != nil {
-						es.logger.Error("error decoding sinks event", zap.Any("operation", event["operation"]), zap.Any("sink_event", event), zap.Error(err))
-						break
-					}
-					if v, ok := rte.Config["opentelemetry"]; ok && v.(string) == "enabled" {
-						err = es.handleSinksCreateCollector(context, rte) //should create collector
-					}
-					es.streamRedisClient.XAck(context, streamSinks, groupMaestro, msg.ID)
-				case sinksUpdate:
-					rte, err := decodeSinksEvent(event, event["operation"].(string))
-					if err != nil {
-						es.logger.Error("error decoding sinks event", zap.Any("operation", event["operation"]), zap.Any("sink_event", event), zap.Error(err))
-						break
-					}
-					err = es.handleSinksUpdateCollector(context, rte) //should create collector
-					es.streamRedisClient.XAck(context, streamSinks, groupMaestro, msg.ID)
-				case sinksDelete:
-					rte, err := decodeSinksEvent(event, event["operation"].(string))
-					if err != nil {
-						es.logger.Error("error decoding sinks event", zap.Any("operation", event["operation"]), zap.Any("sink_event", event), zap.Error(err))
-						break
-					}
-					err = es.handleSinksDeleteCollector(context, rte) //should delete collector
-					es.streamRedisClient.XAck(context, streamSinks, groupMaestro, msg.ID)
+
+		for _, msg := range streams[0].Messages {
+			event := msg.Values
+			switch event["operation"] {
+			case sinkerUpdate:
+				rte := decodeSinkerStateUpdate(event)
+				if rte.State == "active" {
+					err = es.handleSinkerCreateCollector(context, rte) //sinker request create collector
 				}
+				es.streamRedisClient.XAck(context, streamSinker, groupMaestro, msg.ID)
+			case sinksCreate:
+				rte, err := decodeSinksEvent(event, event["operation"].(string))
 				if err != nil {
-					es.logger.Error("Failed to handle sinks event", zap.Any("operation", event["operation"]), zap.Error(err))
+					es.logger.Error("error decoding sinks event", zap.Any("operation", event["operation"]), zap.Any("sink_event", event), zap.Error(err))
 					break
 				}
-
+				if v, ok := rte.Config["opentelemetry"]; ok && v.(string) == "enabled" {
+					err = es.handleSinksCreateCollector(context, rte) //should create collector
+				}
+				es.streamRedisClient.XAck(context, streamSinks, groupMaestro, msg.ID)
+			case sinksUpdate:
+				rte, err := decodeSinksEvent(event, event["operation"].(string))
+				if err != nil {
+					es.logger.Error("error decoding sinks event", zap.Any("operation", event["operation"]), zap.Any("sink_event", event), zap.Error(err))
+					break
+				}
+				err = es.handleSinksUpdateCollector(context, rte) //should create collector
+				es.streamRedisClient.XAck(context, streamSinks, groupMaestro, msg.ID)
+			case sinksDelete:
+				rte, err := decodeSinksEvent(event, event["operation"].(string))
+				if err != nil {
+					es.logger.Error("error decoding sinks event", zap.Any("operation", event["operation"]), zap.Any("sink_event", event), zap.Error(err))
+					break
+				}
+				err = es.handleSinksDeleteCollector(context, rte) //should delete collector
+				es.streamRedisClient.XAck(context, streamSinks, groupMaestro, msg.ID)
 			}
+			if err != nil {
+				es.logger.Error("Failed to handle sinks event", zap.Any("operation", event["operation"]), zap.Error(err))
+				break
+			}
+
 		}
 	}
 }
