@@ -141,7 +141,6 @@ func execCmd(_ context.Context, cmd *exec.Cmd, logger *zap.Logger, stdOutFunc fu
 func (svc *deployService) getDeploymentState(ctx context.Context, _, sinkId string) (deploymentName string, status string, err error) {
 	// Since this can take a while to be retrieved, we need to have a wait mechanism
 	for i := 0; i < 5; i++ {
-		time.Sleep(5 * time.Second)
 		deploymentList, err2 := svc.clientSet.AppsV1().Deployments(namespace).List(ctx, k8smetav1.ListOptions{})
 		if err2 != nil {
 			svc.logger.Error("error on reading pods", zap.Error(err2))

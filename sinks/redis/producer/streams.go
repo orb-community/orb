@@ -66,7 +66,7 @@ func (es eventStore) CreateSink(ctx context.Context, token string, s sinks.Sink)
 		if err != nil {
 			es.logger.Error("error sending event to sinker event store", zap.Error(err))
 		}
-
+		es.logger.Info("DEBUG sinks.create event with information", zap.Any("sinkID", event.sinkID))
 	}()
 
 	return es.svc.CreateSink(ctx, token, s)
@@ -95,8 +95,8 @@ func (es eventStore) UpdateSink(ctx context.Context, token string, s sinks.Sink)
 		if err != nil {
 			es.logger.Error("error sending event to sinker event store", zap.Error(err))
 		}
+		es.logger.Info("DEBUG sinks.update event with information", zap.Any("sinkID", event.sinkID))
 	}()
-
 	return es.svc.UpdateSink(ctx, token, s)
 }
 
@@ -147,6 +147,7 @@ func (es eventStore) DeleteSink(ctx context.Context, token, id string) (err erro
 		es.logger.Error("error sending event to sinker event store", zap.Error(err))
 		return err
 	}
+	es.logger.Info("DEBUG sinks.remove event with information", zap.Any("sinkID", event.sinkID))
 	return nil
 }
 
