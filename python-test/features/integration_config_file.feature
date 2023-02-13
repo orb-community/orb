@@ -1,6 +1,26 @@
 @integration_config_files @AUTORETRY
 Feature: Integration tests using agent provided via config file
 
+
+@private
+Scenario: General smoke test to validate private agent image - using configuration files
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that a sink already exists
+    When an agent(input_type:pcap, settings: {"iface":"default"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: True]
+        And pktvisor state is running
+        And 1 Agent Group(s) is created with all tags contained in the agent
+        And 3 simple policies same input_type as created via config file are applied to the group
+    Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
+        And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And this agent's heartbeat shows that 3 policies are applied and all has status running
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+        And referred sink must have active state on response within 30 seconds
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
+        And remove the agent .yaml generated on each scenario
+
+
 ########### provisioning agents without specify pktvisor configs on backend
 
 @smoke @config_file @pktvisor_configs
