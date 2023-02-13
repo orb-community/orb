@@ -173,7 +173,7 @@ minikube-remove:
 prepare-helm:
 	cd ./kind/ && \
 	helm repo add jaegertracing https://jaegertracing.github.io/helm-charts && \
-	helm repo add orbcommunity-orb https://orb-community.github.io/orb-helm/ && \
+	helm repo add orb-community https://orb-community.github.io/orb-helm/ && \
 	helm dependency build
 
 kind-create-all: kind-create-cluster kind-install-orb
