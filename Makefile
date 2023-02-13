@@ -151,12 +151,29 @@ install-k9s:
 	sudo install -o root -g root -m 0755 k9s /usr/local/bin/k9s
 
 
+# minikube
+
+install-minikube:
+	curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+	sudo install minikube-linux-amd64 /usr/local/bin/minikube
+
+minikube-create:
+	minikube start --kubernetes-version=v1.22.7
+	minikube addons enable ingress
+	make kind-install-orb
+
+minikube-opts:
+	minikube addons enable metrics-server
+
+minikube-remove:
+	minikube delete
+
 # kind commands
 
 prepare-helm:
 	cd ./kind/ && \
 	helm repo add jaegertracing https://jaegertracing.github.io/helm-charts && \
-	helm repo add ns1labs-orb https://orb-community.github.io/orb-helm/ && \
+	helm repo add orbcommunity-orb https://orb-community.github.io/orb-helm/ && \
 	helm dependency build
 
 kind-create-all: kind-create-cluster kind-install-orb
