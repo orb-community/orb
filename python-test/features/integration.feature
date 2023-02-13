@@ -2,6 +2,29 @@
 Feature: Integration tests
 
 
+@private
+Scenario: General smoke test to validate private agent image
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that a sink already exists
+    When a new agent is created with 1 orb tag(s)
+        And the agent container is started on an available port
+        And the agent status is online
+        And referred agent is subscribed to 1 group
+        And 2 simple policies are applied to the group
+    Then backends route must be enabled
+        And handlers route must be enabled
+        And taps route must be enabled
+        And inputs route must be enabled
+        And pktvisor state is running
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And this agent's heartbeat shows that 2 policies are applied and all has status running
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
+        And referred sink must have active state on response within 120 seconds
+        And 2 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
+
+
 @smoke
 Scenario: Test agents backend routes
     Given the Orb user has a registered account

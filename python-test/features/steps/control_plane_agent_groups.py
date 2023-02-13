@@ -266,7 +266,7 @@ def clean_agent_groups(context):
     delete_agent_groups(token, agent_groups_filtered_list)
 
 
-@given("referred agent is subscribed to {amount_of_groups} {group}")
+@step("referred agent is subscribed to {amount_of_groups} {group}")
 def subscribe_agent_to_a_group(context, amount_of_groups, group):
     assert_that(group, any_of(equal_to("group"), equal_to("groups")), "Unexpected word on step description")
     agent = context.agent
