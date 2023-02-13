@@ -113,7 +113,7 @@ orb:
       serviceAccountName: "k8s-maestro-role"
       serviceAccountNamespace: "orb"
       ClusterRole: "cluster-admin"
-      ClusterRoleBinding: true
+      ClusterRoleBindingCreate: true
 
   migrate:
     image:
