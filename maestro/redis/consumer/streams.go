@@ -87,48 +87,48 @@ func (es eventStore) Subscribe(context context.Context) error {
 		if err != nil || len(streams) == 0 {
 			continue
 		}
-
-		for _, msg := range streams[0].Messages {
-			event := msg.Values
-			switch event["operation"] {
-			case sinkerUpdate:
-				rte := decodeSinkerStateUpdate(event)
-				if rte.State == "active" {
-					err = es.handleSinkerCreateCollector(context, rte) //sinker request create collector
+		for _, stream := range streams {
+			for _, msg := range stream.Messages {
+				event := msg.Values
+				switch event["operation"] {
+				case sinkerUpdate:
+					rte := decodeSinkerStateUpdate(event)
+					if rte.State == "active" {
+						err = es.handleSinkerCreateCollector(context, rte) //sinker request create collector
+					}
+					es.streamRedisClient.XAck(context, streamSinker, groupMaestro, msg.ID)
+				case sinksCreate:
+					rte, err := decodeSinksEvent(event, event["operation"].(string))
+					if err != nil {
+						es.logger.Error("error decoding sinks event", zap.Any("operation", event["operation"]), zap.Any("sink_event", event), zap.Error(err))
+						break
+					}
+					if v, ok := rte.Config["opentelemetry"]; ok && v.(string) == "enabled" {
+						err = es.handleSinksCreateCollector(context, rte) //should create collector
+					}
+					es.streamRedisClient.XAck(context, streamSinks, groupMaestro, msg.ID)
+				case sinksUpdate:
+					rte, err := decodeSinksEvent(event, event["operation"].(string))
+					if err != nil {
+						es.logger.Error("error decoding sinks event", zap.Any("operation", event["operation"]), zap.Any("sink_event", event), zap.Error(err))
+						break
+					}
+					err = es.handleSinksUpdateCollector(context, rte) //should create collector
+					es.streamRedisClient.XAck(context, streamSinks, groupMaestro, msg.ID)
+				case sinksDelete:
+					rte, err := decodeSinksEvent(event, event["operation"].(string))
+					if err != nil {
+						es.logger.Error("error decoding sinks event", zap.Any("operation", event["operation"]), zap.Any("sink_event", event), zap.Error(err))
+						break
+					}
+					err = es.handleSinksDeleteCollector(context, rte) //should delete collector
+					es.streamRedisClient.XAck(context, streamSinks, groupMaestro, msg.ID)
 				}
-				es.streamRedisClient.XAck(context, streamSinker, groupMaestro, msg.ID)
-			case sinksCreate:
-				rte, err := decodeSinksEvent(event, event["operation"].(string))
 				if err != nil {
-					es.logger.Error("error decoding sinks event", zap.Any("operation", event["operation"]), zap.Any("sink_event", event), zap.Error(err))
+					es.logger.Error("Failed to handle sinks event", zap.Any("operation", event["operation"]), zap.Error(err))
 					break
 				}
-				if v, ok := rte.Config["opentelemetry"]; ok && v.(string) == "enabled" {
-					err = es.handleSinksCreateCollector(context, rte) //should create collector
-				}
-				es.streamRedisClient.XAck(context, streamSinks, groupMaestro, msg.ID)
-			case sinksUpdate:
-				rte, err := decodeSinksEvent(event, event["operation"].(string))
-				if err != nil {
-					es.logger.Error("error decoding sinks event", zap.Any("operation", event["operation"]), zap.Any("sink_event", event), zap.Error(err))
-					break
-				}
-				err = es.handleSinksUpdateCollector(context, rte) //should create collector
-				es.streamRedisClient.XAck(context, streamSinks, groupMaestro, msg.ID)
-			case sinksDelete:
-				rte, err := decodeSinksEvent(event, event["operation"].(string))
-				if err != nil {
-					es.logger.Error("error decoding sinks event", zap.Any("operation", event["operation"]), zap.Any("sink_event", event), zap.Error(err))
-					break
-				}
-				err = es.handleSinksDeleteCollector(context, rte) //should delete collector
-				es.streamRedisClient.XAck(context, streamSinks, groupMaestro, msg.ID)
 			}
-			if err != nil {
-				es.logger.Error("Failed to handle sinks event", zap.Any("operation", event["operation"]), zap.Error(err))
-				break
-			}
-
 		}
 	}
 }
