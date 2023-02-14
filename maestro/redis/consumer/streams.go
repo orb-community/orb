@@ -81,7 +81,6 @@ func (es eventStore) SubscribeSinkerEvents(ctx context.Context) error {
 			Streams:  []string{streamSinker, ">"},
 			Count:    100,
 		}).Result()
-		es.logger.Info("subscribed to stream", zap.String("stream", streams[0].Stream))
 		if err != nil || len(streams) == 0 {
 			continue
 		}
@@ -122,7 +121,6 @@ func (es eventStore) SubscribeSinksEvents(ctx context.Context) error {
 			Streams:  []string{streamSinks, ">"},
 			Count:    100,
 		}).Result()
-		es.logger.Info("subscribed to stream", zap.String("stream", streams[0].Stream))
 		if err != nil || len(streams) == 0 {
 			continue
 		}
