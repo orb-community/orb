@@ -91,31 +91,32 @@ func (es eventStore) SubscribeSinkerEvents(ctx context.Context) error {
 			es.logger.Info("received message in sinker event bus", zap.Any("operation", event["operation"]))
 			switch event["operation"] {
 			case sinkerUpdate:
-				if rte.State == "active" {
+				go func() {
 					err = es.handleSinkerCreateCollector(ctx, rte) //sinker request create collector
-				}
-				es.streamRedisClient.XAck(ctx, streamSinker, groupMaestro, msg.ID)
+					if err != nil {
+						es.logger.Error("Failed to handle sinks event", zap.Any("operation", event["operation"]), zap.Error(err))
+					} else {
+						es.streamRedisClient.XAck(ctx, streamSinker, groupMaestro, msg.ID)
+					}
+				}()
+
 			case <-ctx.Done():
 				return errors.New("stopped listening to sinks, due to context cancellation")
-			}
-			if err != nil {
-				es.logger.Error("Failed to handle sinks event", zap.Any("operation", event["operation"]), zap.Error(err))
-				continue
 			}
 		}
 	}
 }
 
 // SubscribeSinksEvents Subscribe to listen events from sinks to maestro
-func (es eventStore) SubscribeSinksEvents(context context.Context) error {
+func (es eventStore) SubscribeSinksEvents(ctx context.Context) error {
 	//listening sinker events
-	err := es.streamRedisClient.XGroupCreateMkStream(context, streamSinks, groupMaestro, "$").Err()
+	err := es.streamRedisClient.XGroupCreateMkStream(ctx, streamSinks, groupMaestro, "$").Err()
 	if err != nil && err.Error() != exists {
 		return err
 	}
 
 	for {
-		streams, err := es.streamRedisClient.XReadGroup(context, &redis.XReadGroupArgs{
+		streams, err := es.streamRedisClient.XReadGroup(ctx, &redis.XReadGroupArgs{
 			Group:    groupMaestro,
 			Consumer: "orb_maestro-es-consumer",
 			Streams:  []string{streamSinks, ">"},
@@ -135,22 +136,34 @@ func (es eventStore) SubscribeSinksEvents(context context.Context) error {
 			es.logger.Info("received message in sinks event bus", zap.Any("operation", event["operation"]))
 			switch event["operation"] {
 			case sinksCreate:
-				if v, ok := rte.Config["opentelemetry"]; ok && v.(string) == "enabled" {
-					err = es.handleSinksCreateCollector(context, rte) //should create collector
-				}
-				es.streamRedisClient.XAck(context, streamSinks, groupMaestro, msg.ID)
+				go func() {
+					err = es.handleSinksCreateCollector(ctx, rte) //should create collector
+					if err != nil {
+						es.logger.Error("Failed to handle sinks event", zap.Any("operation", event["operation"]), zap.Error(err))
+					} else {
+						es.streamRedisClient.XAck(ctx, streamSinks, groupMaestro, msg.ID)
+					}
+				}()
 			case sinksUpdate:
-				err = es.handleSinksUpdateCollector(context, rte) //should create collector
-				es.streamRedisClient.XAck(context, streamSinks, groupMaestro, msg.ID)
+				go func() {
+					err = es.handleSinksUpdateCollector(ctx, rte) //should create collector
+					if err != nil {
+						es.logger.Error("Failed to handle sinks event", zap.Any("operation", event["operation"]), zap.Error(err))
+					} else {
+						es.streamRedisClient.XAck(ctx, streamSinks, groupMaestro, msg.ID)
+					}
+				}()
 			case sinksDelete:
-				err = es.handleSinksDeleteCollector(context, rte) //should delete collector
-				es.streamRedisClient.XAck(context, streamSinks, groupMaestro, msg.ID)
-			case <-context.Done():
+				go func() {
+					err = es.handleSinksDeleteCollector(ctx, rte) //should delete collector
+					if err != nil {
+						es.logger.Error("Failed to handle sinks event", zap.Any("operation", event["operation"]), zap.Error(err))
+					} else {
+						es.streamRedisClient.XAck(ctx, streamSinks, groupMaestro, msg.ID)
+					}
+				}()
+			case <-ctx.Done():
 				return errors.New("stopped listening to sinks, due to context cancellation")
-			}
-			if err != nil {
-				es.logger.Error("Failed to handle sinks event", zap.Any("operation", event["operation"]), zap.Error(err))
-				continue
 			}
 		}
 	}
