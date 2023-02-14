@@ -61,7 +61,7 @@ export class SinkAddComponent {
           label: entry.title,
           prop: entry.name,
           input: entry.input,
-          required: entry.required,
+          required: this.isEdit && entry.type === 'password' ? false : entry.required,
         }));
         return accumulator;
       }, {});
@@ -129,7 +129,9 @@ export class SinkAddComponent {
           if (value)
             accumulator[current.prop] = 'enabled';
         } else {
-          accumulator[current.prop] = value;
+          if (!(this.isEdit && current.type === 'password' && value === '')) {
+            accumulator[current.prop] = value;
+          }
         }
         return accumulator;
       }, {}),
