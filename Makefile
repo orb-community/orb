@@ -137,7 +137,7 @@ install-kubectl:
 	cd /tmp && \
 	curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && \
 	chmod a+x /kubectl && \
-	sudo mv ./kubectl /user/local/bin/kubectl
+	sudo mv ./kubectl /usr/local/bin/kubectl
 
 install-docker:
 	cd /tmp
@@ -201,7 +201,7 @@ kind-delete-orb:
 
 #
 
-run: kind-create-all
+run: prepare-helm kind-create-all
 
 stop: kind-delete-orb kind-delete-cluster
 
