@@ -146,7 +146,8 @@ func (svc *maestroService) subscribeToSinksEvents(ctx context.Context) {
 		svc.logger.Error("Bootstrap service failed to subscribe to event sourcing", zap.Error(err))
 		return
 	}
-	svc.logger.Info("Subscribed to Sinks Events")
+	svc.logger.Info("finished reading sinks events")
+	ctx.Done()
 }
 
 func (svc *maestroService) subscribeToSinkerEvents(ctx context.Context) {
@@ -154,5 +155,6 @@ func (svc *maestroService) subscribeToSinkerEvents(ctx context.Context) {
 		svc.logger.Error("Bootstrap service failed to subscribe to event sourcing", zap.Error(err))
 		return
 	}
-	svc.logger.Info("Subscribed to Sinker Events")
+	svc.logger.Info("finished reading sinker events")
+	ctx.Done()
 }

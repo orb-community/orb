@@ -81,14 +81,16 @@ func (es eventStore) SubscribeSinkerEvents(ctx context.Context) error {
 			Streams:  []string{streamSinker, ">"},
 			Count:    100,
 		}).Result()
+		es.logger.Info("subscribed to stream", zap.String("stream", streams[0].Stream))
 		if err != nil || len(streams) == 0 {
 			continue
 		}
 		for _, msg := range streams[0].Messages {
 			event := msg.Values
+			rte := decodeSinkerStateUpdate(event)
+			es.logger.Info("received message in sinker event bus", zap.Any("operation", event["operation"]))
 			switch event["operation"] {
 			case sinkerUpdate:
-				rte := decodeSinkerStateUpdate(event)
 				if rte.State == "active" {
 					err = es.handleSinkerCreateCollector(ctx, rte) //sinker request create collector
 				}
@@ -119,6 +121,7 @@ func (es eventStore) SubscribeSinksEvents(context context.Context) error {
 			Streams:  []string{streamSinks, ">"},
 			Count:    100,
 		}).Result()
+		es.logger.Info("subscribed to stream", zap.String("stream", streams[0].Stream))
 		if err != nil || len(streams) == 0 {
 			continue
 		}
@@ -129,6 +132,7 @@ func (es eventStore) SubscribeSinksEvents(context context.Context) error {
 				es.logger.Error("Failed to handle sinks event", zap.Any("operation", event["operation"]), zap.Error(err))
 				break
 			}
+			es.logger.Info("received message in sinks event bus", zap.Any("operation", event["operation"]))
 			switch event["operation"] {
 			case sinksCreate:
 				if v, ok := rte.Config["opentelemetry"]; ok && v.(string) == "enabled" {
@@ -154,7 +158,7 @@ func (es eventStore) SubscribeSinksEvents(context context.Context) error {
 
 // handleSinkerDeleteCollector Delete collector
 func (es eventStore) handleSinkerDeleteCollector(ctx context.Context, event maestroredis.SinkerUpdateEvent) error {
-	es.logger.Info("Received maestro DELETE event from sinker, sink state", zap.String("state", event.State), zap.String("sinkdID", event.SinkID), zap.String("ownerID", event.Owner))
+	es.logger.Info("Received maestro DELETE event from sinker, sink state", zap.String("state", event.State), zap.String("sinkID", event.SinkID), zap.String("ownerID", event.Owner))
 	_, err := es.GetDeploymentEntryFromSinkId(ctx, event.SinkID)
 	if err != nil {
 		return err
@@ -168,7 +172,7 @@ func (es eventStore) handleSinkerDeleteCollector(ctx context.Context, event maes
 
 // handleSinkerCreateCollector Create collector
 func (es eventStore) handleSinkerCreateCollector(ctx context.Context, event maestroredis.SinkerUpdateEvent) error {
-	es.logger.Info("Received maestro CREATE event from sinker, sink state", zap.String("state", event.State), zap.String("sinkdID", event.SinkID), zap.String("ownerID", event.Owner))
+	es.logger.Info("Received maestro CREATE event from sinker, sink state", zap.String("state", event.State), zap.String("sinkID", event.SinkID), zap.String("ownerID", event.Owner))
 	deploymentEntry, err := es.GetDeploymentEntryFromSinkId(ctx, event.SinkID)
 	if err != nil {
 		es.logger.Error("could not find deployment entry from sink-id", zap.String("sinkID", event.SinkID), zap.Error(err))
