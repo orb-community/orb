@@ -86,7 +86,7 @@ func (es eventStore) Subscribe(context context.Context) error {
 			}
 			if err != nil {
 				es.logger.Error("Failed to handle event", zap.String("operation", event["operation"].(string)), zap.Error(err))
-				break
+				continue
 			}
 			es.client.XAck(context, stream, group, msg.ID)
 		}

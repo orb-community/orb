@@ -127,7 +127,8 @@ func (svc *maestroService) Start(ctx context.Context, cancelFunction context.Can
 		}
 	}
 
-	go svc.subscribeToEventStore(ctx)
+	go svc.subscribeToSinksEvents(ctx)
+	go svc.subscribeToSinkerEvents(ctx)
 
 	monitorCtx := context.WithValue(ctx, "routine", "monitor")
 	err = svc.monitor.Start(monitorCtx, cancelFunction)
@@ -140,10 +141,20 @@ func (svc *maestroService) Start(ctx context.Context, cancelFunction context.Can
 	return nil
 }
 
-func (svc *maestroService) subscribeToEventStore(ctx context.Context) {
-	if err := svc.eventStore.Subscribe(ctx); err != nil {
+func (svc *maestroService) subscribeToSinksEvents(ctx context.Context) {
+	if err := svc.eventStore.SubscribeSinksEvents(ctx); err != nil {
 		svc.logger.Error("Bootstrap service failed to subscribe to event sourcing", zap.Error(err))
 		return
 	}
-	svc.logger.Info("Subscribed to Redis Event Store")
+	svc.logger.Info("finished reading sinks events")
+	ctx.Done()
+}
+
+func (svc *maestroService) subscribeToSinkerEvents(ctx context.Context) {
+	if err := svc.eventStore.SubscribeSinksEvents(ctx); err != nil {
+		svc.logger.Error("Bootstrap service failed to subscribe to event sourcing", zap.Error(err))
+		return
+	}
+	svc.logger.Info("finished reading sinker events")
+	ctx.Done()
 }
