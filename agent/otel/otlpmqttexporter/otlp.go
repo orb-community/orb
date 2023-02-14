@@ -110,6 +110,54 @@ func (e *exporter) start(_ context.Context, _ component.Host) error {
 	return nil
 }
 
+// extractAttribute extract attribute from metricsScope metrics
+func (e *exporter) extractScopeAttribute(metricsScope pmetric.ScopeMetrics, attribute string) string {
+	metrics := metricsScope.Metrics()
+	if metrics.Len() > 0 {
+		for i := 0; i < metrics.Len(); i++ {
+			metricItem := metrics.At(i)
+			switch metricItem.Type() {
+			case pmetric.MetricTypeGauge:
+				if metricItem.Gauge().DataPoints().Len() > 0 {
+					p, ok := metricItem.Gauge().DataPoints().At(0).Attributes().Get(attribute)
+					if ok {
+						return p.AsString()
+					}
+				}
+			case pmetric.MetricTypeHistogram:
+				if metricItem.Histogram().DataPoints().Len() > 0 {
+					p, ok := metricItem.Histogram().DataPoints().At(0).Attributes().Get(attribute)
+					if ok {
+						return p.AsString()
+					}
+				}
+			case pmetric.MetricTypeSum:
+				if metricItem.Sum().DataPoints().Len() > 0 {
+					p, ok := metricItem.Sum().DataPoints().At(0).Attributes().Get(attribute)
+					if ok {
+						return p.AsString()
+					}
+				}
+			case pmetric.MetricTypeSummary:
+				if metricItem.Summary().DataPoints().Len() > 0 {
+					p, ok := metricItem.Summary().DataPoints().At(0).Attributes().Get(attribute)
+					if ok {
+						return p.AsString()
+					}
+				}
+			case pmetric.MetricTypeExponentialHistogram:
+				if metricItem.ExponentialHistogram().DataPoints().Len() > 0 {
+					p, ok := metricItem.ExponentialHistogram().DataPoints().At(0).Attributes().Get(attribute)
+					if ok {
+						return p.AsString()
+					}
+				}
+			}
+		}
+	}
+	return ""
+}
+
 // extractAttribute extract attribute from metricsRequest metrics
 func (e *exporter) extractAttribute(metricsRequest pmetricotlp.Request, attribute string) string {
 	if metricsRequest.Metrics().ResourceMetrics().Len() > 0 {
@@ -158,6 +206,40 @@ func (e *exporter) extractAttribute(metricsRequest pmetricotlp.Request, attribut
 		}
 	}
 	return ""
+}
+
+// inject attribute on all ScopeMetrics metrics
+func (e *exporter) injectScopeAttribute(metricsScope pmetric.ScopeMetrics, attribute string, value string) pmetric.ScopeMetrics {
+	metrics := metricsScope.Metrics()
+	for i := 0; i < metrics.Len(); i++ {
+		metricItem := metrics.At(i)
+
+		switch metricItem.Type() {
+		case pmetric.MetricTypeExponentialHistogram:
+			for i := 0; i < metricItem.ExponentialHistogram().DataPoints().Len(); i++ {
+				metricItem.ExponentialHistogram().DataPoints().At(i).Attributes().PutStr(attribute, value)
+			}
+		case pmetric.MetricTypeGauge:
+			for i := 0; i < metricItem.Gauge().DataPoints().Len(); i++ {
+				metricItem.Gauge().DataPoints().At(i).Attributes().PutStr(attribute, value)
+			}
+		case pmetric.MetricTypeHistogram:
+			for i := 0; i < metricItem.Histogram().DataPoints().Len(); i++ {
+				metricItem.Histogram().DataPoints().At(i).Attributes().PutStr(attribute, value)
+			}
+		case pmetric.MetricTypeSum:
+			for i := 0; i < metricItem.Sum().DataPoints().Len(); i++ {
+				metricItem.Sum().DataPoints().At(i).Attributes().PutStr(attribute, value)
+			}
+		case pmetric.MetricTypeSummary:
+			for i := 0; i < metricItem.Summary().DataPoints().Len(); i++ {
+				metricItem.Summary().DataPoints().At(i).Attributes().PutStr(attribute, value)
+			}
+		default:
+			e.logger.Error("Unknown metric type: " + metricItem.Type().String())
+		}
+	}
+	return metricsScope
 }
 
 // inject attribute on all metricsRequest metrics
@@ -233,6 +315,52 @@ func (e *exporter) pushMetrics(ctx context.Context, md pmetric.Metrics) error {
 		ctx.Done()
 		return err
 	}
+	return err
+}
+
+// pushMetrics Exports metrics
+func (e *exporter) pushAllMetrics(ctx context.Context, md pmetric.Metrics) error {
+	tr := pmetricotlp.NewRequestFromMetrics(md)
+	scopes := tr.Metrics().ResourceMetrics().At(0).ScopeMetrics()
+
+	for i := 0; i < scopes.Len(); i++ {
+		scope := scopes.At(i)
+		policyName := e.extractScopeAttribute(scope, "policy")
+		agentData, err := e.config.OrbAgentService.RetrieveAgentInfoByPolicyName(policyName)
+		if err != nil {
+			e.logger.Warn("Policy is not managed by orb", zap.String("policyName", policyName))
+			var clearScope pmetric.ScopeMetrics
+			scope.MoveTo(clearScope)
+			continue
+		}
+
+		// sort datasetIDs to send always on same order
+		datasetIDs := strings.Split(agentData.Datasets, ",")
+		sort.Strings(datasetIDs)
+		datasets := strings.Join(datasetIDs, ",")
+
+		// injecting policy ID attribute on metrics
+		scope = e.injectScopeAttribute(scope, "policy_id", agentData.PolicyID)
+		scope = e.injectScopeAttribute(scope, "dataset_ids", datasets)
+		// Insert pivoted agentTags
+		for key, value := range agentData.AgentTags {
+			scope = e.injectScopeAttribute(scope, key, value)
+		}
+
+	}
+
+	request, err := tr.MarshalProto()
+	if err != nil {
+		defer ctx.Done()
+		return consumererror.NewPermanent(err)
+	}
+
+	err = e.export(ctx, e.config.MetricsTopic, request)
+	if err != nil {
+		ctx.Done()
+		return err
+	}
+
 	return err
 }
 

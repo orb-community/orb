@@ -49,7 +49,7 @@ func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData, updatePolicy boo
 		return err
 	}
 
-	if p.scrapeOtel {
+	if p.scrapeOtel && p.otelType == Prometheus {
 		exeCtx, execCancelF := context.WithCancel(p.ctx)
 		p.addScraperProcess(exeCtx, execCancelF, data.ID, data.Name)
 	}
@@ -65,7 +65,7 @@ func (p *pktvisorBackend) RemovePolicy(data policies.PolicyData) error {
 	if err != nil {
 		return err
 	}
-	if p.scrapeOtel {
+	if p.scrapeOtel && p.otelType == Prometheus {
 		p.killScraperProcess(data.ID)
 	}
 	return nil

@@ -7,6 +7,11 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
+	"os/signal"
+	"strings"
+	"syscall"
+
 	"github.com/ns1labs/orb/agent"
 	"github.com/ns1labs/orb/agent/backend/pktvisor"
 	"github.com/ns1labs/orb/agent/config"
@@ -15,10 +20,6 @@ import (
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"os"
-	"os/signal"
-	"strings"
-	"syscall"
 )
 
 const (
@@ -146,6 +147,7 @@ func mergeOrError(path string) {
 	v.SetDefault("orb.db.file", "./orb-agent.db")
 	v.SetDefault("orb.tls.verify", true)
 	v.SetDefault("orb.otel.enable", false)
+	v.SetDefault("orb.otel.type", "prometheus")
 	v.SetDefault("orb.debug.enable", false)
 
 	v.SetDefault("orb.backends.pktvisor.binary", "/usr/local/sbin/pktvisord")
