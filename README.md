@@ -2,8 +2,8 @@
 <img src="https://user-images.githubusercontent.com/97463920/218170067-16a95078-6709-4828-b137-9791376b972e.png" alt="Orb UI Preview" width="500"/>
 
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/ns1labs/orb)](https://goreportcard.com/report/github.com/ns1labs/orb)
-[![CodeCov](https://codecov.io/gh/ns1labs/orb/branch/develop/graph/badge.svg)](https://app.codecov.io/gh/ns1labs/orb/tree/develop)
+[![Go Report Card](https://goreportcard.com/badge/github.com/ns1labs/orb)](https://goreportcard.com/report/github.com/orb-community/orb)
+[![CodeCov](https://codecov.io/gh/ns1labs/orb/branch/develop/graph/badge.svg)](https://app.codecov.io/gh/orb-community/orb/tree/develop)
 
 **Orb** is a modern network observability platform built to provide critical visibility into increasingly complex and distributed networks. It can analyze network traffic, run synthetic network probes, and connect the resulting telemetry directly to your existing observability stacks with OpenTelemetry. Orb differentiates from other solutions by pushing analysis close to the traffic sources (reducing inactionable metrics and processing costs), and allows for dynamic reconfiguration of remote agents in real time.
 
