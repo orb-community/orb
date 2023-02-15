@@ -34,9 +34,7 @@ observability [policies](https://orb.community/about/#policies) designed to prec
 are grouped and addressed based on [tags](https://orb.community/about/#agent-group).
 
 ## Flexible Integration With Modern Observability Stacks
-
-Orb was built to integrate with modern observability stacks, supporting [Prometheus](https://prometheus.io/) natively
-and designed to support arbitrary [sinks](https://orb.community/about/#sinks) in the future. Collection and sinking of the
+Orb was built to integrate with modern observability stacks, supporting [OpenTelemetry](https://opentelemetry.io/) natively. Collection and sinking of the
 metrics from the agents is included; there is no need to run additional data collection pipelines for Orb metrics.
 
 ## Portal and REST API Included
@@ -53,9 +51,9 @@ avoiding vendor lock-in.
 
 ***
 
-# Backed by NS1
+# Backed by NetBox Labs
 
-**Orb** was born at [NS1 Labs](https://ns1.com/labs), where we're committed to
+**Orb** was born at [NetBox Labs](https://netboxlabs.com/), where we're committed to
 making [open source, dynamic edge observability a reality](https://ns1.com/blog/orb-a-new-paradigm-for-dynamic-edge-observability)
 .
 
@@ -64,7 +62,6 @@ making [open source, dynamic edge observability a reality](https://ns1.com/blog/
 * [Installation Instructions](https://orb.community/documentation/install/)
 * [View our Wiki](https://github.com/orb-community/orb/wiki) for technical and architectural information
 * [File an issue](https://github.com/orb-community/orb/issues/new)
-* Follow our [public work board](https://github.com/orb-community/orb/projects/2)
 * Start a [Discussion](https://github.com/orb-community/orb/discussions)
-* [Join us on Slack](https://join.slack.com/t/netdev-community/shared_invite/zt-1ovv03gwn-S30LtO1qQFvHuvfsEZfjvg)
-* Send mail to [info@pktvisor.dev](mailto:info@pktvisor.dev)
+* [Join us on Slack](https://netdev.chat/)
+* Send mail to [orb@netboxlabs.com](mailto:orb@netboxlabs.com)
