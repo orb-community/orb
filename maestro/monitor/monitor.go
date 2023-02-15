@@ -207,23 +207,21 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			} else {
 				idleLimit = time.Now().Unix() - idleTimeSeconds // within 30 minutes
 			}
-			if sink.GetState() == "active" {
-				if idleLimit >= lastActivity {
-					svc.eventStore.PublishSinkStateChange(sink, "idle", logsErr, err)
-					err := svc.eventStore.RemoveSinkActivity(ctx, sink.Id)
-					if err != nil {
-						svc.logger.Error("error on remove sink activity", zap.Error(err))
-						continue
-					}
-					deploymentEntry, errDeploy := svc.eventStore.GetDeploymentEntryFromSinkId(ctx, sink.Id)
-					if errDeploy != nil {
-						svc.logger.Error("Remove collector: error on getting collector deployment from redis", zap.Error(activityErr))
-						continue
-					}
-					err = svc.kubecontrol.DeleteOtelCollector(ctx, sink.OwnerID, sink.Id, deploymentEntry)
-					if err != nil {
-						svc.logger.Error("error removing otel collector", zap.Error(err))
-					}
+			if idleLimit >= lastActivity {
+				svc.eventStore.PublishSinkStateChange(sink, "idle", logsErr, err)
+				err := svc.eventStore.RemoveSinkActivity(ctx, sink.Id)
+				if err != nil {
+					svc.logger.Error("error on remove sink activity", zap.Error(err))
+					continue
+				}
+				deploymentEntry, errDeploy := svc.eventStore.GetDeploymentEntryFromSinkId(ctx, sink.Id)
+				if errDeploy != nil {
+					svc.logger.Error("Remove collector: error on getting collector deployment from redis", zap.Error(activityErr))
+					continue
+				}
+				err = svc.kubecontrol.DeleteOtelCollector(ctx, sink.OwnerID, sink.Id, deploymentEntry)
+				if err != nil {
+					svc.logger.Error("error removing otel collector", zap.Error(err))
 				}
 			}
 		} else if sink.GetState() != status { //updating status
