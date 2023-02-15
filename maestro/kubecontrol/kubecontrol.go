@@ -80,15 +80,8 @@ func (svc *deployService) collectorDeploy(ctx context.Context, operation, ownerI
 	// execute action
 	cmd := exec.Command("kubectl", operation, "-f", "/tmp/otel-collector-"+sinkId+".json", "-n", namespace)
 	_, _, err = execCmd(ctx, cmd, svc.logger, stdOutListenFunction)
-
 	if err == nil {
 		svc.logger.Info(fmt.Sprintf("successfully %s the otel-collector for sink-id: %s", operation, sinkId))
-		// update deployment state map
-		if operation == "apply" {
-
-		} else if operation == "delete" {
-
-		}
 	}
 
 	return nil

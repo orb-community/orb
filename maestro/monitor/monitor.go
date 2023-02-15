@@ -209,11 +209,6 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			}
 			if idleLimit >= lastActivity {
 				svc.eventStore.PublishSinkStateChange(sink, "idle", logsErr, err)
-				err := svc.eventStore.RemoveSinkActivity(ctx, sink.Id)
-				if err != nil {
-					svc.logger.Error("error on remove sink activity", zap.Error(err))
-					continue
-				}
 				deploymentEntry, errDeploy := svc.eventStore.GetDeploymentEntryFromSinkId(ctx, sink.Id)
 				if errDeploy != nil {
 					svc.logger.Error("Remove collector: error on getting collector deployment from redis", zap.Error(activityErr))
@@ -245,11 +240,15 @@ func (svc *monitorService) analyzeLogs(logEntry []string) (status string, err er
 		if len(logLine) > 24 {
 			// known errors
 			if strings.Contains(logLine, "401 Unauthorized") {
-				errorMessage := "permanent error: remote write returned HTTP status 401 Unauthorized"
+				errorMessage := "error: remote write returned HTTP status 401 Unauthorized"
+				return "error", errors.New(errorMessage)
+			}
+			if strings.Contains(logLine, "404 Not Found") {
+				errorMessage := "error: remote write returned HTTP status 404 Not Found"
 				return "error", errors.New(errorMessage)
 			}
 			if strings.Contains(logLine, "Permanent error: remote write returned HTTP status 429 Too Many Requests") {
-				errorMessage := "permanent error: remote write returned HTTP status 429 Too Many Requests"
+				errorMessage := "error: remote write returned HTTP status 429 Too Many Requests"
 				return "error", errors.New(errorMessage)
 			}
 			// other errors
