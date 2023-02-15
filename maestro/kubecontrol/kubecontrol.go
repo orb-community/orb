@@ -1,18 +1,18 @@
 package kubecontrol
 
 import (
+	"bufio"
 	"context"
-	"github.com/ns1labs/orb/maestro/config"
+	"fmt"
 	_ "github.com/ns1labs/orb/maestro/config"
 	"github.com/ns1labs/orb/pkg/errors"
-	"github.com/plgd-dev/kit/v2/codec/json"
 	"go.uber.org/zap"
 	k8sappsv1 "k8s.io/api/apps/v1"
 	k8smetav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	k8sv1acapps "k8s.io/client-go/applyconfigurations/apps/v1"
-	k8sv1accore "k8s.io/client-go/applyconfigurations/core/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	"os"
+	"os/exec"
 	"strings"
 	"time"
 )
@@ -45,136 +45,80 @@ type Service interface {
 	CreateOtelCollector(ctx context.Context, ownerID, sinkID, deploymentEntry string) error
 
 	// DeleteOtelCollector - delete an existing collector by id
-	DeleteOtelCollector(ctx context.Context, ownerID, sinkID string) error
+	DeleteOtelCollector(ctx context.Context, ownerID, sinkID, deploymentEntry string) error
 
 	// UpdateOtelCollector - update an existing collector by id
 	UpdateOtelCollector(ctx context.Context, ownerID, sinkID, deploymentEntry string) error
 }
 
-func (svc *deployService) removeDeployment(ctx context.Context, ownerID string, sinkId string) (error, bool) {
-	deploymentName, status, err := svc.getDeploymentState(ctx, ownerID, sinkId)
-	if err != nil {
-		if status == "broken" {
-			svc.logger.Info("get the deployed pod broke", zap.String("sinkID", sinkId), zap.Error(err))
-			return nil, true
+func (svc *deployService) collectorDeploy(ctx context.Context, operation, ownerID, sinkId, manifest string) error {
+	_, status, err := svc.getDeploymentState(ctx, ownerID, sinkId)
+	if operation == "apply" {
+		fileContent := []byte(manifest)
+		tmp := strings.Split(string(fileContent), "\n")
+		newContent := strings.Join(tmp[1:], "\n")
+
+		if err != nil {
+			if status == "broken" {
+				operation = "delete"
+			}
+		}
+		if status == "active" {
+			svc.logger.Info("Already applied Sink ID=" + sinkId)
+			return nil
+		}
+		err = os.WriteFile("/tmp/otel-collector-"+sinkId+".json", []byte(newContent), 0644)
+		if err != nil {
+			svc.logger.Error("failed to write file content", zap.Error(err))
+			return err
+		}
+	} else if operation == "delete" {
+		if status == "deleted" {
+			svc.logger.Info("Already deleted Sink ID=" + sinkId)
+			return nil
 		}
 	}
-	if status == "deleted" {
-		svc.logger.Info("Already deleted collector for Sink ID", zap.String("sinkID", sinkId))
-		return nil, true
+	stdOutListenFunction := func(out *bufio.Scanner, err *bufio.Scanner) {
+		for out.Scan() {
+			svc.logger.Info("Deploy Info: " + out.Text())
+		}
+		for err.Scan() {
+			svc.logger.Info("Deploy Error: " + err.Text())
+		}
 	}
-	err = svc.clientSet.AppsV1().Deployments(namespace).Delete(ctx, deploymentName, k8smetav1.DeleteOptions{})
-	if err != nil {
-		svc.logger.Info("failed to remove deployment", zap.Error(err))
-		return err, true
-	}
-	return nil, false
-}
 
-func (svc *deployService) updateConfig(ctx context.Context, ownerID string, sinkId string, configMap string) error {
-	_, _, err := svc.getDeploymentState(ctx, ownerID, sinkId)
-	if err != nil {
-		return err
+	// execute action
+	cmd := exec.Command("kubectl", operation, "-f", "/tmp/otel-collector-"+sinkId+".json", "-n", namespace)
+	_, _, err = execCmd(ctx, cmd, svc.logger, stdOutListenFunction)
+
+	if err == nil {
+		svc.logger.Info(fmt.Sprintf("successfully %s the otel-collector for sink-id: %s", operation, sinkId))
+		// update deployment state map
+		if operation == "apply" {
+
+		} else if operation == "delete" {
+
+		}
 	}
-	var configMapApplyConfig k8sv1accore.ConfigMapApplyConfiguration
-	var deploymentApplyConfig k8sv1acapps.DeploymentApplyConfiguration
-	var serviceApplyConfig k8sv1accore.ServiceApplyConfiguration
-	err = json.Decode([]byte(config.GetServiceApplyConfig(sinkId)), serviceApplyConfig)
-	if err != nil {
-		svc.logger.Error("failed to decode service apply configuration json", zap.Error(err))
-		return err
-	}
-	err = json.Decode([]byte(config.GetDeploymentApplyConfig(sinkId)), deploymentApplyConfig)
-	if err != nil {
-		svc.logger.Error("failed to decode deployment apply configuration json", zap.Error(err))
-		return err
-	}
-	err = json.Decode([]byte(configMap), configMapApplyConfig)
-	if err != nil {
-		svc.logger.Error("failed to decode config apply configuration json", zap.Error(err))
-		return err
-	}
-	_, err = svc.clientSet.CoreV1().ConfigMaps(namespace).Apply(ctx, &configMapApplyConfig, k8smetav1.ApplyOptions{
-		Force: true,
-	})
-	if err != nil {
-		svc.logger.Info("failed to apply config map", zap.Error(err))
-		return err
-	}
-	_, err = svc.clientSet.AppsV1().Deployments(namespace).Apply(ctx, &deploymentApplyConfig, k8smetav1.ApplyOptions{
-		Force: true,
-	})
-	if err != nil {
-		svc.logger.Info("failed to apply deployment", zap.Error(err))
-		return err
-	}
-	_, err = svc.clientSet.CoreV1().Services(namespace).Apply(ctx, &serviceApplyConfig, k8smetav1.ApplyOptions{
-		Force: true,
-	})
+
 	return nil
 }
 
-func (svc *deployService) applyDeployment(ctx context.Context, ownerID string, sinkId string, configMap string) (error, bool) {
-	_, status, err := svc.getDeploymentState(ctx, ownerID, sinkId)
+func execCmd(_ context.Context, cmd *exec.Cmd, logger *zap.Logger, stdOutFunc func(stdOut *bufio.Scanner, stdErr *bufio.Scanner)) (*bufio.Scanner, *bufio.Scanner, error) {
+	stdoutReader, _ := cmd.StdoutPipe()
+	stdoutScanner := bufio.NewScanner(stdoutReader)
+	stderrReader, _ := cmd.StderrPipe()
+	stderrScanner := bufio.NewScanner(stderrReader)
+	go stdOutFunc(stdoutScanner, stderrScanner)
+	err := cmd.Start()
 	if err != nil {
-		return err, false
+		logger.Error("Collector Deploy Error", zap.Error(err))
 	}
-	if status == "active" {
-		svc.logger.Info("Already applied collector for Sink ID", zap.String("sinkID", sinkId))
-		return nil, true
-	}
-	var configMapApplyConfig k8sv1accore.ConfigMapApplyConfiguration
-	var deploymentApplyConfig k8sv1acapps.DeploymentApplyConfiguration
-	var serviceApplyConfig k8sv1accore.ServiceApplyConfiguration
-	err = json.Decode([]byte(config.GetServiceApplyConfig(sinkId)), serviceApplyConfig)
+	err = cmd.Wait()
 	if err != nil {
-		svc.logger.Error("failed to decode service apply configuration json", zap.Error(err))
-		return err, true
+		logger.Error("Collector Deploy Error", zap.Error(err))
 	}
-	err = json.Decode([]byte(config.GetDeploymentApplyConfig(sinkId)), deploymentApplyConfig)
-	if err != nil {
-		svc.logger.Error("failed to decode deployment apply configuration json", zap.Error(err))
-		return err, true
-	}
-	err = json.Decode([]byte(configMap), configMapApplyConfig)
-	if err != nil {
-		svc.logger.Error("failed to decode config apply configuration json", zap.Error(err))
-		return err, true
-	}
-	_, err = svc.clientSet.CoreV1().ConfigMaps(namespace).Apply(ctx, &configMapApplyConfig, k8smetav1.ApplyOptions{
-		Force: true,
-	})
-	if err != nil {
-		svc.logger.Info("failed to apply config map", zap.Error(err))
-		return err, true
-	}
-	_, err = svc.clientSet.AppsV1().Deployments(namespace).Apply(ctx, &deploymentApplyConfig, k8smetav1.ApplyOptions{
-		Force: true,
-	})
-	if err != nil {
-		svc.logger.Info("failed to apply deployment", zap.Error(err))
-		return err, true
-	}
-	_, err = svc.clientSet.CoreV1().Services(namespace).Apply(ctx, &serviceApplyConfig, k8smetav1.ApplyOptions{
-		Force: true,
-	})
-	if err != nil {
-		svc.logger.Info("failed to apply deployment", zap.Error(err))
-		return err, true
-	}
-	// wait until deployment is active before returning
-	for i := 0; i < 4; i++ {
-		time.Sleep(1 * time.Second)
-		_, status, err := svc.getDeploymentState(ctx, ownerID, sinkId)
-		if status == "broken" || err != nil {
-			svc.logger.Error("Failed during deployment, deployment is not active", zap.String("sinkID", sinkId), zap.Error(err))
-			return err, false
-		}
-		if status == "active" {
-			break
-		}
-	}
-	return nil, false
+	return stdoutScanner, stderrScanner, err
 }
 
 func (svc *deployService) getDeploymentState(ctx context.Context, _, sinkId string) (deploymentName string, status string, err error) {
@@ -203,26 +147,32 @@ func (svc *deployService) getDeploymentState(ctx context.Context, _, sinkId stri
 }
 
 func (svc *deployService) CreateOtelCollector(ctx context.Context, ownerID, sinkID, deploymentEntry string) error {
-	err2, done := svc.applyDeployment(ctx, ownerID, sinkID, deploymentEntry)
-	if done {
-		return err2
+	err := svc.collectorDeploy(ctx, "apply", ownerID, sinkID, deploymentEntry)
+	if err != nil {
+		return err
 	}
 
 	return nil
 }
 
 func (svc *deployService) UpdateOtelCollector(ctx context.Context, ownerID, sinkID, deploymentEntry string) error {
-	err := svc.updateConfig(ctx, ownerID, sinkID, deploymentEntry)
+	err := svc.DeleteOtelCollector(ctx, ownerID, sinkID, deploymentEntry)
+	if err != nil {
+		return err
+	}
+	// Time to wait until K8s completely removes before re-creating
+	time.Sleep(3 * time.Second)
+	err = svc.CreateOtelCollector(ctx, ownerID, sinkID, deploymentEntry)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (svc *deployService) DeleteOtelCollector(ctx context.Context, ownerID, sinkID string) error {
-	err2, done := svc.removeDeployment(ctx, ownerID, sinkID)
-	if done {
-		return err2
+func (svc *deployService) DeleteOtelCollector(ctx context.Context, ownerID, sinkID, deploymentEntry string) error {
+	err := svc.collectorDeploy(ctx, "delete", ownerID, sinkID, deploymentEntry)
+	if err != nil {
+		return err
 	}
 	return nil
 }

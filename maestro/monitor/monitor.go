@@ -169,7 +169,12 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 		if sink == nil {
 			svc.logger.Warn("collector not found for sink, depleting collector", zap.String("collector name", collector.Name))
 			sinkId := collector.Name[5:51]
-			err = svc.kubecontrol.DeleteOtelCollector(ctx, "", sinkId)
+			deploymentEntry, err := svc.eventStore.GetDeploymentEntryFromSinkId(ctx, sinkId)
+			if err != nil {
+				svc.logger.Error("did not find collector entry for sink", zap.String("sink-id", sinkId))
+				continue
+			}
+			err = svc.kubecontrol.DeleteOtelCollector(ctx, "", sinkId, deploymentEntry)
 			if err != nil {
 				svc.logger.Error("error removing otel collector", zap.Error(err))
 			}
@@ -213,12 +218,12 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 						svc.logger.Error("error on remove sink activity", zap.Error(err))
 						continue
 					}
-					_, errDeploy := svc.eventStore.GetDeploymentEntryFromSinkId(ctx, sink.Id)
+					deploymentEntry, errDeploy := svc.eventStore.GetDeploymentEntryFromSinkId(ctx, sink.Id)
 					if errDeploy != nil {
 						svc.logger.Error("Remove collector: error on getting collector deployment from redis", zap.Error(activityErr))
 						continue
 					}
-					err = svc.kubecontrol.DeleteOtelCollector(ctx, sink.OwnerID, sink.Id)
+					err = svc.kubecontrol.DeleteOtelCollector(ctx, sink.OwnerID, sink.Id, deploymentEntry)
 					if err != nil {
 						svc.logger.Error("error removing otel collector", zap.Error(err))
 					}
