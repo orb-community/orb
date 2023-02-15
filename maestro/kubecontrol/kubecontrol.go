@@ -57,25 +57,15 @@ func (svc *deployService) collectorDeploy(ctx context.Context, operation, ownerI
 		fileContent := []byte(manifest)
 		tmp := strings.Split(string(fileContent), "\n")
 		newContent := strings.Join(tmp[1:], "\n")
-
 		if err != nil {
 			if status == "broken" {
 				operation = "delete"
 			}
 		}
-		if status == "active" {
-			svc.logger.Info("Already applied Sink ID=" + sinkId)
-			return nil
-		}
 		err = os.WriteFile("/tmp/otel-collector-"+sinkId+".json", []byte(newContent), 0644)
 		if err != nil {
 			svc.logger.Error("failed to write file content", zap.Error(err))
 			return err
-		}
-	} else if operation == "delete" {
-		if status == "deleted" {
-			svc.logger.Info("Already deleted Sink ID=" + sinkId)
-			return nil
 		}
 	}
 	stdOutListenFunction := func(out *bufio.Scanner, err *bufio.Scanner) {
