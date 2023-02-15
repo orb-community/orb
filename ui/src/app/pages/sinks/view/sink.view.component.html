@@ -1,0 +1,14 @@
+  <header data-orb-qa-id="sink#view">
+    <xng-breadcrumb class="orb-breadcrumb"
+                    data-orb-qa-id="breadcrumb">
+      <ng-container
+        *xngBreadcrumbItem="let breadcrumb; let info = info; let first = first">
+        <ng-container [ngClass]="{'my_class': first === ''}">{{ breadcrumb }}</ng-container>
+      </ng-container>
+    </xng-breadcrumb>
+    <h4>{{strings.sink.view.header}}</h4>
+  </header>
+
+  <div *ngIf="!isLoading">
+    
+  </div>

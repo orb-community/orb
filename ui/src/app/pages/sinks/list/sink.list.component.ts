@@ -217,6 +217,13 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
     });
   }
 
+  onOpenView(sink: any) {
+    this.router.navigate([`view/${sink.id}`], {
+      relativeTo: this.route,
+      state: { sink: sink },
+    });
+  }
+
   openDeleteModal(row: any) {
     const { id } = row;
     this.dialogService
