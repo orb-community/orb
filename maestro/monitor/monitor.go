@@ -27,13 +27,11 @@ const (
 )
 
 func NewMonitorService(logger *zap.Logger, sinksClient *sinkspb.SinkServiceClient, eventStore rediscons1.Subscriber, kubecontrol *kubecontrol.Service) Service {
-	deploymentChecks := make(map[string]int)
 	return &monitorService{
-		logger:           logger,
-		sinksClient:      *sinksClient,
-		eventStore:       eventStore,
-		kubecontrol:      *kubecontrol,
-		deploymentChecks: deploymentChecks,
+		logger:      logger,
+		sinksClient: *sinksClient,
+		eventStore:  eventStore,
+		kubecontrol: *kubecontrol,
 	}
 }
 
@@ -43,11 +41,10 @@ type Service interface {
 }
 
 type monitorService struct {
-	logger           *zap.Logger
-	sinksClient      sinkspb.SinkServiceClient
-	eventStore       rediscons1.Subscriber
-	kubecontrol      kubecontrol.Service
-	deploymentChecks map[string]int //to check deployment error
+	logger      *zap.Logger
+	sinksClient sinkspb.SinkServiceClient
+	eventStore  rediscons1.Subscriber
+	kubecontrol kubecontrol.Service
 }
 
 func (svc *monitorService) Start(ctx context.Context, cancelFunc context.CancelFunc) error {
