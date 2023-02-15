@@ -170,11 +170,11 @@ func (es eventStore) SubscribeSinksEvents(ctx context.Context) error {
 // handleSinkerDeleteCollector Delete collector
 func (es eventStore) handleSinkerDeleteCollector(ctx context.Context, event maestroredis.SinkerUpdateEvent) error {
 	es.logger.Info("Received maestro DELETE event from sinker, sink state", zap.String("state", event.State), zap.String("sinkID", event.SinkID), zap.String("ownerID", event.Owner))
-	_, err := es.GetDeploymentEntryFromSinkId(ctx, event.SinkID)
+	deploymentEntry, err := es.GetDeploymentEntryFromSinkId(ctx, event.SinkID)
 	if err != nil {
 		return err
 	}
-	err = es.kubecontrol.DeleteOtelCollector(ctx, event.Owner, event.SinkID)
+	err = es.kubecontrol.DeleteOtelCollector(ctx, event.Owner, event.SinkID, deploymentEntry)
 	if err != nil {
 		return err
 	}
