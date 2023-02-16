@@ -71,7 +71,8 @@ func (svc *monitorService) Start(ctx context.Context, cancelFunc context.CancelF
 
 func (svc *monitorService) getPodLogs(ctx context.Context, pod k8scorev1.Pod) ([]string, error) {
 	maxTailLines := int64(10)
-	podLogOpts := k8scorev1.PodLogOptions{TailLines: &maxTailLines}
+	sinceSeconds := int64(300)
+	podLogOpts := k8scorev1.PodLogOptions{TailLines: &maxTailLines, SinceSeconds: &sinceSeconds}
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		svc.logger.Error("error on get cluster config", zap.Error(err))
@@ -238,14 +239,6 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 func (svc *monitorService) analyzeLogs(logEntry []string) (status string, err error) {
 	for _, logLine := range logEntry {
 		if len(logLine) > 24 {
-			messageTimestamp, err := time.Parse(time.RFC3339, logLine[0:24])
-			if err != nil {
-				return "fail", err
-			}
-			oldLogTime := time.Now().Add(-(5 * time.Minute))
-			if messageTimestamp.After(oldLogTime) {
-				return "active", nil
-			}
 			// known errors
 			if strings.Contains(logLine, "401 Unauthorized") {
 				errorMessage := "error: remote write returned HTTP status 401 Unauthorized"
