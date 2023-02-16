@@ -54,6 +54,7 @@ func (es eventStore) handleSinksCreateCollector(ctx context.Context, event redis
 	})
 	if err != nil {
 		es.logger.Error("could not fetch info for sink", zap.String("sink-id", event.SinkID), zap.Error(err))
+		return err
 	}
 	var data config.SinkData
 	if err := json.Unmarshal(sinkData.Config, &data); err != nil {
