@@ -42,10 +42,18 @@ func (bs *SinkerOtelBridgeService) NotifyActiveSink(ctx context.Context, mfOwner
 		bs.logger.Error("unable to retrieve the sink config", zap.Error(err))
 		return err
 	}
-	if cfgRepo.State == config.Idle || cfgRepo.State == config.Unknown || cfgRepo.State == config.Active {
+
+	// only updates sink state if status Idle or Unknown
+	if cfgRepo.State == config.Idle || cfgRepo.State == config.Unknown {
+		cfgRepo.LastRemoteWrite = time.Now()
 		err = cfgRepo.State.SetFromString(newState)
 		if err != nil {
 			bs.logger.Error("unable to set state", zap.String("new_state", newState), zap.Error(err))
+			return err
+		}
+		err = bs.sinkerCache.AddActivity(mfOwnerId, sinkId)
+		if err != nil {
+			bs.logger.Error("error during update last remote write", zap.String("sinkId", sinkId), zap.Error(err))
 			return err
 		}
 		err = bs.sinkerCache.DeployCollector(ctx, cfgRepo)
