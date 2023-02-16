@@ -28,6 +28,7 @@ type Subscriber interface {
 }
 
 type eventStore struct {
+	otelEnabled   bool
 	sinkerService sinker.Service
 	configRepo    config.ConfigRepo
 	client        *redis.Client
@@ -36,14 +37,18 @@ type eventStore struct {
 }
 
 func (es eventStore) Subscribe(context context.Context) error {
-	err := es.client.XGroupCreateMkStream(context, stream, group, "$").Err()
+	subGroup := group
+	if es.otelEnabled {
+		subGroup = group + ".otel"
+	}
+	err := es.client.XGroupCreateMkStream(context, stream, subGroup, "$").Err()
 	if err != nil && err.Error() != exists {
 		return err
 	}
 
 	for {
 		streams, err := es.client.XReadGroup(context, &redis.XReadGroupArgs{
-			Group:    group,
+			Group:    subGroup,
 			Consumer: es.esconsumer,
 			Streams:  []string{stream, ">"},
 			Count:    100,
