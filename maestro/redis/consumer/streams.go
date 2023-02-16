@@ -90,14 +90,14 @@ func (es eventStore) SubscribeSinkerEvents(ctx context.Context) error {
 			es.logger.Info("received message in sinker event bus", zap.Any("operation", event["operation"]))
 			switch event["operation"] {
 			case sinkerUpdate:
-				go func() {
+				//go func() {
 					err = es.handleSinkerCreateCollector(ctx, rte) //sinker request create collector
 					if err != nil {
 						es.logger.Error("Failed to handle sinks event", zap.Any("operation", event["operation"]), zap.Error(err))
 					} else {
 						es.streamRedisClient.XAck(ctx, streamSinker, groupMaestro, msg.ID)
 					}
-				}()
+				//}()
 
 			case <-ctx.Done():
 				return errors.New("stopped listening to sinks, due to context cancellation")
@@ -134,32 +134,32 @@ func (es eventStore) SubscribeSinksEvents(ctx context.Context) error {
 			es.logger.Info("received message in sinks event bus", zap.Any("operation", event["operation"]))
 			switch event["operation"] {
 			case sinksCreate:
-				go func() {
+				//go func() {
 					err = es.handleSinksCreateCollector(ctx, rte) //should create collector
 					if err != nil {
 						es.logger.Error("Failed to handle sinks event", zap.Any("operation", event["operation"]), zap.Error(err))
 					} else {
 						es.streamRedisClient.XAck(ctx, streamSinks, groupMaestro, msg.ID)
 					}
-				}()
+				//}()
 			case sinksUpdate:
-				go func() {
+				//go func() {
 					err = es.handleSinksUpdateCollector(ctx, rte) //should create collector
 					if err != nil {
 						es.logger.Error("Failed to handle sinks event", zap.Any("operation", event["operation"]), zap.Error(err))
 					} else {
 						es.streamRedisClient.XAck(ctx, streamSinks, groupMaestro, msg.ID)
 					}
-				}()
+				//}()
 			case sinksDelete:
-				go func() {
+				//go func() {
 					err = es.handleSinksDeleteCollector(ctx, rte) //should delete collector
 					if err != nil {
 						es.logger.Error("Failed to handle sinks event", zap.Any("operation", event["operation"]), zap.Error(err))
 					} else {
 						es.streamRedisClient.XAck(ctx, streamSinks, groupMaestro, msg.ID)
 					}
-				}()
+				//}()
 			case <-ctx.Done():
 				return errors.New("stopped listening to sinks, due to context cancellation")
 			}
