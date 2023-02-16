@@ -58,7 +58,7 @@ func (es eventStore) Subscribe(context context.Context) error {
 
 		for _, msg := range streams[0].Messages {
 			event := msg.Values
-
+			es.logger.Info("received message in sinker event bus", zap.Any("operation", event["operation"]))
 			var err error
 			switch event["operation"] {
 			case sinkerUpdate:
