@@ -73,7 +73,7 @@ func (es eventStore) Subscribe(context context.Context) error {
 					es.logger.Error("Failed to handle event", zap.String("operation", event["operation"].(string)), zap.Error(err))
 					break
 				}
-				es.client.XAck(context, stream, group, msg.ID)
+				es.client.XAck(context, stream, subGroup, msg.ID)
 			case sinksUpdate:
 				rte, derr := decodeSinksUpdate(event)
 				if derr != nil {
@@ -93,7 +93,7 @@ func (es eventStore) Subscribe(context context.Context) error {
 				es.logger.Error("Failed to handle event", zap.String("operation", event["operation"].(string)), zap.Error(err))
 				continue
 			}
-			es.client.XAck(context, stream, group, msg.ID)
+			es.client.XAck(context, stream, subGroup, msg.ID)
 		}
 	}
 }
