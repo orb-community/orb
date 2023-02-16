@@ -159,6 +159,8 @@ func (p *pktvisorBackend) scrapeDefault() error {
 
 func (p *pktvisorBackend) scrapeOtlp() {
 	exeCtx, execCancelF := context.WithCancel(p.ctx)
+	exeCtx = context.WithValue(exeCtx, "policy_name", "__all")
+	exeCtx = context.WithValue(exeCtx, "policy_id", "__all")
 	exeCtx = context.WithValue(exeCtx, "all", true)
 	var errStartExp error
 	p.exporter["__all"], errStartExp = p.createOtlpMqttExporter(exeCtx, execCancelF)
