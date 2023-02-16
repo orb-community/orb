@@ -238,6 +238,14 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 func (svc *monitorService) analyzeLogs(logEntry []string) (status string, err error) {
 	for _, logLine := range logEntry {
 		if len(logLine) > 24 {
+			messageTimestamp, err := time.Parse(time.RFC3339, logLine[0:24])
+			if err != nil {
+				return "fail", err
+			}
+			oldLogTime := time.Now().Add(-(5 * time.Minute))
+			if messageTimestamp.After(oldLogTime) {
+				return "active", nil
+			}
 			// known errors
 			if strings.Contains(logLine, "401 Unauthorized") {
 				errorMessage := "error: remote write returned HTTP status 401 Unauthorized"
