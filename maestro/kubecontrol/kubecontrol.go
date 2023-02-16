@@ -53,20 +53,18 @@ type Service interface {
 
 func (svc *deployService) collectorDeploy(ctx context.Context, operation, ownerID, sinkId, manifest string) error {
 	_, status, err := svc.getDeploymentState(ctx, ownerID, sinkId)
-	if operation == "apply" {
-		fileContent := []byte(manifest)
-		tmp := strings.Split(string(fileContent), "\n")
-		newContent := strings.Join(tmp[1:], "\n")
-		if err != nil {
-			if status == "broken" {
-				operation = "delete"
-			}
+	fileContent := []byte(manifest)
+	tmp := strings.Split(string(fileContent), "\n")
+	newContent := strings.Join(tmp[1:], "\n")
+	if err != nil {
+		if status == "broken" {
+			operation = "delete"
 		}
-		err = os.WriteFile("/tmp/otel-collector-"+sinkId+".json", []byte(newContent), 0644)
-		if err != nil {
-			svc.logger.Error("failed to write file content", zap.Error(err))
-			return err
-		}
+	}
+	err = os.WriteFile("/tmp/otel-collector-"+sinkId+".json", []byte(newContent), 0644)
+	if err != nil {
+		svc.logger.Error("failed to write file content", zap.Error(err))
+		return err
 	}
 	stdOutListenFunction := func(out *bufio.Scanner, err *bufio.Scanner) {
 		for out.Scan() {
