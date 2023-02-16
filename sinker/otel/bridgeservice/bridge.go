@@ -44,6 +44,7 @@ func (bs *SinkerOtelBridgeService) NotifyActiveSink(ctx context.Context, mfOwner
 	}
 	// only updates sink state if status Idle or Unknown
 	if cfgRepo.State == config.Idle || cfgRepo.State == config.Unknown {
+		cfgRepo.LastRemoteWrite = time.Now()
 		err = cfgRepo.State.SetFromString(newState)
 		if err != nil {
 			bs.logger.Error("unable to set state", zap.String("new_state", newState), zap.Error(err))
