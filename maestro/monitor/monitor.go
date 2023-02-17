@@ -220,6 +220,8 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 				if err != nil {
 					svc.logger.Error("error removing otel collector", zap.Error(err))
 				}
+			} else { // if back activity, we set again to active
+				svc.eventStore.PublishSinkStateChange(sink, "active", logsErr, err)
 			}
 		} else if sink.GetState() != status { //updating status
 			if err != nil {
