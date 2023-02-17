@@ -2,12 +2,13 @@ package bridgeservice
 
 import (
 	"context"
+	"sort"
+	"time"
+
 	fleetpb "github.com/ns1labs/orb/fleet/pb"
 	policiespb "github.com/ns1labs/orb/policies/pb"
 	"github.com/ns1labs/orb/sinker/config"
 	"go.uber.org/zap"
-	"sort"
-	"time"
 )
 
 type BridgeService interface {
@@ -47,7 +48,8 @@ func (bs *SinkerOtelBridgeService) NotifyActiveSink(ctx context.Context, mfOwner
 	// if state is Active, we should register activity
 	if cfgRepo.State == config.Idle || cfgRepo.State == config.Unknown {
 		cfgRepo.LastRemoteWrite = time.Now()
-		if newState == "active" {
+		// only deploy collector if new state is active
+		if newState == "active" && cfgRepo.State != config.Active {
 			err = cfgRepo.State.SetFromString(newState)
 			if err != nil {
 				bs.logger.Error("unable to set state", zap.String("new_state", newState), zap.Error(err))

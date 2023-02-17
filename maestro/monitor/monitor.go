@@ -5,11 +5,12 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/ns1labs/orb/maestro/kubecontrol"
-	rediscons1 "github.com/ns1labs/orb/maestro/redis/consumer"
 	"io"
 	"strings"
 	"time"
+
+	"github.com/ns1labs/orb/maestro/kubecontrol"
+	rediscons1 "github.com/ns1labs/orb/maestro/redis/consumer"
 
 	maestroconfig "github.com/ns1labs/orb/maestro/config"
 	sinkspb "github.com/ns1labs/orb/sinks/pb"
@@ -186,14 +187,15 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 		data.SinkID = sink.Id
 		data.OwnerID = sink.OwnerID
 		// only analyze logs if current status is active
+		var logsErr error
+		var status string
 		if sink.GetState() == "active" {
 			logs, err := svc.getPodLogs(ctx, collector)
 			if err != nil {
 				svc.logger.Error("error on getting logs, skipping", zap.Error(err))
 				continue
 			}
-			status, logsErr := svc.analyzeLogs(logs)
-			var idleLimit int64 = 0
+			status, logsErr = svc.analyzeLogs(logs)
 			if status == "fail" {
 				svc.logger.Error("error during analyze logs", zap.Error(logsErr))
 				continue
@@ -205,6 +207,7 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			lastActivity, activityErr = svc.eventStore.GetActivity(sink.Id)
 			// if logs reported 'active' status
 			// here we should check if LastActivity is up-to-date, otherwise we need to set sink as idle
+			var idleLimit int64 = 0
 			if activityErr != nil || lastActivity == 0 {
 				svc.logger.Error("error on getting last collector activity", zap.Error(activityErr))
 				continue
@@ -234,9 +237,9 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 					svc.logger.Error("error creating otel collector", zap.Error(err))
 				}
 			}
-		} 
+		}
 		//updating status
-		if sink.GetState() != status { 
+		if sink.GetState() != status && status != "" {
 			if err != nil {
 				svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("error_message (opt)", err.Error()), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
 			} else {
