@@ -13,7 +13,9 @@ import (
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/sinks/backend"
-	"github.com/ns1labs/orb/sinks/backend/prometheus"
+	"go.uber.org/zap"
+	"io"
+	"net/http"
 	"net/url"
 	"time"
 )
@@ -176,12 +178,32 @@ func (svc sinkService) validateConfig(ctx context.Context, config types.Metadata
 	configUrl := config["remote_host"].(string)
 	configUsername := config["username"].(string)
 	configPassword := config["password"].(string)
-	err, ok = prometheus.ValidateAuth(requestCtx, configUrl, configUsername, configPassword)
+	err, ok = svc.requestAuth(requestCtx, configUrl, configUsername, configPassword)
 	if err != nil {
 		svc.logger.Error("got error during validation username configuration")
 		return
 	}
 	return
+}
+
+func (svc sinkService) requestAuth(ctx context.Context, url, username, password string) (err error, ok bool) {
+	client := &http.Client{
+		Timeout: time.Second,
+	}
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		return err, false
+	}
+	req.SetBasicAuth(username, password)
+	response, err := client.Do(req)
+	if err != nil {
+		return err, false
+	}
+	svc.logger.Info("response code", zap.String("HTTP Status Code", response.Status))
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(response.Body)
+	return nil, true
 }
 
 func (svc sinkService) ListBackends(ctx context.Context, token string) ([]string, error) {
