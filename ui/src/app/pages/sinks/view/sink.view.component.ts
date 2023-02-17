@@ -66,11 +66,11 @@ export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
       ? this.detailsComponent?.formGroup?.status === 'VALID'
       : true;
 
-    // const interfaceValid = this.editMode.config
-    //   ? this.configComponent?.formControl?.status === 'VALID'
-    //   : true;
+    const configValid = this.editMode.config
+      ? this.configComponent?.formControl?.status === 'VALID'
+      : true;
 
-    return detailsValid; //&& interfaceValid;
+    return detailsValid && configValid;
   }
 
   discard() {
@@ -79,7 +79,36 @@ export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   save() {
+    const { name, description } = this.sink;
 
+    const sinkDetails = this.detailsComponent.formGroup?.value;
+    const tags = this.detailsComponent.selectedTags;
+    const config = this.configComponent.code;
+
+    const detailsPartial = (!!this.editMode.details && { ...sinkDetails})
+    || { name, description };
+
+    let configPartial = {};
+
+    const payload = {
+      ...detailsPartial,
+      tags,
+      
+    } as Sink;
+
+    try {
+      this.sinks.editSink(payload).subscribe((resp) => {
+        this.discard();
+        this.sink = resp;
+        this.fetchData();
+        this.notifications.success('Sink updated successfully', '');
+      });
+    } catch (err) {
+      this.notifications.error(
+        'Failed to edit Sink',
+        'Error: Invalid configuration',
+      )
+    }
   }
 
   retrieveSink() {

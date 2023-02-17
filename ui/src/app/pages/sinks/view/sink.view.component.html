@@ -35,16 +35,12 @@
 </header>
 
 <div *ngIf="!isLoading" class="row">
-  <ngx-sink-details 
-  class="col-5"
-  [(editMode)]="editMode.details"
-  [sink]="sink"
-  >
-
+  <ngx-sink-details class="col-5" [(editMode)]="editMode.details" [sink]="sink">
   </ngx-sink-details>
-  <!-- <ngx-sink-config-component
-  [(editMode)]="editMode.config"
-  [sink]="sink">
-
-  </ngx-sink-config-component> -->
+  <ngx-sink-config
+    class="col-5"
+    [(editMode)]="editMode.config"
+    [sink]="sink"
+  >
+  </ngx-sink-config>
 </div>
