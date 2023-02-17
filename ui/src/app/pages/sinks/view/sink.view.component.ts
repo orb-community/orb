@@ -88,7 +88,7 @@ export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
     const detailsPartial = (!!this.editMode.details && { ...sinkDetails, id, backend})
     || { name, description, id, backend };
 
-    let configPartial = JSON.parse(config);
+    let configPartial = (!!this.editMode.config && JSON.parse(config)) || {};
 
     const payload = {
       ...configPartial,
