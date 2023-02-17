@@ -47,22 +47,24 @@ func (bs *SinkerOtelBridgeService) NotifyActiveSink(ctx context.Context, mfOwner
 	// if state is Active, we should register activity
 	if cfgRepo.State == config.Idle || cfgRepo.State == config.Unknown {
 		cfgRepo.LastRemoteWrite = time.Now()
-		err = cfgRepo.State.SetFromString(newState)
-		if err != nil {
-			bs.logger.Error("unable to set state", zap.String("new_state", newState), zap.Error(err))
-			return err
+		if newState == "active" {
+			err = cfgRepo.State.SetFromString(newState)
+			if err != nil {
+				bs.logger.Error("unable to set state", zap.String("new_state", newState), zap.Error(err))
+				return err
+			}
+			err = bs.sinkerCache.AddActivity(mfOwnerId, sinkId)
+			if err != nil {
+				bs.logger.Error("error during update last remote write", zap.String("sinkId", sinkId), zap.Error(err))
+				return err
+			}
+			err = bs.sinkerCache.DeployCollector(ctx, cfgRepo)
+			if err != nil {
+				bs.logger.Error("error during update sink cache", zap.String("sinkId", sinkId), zap.Error(err))
+				return err
+			}
+			bs.logger.Info("notified active sink", zap.String("sinkID", sinkId), zap.String("newState", newState))
 		}
-		err = bs.sinkerCache.AddActivity(mfOwnerId, sinkId)
-		if err != nil {
-			bs.logger.Error("error during update last remote write", zap.String("sinkId", sinkId), zap.Error(err))
-			return err
-		}
-		err = bs.sinkerCache.DeployCollector(ctx, cfgRepo)
-		if err != nil {
-			bs.logger.Error("error during update sink cache", zap.String("sinkId", sinkId), zap.Error(err))
-			return err
-		}
-		bs.logger.Info("notified active sink", zap.String("sinkID", sinkId), zap.String("newState", newState))
 	} else if cfgRepo.State == config.Active {
 		cfgRepo.LastRemoteWrite = time.Now()
 		bs.logger.Info("sink is already active, registering activity")
