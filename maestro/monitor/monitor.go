@@ -198,7 +198,7 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 		}
 		var lastActivity int64
 		var activityErr error
-		if status == "active" {
+		if status == "active" || status == "idle" {
 			lastActivity, activityErr = svc.eventStore.GetActivity(sink.Id)
 			// if logs reported 'active' status
 			// here we should check if LastActivity is up-to-date, otherwise we need to set sink as idle
