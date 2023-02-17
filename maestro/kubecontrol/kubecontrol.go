@@ -58,7 +58,7 @@ func (svc *deployService) collectorDeploy(ctx context.Context, operation, ownerI
 	newContent := strings.Join(tmp[1:], "\n")
 	if err != nil {
 		if status == "broken" {
-			//operation = "delete"
+			operation = "delete"
 		}
 	}
 	err = os.WriteFile("/tmp/otel-collector-"+sinkId+".json", []byte(newContent), 0644)
