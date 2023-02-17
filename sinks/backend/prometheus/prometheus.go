@@ -5,8 +5,10 @@
 package prometheus
 
 import (
+	"context"
 	"github.com/ns1labs/orb/sinks/backend"
-	"io"
+	"net/http"
+	"time"
 )
 
 var _ backend.Backend = (*prometheusBackend)(nil)
@@ -32,8 +34,21 @@ func (p *prometheusBackend) Metadata() interface{} {
 	}
 }
 
-func (p *prometheusBackend) request(url string, payload interface{}, method string, body io.Reader, contentType string) error {
-	return nil
+func ValidateAuth(ctx context.Context, url, username, password string) (err error, ok bool) {
+	client := &http.Client{
+		Timeout: time.Second,
+	}
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		return err, false
+	}
+	req.SetBasicAuth(username, password)
+	response, err := client.Do(req)
+	if err != nil {
+		return err, false
+	}
+	defer response.Body.Close()
+	return nil, true
 }
 
 func Register() bool {

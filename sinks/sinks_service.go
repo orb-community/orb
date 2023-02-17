@@ -13,7 +13,9 @@ import (
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/sinks/backend"
+	"github.com/ns1labs/orb/sinks/backend/prometheus"
 	"net/url"
+	"time"
 )
 
 var (
@@ -40,7 +42,11 @@ func (svc sinkService) CreateSink(ctx context.Context, token string, sink Sink) 
 	// Validate remote_host
 	_, err = url.ParseRequestURI(sink.Config["remote_host"].(string))
 	if err != nil {
-		return Sink{}, errors.Wrap(errors.New("invalid remote url"), err)
+		return Sink{}, errors.Wrap(ErrCreateSink, err)
+	}
+	err, _ = svc.validateConfig(ctx, sink.Config)
+	if err != nil {
+		return Sink{}, errors.Wrap(ErrCreateSink, err)
 	}
 
 	// encrypt data for the password
@@ -116,9 +122,15 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 		if err != nil {
 			return Sink{}, errors.Wrap(ErrUpdateEntity, err)
 		}
-		// This will keep the previous tags
-		currentSink.Config.Merge(sink.Config)
-		sink.Config = currentSink.Config
+		err, ok := svc.validateConfig(ctx, sink.Config)
+		if err != nil {
+			return Sink{}, errors.Wrap(ErrValidateSink, err)
+		}
+		if ok {
+			// This will keep the previous tags
+			currentSink.Config.Merge(sink.Config)
+			sink.Config = currentSink.Config
+		}
 	}
 
 	if sink.Tags == nil {
@@ -155,6 +167,21 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 	}
 
 	return sinkEdited, nil
+}
+
+// validateConfig Validate on BackEnd to check whether the combination for host/username/password is valid
+func (svc sinkService) validateConfig(ctx context.Context, config types.Metadata) (err error, ok bool) {
+	requestCtx, requestCancel := context.WithTimeout(ctx, 2*time.Second)
+	defer requestCancel()
+	configUrl := config["remote_host"].(string)
+	configUsername := config["username"].(string)
+	configPassword := config["password"].(string)
+	err, ok = prometheus.ValidateAuth(requestCtx, configUrl, configUsername, configPassword)
+	if err != nil {
+		svc.logger.Error("got error during validation username configuration")
+		return
+	}
+	return
 }
 
 func (svc sinkService) ListBackends(ctx context.Context, token string) ([]string, error) {
