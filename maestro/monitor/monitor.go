@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	idleTimeSeconds = 300
+	idleTimeSeconds = 1800
 	TickerForScan   = 1 * time.Minute
 	namespace       = "otelcollectors"
 )
@@ -205,6 +205,7 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			if activityErr != nil || lastActivity == 0 {
 				svc.logger.Error("error on getting last collector activity", zap.Error(activityErr))
 				status = "unknown"
+				continue
 			} else {
 				idleLimit = time.Now().Unix() - idleTimeSeconds // within 30 minutes
 			}
