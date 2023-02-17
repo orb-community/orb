@@ -151,7 +151,7 @@ func (svc *maestroService) subscribeToSinksEvents(ctx context.Context) {
 }
 
 func (svc *maestroService) subscribeToSinkerEvents(ctx context.Context) {
-	if err := svc.eventStore.SubscribeSinksEvents(ctx); err != nil {
+	if err := svc.eventStore.SubscribeSinkerEvents(ctx); err != nil {
 		svc.logger.Error("Bootstrap service failed to subscribe to event sourcing", zap.Error(err))
 		return
 	}
