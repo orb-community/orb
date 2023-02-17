@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	idleTimeSeconds = 1800
+	idleTimeSeconds = 600
 	TickerForScan   = 1 * time.Minute
 	namespace       = "otelcollectors"
 )
