@@ -45,10 +45,9 @@ func (bs *SinkerOtelBridgeService) NotifyActiveSink(ctx context.Context, mfOwner
 	}
 
 	// only updates sink state if status Idle or Unknown
-	// if state is Active, we should register activity
 	if cfgRepo.State == config.Idle || cfgRepo.State == config.Unknown {
 		cfgRepo.LastRemoteWrite = time.Now()
-		// only deploy collector if new state is active
+		// only deploy collector if new state is "active" and current state "not active"
 		if newState == "active" && cfgRepo.State != config.Active {
 			err = cfgRepo.State.SetFromString(newState)
 			if err != nil {
@@ -65,16 +64,22 @@ func (bs *SinkerOtelBridgeService) NotifyActiveSink(ctx context.Context, mfOwner
 				bs.logger.Error("error during update sink cache", zap.String("sinkId", sinkId), zap.Error(err))
 				return err
 			}
-			bs.logger.Info("notified active sink", zap.String("sinkID", sinkId), zap.String("newState", newState))
+			bs.logger.Info("waking up sink to active", zap.String("sinkID", sinkId), zap.String("newState", newState), zap.Any("currentState", cfgRepo.State))
+		} else {
+			err = bs.sinkerCache.AddActivity(mfOwnerId, sinkId)
+			if err != nil {
+				bs.logger.Error("error during update last remote write", zap.String("sinkId", sinkId), zap.Error(err))
+				return err
+			}
+			bs.logger.Info("registering sink activity", zap.String("sinkID", sinkId), zap.String("newState", newState), zap.Any("currentState", cfgRepo.State))
 		}
 	} else if cfgRepo.State == config.Active {
-		cfgRepo.LastRemoteWrite = time.Now()
-		bs.logger.Info("sink is already active, registering activity")
 		err = bs.sinkerCache.AddActivity(mfOwnerId, sinkId)
 		if err != nil {
 			bs.logger.Error("error during update last remote write", zap.String("sinkId", sinkId), zap.Error(err))
 			return err
 		}
+		bs.logger.Info("registering sink activity", zap.String("sinkID", sinkId), zap.String("newState", newState), zap.Any("currentState", cfgRepo.State))
 	} else if cfgRepo.State == config.Error {
 		cfgRepo.Msg = message
 	}

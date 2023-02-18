@@ -203,7 +203,7 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 		}
 		var lastActivity int64
 		var activityErr error
-		if status == "active" || sink.GetState() == "idle" {
+		if status == "active" {
 			lastActivity, activityErr = svc.eventStore.GetActivity(sink.Id)
 			// if logs reported 'active' status
 			// here we should check if LastActivity is up-to-date, otherwise we need to set sink as idle
@@ -225,21 +225,9 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 				if err != nil {
 					svc.logger.Error("error removing otel collector", zap.Error(err))
 				}
-			} else { // if back activity, we set collector to active
-				svc.eventStore.PublishSinkStateChange(sink, "active", logsErr, err)
-				deploymentEntry, errDeploy := svc.eventStore.GetDeploymentEntryFromSinkId(ctx, sink.Id)
-				if errDeploy != nil {
-					svc.logger.Error("Create collector: error on getting collector deployment from redis", zap.Error(activityErr))
-					continue
-				}
-				err = svc.kubecontrol.CreateOtelCollector(ctx, sink.OwnerID, sink.Id, deploymentEntry)
-				if err != nil {
-					svc.logger.Error("error creating otel collector", zap.Error(err))
-				}
+				continue
 			}
-		}
-		//updating status
-		if sink.GetState() != status && status != "" {
+		} else if sink.GetState() != status && status != "" {
 			if err != nil {
 				svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("error_message (opt)", err.Error()), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
 			} else {
@@ -269,7 +257,7 @@ func (svc *monitorService) analyzeLogs(logEntry []string) (status string, err er
 			}
 			if strings.Contains(logLine, "Permanent error: remote write returned HTTP status 429 Too Many Requests") {
 				errorMessage := "error: remote write returned HTTP status 429 Too Many Requests"
-				return "error", errors.New(errorMessage)
+				return "warning", errors.New(errorMessage)
 			}
 			// other errors
 			if strings.Contains(logLine, "error") {
