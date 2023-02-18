@@ -262,14 +262,13 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 		return readinessError
 	}
 
+	p.scraper = gocron.NewScheduler(time.UTC)
 	if !p.scrapeOtel {
-		p.scraper = gocron.NewScheduler(time.UTC)
 		p.scraper.StartAsync()
 		if err := p.scrapeDefault(); err != nil {
 			return err
 		}
 	} else if p.otelType == Prometheus {
-		p.scraper = gocron.NewScheduler(time.UTC)
 		p.scraper.StartAsync()
 	} else if p.otelType == Otlp {
 		p.scrapeOtlp()

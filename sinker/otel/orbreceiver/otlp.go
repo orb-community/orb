@@ -274,7 +274,7 @@ func (r *OrbReceiver) injectScopeAttribute(metricsScope pmetric.ScopeMetrics, at
 				metricItem.Summary().DataPoints().At(i).Attributes().PutStr(attribute, value)
 			}
 		default:
-			r.cfg.Logger.Error("Unknown metric type: " + metricItem.Type().String())
+			continue
 		}
 	}
 	return metricsScope
@@ -484,7 +484,7 @@ func (r *OrbReceiver) ProccessScopePolicyContext(scope pmetric.ScopeMetrics, cha
 		}
 		attributeCtx = context.WithValue(attributeCtx, "sink_id", sinkId)
 		mr := pmetric.NewMetrics()
-		scope.MoveTo(mr.ResourceMetrics().AppendEmpty().ScopeMetrics().AppendEmpty())
+		scope.CopyTo(mr.ResourceMetrics().AppendEmpty().ScopeMetrics().AppendEmpty())
 		request := pmetricotlp.NewRequestFromMetrics(mr)
 		_, err = r.metricsReceiver.Export(attributeCtx, request)
 		if err != nil {

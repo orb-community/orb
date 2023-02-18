@@ -236,7 +236,7 @@ func (e *exporter) injectScopeAttribute(metricsScope pmetric.ScopeMetrics, attri
 				metricItem.Summary().DataPoints().At(i).Attributes().PutStr(attribute, value)
 			}
 		default:
-			e.logger.Error("Unknown metric type: " + metricItem.Type().String())
+			continue
 		}
 	}
 	return metricsScope
@@ -320,17 +320,15 @@ func (e *exporter) pushMetrics(ctx context.Context, md pmetric.Metrics) error {
 
 // pushMetrics Exports metrics
 func (e *exporter) pushAllMetrics(ctx context.Context, md pmetric.Metrics) error {
-	tr := pmetricotlp.NewRequestFromMetrics(md)
-	scopes := tr.Metrics().ResourceMetrics().At(0).ScopeMetrics()
-
+	tr := pmetricotlp.NewRequest()
+	ref := tr.Metrics().ResourceMetrics().AppendEmpty()
+	scopes := pmetricotlp.NewRequestFromMetrics(md).Metrics().ResourceMetrics().At(0).ScopeMetrics()
 	for i := 0; i < scopes.Len(); i++ {
 		scope := scopes.At(i)
 		policyName := e.extractScopeAttribute(scope, "policy")
 		agentData, err := e.config.OrbAgentService.RetrieveAgentInfoByPolicyName(policyName)
 		if err != nil {
 			e.logger.Warn("Policy is not managed by orb", zap.String("policyName", policyName))
-			var clearScope pmetric.ScopeMetrics
-			scope.MoveTo(clearScope)
 			continue
 		}
 
@@ -346,7 +344,7 @@ func (e *exporter) pushAllMetrics(ctx context.Context, md pmetric.Metrics) error
 		for key, value := range agentData.AgentTags {
 			scope = e.injectScopeAttribute(scope, key, value)
 		}
-
+		scope.CopyTo(ref.ScopeMetrics().AppendEmpty())
 	}
 
 	request, err := tr.MarshalProto()
