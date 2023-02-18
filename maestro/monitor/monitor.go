@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	idleTimeSeconds = 900
+	idleTimeSeconds = 600
 	TickerForScan   = 1 * time.Minute
 	namespace       = "otelcollectors"
 )
@@ -189,7 +189,7 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 		// only analyze logs if current status is active
 		var logsErr error
 		var status string
-		if sink.GetState() == "active" || sink.GetState() == "error" {
+		if sink.GetState() == "active" {
 			logs, err := svc.getPodLogs(ctx, collector)
 			if err != nil {
 				svc.logger.Error("error on getting logs, skipping", zap.Error(err))
