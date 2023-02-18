@@ -215,7 +215,9 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 				idleLimit = time.Now().Unix() - idleTimeSeconds // within 10 minutes
 			}
 			if idleLimit >= lastActivity {
+				//changing state on sinks
 				svc.eventStore.PublishSinkStateChange(sink, "idle", logsErr, err)
+				//changing state on redis sinker
 				data.State.SetFromString("idle")
 				svc.eventStore.UpdateSinkStateCache(ctx, data)
 				deploymentEntry, errDeploy := svc.eventStore.GetDeploymentEntryFromSinkId(ctx, sink.Id)
@@ -237,7 +239,9 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 				svc.logger.Error("error updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("error_message (opt)", err.Error()), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
 			} else {
 				svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
+				// changing state on sinks
 				svc.eventStore.PublishSinkStateChange(sink, status, logsErr, err)
+				// changing state on redis sinker
 				data.State.SetFromString(status)
 				svc.eventStore.UpdateSinkStateCache(ctx, data)
 			}
