@@ -189,7 +189,7 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 		// only analyze logs if current status is active
 		var logsErr error
 		var status string
-		if sink.GetState() == "active" {
+		if sink.GetState() == "active" || sink.GetState() == "error" {
 			logs, err := svc.getPodLogs(ctx, collector)
 			if err != nil {
 				svc.logger.Error("error on getting logs, skipping", zap.Error(err))
@@ -227,13 +227,16 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 				}
 				continue
 			}
-		} else if sink.GetState() != status && status != "" {
+		}
+		//set the new sink status if changed during checks
+		if sink.GetState() != status && status != "" {
+			svc.logger.Info("changing sink status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
 			if err != nil {
-				svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("error_message (opt)", err.Error()), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
+				svc.logger.Error("error updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("error_message (opt)", err.Error()), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
 			} else {
 				svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
+				svc.eventStore.PublishSinkStateChange(sink, status, logsErr, err)
 			}
-			svc.eventStore.PublishSinkStateChange(sink, status, logsErr, err)
 		}
 	}
 }
