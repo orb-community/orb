@@ -2,9 +2,10 @@ package consumer
 
 import (
 	"context"
+	"time"
+
 	"github.com/ns1labs/orb/maestro/config"
 	"github.com/ns1labs/orb/pkg/errors"
-	"time"
 
 	"github.com/ns1labs/orb/maestro/kubecontrol"
 	maestroredis "github.com/ns1labs/orb/maestro/redis"
@@ -36,6 +37,7 @@ type Subscriber interface {
 	GetDeploymentEntryFromSinkId(ctx context.Context, sinkId string) (string, error)
 
 	UpdateSinkCache(ctx context.Context, data config.SinkData) (err error)
+	UpdateSinkStateCache(ctx context.Context, data config.SinkData) (err error)
 	PublishSinkStateChange(sink *sinkspb.SinkRes, status string, logsErr error, err error)
 
 	GetActivity(sinkID string) (int64, error)

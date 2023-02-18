@@ -212,10 +212,12 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 				svc.logger.Error("error on getting last collector activity", zap.Error(activityErr))
 				continue
 			} else {
-				idleLimit = time.Now().Unix() - idleTimeSeconds // within 15 minutes
+				idleLimit = time.Now().Unix() - idleTimeSeconds // within 10 minutes
 			}
 			if idleLimit >= lastActivity {
 				svc.eventStore.PublishSinkStateChange(sink, "idle", logsErr, err)
+				data.State.SetFromString("idle")
+				svc.eventStore.UpdateSinkStateCache(ctx, data)
 				deploymentEntry, errDeploy := svc.eventStore.GetDeploymentEntryFromSinkId(ctx, sink.Id)
 				if errDeploy != nil {
 					svc.logger.Error("Remove collector: error on getting collector deployment from redis", zap.Error(activityErr))
@@ -236,6 +238,8 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			} else {
 				svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
 				svc.eventStore.PublishSinkStateChange(sink, status, logsErr, err)
+				data.State.SetFromString(status)
+				svc.eventStore.UpdateSinkStateCache(ctx, data)
 			}
 		}
 	}
