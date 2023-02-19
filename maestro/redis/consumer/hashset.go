@@ -109,7 +109,11 @@ func (es eventStore) handleSinksUpdateCollector(ctx context.Context, event redis
 	if err != nil {
 		return err
 	}
-
+	// changing state on updated sink to unknown
+	es.PublishSinkStateChange(sinkData, "unknown", nil, err)
+	// changing state on redis sinker
+	data.State.SetFromString("unknown")
+	es.UpdateSinkStateCache(ctx, data)
 	return nil
 }
 
