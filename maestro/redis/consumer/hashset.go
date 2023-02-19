@@ -5,9 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	redis2 "github.com/go-redis/redis/v8"
 	"strconv"
 	"time"
+
+	redis2 "github.com/go-redis/redis/v8"
 
 	"github.com/ns1labs/orb/maestro/config"
 	"github.com/ns1labs/orb/maestro/redis"
@@ -108,12 +109,31 @@ func (es eventStore) handleSinksUpdateCollector(ctx context.Context, event redis
 	if err != nil {
 		return err
 	}
-
+	// changing state on updated sink to unknown
+	sinkData.OwnerID = event.Owner
+	es.PublishSinkStateChange(sinkData, "unknown", err, err)
+	data.SinkID = sinkData.Id
+	data.OwnerID = sinkData.OwnerID
+	data.State.SetFromString("unknown")
+	es.UpdateSinkStateCache(ctx, data)
 	return nil
 }
 
 func (es eventStore) UpdateSinkCache(ctx context.Context, data config.SinkData) (err error) {
 	data.State = config.Unknown
+	keyPrefix := "sinker_key"
+	skey := fmt.Sprintf("%s-%s:%s", keyPrefix, data.OwnerID, data.SinkID)
+	bytes, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	if err = es.sinkerKeyRedisClient.Set(ctx, skey, bytes, 0).Err(); err != nil {
+		return err
+	}
+	return
+}
+
+func (es eventStore) UpdateSinkStateCache(ctx context.Context, data config.SinkData) (err error) {
 	keyPrefix := "sinker_key"
 	skey := fmt.Sprintf("%s-%s:%s", keyPrefix, data.OwnerID, data.SinkID)
 	bytes, err := json.Marshal(data)

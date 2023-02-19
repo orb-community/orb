@@ -2,9 +2,10 @@ package consumer
 
 import (
 	"context"
+	"time"
+
 	"github.com/ns1labs/orb/maestro/config"
 	"github.com/ns1labs/orb/pkg/errors"
-	"time"
 
 	"github.com/ns1labs/orb/maestro/kubecontrol"
 	maestroredis "github.com/ns1labs/orb/maestro/redis"
@@ -36,6 +37,7 @@ type Subscriber interface {
 	GetDeploymentEntryFromSinkId(ctx context.Context, sinkId string) (string, error)
 
 	UpdateSinkCache(ctx context.Context, data config.SinkData) (err error)
+	UpdateSinkStateCache(ctx context.Context, data config.SinkData) (err error)
 	PublishSinkStateChange(sink *sinkspb.SinkRes, status string, logsErr error, err error)
 
 	GetActivity(sinkID string) (int64, error)
@@ -87,20 +89,23 @@ func (es eventStore) SubscribeSinkerEvents(ctx context.Context) error {
 		for _, msg := range streams[0].Messages {
 			event := msg.Values
 			rte := decodeSinkerStateUpdate(event)
-			es.logger.Info("received message in sinker event bus", zap.Any("operation", event["operation"]))
-			switch event["operation"] {
-			case sinkerUpdate:
-				go func() {
-					err = es.handleSinkerCreateCollector(ctx, rte) //sinker request create collector
-					if err != nil {
-						es.logger.Error("Failed to handle sinks event", zap.Any("operation", event["operation"]), zap.Error(err))
-					} else {
-						es.streamRedisClient.XAck(ctx, streamSinker, groupMaestro, msg.ID)
-					}
-				}()
+			// here we should listen just event coming from sinker, not our own "publishState" events
+			if rte.State == "active" {
+				es.logger.Info("received message in sinker event bus", zap.Any("operation", event["operation"]))
+				switch event["operation"] {
+				case sinkerUpdate:
+					go func() {
+						err = es.handleSinkerCreateCollector(ctx, rte) //sinker request to create collector
+						if err != nil {
+							es.logger.Error("Failed to handle sinks event", zap.Any("operation", event["operation"]), zap.Error(err))
+						} else {
+							es.streamRedisClient.XAck(ctx, streamSinker, groupMaestro, msg.ID)
+						}
+					}()
 
-			case <-ctx.Done():
-				return errors.New("stopped listening to sinks, due to context cancellation")
+				case <-ctx.Done():
+					return errors.New("stopped listening to sinks, due to context cancellation")
+				}
 			}
 		}
 	}

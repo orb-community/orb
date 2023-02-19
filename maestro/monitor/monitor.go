@@ -5,11 +5,12 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/ns1labs/orb/maestro/kubecontrol"
-	rediscons1 "github.com/ns1labs/orb/maestro/redis/consumer"
 	"io"
 	"strings"
 	"time"
+
+	"github.com/ns1labs/orb/maestro/kubecontrol"
+	rediscons1 "github.com/ns1labs/orb/maestro/redis/consumer"
 
 	maestroconfig "github.com/ns1labs/orb/maestro/config"
 	sinkspb "github.com/ns1labs/orb/sinks/pb"
@@ -21,7 +22,7 @@ import (
 )
 
 const (
-	idleTimeSeconds = 300
+	idleTimeSeconds = 600
 	TickerForScan   = 1 * time.Minute
 	namespace       = "otelcollectors"
 )
@@ -185,16 +186,20 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 		}
 		data.SinkID = sink.Id
 		data.OwnerID = sink.OwnerID
-		logs, err := svc.getPodLogs(ctx, collector)
-		if err != nil {
-			svc.logger.Error("error on getting logs, skipping", zap.Error(err))
-			continue
-		}
-		status, logsErr := svc.analyzeLogs(logs)
-		var idleLimit int64 = 0
-		if status == "fail" {
-			svc.logger.Error("error during analyze logs", zap.Error(logsErr))
-			continue
+		// only analyze logs if current status is active
+		var logsErr error
+		var status string
+		if sink.GetState() == "active" {
+			logs, err := svc.getPodLogs(ctx, collector)
+			if err != nil {
+				svc.logger.Error("error on getting logs, skipping", zap.Error(err))
+				continue
+			}
+			status, logsErr = svc.analyzeLogs(logs)
+			if status == "fail" {
+				svc.logger.Error("error during analyze logs", zap.Error(logsErr))
+				continue
+			}
 		}
 		var lastActivity int64
 		var activityErr error
@@ -202,14 +207,19 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			lastActivity, activityErr = svc.eventStore.GetActivity(sink.Id)
 			// if logs reported 'active' status
 			// here we should check if LastActivity is up-to-date, otherwise we need to set sink as idle
+			var idleLimit int64 = 0
 			if activityErr != nil || lastActivity == 0 {
 				svc.logger.Error("error on getting last collector activity", zap.Error(activityErr))
-				status = "unknown"
+				continue
 			} else {
-				idleLimit = time.Now().Unix() - idleTimeSeconds // within 30 minutes
+				idleLimit = time.Now().Unix() - idleTimeSeconds // within 10 minutes
 			}
 			if idleLimit >= lastActivity {
+				//changing state on sinks
 				svc.eventStore.PublishSinkStateChange(sink, "idle", logsErr, err)
+				//changing state on redis sinker
+				data.State.SetFromString("idle")
+				svc.eventStore.UpdateSinkStateCache(ctx, data)
 				deploymentEntry, errDeploy := svc.eventStore.GetDeploymentEntryFromSinkId(ctx, sink.Id)
 				if errDeploy != nil {
 					svc.logger.Error("Remove collector: error on getting collector deployment from redis", zap.Error(activityErr))
@@ -219,14 +229,22 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 				if err != nil {
 					svc.logger.Error("error removing otel collector", zap.Error(err))
 				}
+				continue
 			}
-		} else if sink.GetState() != status { //updating status
+		}
+		//set the new sink status if changed during checks
+		if sink.GetState() != status && status != "" {
+			svc.logger.Info("changing sink status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
 			if err != nil {
-				svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("error_message (opt)", err.Error()), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
+				svc.logger.Error("error updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("error_message (opt)", err.Error()), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
 			} else {
 				svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
+				// changing state on sinks
+				svc.eventStore.PublishSinkStateChange(sink, status, logsErr, err)
+				// changing state on redis sinker
+				data.State.SetFromString(status)
+				svc.eventStore.UpdateSinkStateCache(ctx, data)
 			}
-			svc.eventStore.PublishSinkStateChange(sink, status, logsErr, err)
 		}
 	}
 }
@@ -250,7 +268,7 @@ func (svc *monitorService) analyzeLogs(logEntry []string) (status string, err er
 			}
 			if strings.Contains(logLine, "Permanent error: remote write returned HTTP status 429 Too Many Requests") {
 				errorMessage := "error: remote write returned HTTP status 429 Too Many Requests"
-				return "error", errors.New(errorMessage)
+				return "warning", errors.New(errorMessage)
 			}
 			// other errors
 			if strings.Contains(logLine, "error") {
