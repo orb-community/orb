@@ -110,6 +110,7 @@ func (es eventStore) handleSinksUpdateCollector(ctx context.Context, event redis
 		return err
 	}
 	// changing state on updated sink to unknown
+	sinkData.OwnerID = event.Owner
 	es.PublishSinkStateChange(sinkData, "unknown", err, err)
 	data.SinkID = sinkData.Id
 	data.OwnerID = sinkData.OwnerID
