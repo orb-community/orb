@@ -93,11 +93,14 @@ func (es eventStore) SubscribeSinkerEvents(ctx context.Context) error {
 			switch event["operation"] {
 			case sinkerUpdate:
 				go func() {
-					err = es.handleSinkerCreateCollector(ctx, rte) //sinker request create collector
-					if err != nil {
-						es.logger.Error("Failed to handle sinks event", zap.Any("operation", event["operation"]), zap.Error(err))
-					} else {
-						es.streamRedisClient.XAck(ctx, streamSinker, groupMaestro, msg.ID)
+					// here we should listen just event coming from sinker, not our own "publishState" events
+					if rte.State == "active" {
+						err = es.handleSinkerCreateCollector(ctx, rte) //sinker request create collector
+						if err != nil {
+							es.logger.Error("Failed to handle sinks event", zap.Any("operation", event["operation"]), zap.Error(err))
+						} else {
+							es.streamRedisClient.XAck(ctx, streamSinker, groupMaestro, msg.ID)
+						}
 					}
 				}()
 
