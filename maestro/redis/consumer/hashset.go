@@ -105,16 +105,16 @@ func (es eventStore) handleSinksUpdateCollector(ctx context.Context, event redis
 		return err
 	}
 	es.sinkerKeyRedisClient.HSet(ctx, deploymentKey, event.SinkID, deploy)
-	// changing state on updated sink to unknown
-	es.PublishSinkStateChange(sinkData, "", nil, nil)
-	data.SinkID = sinkData.Id
-	data.OwnerID = sinkData.OwnerID
-	data.State = config.Unknown
-	es.UpdateSinkCache(ctx, data)
 	err = es.kubecontrol.UpdateOtelCollector(ctx, event.Owner, event.SinkID, deploy)
 	if err != nil {
 		return err
 	}
+	// changing state on updated sink to unknown
+	es.PublishSinkStateChange(sinkData, "unknown", nil, nil)
+	data.SinkID = sinkData.Id
+	data.OwnerID = sinkData.OwnerID
+	data.State = config.Unknown
+	es.UpdateSinkCache(ctx, data)
 	return nil
 }
 
