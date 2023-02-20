@@ -32,7 +32,7 @@ func (s *serviceMigrate) Up() (err error) {
 
 	errorIndex := int64(0)
 	index := int64(0)
-	lastToApply := current - latest
+	lastToApply := latest - current
 	for index < lastToApply {
 		s.logger.Info(fmt.Sprintf("applying migration %d of %d", index+1, latest))
 		err = s.migrations[index].Up()
@@ -54,7 +54,7 @@ func (s *serviceMigrate) Up() (err error) {
 		errorIndex--
 	}
 
-	if errSchema = s.SetSchemaVersion(index); errSchema != nil {
+	if errSchema = s.SetSchemaVersion(lastToApply); errSchema != nil {
 		return errSchema
 	}
 	return
@@ -68,7 +68,7 @@ func (s *serviceMigrate) Down() (err error) {
 	}
 
 	index := latest
-	lastToApply := current - latest
+	lastToApply := current
 	for index >= lastToApply {
 		s.logger.Info(fmt.Sprintf("applying migration %d of %d", index, latest))
 		err = s.migrations[index-1].Down()
