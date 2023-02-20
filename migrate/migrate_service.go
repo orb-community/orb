@@ -67,8 +67,9 @@ func (s *serviceMigrate) Down() (err error) {
 		return errSchema
 	}
 
-	index := current
-	for index >= 1 {
+	index := latest
+	lastToApply := current - latest
+	for index >= lastToApply {
 		s.logger.Info(fmt.Sprintf("applying migration %d of %d", index, latest))
 		err = s.migrations[index-1].Down()
 		if err != nil {
