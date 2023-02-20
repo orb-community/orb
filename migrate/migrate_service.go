@@ -31,8 +31,9 @@ func (s *serviceMigrate) Up() (err error) {
 	}
 
 	errorIndex := int64(0)
-	index := current
-	for index < latest {
+	index := int64(0)
+	lastToApply := current - latest
+	for index < lastToApply {
 		s.logger.Info(fmt.Sprintf("applying migration %d of %d", index+1, latest))
 		err = s.migrations[index].Up()
 		if err != nil {
