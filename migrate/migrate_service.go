@@ -54,7 +54,7 @@ func (s *serviceMigrate) Up() (err error) {
 		errorIndex--
 	}
 
-	if errSchema = s.SetSchemaVersion(index); errSchema != nil {
+	if errSchema = s.SetSchemaVersion(lastToApply); errSchema != nil {
 		return errSchema
 	}
 	return
