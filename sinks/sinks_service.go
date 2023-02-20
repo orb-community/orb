@@ -10,6 +10,7 @@ package sinks
 
 import (
 	"context"
+	"fmt"
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/sinks/backend"
@@ -190,7 +191,7 @@ func (svc sinkService) requestAuth(ctx context.Context, url, username, password 
 	client := &http.Client{
 		Timeout: time.Second,
 	}
-	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	req, err := http.NewRequestWithContext(ctx, "POST", url, nil)
 	if err != nil {
 		return err, false
 	}
@@ -199,10 +200,14 @@ func (svc sinkService) requestAuth(ctx context.Context, url, username, password 
 	if err != nil {
 		return err, false
 	}
-	svc.logger.Info("response code", zap.String("HTTP Status Code", response.Status))
 	defer func(Body io.ReadCloser) {
 		_ = Body.Close()
 	}(response.Body)
+	svc.logger.Info("response code", zap.String("HTTP Status Code", response.Status))
+	if response.StatusCode > 299 {
+		errorTxt := fmt.Sprintf("error from sink: %s", response.Status)
+		return errors.New(errorTxt), false
+	}
 	return nil, true
 }
 
