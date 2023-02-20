@@ -7,7 +7,6 @@ package main
 import (
 	"context"
 	"fmt"
-
 	"github.com/ns1labs/orb/agent"
 	"github.com/ns1labs/orb/agent/backend/pktvisor"
 	"github.com/ns1labs/orb/agent/config"
