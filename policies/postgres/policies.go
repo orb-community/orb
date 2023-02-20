@@ -832,6 +832,10 @@ func toDataset(dba dbDataset) policies.Dataset {
 		Tags:         types.Tags(dba.Tags),
 	}
 
+	//var sinkIDs []string
+	//sinkIDs = dba.SinkIDs
+	//dataset.SinkIDs = &sinkIDs
+
 	return dataset
 }
 

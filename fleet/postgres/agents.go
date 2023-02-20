@@ -531,17 +531,12 @@ type dbMatchingAgent struct {
 
 func toDBAgent(agent fleet.Agent) (dbAgent, error) {
 
-	orbTags := types.Tags{}
-	if agent.OrbTags != nil {
-		orbTags = *agent.OrbTags
-	}
-
 	a := dbAgent{
 		Name:          agent.Name,
 		MFOwnerID:     agent.MFOwnerID,
 		MFThingID:     agent.MFThingID,
 		MFChannelID:   agent.MFChannelID,
-		OrbTags:       db.Tags(orbTags),
+		OrbTags:       db.Tags(agent.OrbTags),
 		AgentTags:     db.Tags(agent.AgentTags),
 		AgentMetadata: db.Metadata(agent.AgentMetadata),
 		State:         agent.State,
@@ -560,15 +555,13 @@ func toDBAgent(agent fleet.Agent) (dbAgent, error) {
 
 func toAgent(dba dbAgent) (fleet.Agent, error) {
 
-	orbTags := types.Tags(dba.OrbTags)
-
 	agent := fleet.Agent{
 		Name:          dba.Name,
 		MFOwnerID:     dba.MFOwnerID,
 		MFThingID:     dba.MFThingID,
 		MFChannelID:   dba.MFChannelID,
 		Created:       dba.Created,
-		OrbTags:       &orbTags,
+		OrbTags:       types.Tags(dba.OrbTags),
 		AgentTags:     types.Tags(dba.AgentTags),
 		AgentMetadata: types.Metadata(dba.AgentMetadata),
 		State:         dba.State,

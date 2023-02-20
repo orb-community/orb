@@ -45,6 +45,7 @@ func (es eventStore) ViewSinkInternal(ctx context.Context, ownerID string, key s
 
 func (es eventStore) CreateSink(ctx context.Context, token string, s sinks.Sink) (sink sinks.Sink, err error) {
 	defer func() {
+
 		event := createSinkEvent{
 			sinkID: sink.ID,
 			owner:  sink.MFOwnerID,
@@ -57,16 +58,15 @@ func (es eventStore) CreateSink(ctx context.Context, token string, s sinks.Sink)
 		}
 
 		record := &redis.XAddArgs{
-			Stream: streamID,
-			MaxLen: streamLen,
-			Values: encode,
+			Stream:       streamID,
+			MaxLenApprox: streamLen,
+			Values:       encode,
 		}
 
 		err = es.client.XAdd(ctx, record).Err()
 		if err != nil {
-			es.logger.Error("error sending event to sinks event store", zap.Error(err))
+			es.logger.Error("error sending event to event store", zap.Error(err))
 		}
-
 	}()
 
 	return es.svc.CreateSink(ctx, token, s)
@@ -86,16 +86,17 @@ func (es eventStore) UpdateSink(ctx context.Context, token string, s sinks.Sink)
 		}
 
 		record := &redis.XAddArgs{
-			Stream: streamID,
-			MaxLen: streamLen,
-			Values: encode,
+			Stream:       streamID,
+			MaxLenApprox: streamLen,
+			Values:       encode,
 		}
 
 		err = es.client.XAdd(ctx, record).Err()
 		if err != nil {
-			es.logger.Error("error sending event to sinks event store", zap.Error(err))
+			es.logger.Error("error sending event to event store", zap.Error(err))
 		}
 	}()
+
 	return es.svc.UpdateSink(ctx, token, s)
 }
 
@@ -136,14 +137,14 @@ func (es eventStore) DeleteSink(ctx context.Context, token, id string) (err erro
 	}
 
 	record := &redis.XAddArgs{
-		Stream: streamID,
-		MaxLen: streamLen,
-		Values: encode,
+		Stream:       streamID,
+		MaxLenApprox: streamLen,
+		Values:       encode,
 	}
 
 	err = es.client.XAdd(ctx, record).Err()
 	if err != nil {
-		es.logger.Error("error sending event to sinks event store", zap.Error(err))
+		es.logger.Error("error sending event to event store", zap.Error(err))
 		return err
 	}
 	return nil

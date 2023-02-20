@@ -19,7 +19,6 @@ type accessByIDReq struct {
 
 type sinksFilter struct {
 	isOtel string
-	state  string
 }
 
 func (req accessByIDReq) validate() error {

@@ -35,9 +35,9 @@ func (p *pktvisorBackend) scrapeMetrics(period uint) (map[string]interface{}, er
 	return metrics, nil
 }
 
-func (p *pktvisorBackend) createOtlpMqttExporter(ctx context.Context, cancelFunc context.CancelFunc) (component.MetricsExporter, error) {
+func (p *pktvisorBackend) createOtlpMqttExporter(ctx context.Context) (component.MetricsExporter, error) {
 
-	bridgeService := otel.NewBridgeService(ctx, &p.policyRepo, p.agentTags)
+	bridgeService := otel.NewBridgeService(&p.policyRepo, p.agentTags)
 	if p.mqttClient != nil {
 		cfg := otlpmqttexporter.CreateConfigClient(p.mqttClient, p.otlpMetricsTopic, p.pktvisorVersion, bridgeService)
 		set := otlpmqttexporter.CreateDefaultSettings(p.logger)
@@ -168,7 +168,7 @@ func (p *pktvisorBackend) scrapeOpenTelemetry(ctx context.Context) {
 		if p.mqttClient != nil {
 			if !ok {
 				var errStartExp error
-				p.exporter[policyID], errStartExp = p.createOtlpMqttExporter(exeCtx, execCancelF)
+				p.exporter[policyID], errStartExp = p.createOtlpMqttExporter(exeCtx)
 				if errStartExp != nil {
 					p.logger.Error("failed to create a exporter", zap.Error(err))
 					return
@@ -204,9 +204,6 @@ func (p *pktvisorBackend) scrapeOpenTelemetry(ctx context.Context) {
 			}
 		}
 		select {
-		case <-exeCtx.Done():
-			ctx.Done()
-			p.cancelFunc()
 		case <-ctx.Done():
 			err := p.exporter[policyID].Shutdown(exeCtx)
 			if err != nil {

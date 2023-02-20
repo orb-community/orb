@@ -63,6 +63,13 @@ export class SinkAddComponent {
           input: entry.input,
           required: entry.required,
         }));
+        accumulator[curr].push({
+          type: 'checkbox',
+          label: 'Enable OpenTelemetry',
+          prop: 'opentelemetry',
+          input: 'checkbox',
+          required: false,
+        });
         return accumulator;
       }, {});
 

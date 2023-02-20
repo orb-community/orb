@@ -28,10 +28,9 @@ func (svc SinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, owner
 		svc.logger.Error("unable to retrieve the sink config", zap.Error(err))
 		return err
 	}
-	ctx := context.Background()
 	if cfgRepo.Opentelemetry == "enabled" {
-		svc.logger.Info("deprecate warning opentelemetry sink scraping legacy agent", zap.String("sink-ID", cfgRepo.SinkID))
-		ctx = context.WithValue(ctx, "deprecation", "opentelemetry")
+		svc.logger.Info("ignoring sink state update on OpenTelemetry sinks")
+		return nil	
 	}
 	cfg := prometheus.NewConfig(
 		prometheus.WriteURLOption(cfgRepo.Url),
@@ -45,7 +44,7 @@ func (svc SinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, owner
 
 	var headers = make(map[string]string)
 	headers["Authorization"] = svc.encodeBase64(cfgRepo.User, cfgRepo.Password)
-	result, writeErr := promClient.WriteTimeSeries(ctx, tsList, prometheus.WriteOptions{Headers: headers})
+	result, writeErr := promClient.WriteTimeSeries(context.Background(), tsList, prometheus.WriteOptions{Headers: headers})
 	if err := error(writeErr); err != nil {
 		if cfgRepo.State != config.Error || cfgRepo.Msg != fmt.Sprint(err) {
 			cfgRepo.State = config.Error
@@ -129,7 +128,7 @@ func (svc SinkerService) handleMetrics(ctx context.Context, agentID string, chan
 		MFOwnerID:   agentPb.OwnerID,
 		MFThingID:   agentID,
 		MFChannelID: channelID,
-		OrbTags:     (*types.Tags)(&agentPb.OrbTags),
+		OrbTags:     agentPb.OrbTags,
 		AgentTags:   agentPb.AgentTags,
 	}
 

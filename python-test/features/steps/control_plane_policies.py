@@ -468,7 +468,8 @@ def check_duplicated_policies_status(context, amount_successfully_policies, amou
             wrongly_duplicated += 1
     assert_that(len(successfully_duplicated),
                 equal_to(int(amount_successfully_policies)), f"Amount of policies successfully duplicated fails."
-                                                             f"Policies duplicated: {successfully_duplicated}")
+                                                             f"Policies duplicated: {successfully_duplicated}"
+                                                             f"\n Agent: {json.dumps(context.agent, indent=4)}")
     assert_that(wrongly_duplicated, equal_to(int(amount_error_policies)), f"Amount of policies wrongly duplicated fails"
                                                                           f".")
 
@@ -1175,7 +1176,7 @@ class HandlerModules(HandlerConfigs):
     def __init__(self):
         self.handler_modules = dict()
 
-    def __build_module(self, name, module_type, configs_list, filters_list, require_version=None):
+    def __build_module(self, name, module_type, configs_list, filters_list):
         module = {
             name: {
                 "type": module_type,
@@ -1188,8 +1189,6 @@ class HandlerModules(HandlerConfigs):
                 }
             }
         }
-        if require_version is not None:
-            module[name]["require_version"] = require_version
 
         module = UtilsManager.update_object_with_filters_and_configs(self, module, name, configs_list, filters_list)
 
@@ -1220,7 +1219,6 @@ class HandlerModules(HandlerConfigs):
         self.geoloc_notfound = {'geoloc_notfound': settings_json.get("geoloc_notfound", None)}
         self.asn_notfound = {'asn_notfound': settings_json.get("asn_notfound", None)}
         self.dnstap_msg_type = {'dnstap_msg_type': settings_json.get("dnstap_msg_type", None)}
-        self.require_version = settings_json.get("require_version", None)
 
         dns_configs = [self.public_suffix_list]
 
@@ -1228,7 +1226,7 @@ class HandlerModules(HandlerConfigs):
                        self.only_qtype, self.only_qname_suffix,
                        self.geoloc_notfound, self.asn_notfound, self.dnstap_msg_type]
 
-        self.__build_module(self.name, "dns", dns_configs, dns_filters, self.require_version)
+        self.__build_module(self.name, "dns", dns_configs, dns_filters)
         return self.handler_modules
 
     def add_net_module(self, name, settings=None):
@@ -1240,13 +1238,12 @@ class HandlerModules(HandlerConfigs):
         self.asn_notfound = {'asn_notfound': settings_json.get('asn_notfound', None)}
         self.only_geoloc_prefix = {'only_geoloc_prefix': settings_json.get('only_geoloc_prefix', None)}
         self.only_asn_number = {'only_asn_number': settings_json.get('only_asn_number', None)}
-        self.require_version = settings_json.get("require_version", None)
 
         net_configs = []
 
         net_filters = [self.geoloc_notfound, self.asn_notfound, self.only_geoloc_prefix, self.only_asn_number]
 
-        self.__build_module(self.name, "net", net_configs, net_filters, self.require_version)
+        self.__build_module(self.name, "net", net_configs, net_filters)
         return self.handler_modules
 
     def add_dhcp_module(self, name):

@@ -392,27 +392,17 @@ func toDBAgentGroup(group fleet.AgentGroup) (dbAgentGroup, error) {
 		description = *group.Description
 	}
 
-	groupTags := make(db.Tags)
-	if group.Tags != nil {
-		groupTags = db.Tags(*group.Tags)
-	}
-
 	return dbAgentGroup{
 		ID:          group.ID,
 		Name:        group.Name,
 		Description: description,
 		MFOwnerID:   group.MFOwnerID,
 		MFChannelID: group.MFChannelID,
-		Tags:        groupTags,
+		Tags:        db.Tags(group.Tags),
 	}, nil
 
 }
 func toAgentGroup(dba dbAgentGroup) (fleet.AgentGroup, error) {
-
-	groupTags := make(types.Tags)
-	if len(dba.Tags) != 0 {
-		groupTags.Merge(dba.Tags)
-	}
 
 	return fleet.AgentGroup{
 		ID:             dba.ID,
@@ -421,7 +411,7 @@ func toAgentGroup(dba dbAgentGroup) (fleet.AgentGroup, error) {
 		MFOwnerID:      dba.MFOwnerID,
 		MFChannelID:    dba.MFChannelID,
 		Created:        dba.Created,
-		Tags:           &groupTags,
+		Tags:           types.Tags(dba.Tags),
 		MatchingAgents: types.Metadata(dba.MatchingAgents),
 	}, nil
 

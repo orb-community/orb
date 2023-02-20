@@ -16,7 +16,7 @@ Scenario: netprobe handler with default metric groups configuration
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for netprobe handler
         And remove the agent .yaml generated on each scenario
 
@@ -34,7 +34,7 @@ Scenario: netprobe handler with all metric groups enabled
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for netprobe handler
         And remove the agent .yaml generated on each scenario
 
@@ -52,7 +52,7 @@ Scenario: netprobe handler with all metric groups disabled
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for netprobe handler
         And remove the agent .yaml generated on each scenario
 
@@ -70,7 +70,7 @@ Scenario: netprobe handler with only counters metric groups enabled
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for netprobe handler
         And remove the agent .yaml generated on each scenario
 
@@ -88,7 +88,7 @@ Scenario: netprobe handler with only quantiles metric groups enabled
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for netprobe handler
         And remove the agent .yaml generated on each scenario
 
@@ -106,7 +106,7 @@ Scenario: netprobe handler with only histograms metric groups enabled
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for netprobe handler
         And remove the agent .yaml generated on each scenario
 
@@ -124,7 +124,7 @@ Scenario: netprobe handler with counters and histograms metric groups enabled an
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for netprobe handler
         And remove the agent .yaml generated on each scenario
 
@@ -142,7 +142,7 @@ Scenario: netprobe handler with counters and quantiles metric groups enabled and
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for netprobe handler
         And remove the agent .yaml generated on each scenario
 
@@ -160,7 +160,7 @@ Scenario: netprobe handler with histograms and quantiles metric groups enabled a
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for netprobe handler
         And remove the agent .yaml generated on each scenario
 
@@ -182,7 +182,7 @@ Scenario: flow handler type netflow with default metric groups configuration
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for flow handler
         And remove the agent .yaml generated on each scenario
 
@@ -203,7 +203,7 @@ Scenario: flow handler type netflow with all metric groups enabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for flow handler
         And remove the agent .yaml generated on each scenario
 
@@ -224,7 +224,7 @@ Scenario: flow handler type netflow with all metric groups disabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for flow handler
         And remove the agent .yaml generated on each scenario
 
@@ -245,7 +245,7 @@ Scenario: flow handler type netflow with only cardinality metric groups enabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for flow handler
         And remove the agent .yaml generated on each scenario
 
@@ -266,7 +266,7 @@ Scenario: flow handler type netflow with only counters metric groups enabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for flow handler
         And remove the agent .yaml generated on each scenario
 
@@ -287,7 +287,7 @@ Scenario: flow handler type netflow with only by_packets metric groups enabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for flow handler
         And remove the agent .yaml generated on each scenario
 
@@ -308,7 +308,7 @@ Scenario: flow handler type netflow with only by_bytes metric groups enabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for flow handler
         And remove the agent .yaml generated on each scenario
 
@@ -329,7 +329,7 @@ Scenario: flow handler type netflow with only top_geo metric groups enabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for flow handler
         And remove the agent .yaml generated on each scenario
 
@@ -350,7 +350,7 @@ Scenario: flow handler type netflow with only conversations metric groups enable
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for flow handler
         And remove the agent .yaml generated on each scenario
 
@@ -371,7 +371,7 @@ Scenario: flow handler type netflow with only top_ports metric groups enabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for flow handler
         And remove the agent .yaml generated on each scenario
 
@@ -392,7 +392,7 @@ Scenario: flow handler type netflow with only top_ips_ports metric groups enable
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for flow handler
         And remove the agent .yaml generated on each scenario
 
@@ -413,7 +413,7 @@ Scenario: flow handler type netflow with only top_interfaces metric groups enabl
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for flow handler
         And remove the agent .yaml generated on each scenario
 
@@ -434,7 +434,7 @@ Scenario: flow handler type netflow with only top_ips metric groups enabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for flow handler
         And remove the agent .yaml generated on each scenario
 
@@ -457,7 +457,7 @@ Scenario: flow handler type sflow with default metric groups configuration
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for flow handler
         And remove the agent .yaml generated on each scenario
 
@@ -478,7 +478,7 @@ Scenario: flow handler type sflow with all metric groups enabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for flow handler
         And remove the agent .yaml generated on each scenario
 
@@ -499,7 +499,7 @@ Scenario: flow handler type sflow with all metric groups disabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for flow handler
         And remove the agent .yaml generated on each scenario
 
@@ -520,7 +520,7 @@ Scenario: flow handler type sflow with only cardinality metric groups enabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for flow handler
         And remove the agent .yaml generated on each scenario
 
@@ -541,7 +541,7 @@ Scenario: flow handler type sflow with only counters metric groups enabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for flow handler
         And remove the agent .yaml generated on each scenario
 
@@ -562,7 +562,7 @@ Scenario: flow handler type sflow with only by_packets metric groups enabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for flow handler
         And remove the agent .yaml generated on each scenario
 
@@ -583,7 +583,7 @@ Scenario: flow handler type sflow with only by_bytes metric groups enabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for flow handler
         And remove the agent .yaml generated on each scenario
 
@@ -604,7 +604,7 @@ Scenario: flow handler type sflow with only top_geo metric groups enabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for flow handler
         And remove the agent .yaml generated on each scenario
 
@@ -625,7 +625,7 @@ Scenario: flow handler type sflow with only conversations metric groups enabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for flow handler
         And remove the agent .yaml generated on each scenario
 
@@ -646,7 +646,7 @@ Scenario: flow handler type sflow with only top_ports metric groups enabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for flow handler
         And remove the agent .yaml generated on each scenario
 
@@ -667,7 +667,7 @@ Scenario: flow handler type sflow with only top_ips_ports metric groups enabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for flow handler
         And remove the agent .yaml generated on each scenario
 
@@ -688,7 +688,7 @@ Scenario: flow handler type sflow with only top_interfaces metric groups enabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for flow handler
         And remove the agent .yaml generated on each scenario
 
@@ -709,7 +709,7 @@ Scenario: flow handler type sflow with only top_ips metric groups enabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for flow handler
         And remove the agent .yaml generated on each scenario
 
@@ -731,7 +731,7 @@ Scenario: pcap handler with default metric groups configuration
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for pcap handler
         And remove the agent .yaml generated on each scenario
 
@@ -751,7 +751,7 @@ Scenario: pcap handler with all metric groups enabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for pcap handler
         And remove the agent .yaml generated on each scenario
 
@@ -771,7 +771,7 @@ Scenario: pcap handler with all metric groups disabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for pcap handler
         And remove the agent .yaml generated on each scenario
 
@@ -793,7 +793,7 @@ Scenario: bgp handler with default metric groups configuration
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data bgp.pcap on the created virtual interface
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for bgp handler
         And remove the agent .yaml generated on each scenario
 
@@ -813,7 +813,7 @@ Scenario: bgp handler with all metric groups enabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data bgp.pcap on the created virtual interface
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for bgp handler
         And remove the agent .yaml generated on each scenario
 
@@ -833,7 +833,7 @@ Scenario: bgp handler with all metric groups disabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
     And run mocked data bgp.pcap on the created virtual interface
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for bgp handler
         And remove the agent .yaml generated on each scenario
 
@@ -855,7 +855,7 @@ Scenario: dhcp handler with default metric groups configuration
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual interface
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for dhcp handler
         And remove the agent .yaml generated on each scenario
 
@@ -875,7 +875,7 @@ Scenario: dhcp handler with all metric groups enabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual interface
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for dhcp handler
         And remove the agent .yaml generated on each scenario
 
@@ -895,12 +895,12 @@ Scenario: dhcp handler with all metric groups disabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual interface
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for dhcp handler
         And remove the agent .yaml generated on each scenario
 
 
-#### net v1.0
+#### net
 
 @sanity @metric_groups @metrics_net @root @mocked_interface
 Scenario: net handler with default metric groups configuration
@@ -917,7 +917,7 @@ Scenario: net handler with default metric groups configuration
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, ipfix.pcap, ecmp.pcap, ipfix.pcap, nf9.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for net handler
         And remove the agent .yaml generated on each scenario
 
@@ -937,7 +937,7 @@ Scenario: net handler with all metric groups enabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, ipfix.pcap, ecmp.pcap, ipfix.pcap, nf9.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for net handler
         And remove the agent .yaml generated on each scenario
 
@@ -957,7 +957,7 @@ Scenario: net handler with all metric groups disabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, ipfix.pcap, ecmp.pcap, ipfix.pcap, nf9.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for net handler
         And remove the agent .yaml generated on each scenario
 
@@ -977,7 +977,7 @@ Scenario: net handler with only cardinality metric groups enabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, ipfix.pcap, ecmp.pcap, ipfix.pcap, nf9.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for net handler
         And remove the agent .yaml generated on each scenario
 
@@ -997,7 +997,7 @@ Scenario: net handler with only counters metric groups enabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, ipfix.pcap, ecmp.pcap, ipfix.pcap, nf9.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for net handler
         And remove the agent .yaml generated on each scenario
 
@@ -1017,7 +1017,7 @@ Scenario: net handler with only top_geo metric groups enabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, ipfix.pcap, ecmp.pcap, ipfix.pcap, nf9.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for net handler
         And remove the agent .yaml generated on each scenario
 
@@ -1037,12 +1037,12 @@ Scenario: net handler with only top_ips metric groups enabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, ipfix.pcap, ecmp.pcap, ipfix.pcap, nf9.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for net handler
         And remove the agent .yaml generated on each scenario
 
 
-#### dns v1.0
+#### dns
 
 @sanity @metric_groups @metrics_dns @root @mocked_interface
 Scenario: dns handler with default metric groups configuration
@@ -1059,7 +1059,7 @@ Scenario: dns handler with default metric groups configuration
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for dns handler
         And remove the agent .yaml generated on each scenario
 
@@ -1079,7 +1079,7 @@ Scenario: dns handler with all metric groups enabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for dns handler
         And remove the agent .yaml generated on each scenario
 
@@ -1099,7 +1099,7 @@ Scenario: dns handler with all metric groups disabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for dns handler
         And remove the agent .yaml generated on each scenario
 
@@ -1119,7 +1119,7 @@ Scenario: dns handler with only top_ecs metric groups enabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for dns handler
         And remove the agent .yaml generated on each scenario
 
@@ -1139,7 +1139,7 @@ Scenario: dns handler with only top_qnames_details metric groups enabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for dns handler
         And remove the agent .yaml generated on each scenario
 
@@ -1159,7 +1159,7 @@ Scenario: dns handler with only cardinality metric groups enabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for dns handler
         And remove the agent .yaml generated on each scenario
 
@@ -1179,7 +1179,7 @@ Scenario: dns handler with only counters metric groups enabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for dns handler
         And remove the agent .yaml generated on each scenario
 
@@ -1199,7 +1199,7 @@ Scenario: dns handler with only dns_transaction metric groups enabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for dns handler
         And remove the agent .yaml generated on each scenario
 
@@ -1219,7 +1219,7 @@ Scenario: dns handler with only top_qnames metric groups enabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for dns handler
         And remove the agent .yaml generated on each scenario
 
@@ -1239,430 +1239,6 @@ Scenario: dns handler with only top_ports metric groups enabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 30 seconds
     Then metrics must be correctly generated for dns handler
-        And remove the agent .yaml generated on each scenario
-
-
-#### dns v2.0
-
-@sanity @metric_groups @metrics_dns_v2 @root @mocked_interface
-Scenario: dns handler with default metric groups configuration (v2)
-    Given the Orb user has a registered account
-        And the Orb user logs in
-        And that a sink already exists
-        And a mocked interface is configured with mtu: 65000 and ip: None
-    When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
-        And pktvisor state is running
-        And 1 Agent Group(s) is created with all tags contained in the agent
-        And a dns policy pcap with tap_selector matching all tag(s) of the tap from an agent, default metric_groups enabled, default metric_groups disabled and settings: {"require_version":"2.0"} is applied to the group
-        And 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
-        And this agent's heartbeat shows that 1 groups are matching the agent
-        And this agent's heartbeat shows that 1 policies are applied and all has status running
-        And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
-    Then metrics must be correctly generated for dns-v2 handler
-        And remove the agent .yaml generated on each scenario
-
-
-@sanity @metric_groups @metrics_dns_v2 @root @mocked_interface
-Scenario: dns handler with all metric groups enabled (v2)
-    Given the Orb user has a registered account
-        And the Orb user logs in
-        And that a sink already exists
-        And a mocked interface is configured with mtu: 65000 and ip: None
-    When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
-        And pktvisor state is running
-        And 1 Agent Group(s) is created with all tags contained in the agent
-        And a dns policy pcap with tap_selector matching all tag(s) of the tap from an agent, all metric_groups enabled, none metric_groups disabled and settings: {"require_version":"2.0"} is applied to the group
-        And 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
-        And this agent's heartbeat shows that 1 groups are matching the agent
-        And this agent's heartbeat shows that 1 policies are applied and all has status running
-        And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
-    Then metrics must be correctly generated for dns-v2 handler
-        And remove the agent .yaml generated on each scenario
-
-
-@sanity @metric_groups @metrics_dns_v2 @root @mocked_interface
-Scenario: dns handler with all metric groups disabled (v2)
-    Given the Orb user has a registered account
-        And the Orb user logs in
-        And that a sink already exists
-        And a mocked interface is configured with mtu: 65000 and ip: None
-    When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
-        And pktvisor state is running
-        And 1 Agent Group(s) is created with all tags contained in the agent
-        And a dns policy pcap with tap_selector matching all tag(s) of the tap from an agent, none metric_groups enabled, all metric_groups disabled and settings: {"require_version":"2.0"} is applied to the group
-        And 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
-        And this agent's heartbeat shows that 1 groups are matching the agent
-        And this agent's heartbeat shows that 1 policies are applied and all has status running
-        And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
-    Then metrics must be correctly generated for dns-v2 handler
-        And remove the agent .yaml generated on each scenario
-
-
-@sanity @metric_groups @metrics_dns_v2 @root @mocked_interface
-Scenario: dns handler with only top_ecs metric groups enabled (v2)
-    Given the Orb user has a registered account
-        And the Orb user logs in
-        And that a sink already exists
-        And a mocked interface is configured with mtu: 65000 and ip: None
-    When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
-        And pktvisor state is running
-        And 1 Agent Group(s) is created with all tags contained in the agent
-        And a dns policy pcap with tap_selector matching all tag(s) of the tap from an agent, top_ecs metric_groups enabled, cardinality, counters, top_qnames, top_ports, top_size, xact_times, quantiles, top_qtypes, top_rcodes metric_groups disabled and settings: {"require_version":"2.0"} is applied to the group
-        And 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
-        And this agent's heartbeat shows that 1 groups are matching the agent
-        And this agent's heartbeat shows that 1 policies are applied and all has status running
-        And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
-    Then metrics must be correctly generated for dns-v2 handler
-        And remove the agent .yaml generated on each scenario
-
-
-@sanity @metric_groups @metrics_dns_v2 @root @mocked_interface
-Scenario: dns handler with only top_ports metric groups enabled (v2)
-    Given the Orb user has a registered account
-        And the Orb user logs in
-        And that a sink already exists
-        And a mocked interface is configured with mtu: 65000 and ip: None
-    When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
-        And pktvisor state is running
-        And 1 Agent Group(s) is created with all tags contained in the agent
-        And a dns policy pcap with tap_selector matching all tag(s) of the tap from an agent, top_ports metric_groups enabled, top_ecs, cardinality, counters, top_qnames, top_size, xact_times, quantiles, top_qtypes, top_rcodes metric_groups disabled and settings: {"require_version":"2.0"} is applied to the group
-        And 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
-        And this agent's heartbeat shows that 1 groups are matching the agent
-        And this agent's heartbeat shows that 1 policies are applied and all has status running
-        And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
-    Then metrics must be correctly generated for dns-v2 handler
-        And remove the agent .yaml generated on each scenario
-
-
-@sanity @metric_groups @metrics_dns_v2 @root @mocked_interface
-Scenario: dns handler with only top_size metric groups enabled (v2)
-    Given the Orb user has a registered account
-        And the Orb user logs in
-        And that a sink already exists
-        And a mocked interface is configured with mtu: 65000 and ip: None
-    When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
-        And pktvisor state is running
-        And 1 Agent Group(s) is created with all tags contained in the agent
-        And a dns policy pcap with tap_selector matching all tag(s) of the tap from an agent, top_size metric_groups enabled, top_ecs, cardinality, counters, top_qnames, top_ports, xact_times, quantiles, top_qtypes, top_rcodes metric_groups disabled and settings: {"require_version":"2.0"} is applied to the group
-        And 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
-        And this agent's heartbeat shows that 1 groups are matching the agent
-        And this agent's heartbeat shows that 1 policies are applied and all has status running
-        And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
-    Then metrics must be correctly generated for dns-v2 handler
-        And remove the agent .yaml generated on each scenario
-
-
-@sanity @metric_groups @metrics_dns_v2 @root @mocked_interface
-Scenario: dns handler with only xact_times metric groups enabled (v2)
-    Given the Orb user has a registered account
-        And the Orb user logs in
-        And that a sink already exists
-        And a mocked interface is configured with mtu: 65000 and ip: None
-    When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
-        And pktvisor state is running
-        And 1 Agent Group(s) is created with all tags contained in the agent
-        And a dns policy pcap with tap_selector matching all tag(s) of the tap from an agent, xact_times metric_groups enabled, top_ecs, cardinality, counters, top_qnames, top_ports, top_size, quantiles, top_qtypes, top_rcodes metric_groups disabled and settings: {"require_version":"2.0"} is applied to the group
-        And 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
-        And this agent's heartbeat shows that 1 groups are matching the agent
-        And this agent's heartbeat shows that 1 policies are applied and all has status running
-        And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
-    Then metrics must be correctly generated for dns-v2 handler
-        And remove the agent .yaml generated on each scenario
-
-
-@sanity @metric_groups @metrics_dns_v2 @root @mocked_interface
-Scenario: dns handler with only cardinality metric groups enabled (v2)
-    Given the Orb user has a registered account
-        And the Orb user logs in
-        And that a sink already exists
-        And a mocked interface is configured with mtu: 65000 and ip: None
-    When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
-        And pktvisor state is running
-        And 1 Agent Group(s) is created with all tags contained in the agent
-        And a dns policy pcap with tap_selector matching all tag(s) of the tap from an agent, cardinality metric_groups enabled, top_ecs, counters, top_qnames, top_ports, top_size, xact_times, quantiles, top_qtypes, top_rcodes metric_groups disabled and settings: {"require_version":"2.0"} is applied to the group
-        And 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
-        And this agent's heartbeat shows that 1 groups are matching the agent
-        And this agent's heartbeat shows that 1 policies are applied and all has status running
-        And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
-    Then metrics must be correctly generated for dns-v2 handler
-        And remove the agent .yaml generated on each scenario
-
-
-@sanity @metric_groups @metrics_dns_v2 @root @mocked_interface
-Scenario: dns handler with only counters metric groups enabled (v2)
-    Given the Orb user has a registered account
-        And the Orb user logs in
-        And that a sink already exists
-        And a mocked interface is configured with mtu: 65000 and ip: None
-    When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
-        And pktvisor state is running
-        And 1 Agent Group(s) is created with all tags contained in the agent
-        And a dns policy pcap with tap_selector matching all tag(s) of the tap from an agent, counters metric_groups enabled, top_ecs, cardinality, top_qnames, top_ports, top_size, xact_times, quantiles, top_qtypes, top_rcodes metric_groups disabled and settings: {"require_version":"2.0"} is applied to the group
-        And 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
-        And this agent's heartbeat shows that 1 groups are matching the agent
-        And this agent's heartbeat shows that 1 policies are applied and all has status running
-        And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
-    Then metrics must be correctly generated for dns-v2 handler
-        And remove the agent .yaml generated on each scenario
-
-
-@sanity @metric_groups @metrics_dns_v2 @root @mocked_interface
-Scenario: dns handler with only top_qnames metric groups enabled (v2)
-    Given the Orb user has a registered account
-        And the Orb user logs in
-        And that a sink already exists
-        And a mocked interface is configured with mtu: 65000 and ip: None
-    When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
-        And pktvisor state is running
-        And 1 Agent Group(s) is created with all tags contained in the agent
-        And a dns policy pcap with tap_selector matching all tag(s) of the tap from an agent, top_qnames metric_groups enabled, top_ecs, cardinality, counters, top_ports, top_size, xact_times, quantiles, top_qtypes, top_rcodes metric_groups disabled and settings: {"require_version":"2.0"} is applied to the group
-        And 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
-        And this agent's heartbeat shows that 1 groups are matching the agent
-        And this agent's heartbeat shows that 1 policies are applied and all has status running
-        And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
-    Then metrics must be correctly generated for dns-v2 handler
-        And remove the agent .yaml generated on each scenario
-
-
-@sanity @metric_groups @metrics_dns_v2 @root @mocked_interface
-Scenario: dns handler with only quantiles metric groups enabled (v2)
-    Given the Orb user has a registered account
-        And the Orb user logs in
-        And that a sink already exists
-        And a mocked interface is configured with mtu: 65000 and ip: None
-    When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
-        And pktvisor state is running
-        And 1 Agent Group(s) is created with all tags contained in the agent
-        And a dns policy pcap with tap_selector matching all tag(s) of the tap from an agent, quantiles metric_groups enabled, top_ecs, cardinality, counters, top_qnames, top_ports, top_size, xact_times, top_qtypes, top_rcodes metric_groups disabled and settings: {"require_version":"2.0"} is applied to the group
-        And 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
-        And this agent's heartbeat shows that 1 groups are matching the agent
-        And this agent's heartbeat shows that 1 policies are applied and all has status running
-        And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
-    Then metrics must be correctly generated for dns-v2 handler
-        And remove the agent .yaml generated on each scenario
-
-
-@sanity @metric_groups @metrics_dns_v2 @root @mocked_interface
-Scenario: dns handler with only top_qtypes metric groups enabled (v2)
-    Given the Orb user has a registered account
-        And the Orb user logs in
-        And that a sink already exists
-        And a mocked interface is configured with mtu: 65000 and ip: None
-    When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
-        And pktvisor state is running
-        And 1 Agent Group(s) is created with all tags contained in the agent
-        And a dns policy pcap with tap_selector matching all tag(s) of the tap from an agent, top_qtypes metric_groups enabled, top_ecs, cardinality, counters, top_qnames, top_ports, top_size, xact_times, quantiles, top_rcodes metric_groups disabled and settings: {"require_version":"2.0"} is applied to the group
-        And 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
-        And this agent's heartbeat shows that 1 groups are matching the agent
-        And this agent's heartbeat shows that 1 policies are applied and all has status running
-        And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
-    Then metrics must be correctly generated for dns-v2 handler
-        And remove the agent .yaml generated on each scenario
-
-
-@sanity @metric_groups @metrics_dns_v2 @root @mocked_interface
-Scenario: dns handler with only top_rcodes metric groups enabled (v2)
-    Given the Orb user has a registered account
-        And the Orb user logs in
-        And that a sink already exists
-        And a mocked interface is configured with mtu: 65000 and ip: None
-    When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
-        And pktvisor state is running
-        And 1 Agent Group(s) is created with all tags contained in the agent
-        And a dns policy pcap with tap_selector matching all tag(s) of the tap from an agent, top_rcodes metric_groups enabled, top_ecs, cardinality, counters, top_qnames, top_ports, top_size, xact_times, quantiles, top_qtypes metric_groups disabled and settings: {"require_version":"2.0"} is applied to the group
-        And 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
-        And this agent's heartbeat shows that 1 groups are matching the agent
-        And this agent's heartbeat shows that 1 policies are applied and all has status running
-        And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
-    Then metrics must be correctly generated for dns-v2 handler
-        And remove the agent .yaml generated on each scenario
-
-
-#### net v2.0
-
-@sanity @metric_groups @metrics_net_v2 @root @mocked_interface
-Scenario: net handler with default metric groups configuration (v2)
-    Given the Orb user has a registered account
-        And the Orb user logs in
-        And that a sink already exists
-        And a mocked interface is configured with mtu: 65000 and ip: None
-    When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
-        And pktvisor state is running
-        And 1 Agent Group(s) is created with all tags contained in the agent
-        And a net policy pcap with tap_selector matching all tag(s) of the tap from an agent, default metric_groups enabled, default metric_groups disabled and settings: {"require_version":"2.0"} is applied to the group
-        And 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
-        And this agent's heartbeat shows that 1 groups are matching the agent
-        And this agent's heartbeat shows that 1 policies are applied and all has status running
-        And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, ipfix.pcap, ecmp.pcap, ipfix.pcap, nf9.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
-    Then metrics must be correctly generated for net-v2 handler
-        And remove the agent .yaml generated on each scenario
-
-
-@sanity @metric_groups @metrics_net_v2 @root @mocked_interface
-Scenario: net handler with all metric groups enabled (v2)
-    Given the Orb user has a registered account
-        And the Orb user logs in
-        And that a sink already exists
-        And a mocked interface is configured with mtu: 65000 and ip: None
-    When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
-        And pktvisor state is running
-        And 1 Agent Group(s) is created with all tags contained in the agent
-        And a net policy pcap with tap_selector matching all tag(s) of the tap from an agent, all metric_groups enabled, none metric_groups disabled and settings: {"require_version":"2.0"} is applied to the group
-        And 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
-        And this agent's heartbeat shows that 1 groups are matching the agent
-        And this agent's heartbeat shows that 1 policies are applied and all has status running
-        And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, ipfix.pcap, ecmp.pcap, ipfix.pcap, nf9.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
-    Then metrics must be correctly generated for net-v2 handler
-        And remove the agent .yaml generated on each scenario
-
-
-@sanity @metric_groups @metrics_net_v2 @root @mocked_interface
-Scenario: net handler with all metric groups disabled (v2)
-    Given the Orb user has a registered account
-        And the Orb user logs in
-        And that a sink already exists
-        And a mocked interface is configured with mtu: 65000 and ip: None
-    When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
-        And pktvisor state is running
-        And 1 Agent Group(s) is created with all tags contained in the agent
-        And a net policy pcap with tap_selector matching all tag(s) of the tap from an agent, none metric_groups enabled, all metric_groups disabled and settings: {"require_version":"2.0"} is applied to the group
-        And 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
-        And this agent's heartbeat shows that 1 groups are matching the agent
-        And this agent's heartbeat shows that 1 policies are applied and all has status running
-        And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, ipfix.pcap, ecmp.pcap, ipfix.pcap, nf9.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
-    Then metrics must be correctly generated for net-v2 handler
-        And remove the agent .yaml generated on each scenario
-
-
-@sanity @metric_groups @metrics_net_v2 @root @mocked_interface
-Scenario: net handler with only cardinality metric groups enabled (v2)
-    Given the Orb user has a registered account
-        And the Orb user logs in
-        And that a sink already exists
-        And a mocked interface is configured with mtu: 65000 and ip: None
-    When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
-        And pktvisor state is running
-        And 1 Agent Group(s) is created with all tags contained in the agent
-        And a net policy pcap with tap_selector matching all tag(s) of the tap from an agent, cardinality metric_groups enabled, quantiles, counters, top_geo, top_ips metric_groups disabled and settings: {"require_version":"2.0"} is applied to the group
-        And 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
-        And this agent's heartbeat shows that 1 groups are matching the agent
-        And this agent's heartbeat shows that 1 policies are applied and all has status running
-        And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, ipfix.pcap, ecmp.pcap, ipfix.pcap, nf9.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
-    Then metrics must be correctly generated for net-v2 handler
-        And remove the agent .yaml generated on each scenario
-
-
-@sanity @metric_groups @metrics_net_v2 @root @mocked_interface
-Scenario: net handler with only counters metric groups enabled (v2)
-    Given the Orb user has a registered account
-        And the Orb user logs in
-        And that a sink already exists
-        And a mocked interface is configured with mtu: 65000 and ip: None
-    When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
-        And pktvisor state is running
-        And 1 Agent Group(s) is created with all tags contained in the agent
-        And a net policy pcap with tap_selector matching all tag(s) of the tap from an agent, counters metric_groups enabled, quantiles, cardinality, top_geo, top_ips metric_groups disabled and settings: {"require_version":"2.0"} is applied to the group
-        And 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
-        And this agent's heartbeat shows that 1 groups are matching the agent
-        And this agent's heartbeat shows that 1 policies are applied and all has status running
-        And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, ipfix.pcap, ecmp.pcap, ipfix.pcap, nf9.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
-    Then metrics must be correctly generated for net-v2 handler
-        And remove the agent .yaml generated on each scenario
-
-
-@sanity @metric_groups @metrics_net_v2 @root @mocked_interface
-Scenario: net handler with only top_geo metric groups enabled (v2)
-    Given the Orb user has a registered account
-        And the Orb user logs in
-        And that a sink already exists
-        And a mocked interface is configured with mtu: 65000 and ip: None
-    When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
-        And pktvisor state is running
-        And 1 Agent Group(s) is created with all tags contained in the agent
-        And a net policy pcap with tap_selector matching all tag(s) of the tap from an agent, top_geo metric_groups enabled, quantiles, counters, cardinality, top_ips metric_groups disabled and settings: {"require_version":"2.0"} is applied to the group
-        And 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
-        And this agent's heartbeat shows that 1 groups are matching the agent
-        And this agent's heartbeat shows that 1 policies are applied and all has status running
-        And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, ipfix.pcap, ecmp.pcap, ipfix.pcap, nf9.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
-    Then metrics must be correctly generated for net-v2 handler
-        And remove the agent .yaml generated on each scenario
-
-
-@sanity @metric_groups @metrics_net_v2 @root @mocked_interface
-Scenario: net handler with only top_ips metric groups enabled (v2)
-    Given the Orb user has a registered account
-        And the Orb user logs in
-        And that a sink already exists
-        And a mocked interface is configured with mtu: 65000 and ip: None
-    When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
-        And pktvisor state is running
-        And 1 Agent Group(s) is created with all tags contained in the agent
-        And a net policy pcap with tap_selector matching all tag(s) of the tap from an agent, top_ips metric_groups enabled, quantiles, counters, top_geo, cardinality metric_groups disabled and settings: {"require_version":"2.0"} is applied to the group
-        And 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
-        And this agent's heartbeat shows that 1 groups are matching the agent
-        And this agent's heartbeat shows that 1 policies are applied and all has status running
-        And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, ipfix.pcap, ecmp.pcap, ipfix.pcap, nf9.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
-    Then metrics must be correctly generated for net-v2 handler
-        And remove the agent .yaml generated on each scenario
-
-
-@sanity @metric_groups @metrics_net_v2 @root @mocked_interface
-Scenario: net handler with only quantiles metric groups enabled (v2)
-    Given the Orb user has a registered account
-        And the Orb user logs in
-        And that a sink already exists
-        And a mocked interface is configured with mtu: 65000 and ip: None
-    When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
-        And pktvisor state is running
-        And 1 Agent Group(s) is created with all tags contained in the agent
-        And a net policy pcap with tap_selector matching all tag(s) of the tap from an agent, quantiles metric_groups enabled, top_ips, counters, top_geo, cardinality metric_groups disabled and settings: {"require_version":"2.0"} is applied to the group
-        And 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
-        And this agent's heartbeat shows that 1 groups are matching the agent
-        And this agent's heartbeat shows that 1 policies are applied and all has status running
-        And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, ipfix.pcap, ecmp.pcap, ipfix.pcap, nf9.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
-    Then metrics must be correctly generated for net-v2 handler
         And remove the agent .yaml generated on each scenario

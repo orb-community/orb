@@ -26,7 +26,6 @@ const (
 	Active
 	Error
 	Idle
-	Warning
 )
 
 type PrometheusState int
@@ -36,7 +35,6 @@ var promStateMap = [...]string{
 	"active",
 	"error",
 	"idle",
-	"warning",
 }
 
 var promStateRevMap = map[string]PrometheusState{
@@ -44,7 +42,6 @@ var promStateRevMap = map[string]PrometheusState{
 	"active":  Active,
 	"error":   Error,
 	"idle":    Idle,
-	"warning": Warning,
 }
 
 func (p PrometheusState) String() string {

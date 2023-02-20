@@ -13,7 +13,6 @@ type SinkData struct {
 	Password        string          `json:"password"`
 	OpenTelemetry   string          `json:"opentelemetry"`
 	State           PrometheusState `json:"state,omitempty"`
-	Migrate         string          `json:"migrate,omitempty"`
 	Msg             string          `json:"msg,omitempty"`
 	LastRemoteWrite time.Time       `json:"last_remote_write,omitempty"`
 }
@@ -23,7 +22,6 @@ const (
 	Active
 	Error
 	Idle
-	Warning
 )
 
 type PrometheusState int
@@ -33,7 +31,6 @@ var promStateMap = [...]string{
 	"active",
 	"error",
 	"idle",
-	"warning",
 }
 
 var promStateRevMap = map[string]PrometheusState{
@@ -41,15 +38,14 @@ var promStateRevMap = map[string]PrometheusState{
 	"active":  Active,
 	"error":   Error,
 	"idle":    Idle,
-	"warning": Warning,
 }
 
 func (p PrometheusState) String() string {
 	return promStateMap[p]
 }
 
-func (p *PrometheusState) SetFromString(value string) error {
-	*p = promStateRevMap[value]
+func (p *PrometheusState) Scan(value interface{}) error {
+	*p = promStateRevMap[string(value.([]byte))]
 	return nil
 }
 
