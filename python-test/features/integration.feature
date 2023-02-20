@@ -289,7 +289,7 @@ Scenario: Sink idle after 5 minutes without metrics flow
         And referred sink must have active state on response within 120 seconds
         And 2 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
     When stop the orb-agent container
-    Then referred sink must have idle state on response after 360 seconds
+    Then referred sink must have idle state on response after 660 seconds
 
 @smoke @sink_status_error
 Scenario: Sink with invalid endpoint

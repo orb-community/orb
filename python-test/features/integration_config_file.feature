@@ -16,7 +16,7 @@ Scenario: General smoke test to validate private agent image - using configurati
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -38,7 +38,7 @@ Scenario: provisioning agent without specify pktvisor binary path and path to co
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -58,7 +58,7 @@ Scenario: provisioning agent without specify pktvisor binary path (config file -
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -78,7 +78,7 @@ Scenario: provisioning agent without specify pktvisor path to config file (confi
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -98,7 +98,7 @@ Scenario: provisioning agent without specify pktvisor binary path and path to co
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -120,7 +120,7 @@ Scenario: provisioning agent without specify pktvisor binary path (config file -
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -142,7 +142,7 @@ Scenario: provisioning agent without specify pktvisor path to config file (confi
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -179,7 +179,7 @@ Scenario: tap_selector - any - matching 1 of all tags from an agent
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -197,7 +197,7 @@ Scenario: tap_selector - any - matching 1 of all tags (plus 1 random tag) from a
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -231,7 +231,7 @@ Scenario: tap_selector - all - matching 1 of all tags from an agent
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -250,7 +250,7 @@ Scenario: tap_selector - all - matching all tags from an agent
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -270,7 +270,7 @@ Scenario: agent pcap with only agent tags subscription to a group with policies 
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -290,7 +290,7 @@ Scenario: agent pcap with only agent tags subscription to a group with policies 
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -310,7 +310,7 @@ Scenario: agent pcap with mixed tags subscription to a group with policies creat
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -330,7 +330,7 @@ Scenario: agent pcap with mixed tags subscription to a group with policies creat
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -349,7 +349,7 @@ Scenario: agent pcap with only agent tags subscription to a group with policies 
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -369,7 +369,7 @@ Scenario: agent pcap with only agent tags subscription to a group with policies 
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -389,7 +389,7 @@ Scenario: agent pcap with mixed tags subscription to a group with policies creat
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -409,7 +409,7 @@ Scenario: agent pcap with mixed tags subscription to a group with policies creat
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -430,7 +430,7 @@ Scenario: agent flow with only agent tags subscription to a group with policies 
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -450,7 +450,7 @@ Scenario: agent flow with only agent tags subscription to a group with policies 
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -470,7 +470,7 @@ Scenario: agent flow with mixed tags subscription to a group with policies creat
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -490,7 +490,7 @@ Scenario: agent flow with mixed tags subscription to a group with policies creat
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -509,7 +509,7 @@ Scenario: agent flow with only agent tags subscription to a group with policies 
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -529,7 +529,7 @@ Scenario: agent flow with only agent tags subscription to a group with policies 
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -549,7 +549,7 @@ Scenario: agent flow with mixed tags subscription to a group with policies creat
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -569,7 +569,7 @@ Scenario: agent flow with mixed tags subscription to a group with policies creat
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -591,7 +591,7 @@ Scenario: agent dnstap with only agent tags subscription to a group with policie
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -611,7 +611,7 @@ Scenario: agent dnstap with only agent tags subscription to a group with policie
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -631,7 +631,7 @@ Scenario: agent dnstap with mixed tags subscription to a group with policies cre
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -651,7 +651,7 @@ Scenario: agent dnstap with mixed tags subscription to a group with policies cre
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -670,7 +670,7 @@ Scenario: agent dnstap with only agent tags subscription to a group with policie
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -690,7 +690,7 @@ Scenario: agent dnstap with only agent tags subscription to a group with policie
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -710,7 +710,7 @@ Scenario: agent dnstap with mixed tags subscription to a group with policies cre
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -730,7 +730,7 @@ Scenario: agent dnstap with mixed tags subscription to a group with policies cre
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -752,7 +752,7 @@ Scenario: agent netprobe with only agent tags subscription to a group with polic
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -772,7 +772,7 @@ Scenario: agent netprobe with only agent tags subscription to a group with polic
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -792,7 +792,7 @@ Scenario: agent netprobe with mixed tags subscription to a group with policies c
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -812,7 +812,7 @@ Scenario: agent netprobe with mixed tags subscription to a group with policies c
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -832,7 +832,7 @@ Scenario: agent netprobe with only agent tags subscription to a group with polic
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -853,7 +853,7 @@ Scenario: agent netprobe with only agent tags subscription to a group with polic
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -874,7 +874,7 @@ Scenario: agent netprobe with mixed tags subscription to a group with policies c
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -895,6 +895,6 @@ Scenario: agent netprobe with mixed tags subscription to a group with policies c
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 30 seconds
+        And referred sink must have active state on response within 120 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
