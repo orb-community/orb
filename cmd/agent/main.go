@@ -7,10 +7,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
-	"os/signal"
-	"strings"
-	"syscall"
 
 	"github.com/ns1labs/orb/agent"
 	"github.com/ns1labs/orb/agent/backend/pktvisor"
@@ -20,6 +16,10 @@ import (
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"os"
+	"os/signal"
+	"strings"
+	"syscall"
 )
 
 const (
