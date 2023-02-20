@@ -112,8 +112,9 @@ func (s *serviceMigrate) CurrentSchemaVersion() (int64, error) {
 	return schemaVersion, err
 }
 
+// TODO This will need to be manually updated up until refactored
 func (s *serviceMigrate) LatestSchemaVersion() int64 {
-	return int64(len(s.migrations))
+	return 3
 }
 
 func (s *serviceMigrate) doOnTx(f func(tx *sqlx.Tx) error) error {
