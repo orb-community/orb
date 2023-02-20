@@ -166,38 +166,35 @@ func (p *pktvisorBackend) scrapeOtlp() {
 	go func() {
 		defer execCancelF()
 		var err error
-		var ok bool
 		count := 0
 		for {
 			if p.mqttClient != nil {
-				if !ok {
-					p.exporter[policyID], err = p.createOtlpMqttExporter(exeCtx, execCancelF)
-					if err != nil {
-						p.logger.Error("failed to create a exporter", zap.Error(err))
-						return
-					}
-					pFactory := otlpreceiver.NewFactory()
-					cfg := pFactory.CreateDefaultConfig()
-					set := pktvisorreceiver.CreateDefaultSettings(p.logger)
-					p.receiver[policyID], err = pFactory.CreateMetricsReceiver(exeCtx, set, cfg, p.exporter[policyID])
-					if err != nil {
-						p.logger.Error("failed to create a receiver", zap.Error(err))
-						return
-					}
-
-					err = p.exporter[policyID].Start(exeCtx, nil)
-					if err != nil {
-						p.logger.Error("otel mqtt exporter startup error", zap.Error(err))
-						return
-					}
-
-					err = p.receiver[policyID].Start(exeCtx, nil)
-					if err != nil {
-						p.logger.Error("otel receiver startup error", zap.Error(err))
-						return
-					}
-					ok = true
+				p.exporter[policyID], err = p.createOtlpMqttExporter(exeCtx, execCancelF)
+				if err != nil {
+					p.logger.Error("failed to create a exporter", zap.Error(err))
+					return
 				}
+				pFactory := otlpreceiver.NewFactory()
+				cfg := pFactory.CreateDefaultConfig()
+				set := pktvisorreceiver.CreateDefaultSettings(p.logger)
+				p.receiver[policyID], err = pFactory.CreateMetricsReceiver(exeCtx, set, cfg, p.exporter[policyID])
+				if err != nil {
+					p.logger.Error("failed to create a receiver", zap.Error(err))
+					return
+				}
+
+				err = p.exporter[policyID].Start(exeCtx, nil)
+				if err != nil {
+					p.logger.Error("otel mqtt exporter startup error", zap.Error(err))
+					return
+				}
+
+				err = p.receiver[policyID].Start(exeCtx, nil)
+				if err != nil {
+					p.logger.Error("otel receiver startup error", zap.Error(err))
+					return
+				}
+				break
 			} else {
 				count++
 				p.logger.Info("waiting until mqtt client is connected try " + strconv.Itoa(count) + " from 10")
@@ -205,26 +202,25 @@ func (p *pktvisorBackend) scrapeOtlp() {
 				if count >= 10 {
 					execCancelF()
 					_ = p.Stop(exeCtx)
+					break
 				}
 			}
-			select {
-			case <-exeCtx.Done():
-				p.ctx.Done()
-				p.cancelFunc()
-			case <-p.ctx.Done():
-				err := p.exporter[policyID].Shutdown(exeCtx)
-				if err != nil {
-					return
-				}
-				err = p.receiver[policyID].Shutdown(exeCtx)
-				if err != nil {
-					return
-				}
-				p.logger.Info("stopped Orb OpenTelemetry agent collector")
+		}
+		select {
+		case <-exeCtx.Done():
+			p.ctx.Done()
+			p.cancelFunc()
+		case <-p.ctx.Done():
+			err := p.exporter[policyID].Shutdown(exeCtx)
+			if err != nil {
 				return
-			default:
-				continue
 			}
+			err = p.receiver[policyID].Shutdown(exeCtx)
+			if err != nil {
+				return
+			}
+			p.logger.Info("stopped Orb OpenTelemetry agent collector")
+			return
 		}
 	}()
 }
