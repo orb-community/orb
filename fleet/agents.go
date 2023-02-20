@@ -54,7 +54,7 @@ type Agent struct {
 	MFKeyID        string
 	MFChannelID    string
 	Created        time.Time
-	OrbTags        *types.Tags
+	OrbTags        types.Tags
 	AgentTags      types.Tags
 	AgentMetadata  types.Metadata
 	State          State

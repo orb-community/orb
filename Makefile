@@ -135,9 +135,9 @@ install-helm:
 
 install-kubectl:
 	cd /tmp && \
-	curl -LO "https://dl.k8s.io/release/v1.22.1/bin/linux/amd64/kubectl" && \
-	chmod a+x ./kubectl && \
-	sudo mv ./kubectl /usr/local/bin/kubectl
+	curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && \
+	chmod a+x /kubectl && \
+	sudo mv ./kubectl /user/local/bin/kubectl
 
 install-docker:
 	cd /tmp
@@ -156,7 +156,7 @@ install-k9s:
 prepare-helm:
 	cd ./kind/ && \
 	helm repo add jaegertracing https://jaegertracing.github.io/helm-charts && \
-	helm repo add orb-community https://orb-community.github.io/orb-helm/ && \
+	helm repo add ns1labs-orb https://ns1labs.github.io/orb-helm/ && \
 	helm dependency build
 
 kind-create-all: kind-create-cluster kind-install-orb
@@ -164,7 +164,7 @@ kind-create-all: kind-create-cluster kind-install-orb
 kind-upgrade-all: kind-load-images kind-upgrade-orb
 
 kind-create-cluster:
-	kind create cluster --image kindest/node:v1.22.15 --config=./kind/config.yaml
+	kind create cluster --image kindest/node:v1.23.0 --config=./kind/config.yaml
 
 kind-delete-cluster:
 	kind delete cluster
@@ -189,7 +189,6 @@ kind-install-orb:
 
 kind-upgrade-orb:
 	helm upgrade -n orb kind-orb ./kind
-	kubectl rollout restart deployment -n orb
 
 kind-delete-orb:
 	kubectl delete -f ./kind/nginx.yaml
@@ -201,7 +200,7 @@ kind-delete-orb:
 
 #
 
-run: prepare-helm kind-create-all
+run: kind-create-all
 
 stop: kind-delete-orb kind-delete-cluster
 

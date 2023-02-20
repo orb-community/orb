@@ -226,9 +226,7 @@ func TestNotifyAgentAllDatasets(t *testing.T) {
 
 	group, err := fleetSVC.CreateAgentGroup(context.Background(), "token", fleet.AgentGroup{
 		Name: validGroupName,
-		Tags: &types.Tags{
-			"test": "true",
-		},
+		Tags: map[string]string{"test": "true"},
 	})
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
@@ -367,9 +365,7 @@ func TestNotifyAgentGroupMembership(t *testing.T) {
 
 	_, err = fleetSVC.CreateAgentGroup(context.Background(), "token", fleet.AgentGroup{
 		Name: validGroupName,
-		Tags: &types.Tags{
-			"test": "true",
-		},
+		Tags: map[string]string{"test": "true"},
 	})
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
@@ -501,9 +497,7 @@ func TestNotifyAgentNewGroupMembership(t *testing.T) {
 
 	_, err = fleetSVC.CreateAgentGroup(context.Background(), "token", fleet.AgentGroup{
 		Name: validGroupName,
-		Tags: &types.Tags{
-			"test": "true",
-		},
+		Tags: map[string]string{"test": "true"},
 	})
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 

@@ -14,11 +14,7 @@ type Tags map[string]string
 
 func (t *Tags) Merge(newTags map[string]string) {
 	for k, v := range newTags {
-		if v == "" {
-			delete(*t, k)
-		} else {
-			(*t)[k] = v
-		}
+		(*t)[k] = v
 	}
 }
 
@@ -39,24 +35,6 @@ func (s *Metadata) RestrictKeys(predicate func(string) bool) {
 	for key, _ := range *s {
 		if predicate(key) {
 			(*s)[key] = ""
-		}
-	}
-}
-
-func (s *Metadata) Merge(metadataToAdd Metadata) {
-	for k, v := range metadataToAdd {
-		if v == "" {
-			delete(*s, k)
-		} else {
-			(*s)[k] = v
-		}
-	}
-}
-
-func (s *Metadata) RemoveKeys(keys []string) {
-	for _, key := range keys {
-		if _, ok := (*s)[key]; ok {
-			delete(*s, key)
 		}
 	}
 }

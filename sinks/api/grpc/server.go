@@ -75,7 +75,6 @@ func encodeSinksResponse(_ context.Context, grpcRes interface{}) (interface{}, e
 	for i, sink := range res.sinks {
 		sList[i] = &pb.SinkRes{
 			Id:          sink.id,
-			OwnerID:     sink.mfOwnerId,
 			Name:        sink.name,
 			Description: sink.description,
 			Tags:        sink.tags,

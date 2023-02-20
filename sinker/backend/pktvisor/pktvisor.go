@@ -40,7 +40,6 @@ type metricAppendix struct {
 	format       string
 	tags         map[string]string
 	logger       *zap.Logger
-	warning      string
 }
 
 func (p pktvisorBackend) ProcessMetrics(agent *pb.AgentInfoRes, agentID string, data fleet.AgentMetricsRPCPayload) ([]prometheus.TimeSeries, error) {
@@ -76,7 +75,6 @@ func (p pktvisorBackend) ProcessMetrics(agent *pb.AgentInfoRes, agentID string, 
 		deviceIF:     "",
 		handlerLabel: "",
 		format:       "prom_sinker",
-		warning:      "Deprecated, soon we will substitute for openTelemetry, check https://orb.community/documentation to how enable openTelemetry in your agent",
 		tags:         tags,
 		logger:       p.logger,
 	}

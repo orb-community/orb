@@ -14,7 +14,6 @@ message SinksRes {
 
 message SinksFilterReq {
   string otelEnabled = 1;
-  string state = 2;
 }
 
 message SinkByIDReq {
@@ -31,5 +30,4 @@ message SinkRes {
   string error = 6;
   string backend = 7;
   bytes config = 8;
-  string ownerID = 9;
 }

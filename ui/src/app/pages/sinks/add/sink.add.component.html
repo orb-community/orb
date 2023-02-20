@@ -126,8 +126,10 @@
           </ng-template>
           <form [formGroup]="secondFormGroup">
             <ng-container *ngFor="let control of selectedSinkSetting;let i = index; first as isFirst">
-              <label class="font-weight-bold">{{control.label}}</label>
-              <span *ngIf="control.required" class="required">*</span>
+              <ng-container *ngIf="control.prop !== 'opentelemetry'">
+                <label class="font-weight-bold">{{control.label}}</label>
+                <span *ngIf="control.required" class="required">*</span>
+              </ng-container>
               <ng-container [ngSwitch]="control.input">
                 <input *ngSwitchCase="'text'"
                        [attr.data-orb-qa-id]="control.prop"
@@ -160,6 +162,12 @@
                              [attr.data-orb-qa-id]="type"
                              [value]="type">{{ type }}</nb-option>
                 </nb-select>
+                <nb-checkbox *ngSwitchCase="'checkbox'"
+                             [attr.data-orb-qa-id]="control.prop"
+                             [formControlName]="control.prop"
+                             fullWidth="true">
+                  {{control.label}}
+                </nb-checkbox>
               </ng-container>
             </ng-container>
             <div *ngIf="secondFormGroup" class="d-flex justify-content-end">

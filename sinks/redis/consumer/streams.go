@@ -2,11 +2,10 @@ package consumer
 
 import (
 	"context"
-	"time"
-
 	"github.com/go-redis/redis/v8"
 	"github.com/ns1labs/orb/sinks"
 	"go.uber.org/zap"
+	"time"
 )
 
 const (
@@ -15,6 +14,8 @@ const (
 
 	sinkerPrefix = "sinker."
 	sinkerUpdate = sinkerPrefix + "update"
+
+	otelYamlPrefix = "otel.yaml.sinker."
 
 	exists = "BUSYGROUP Consumer Group name already exists"
 )
@@ -58,11 +59,11 @@ func (es eventStore) Subscribe(context context.Context) error {
 
 		for _, msg := range streams[0].Messages {
 			event := msg.Values
-			es.logger.Info("received message in sinker event bus", zap.Any("operation", event["operation"]))
+
 			var err error
 			switch event["operation"] {
 			case sinkerUpdate:
-				rte := es.decodeSinkerStateUpdate(event)
+				rte := decodeSinkerStateUpdate(event)
 				err = es.handleSinkerStateUpdate(context, rte)
 			}
 			if err != nil {
@@ -82,18 +83,14 @@ func (es eventStore) handleSinkerStateUpdate(ctx context.Context, event stateUpd
 	return nil
 }
 
-func (es eventStore) decodeSinkerStateUpdate(event map[string]interface{}) stateUpdateEvent {
+func decodeSinkerStateUpdate(event map[string]interface{}) stateUpdateEvent {
 	val := stateUpdateEvent{
 		ownerID:   read(event, "owner", ""),
 		sinkID:    read(event, "sink_id", ""),
 		msg:       read(event, "msg", ""),
 		timestamp: time.Time{},
 	}
-	err := val.state.Scan(event["state"])
-	if err != nil {
-		es.logger.Error("error parsing the state", zap.Error(err))
-		return stateUpdateEvent{}
-	}
+	val.state.Scan(event["state"])
 	return val
 }
 

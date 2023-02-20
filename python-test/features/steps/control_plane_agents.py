@@ -46,33 +46,6 @@ def check_if_agents_exist(context, orb_tags, status):
                                                  f"Agent logs: {get_orb_agent_logs(context.container_id)}."
                                                  f"\nLogs: {logs}")
 
-# this step is only necessary for OTEL migration tests, so we can exclude it after the migration
-@given("that an agent with {orb_tags} orb tag(s) and OTEL {otel_type} already exists and is {status} within {timeout} seconds")
-def check_if_agents_exist(context, orb_tags, otel_type, status, timeout):
-    timeout = int(timeout)
-    assert_that(otel_type, any_of("enabled", "disabled"), "Invalid otel type")
-    otel_map = {"enabled":"true", "disabled":"false"}
-    context.agent_name = generate_random_string_with_predefined_prefix(agent_name_prefix)
-    context.orb_tags = create_tags_set(orb_tags)
-    context.agent = create_agent(context.token, context.agent_name, context.orb_tags)
-    context.agent_key = context.agent["key"]
-    token = context.token
-    run_local_agent_container(context, "available", include_otel_env_var="true", enable_otel=otel_map[otel_type])
-    agent_id = context.agent['id']
-    existing_agents = get_agent(token, agent_id)
-    assert_that(len(existing_agents), greater_than(0), "Agent not created")
-    logs = get_orb_agent_logs(context.container_id)
-    agent_status, context.agent = wait_until_expected_agent_status(token, agent_id, status, timeout=timeout)
-    assert_that(agent_status, is_(equal_to(status)),
-                f"Agent did not get '{status}' after {str(timeout)} seconds, but was '{agent_status}'. \n"
-                f"Agent: {json.dumps(context.agent, indent=4)}. \n Logs: {logs}")
-    local_orb_path = configs.get("local_orb_path")
-    agent_schema_path = local_orb_path + "/python-test/features/steps/schemas/agent_schema.json"
-    is_schema_valid = validate_json(context.agent, agent_schema_path)
-    assert_that(is_schema_valid, equal_to(True), f"Invalid agent json. \n Agent = {context.agent}."
-                                                 f"Agent logs: {get_orb_agent_logs(context.container_id)}."
-                                                 f"\nLogs: {logs}")
-
 
 @step('a new agent is created with {orb_tags} orb tag(s)')
 def agent_is_created(context, orb_tags):

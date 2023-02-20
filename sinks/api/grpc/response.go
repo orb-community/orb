@@ -10,7 +10,6 @@ package grpc
 
 type sinkRes struct {
 	id          string
-	mfOwnerId   string
 	name        string
 	description string
 	tags        []byte
