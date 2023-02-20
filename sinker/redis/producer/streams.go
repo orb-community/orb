@@ -10,8 +10,7 @@ import (
 )
 
 const (
-	streamID  = "orb.sinker"
-	streamLen = 1000
+	streamID = "orb.sinker"
 )
 
 var _ config.ConfigRepo = (*eventStore)(nil)
@@ -20,6 +19,32 @@ type eventStore struct {
 	sinkCache config.ConfigRepo
 	client    *redis.Client
 	logger    *zap.Logger
+}
+
+// DeployCollector only used in maestro
+func (e eventStore) DeployCollector(ctx context.Context, config config.SinkConfig) error {
+	err := e.sinkCache.Edit(config)
+	if err != nil {
+		return err
+	}
+
+	eventToSink := SinkerUpdateEvent{
+		SinkID:    config.SinkID,
+		Owner:     config.OwnerID,
+		State:     config.State.String(),
+		Msg:       config.Msg,
+		Timestamp: time.Now(),
+	}
+	recordToSink := &redis.XAddArgs{
+		Stream: streamID,
+		Values: eventToSink.Encode(),
+	}
+	err = e.client.XAdd(ctx, recordToSink).Err()
+	if err != nil {
+		e.logger.Error("error sending event to sinker event store", zap.Error(err))
+	}
+
+	return nil
 }
 
 func (e eventStore) Exists(ownerID string, sinkID string) bool {
@@ -40,9 +65,8 @@ func (e eventStore) Add(config config.SinkConfig) error {
 		Timestamp: time.Now(),
 	}
 	record := &redis.XAddArgs{
-		Stream:       streamID,
-		MaxLenApprox: streamLen,
-		Values:       event.Encode(),
+		Stream: streamID,
+		Values: event.Encode(),
 	}
 	err = e.client.XAdd(context.Background(), record).Err()
 	if err != nil {
@@ -64,9 +88,8 @@ func (e eventStore) Remove(ownerID string, sinkID string) error {
 		Timestamp: time.Now(),
 	}
 	record := &redis.XAddArgs{
-		Stream:       streamID,
-		MaxLenApprox: streamLen,
-		Values:       event.Encode(),
+		Stream: streamID,
+		Values: event.Encode(),
 	}
 	err = e.client.XAdd(context.Background(), record).Err()
 	if err != nil {
@@ -93,15 +116,22 @@ func (e eventStore) Edit(config config.SinkConfig) error {
 		Timestamp: time.Now(),
 	}
 	record := &redis.XAddArgs{
-		Stream:       streamID,
-		MaxLenApprox: streamLen,
-		Values:       event.Encode(),
+		Stream: streamID,
+		Values: event.Encode(),
 	}
 	err = e.client.XAdd(context.Background(), record).Err()
 	if err != nil {
 		e.logger.Error("error sending event to event store", zap.Error(err))
 	}
 	return nil
+}
+
+func (e eventStore) GetActivity(ownerID string, sinkID string) (int64, error) {
+	return e.sinkCache.GetActivity(ownerID, sinkID)
+}
+
+func (e eventStore) AddActivity(ownerID string, sinkID string) error {
+	return e.sinkCache.AddActivity(ownerID, sinkID)
 }
 
 func (e eventStore) GetAll(ownerID string) ([]config.SinkConfig, error) {

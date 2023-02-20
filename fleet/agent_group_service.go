@@ -131,6 +131,8 @@ func (svc fleetService) EditAgentGroup(ctx context.Context, token string, group 
 
 	if group.Tags == nil {
 		group.Tags = currentAgentGroup.Tags
+	} else if group.Tags != nil && len(*group.Tags) == 0 {
+		return AgentGroup{}, errors.Wrap(errors.ErrMalformedEntity, errors.New("group tags can not be empty"))
 	}
 
 	ag, err := svc.agentGroupRepository.Update(ctx, ownerID, group)
@@ -300,7 +302,7 @@ func (svc fleetService) ValidateAgentGroup(ctx context.Context, token string, ag
 	}
 
 	ag.MFOwnerID = mfOwnerID
-	res, err := svc.agentRepo.RetrieveMatchingAgents(ctx, mfOwnerID, ag.Tags)
+	res, err := svc.agentRepo.RetrieveMatchingAgents(ctx, mfOwnerID, *ag.Tags)
 	if err != nil {
 		return AgentGroup{}, err
 	}

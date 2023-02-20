@@ -1,6 +1,7 @@
 # Orb local k8s cluster
 
-Follow those steps to setup a local k8s cluster and deploy Orb.
+The following steps must be performed at the **root of the Orb project** to set up a local k8s cluster and deploy Orb.
+
 
 ## 🧱 Requirements
 
@@ -10,6 +11,8 @@ Follow those steps to setup a local k8s cluster and deploy Orb.
 - [Kind](#install-kind)
 
 > **💡 Note:** If you have those installed, please skip to [Deploy Orb on Kind](#deploy-orb-kind).
+
+> ⚠️ You may need to permit ports 80 and 443 (*ingress*) because of [kubernetes](https://kubernetes.io/docs/concepts/services-networking/ingress/).
 
 <a name="docker"></a>
 ## 🐳 Docker Environment (Requirement)
@@ -23,10 +26,12 @@ Check if you have a **Docker** running by executing:
 ```shell
 docker version
 ```
-If you need help to setup a **Docker Environment**, follow the [steps from here](https://docs.docker.com/engine/install/debian/).
+If you need help to set up a **Docker Environment**, follow the [steps from here](https://docs.docker.com/engine/install/debian/).
 
 <a name="helm-3"></a>
 ## ⚓ Helm 3 (Requirement)
+
+[Helm](https://helm.sh/) is a package manager for Kubernetes. A Helm Chart is a package that allows you to customize your deployment on Kubernetes.
 
 Quick install a **Helm 3** executing:
 ```shell
@@ -39,7 +44,7 @@ helm version
 ```
 If you need help to install **Helm 3**, follow the [steps from here](https://helm.sh/docs/intro/install/).
 
-> 🚨 **Warning:** Make sure you have version 3 installed, orb helm charts doesn't officialy support helm 2.
+> 🚨 **Warning:** Make sure you have version 3 installed, orb helm charts doesn't officially support helm 2.
 
 <a name="kubectl"></a>
 ## 🐋 Kubectl (Requirement)
@@ -169,7 +174,7 @@ Load just one image to the kind cluster
 kind load docker-image ns1labs/orb-maestro:0.22.0-088bee14
 ```
 
-> **💡 Note:** Dont forget to change **kind/values.yaml** manifest to use your image tag
+> **💡 Note:** Do not forget to change **kind/values.yaml** manifest to use your image tag
 
 
 Install orb application:
@@ -188,7 +193,7 @@ kubectl rollout restart deployment -n orb
 ## Updating inflight service with recent development
  
 
-If you want to change a service, lets say you added some logs to the fleet service, before commiting the changes, add this
+If you want to change a service, lets say you added some logs to the fleet service, before committing the changes, add this
 ```shell
 SERVICE=fleet make build_docker
 ```
@@ -197,3 +202,6 @@ After changing you can simply execute
 ```shell
 make kind-upgrade-all
 ```
+
+<br>
+❌ Is it not working correctly? Found a bug? Come talk to us [live on Slack](https://netdev.chat/) in the `#orb` channel, or [file a GitHub issue here](https://github.com/orb-community/orb/issues/new/choose).

@@ -28,6 +28,7 @@ type Subscriber interface {
 }
 
 type eventStore struct {
+	otelEnabled   bool
 	sinkerService sinker.Service
 	configRepo    config.ConfigRepo
 	client        *redis.Client
@@ -36,14 +37,18 @@ type eventStore struct {
 }
 
 func (es eventStore) Subscribe(context context.Context) error {
-	err := es.client.XGroupCreateMkStream(context, stream, group, "$").Err()
+	subGroup := group
+	if es.otelEnabled {
+		subGroup = group + ".otel"
+	}
+	err := es.client.XGroupCreateMkStream(context, stream, subGroup, "$").Err()
 	if err != nil && err.Error() != exists {
 		return err
 	}
 
 	for {
 		streams, err := es.client.XReadGroup(context, &redis.XReadGroupArgs{
-			Group:    group,
+			Group:    subGroup,
 			Consumer: es.esconsumer,
 			Streams:  []string{stream, ">"},
 			Count:    100,
@@ -68,7 +73,7 @@ func (es eventStore) Subscribe(context context.Context) error {
 					es.logger.Error("Failed to handle event", zap.String("operation", event["operation"].(string)), zap.Error(err))
 					break
 				}
-				es.client.XAck(context, stream, group, msg.ID)
+				es.client.XAck(context, stream, subGroup, msg.ID)
 			case sinksUpdate:
 				rte, derr := decodeSinksUpdate(event)
 				if derr != nil {
@@ -86,9 +91,9 @@ func (es eventStore) Subscribe(context context.Context) error {
 			}
 			if err != nil {
 				es.logger.Error("Failed to handle event", zap.String("operation", event["operation"].(string)), zap.Error(err))
-				break
+				continue
 			}
-			es.client.XAck(context, stream, group, msg.ID)
+			es.client.XAck(context, stream, subGroup, msg.ID)
 		}
 	}
 }
@@ -138,11 +143,6 @@ func decodeSinksRemove(event map[string]interface{}) (updateSinkEvent, error) {
 		owner:     read(event, "owner", ""),
 		timestamp: time.Time{},
 	}
-	var metadata types.Metadata
-	if err := json.Unmarshal([]byte(read(event, "config", "")), &metadata); err != nil {
-		return updateSinkEvent{}, err
-	}
-	val.config = metadata
 	return val, nil
 }
 

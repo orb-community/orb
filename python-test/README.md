@@ -103,6 +103,18 @@ Then fill in the correct values:
   - Required if `use_orb_live_address_pattern` is false
   - URL of the Orb deployment mqtt. Obs: You MUST include the protocol and the port.
 
+
+## List scenarios to be performed
+
+You can easily check the scenarios that will be executed considering the chosen tag by executing dry-run.
+
+For example, run the command below to check scenarios belonging to the smoke test suite:
+> behavex -t=@smoke --dry-run
+
+Run the command below to check scenarios belonging to the sanity test suite:
+> behavex -t=@sanity --dry-run
+
+
 ## Run behave
 Simply run `behave`, optionally passing the feature file as follows:
 
@@ -141,7 +153,14 @@ Running smoke tests:
 > behavex -t=@smoke --parallel-processes=8 --parallel-scheme=scenario
 
 
-## Tip
+## Test execution reports
+[behavex](https://github.com/hrcorval/behavex) provides a friendly HTML test execution report that contains information related to test scenarios, execution status, execution evidence and metrics. A filters bar is also provided to filter scenarios by name, tag or status.
+
+It should be available at the following path:
+
+<output_folder>/report.html
+
+## Clean your environment
 
 After running the tests, clean up your environment by running the command:
 

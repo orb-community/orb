@@ -479,7 +479,7 @@ jobs:
         with:
           branch: production
           header: ":first_place_medal: :orb: *Deployed new features in orb.live* :orb: :rocket: :tada:"
-          github_repo: ns1labs/orb
+          github_repo: orb-community/orb
           slack_channel: C041B9204CF # orb netdev slack channel ID
           slack_api_token: ${{ secrets.SLACK_APP_TOKEN }}
 
