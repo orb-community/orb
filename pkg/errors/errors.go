@@ -8,7 +8,7 @@
 
 package errors
 
-// Error specifies an API that must be fullfiled by error type
+// Error specifies an API that must be fulfilled by error type
 type Error interface {
 
 	// Error implements the error interface.

@@ -101,7 +101,7 @@ jobs:
       if: ${{ needs.prebuild.outputs.docs == 'true' && github.event_name != 'pull_request' }}
       with:
         token: ${{ secrets.GH_ORB_ACCESS_TOKEN }}
-        repository: ns1labs/orb-website
+        repository: orb-community/orb-website
         event-type: build-docs
         client-payload: '{"branch_name": "main"}'
 

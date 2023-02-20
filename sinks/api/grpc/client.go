@@ -47,6 +47,7 @@ func (client grpcClient) RetrieveSinks(ctx context.Context, in *pb.SinksFilterRe
 	for i, sinkResponse := range ir.sinks {
 		sinkList[i] = &pb.SinkRes{
 			Id:          sinkResponse.id,
+			OwnerID:     sinkResponse.mfOwnerId,
 			Name:        sinkResponse.name,
 			Description: sinkResponse.description,
 			Tags:        sinkResponse.tags,
@@ -122,6 +123,7 @@ func decodeSinksResponse(_ context.Context, grpcRes interface{}) (interface{}, e
 	for i, sink := range res.Sinks {
 		sinkList[i] = sinkRes{
 			id:          sink.Id,
+			mfOwnerId:   sink.OwnerID,
 			name:        sink.Name,
 			description: sink.Description,
 			tags:        sink.Tags,

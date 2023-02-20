@@ -110,17 +110,17 @@ orb:
       repository: ns1labs
       tag: "develop" #0.22.0-develop-478d318
     rbac:
-      create: true
       serviceAccountName: "k8s-maestro-role"
       serviceAccountNamespace: "orb"
       ClusterRole: "cluster-admin"
+      ClusterRoleBindingCreate: true
 
   migrate:
     image:
       name: "orb-migrate"
       pullPolicy: "IfNotPresent"
       repository: ns1labs
-      tag: "0.17.0-11889e3a"
+      tag: "develop"
     autoMigrate: false
     logLevel: "debug"
 

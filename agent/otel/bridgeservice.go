@@ -1,12 +1,14 @@
 package otel
 
 import (
+	"context"
 	"github.com/ns1labs/orb/agent/policies"
 	"strings"
 )
 
 type AgentBridgeService interface {
 	RetrieveAgentInfoByPolicyName(policyName string) (*AgentDataPerPolicy, error)
+	NotifyAgentDisconnection(ctx context.Context, err error)
 }
 
 type AgentDataPerPolicy struct {
@@ -15,21 +17,23 @@ type AgentDataPerPolicy struct {
 	AgentTags map[string]string
 }
 
-var _ AgentBridgeService = (*bridgeService)(nil)
+var _ AgentBridgeService = (*BridgeService)(nil)
 
-type bridgeService struct {
-	policyRepo policies.PolicyRepo
-	AgentTags  map[string]string
+type BridgeService struct {
+	bridgeContext context.Context
+	policyRepo    policies.PolicyRepo
+	AgentTags     map[string]string
 }
 
-func NewBridgeService(policyRepo *policies.PolicyRepo, agentTags map[string]string) *bridgeService {
-	return &bridgeService{
-		policyRepo: *policyRepo,
-		AgentTags:  agentTags,
+func NewBridgeService(ctx context.Context, policyRepo *policies.PolicyRepo, agentTags map[string]string) *BridgeService {
+	return &BridgeService{
+		bridgeContext: ctx,
+		policyRepo:    *policyRepo,
+		AgentTags:     agentTags,
 	}
 }
 
-func (b *bridgeService) RetrieveAgentInfoByPolicyName(policyName string) (*AgentDataPerPolicy, error) {
+func (b *BridgeService) RetrieveAgentInfoByPolicyName(policyName string) (*AgentDataPerPolicy, error) {
 	pData, err := b.policyRepo.GetByName(policyName)
 	if err != nil {
 		return nil, err
@@ -39,4 +43,9 @@ func (b *bridgeService) RetrieveAgentInfoByPolicyName(policyName string) (*Agent
 		Datasets:  strings.Join(pData.GetDatasetIDs(), ","),
 		AgentTags: b.AgentTags,
 	}, nil
+}
+
+func (b *BridgeService) NotifyAgentDisconnection(ctx context.Context, err error) {
+	ctx.Done()
+	b.bridgeContext.Done()
 }
