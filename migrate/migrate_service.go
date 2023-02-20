@@ -38,7 +38,9 @@ func (s *serviceMigrate) Up() (err error) {
 		errMigration := s.migrations[0].Down()
 		if errMigration != nil {
 			s.logger.Error(fmt.Sprintf("error on migration down to %d", current), zap.Error(errMigration))
+			return errMigration
 		}
+		return err
 	}
 
 	if errSchema = s.SetSchemaVersion(latest); errSchema != nil {
@@ -48,25 +50,20 @@ func (s *serviceMigrate) Up() (err error) {
 }
 
 func (s *serviceMigrate) Down() (err error) {
-	current, errSchema := s.CurrentSchemaVersion()
+	_, errSchema := s.CurrentSchemaVersion()
 	latest := s.LatestSchemaVersion()
 	if errSchema != nil {
 		return errSchema
 	}
 
-	index := latest
-	lastToApply := current
-	for index >= lastToApply {
-		s.logger.Info(fmt.Sprintf("applying migration %d of %d", index, latest))
-		err = s.migrations[index-1].Down()
-		if err != nil {
-			s.logger.Error(fmt.Sprintf("error on migration down %d of %d", index, latest), zap.Error(err))
-			break
-		}
-		index--
+	s.logger.Info(fmt.Sprintf("applying last migration version %d", latest))
+	err = s.migrations[0].Down()
+	if err != nil {
+		s.logger.Error(fmt.Sprintf("error on migration"), zap.Error(err))
+		return err
 	}
 
-	if errSchema = s.SetSchemaVersion(index); errSchema != nil {
+	if errSchema = s.SetSchemaVersion(latest); errSchema != nil {
 		return errSchema
 	}
 	return
