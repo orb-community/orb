@@ -63,7 +63,7 @@ func (s *serviceMigrate) Down() (err error) {
 		return err
 	}
 
-	if errSchema = s.SetSchemaVersion(latest); errSchema != nil {
+	if errSchema = s.SetSchemaVersion(latest - 1); errSchema != nil {
 		return errSchema
 	}
 	return
