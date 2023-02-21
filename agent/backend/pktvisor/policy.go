@@ -62,6 +62,7 @@ func (p *pktvisorBackend) RemovePolicy(data policies.PolicyData) error {
 	p.logger.Debug("pktvisor policy remove", zap.String("policy_id", data.ID))
 	var resp interface{}
 	var name string
+	// Since we use Name for removing policies not IDs, if there is a change, we need to remove the previous name of the policy
 	if data.PreviousPolicyData != nil && data.PreviousPolicyData.Name != data.Name {
 		name = data.PreviousPolicyData.Name
 	} else {
