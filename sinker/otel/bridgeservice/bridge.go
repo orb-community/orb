@@ -73,7 +73,7 @@ func (bs *SinkerOtelBridgeService) NotifyActiveSink(ctx context.Context, mfOwner
 			}
 			bs.logger.Info("registering sink activity", zap.String("sinkID", sinkId), zap.String("newState", newState), zap.Any("currentState", cfgRepo.State))
 		}
-	} else if cfgRepo.State == config.Active {
+	} else if cfgRepo.State == config.Active || cfgRepo.State == config.Warning {
 		err = bs.sinkerCache.AddActivity(mfOwnerId, sinkId)
 		if err != nil {
 			bs.logger.Error("error during update last remote write", zap.String("sinkId", sinkId), zap.Error(err))
