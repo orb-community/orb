@@ -9,6 +9,10 @@ import (
 	"github.com/ns1labs/orb/pkg/errors"
 )
 
+var (
+	SinksConfigRequiredFields = []string{"remote_host", "username", "password"}
+)
+
 // Tags A flat kv pair object
 type Tags map[string]string
 

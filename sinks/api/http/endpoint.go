@@ -15,6 +15,7 @@ import (
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/sinks"
 	"github.com/ns1labs/orb/sinks/backend"
+	"gopkg.in/yaml.v3"
 )
 
 var restrictiveKeyPrefixes = []string{backend.ConfigFeatureTypePassword}
@@ -36,6 +37,17 @@ func omitSecretInformation(metadata types.Metadata) (restrictedMetadata types.Me
 func addEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(addReq)
+		if req.ConfigYaml != "" && req.Config == nil {
+			// Parse the YAML data into a Config struct
+			var config Config
+			err := yaml.Unmarshal([]byte(req.ConfigYaml), &config)
+			if err != nil {
+				return nil, errors.Wrap(errors.ErrMalformedEntity, errors.New("failed to parse config YAML"))
+			}
+		}
+		if req.ConfigYaml != "" && req.Config != nil {
+			return nil, errors.Wrap(errors.ErrMalformedEntity, errors.New("configYaml should not be sent along with configuration"))
+		}
 		if err := req.validate(); err != nil {
 			return nil, err
 		}

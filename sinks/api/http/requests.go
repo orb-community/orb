@@ -12,6 +12,7 @@ import (
 	"github.com/ns1labs/orb/pkg/errors"
 	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/sinks"
+	"k8s.io/utils/strings/slices"
 )
 
 const (
@@ -27,9 +28,16 @@ type addReq struct {
 	Name        string         `json:"name,omitempty"`
 	Backend     string         `json:"backend,omitempty"`
 	Config      types.Metadata `json:"config,omitempty"`
+	ConfigYaml  string         `json:"configYaml,omitempty"`
 	Description string         `json:"description,omitempty"`
 	Tags        types.Tags     `json:"tags,omitempty"`
 	token       string
+}
+
+type Config struct {
+	RemoteHost string `yaml:"remote_host"`
+	Username   string `yaml:"username"`
+	Password   string `yaml:"password"`
 }
 
 func (req addReq) validate() error {
@@ -41,11 +49,11 @@ func (req addReq) validate() error {
 	if req.Config == nil {
 		return errors.ErrMalformedEntity
 	} else if !req.Config.IsApplicable(func(key string, value interface{}) bool {
-		if key != "" {
+		if slices.Contains(types.SinksConfigRequiredFields, key) {
 			keySize++
 		}
 		//currently, with only prometheus, 2 keys is enough, maybe change latter
-		if keySize >= 2 {
+		if keySize >= len(types.SinksConfigRequiredFields) {
 			//minimal number of keys passed, valid config
 			return true
 		}
