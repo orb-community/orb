@@ -157,10 +157,11 @@ func (p *pktvisorBackend) scrapeDefault() error {
 	return nil
 }
 
-func (p *pktvisorBackend) scrapeOtlp() {
+func (p *pktvisorBackend) receiveOtlp() {
 	policyID := "__all"
+	policyName := "__all"
 	exeCtx, execCancelF := context.WithCancel(p.ctx)
-	exeCtx = context.WithValue(exeCtx, "policy_name", policyID)
+	exeCtx = context.WithValue(exeCtx, "policy_name", policyName)
 	exeCtx = context.WithValue(exeCtx, "policy_id", policyID)
 	exeCtx = context.WithValue(exeCtx, "all", true)
 	go func() {

@@ -77,11 +77,11 @@ type pktvisorBackend struct {
 	agentTags map[string]string
 
 	// OpenTelemetry management
-	scrapeOtel bool
-	otelType   string
-	receiver   map[string]component.MetricsReceiver
-	exporter   map[string]component.MetricsExporter
-	routineMap map[string]context.CancelFunc
+	scrapeOtel       bool
+	otelReceiverType string
+	receiver         map[string]component.MetricsReceiver
+	exporter         map[string]component.MetricsExporter
+	routineMap       map[string]context.CancelFunc
 }
 
 func (p *pktvisorBackend) addScraperProcess(ctx context.Context, cancel context.CancelFunc, policyID string, policyName string) {
@@ -173,7 +173,7 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 		pvOptions = append(pvOptions, "--config", p.configFile)
 	}
 
-	if p.scrapeOtel && p.otelType == Otlp {
+	if p.scrapeOtel && p.otelReceiverType == Otlp {
 		pvOptions = append(pvOptions, "--otel")
 	}
 
@@ -268,10 +268,10 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 		if err := p.scrapeDefault(); err != nil {
 			return err
 		}
-	} else if p.otelType == Prometheus {
+	} else if p.otelReceiverType == Prometheus {
 		p.scraper.StartAsync()
-	} else if p.otelType == Otlp {
-		p.scrapeOtlp()
+	} else if p.otelReceiverType == Otlp {
+		p.receiveOtlp()
 	}
 
 	return nil
@@ -288,7 +288,7 @@ func (p *pktvisorBackend) Stop(ctx context.Context) error {
 	p.scraper.Stop()
 
 	// Stop otel scraper goroutines
-	if p.scrapeOtel && p.otelType == Prometheus {
+	if p.scrapeOtel && p.otelReceiverType == Prometheus {
 		for key := range p.routineMap {
 			p.killScraperProcess(key)
 		}
@@ -325,8 +325,8 @@ func (p *pktvisorBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo
 			if v.(bool) {
 				p.logger.Info("OpenTelemetry enabled")
 			}
-		case "Type":
-			p.otelType = v.(string)
+		case "ReceiverType":
+			p.otelReceiverType = v.(string)
 			if v.(string) == Otlp {
 				p.logger.Info("OTLP receiver enabled")
 			}

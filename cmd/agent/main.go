@@ -146,7 +146,7 @@ func mergeOrError(path string) {
 	v.SetDefault("orb.db.file", "./orb-agent.db")
 	v.SetDefault("orb.tls.verify", true)
 	v.SetDefault("orb.otel.enable", false)
-	v.SetDefault("orb.otel.type", "prometheus")
+	v.SetDefault("orb.otel.receiver_type", "prometheus")
 	v.SetDefault("orb.debug.enable", false)
 
 	v.SetDefault("orb.backends.pktvisor.binary", "/usr/local/sbin/pktvisord")
