@@ -103,6 +103,9 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 			} else {
 				updatePolicy = true
 			}
+			if currentPolicy.Name != pd.Name {
+				pd.PreviousPolicyData = &policies.PolicyData{Name: currentPolicy.Name}
+			}
 			pd.Datasets = currentPolicy.Datasets
 			pd.GroupIds = currentPolicy.GroupIds
 		} else {
