@@ -320,12 +320,18 @@ components:
             username: dbuser
           description:
             Object representing backend specific configuration information
+        configYaml:
+          type: string
+          example:
+            "remote_host: my.prometheus-host.com
+            username: dbuser
+            password: secr3tp@ss`"
+          description: YAML representing Sink Configuration, for backend specific configuration information
     SinkCreateReqSchema:
       type: object
       required:
         - name
         - backend
-        - config
       properties:
         name:
           type: string
@@ -350,6 +356,13 @@ components:
             remote_host: my.prometheus-host.com
             username: dbuser
           description: Object representing backend specific configuration information
+        configYaml:
+          type: string
+          example:
+            "remote_host: my.prometheus-host.com
+            username: dbuser
+            password: secr3tp@ss`"
+          description: YAML representing Sink Configuration, for backend specific configuration information
     SinkPageSchema:
       type: object
       properties:

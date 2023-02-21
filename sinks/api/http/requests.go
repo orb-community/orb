@@ -83,6 +83,7 @@ type updateSinkReq struct {
 	Tags        types.Tags     `json:"tags,omitempty"`
 	id          string
 	token       string
+	ConfigYaml  string `json:"configYaml,omitempty"`
 }
 
 func (req updateSinkReq) validate() error {
