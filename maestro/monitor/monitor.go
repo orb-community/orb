@@ -186,10 +186,10 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 		}
 		data.SinkID = sink.Id
 		data.OwnerID = sink.OwnerID
-		// only analyze logs if current status is active
+		// only analyze logs if current status is "active" or "warning"
 		var logsErr error
 		var status string
-		if sink.GetState() == "active" {
+		if sink.GetState() == "active" || sink.GetState() == "warning" {
 			logs, err := svc.getPodLogs(ctx, collector)
 			if err != nil {
 				svc.logger.Error("error on getting logs, skipping", zap.Error(err))
@@ -203,7 +203,8 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 		}
 		var lastActivity int64
 		var activityErr error
-		if status == "active" {
+		// if log analysis return active or warning we should check if have activity on collector
+		if status == "active" || status == "warning" {
 			lastActivity, activityErr = svc.eventStore.GetActivity(sink.Id)
 			// if logs reported 'active' status
 			// here we should check if LastActivity is up-to-date, otherwise we need to set sink as idle
