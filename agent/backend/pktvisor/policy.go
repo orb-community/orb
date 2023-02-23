@@ -61,7 +61,14 @@ func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData, updatePolicy boo
 func (p *pktvisorBackend) RemovePolicy(data policies.PolicyData) error {
 	p.logger.Debug("pktvisor policy remove", zap.String("policy_id", data.ID))
 	var resp interface{}
-	err := p.request(fmt.Sprintf("policies/%s", data.Name), &resp, http.MethodDelete, http.NoBody, "application/json", RemovePolicyTimeout)
+	var name string
+	// Since we use Name for removing policies not IDs, if there is a change, we need to remove the previous name of the policy
+	if data.PreviousPolicyData != nil && data.PreviousPolicyData.Name != data.Name {
+		name = data.PreviousPolicyData.Name
+	} else {
+		name = data.Name
+	}
+	err := p.request(fmt.Sprintf("policies/%s", name), &resp, http.MethodDelete, http.NoBody, "application/json", RemovePolicyTimeout)
 	if err != nil {
 		return err
 	}
