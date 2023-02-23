@@ -36,6 +36,11 @@ const (
 	TapsTimeout         = 5
 )
 
+const (
+	Prometheus string = "prometheus"
+	Otlp              = "otlp"
+)
+
 // AppInfo represents server application information
 type AppInfo struct {
 	App struct {
@@ -72,10 +77,11 @@ type pktvisorBackend struct {
 	agentTags map[string]string
 
 	// OpenTelemetry management
-	scrapeOtel bool
-	receiver   map[string]component.MetricsReceiver
-	exporter   map[string]component.MetricsExporter
-	routineMap map[string]context.CancelFunc
+	scrapeOtel       bool
+	otelReceiverType string
+	receiver         map[string]component.MetricsReceiver
+	exporter         map[string]component.MetricsExporter
+	routineMap       map[string]context.CancelFunc
 }
 
 func (p *pktvisorBackend) addScraperProcess(ctx context.Context, cancel context.CancelFunc, policyID string, policyName string) {
@@ -167,6 +173,10 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 		pvOptions = append(pvOptions, "--config", p.configFile)
 	}
 
+	if p.scrapeOtel && p.otelReceiverType == Otlp {
+		pvOptions = append(pvOptions, "--otel")
+	}
+
 	// the macros should be properly configured to enable crashpad
 	// pvOptions = append(pvOptions, "--cp-token", PKTVISOR_CP_TOKEN)
 	// pvOptions = append(pvOptions, "--cp-url", PKTVISOR_CP_URL)
@@ -253,12 +263,15 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 	}
 
 	p.scraper = gocron.NewScheduler(time.UTC)
-	p.scraper.StartAsync()
-
 	if !p.scrapeOtel {
+		p.scraper.StartAsync()
 		if err := p.scrapeDefault(); err != nil {
 			return err
 		}
+	} else if p.otelReceiverType == Prometheus {
+		p.scraper.StartAsync()
+	} else if p.otelReceiverType == Otlp {
+		p.receiveOtlp()
 	}
 
 	return nil
@@ -275,7 +288,7 @@ func (p *pktvisorBackend) Stop(ctx context.Context) error {
 	p.scraper.Stop()
 
 	// Stop otel scraper goroutines
-	if p.scrapeOtel {
+	if p.scrapeOtel && p.otelReceiverType == Prometheus {
 		for key := range p.routineMap {
 			p.killScraperProcess(key)
 		}
@@ -311,6 +324,11 @@ func (p *pktvisorBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo
 			p.scrapeOtel = v.(bool)
 			if v.(bool) {
 				p.logger.Info("OpenTelemetry enabled")
+			}
+		case "ReceiverType":
+			p.otelReceiverType = v.(string)
+			if v.(string) == Otlp {
+				p.logger.Info("OTLP receiver enabled")
 			}
 		}
 	}
