@@ -267,11 +267,24 @@ func (svc *monitorService) analyzeLogs(logEntry []string) (status string, err er
 				errorMessage := "error: remote write returned HTTP status 404 Not Found"
 				return "error", errors.New(errorMessage)
 			}
-			if strings.Contains(logLine, "Permanent error: remote write returned HTTP status 429 Too Many Requests") {
+			if strings.Contains(logLine, "502 Bad Gateway") {
+				errorMessage := "error: remote write returned HTTP status 502 Bad Gateway"
+				return "error", errors.New(errorMessage)
+			}
+			if strings.Contains(logLine, "504 Gateway Timeout") {
+				errorMessage := "error: remote write returned HTTP status 504 Gateway Timeout"
+				return "error", errors.New(errorMessage)
+			}
+			// known warnings
+			if strings.Contains(logLine, "429 Too Many Requests") {
 				errorMessage := "error: remote write returned HTTP status 429 Too Many Requests"
 				return "warning", errors.New(errorMessage)
 			}
-			// other errors
+			if strings.Contains(logLine, "400 Bad Request") {
+				errorMessage := "error: remote write returned HTTP status 400 Bad Request"
+				return "warning", errors.New(errorMessage)
+			}		
+			// other generic errors
 			if strings.Contains(logLine, "error") {
 				errStringLog := strings.TrimRight(logLine, "error")
 				if len(errStringLog) > 4 {
