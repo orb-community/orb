@@ -21,7 +21,9 @@ if [ -f "asn.mmdb.gz" ]; then
   gzip -d asn.mmdb.gz
   gzip -d city.mmdb.gz
 fi
-#
+
+# back to default folder
+cd /opt/orb/
 
 # orb agent binary location. by default, matches orb-agent container (see Dockerfile)
 orb_agent_bin="${ORB_AGENT_BIN:-/usr/local/bin/orb-agent}"
