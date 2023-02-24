@@ -9,10 +9,6 @@ import (
 	"github.com/ns1labs/orb/pkg/errors"
 )
 
-var (
-	SinksConfigRequiredFields = []string{"remote_host", "username", "password"}
-)
-
 // Tags A flat kv pair object
 type Tags map[string]string
 
@@ -37,6 +33,15 @@ func (s *Metadata) Scan(src interface{}) error {
 		return json.Unmarshal([]byte(v), s)
 	}
 	return errors.New("type assertion failed")
+}
+
+func (s *Metadata) SubSet(predicate func(string, interface{}) bool) (subSet Metadata) {
+	for key, value := range *s {
+		if predicate(key, value) {
+			subSet[key] = value
+		}
+	}
+	return subSet
 }
 
 func (s *Metadata) RestrictKeys(predicate func(string) bool) {

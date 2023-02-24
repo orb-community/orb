@@ -5,17 +5,45 @@
 package prometheus
 
 import (
+	"github.com/ns1labs/orb/pkg/types"
 	"github.com/ns1labs/orb/sinks/backend"
+	"golang.org/x/exp/maps"
+	"gopkg.in/errgo.v2/errors"
+	"gopkg.in/yaml.v3"
 	"io"
+	"net/url"
 )
 
 var _ backend.Backend = (*prometheusBackend)(nil)
+
+const (
+	RemoteHostURLConfigFeature = "remote_host"
+	UsernameConfigFeature      = "username"
+	PasswordConfigFeature      = "password"
+	ApiTokenConfigFeature      = "api_token"
+)
+
+//type PrometheusConfigMetadata = types.Metadata
+
+type AuthType int
+
+const (
+	BasicAuth AuthType = iota
+	TokenAuth
+)
 
 type prometheusBackend struct {
 	apiHost     string
 	apiPort     uint64
 	apiUser     string
 	apiPassword string
+}
+
+type configParseUtility struct {
+	RemoteHost string  `yaml:"remote_host"`
+	Username   *string `yaml:"username,omitempty"`
+	Password   *string `yaml:"password,omitempty"`
+	APIToken   *string `yaml:"api_token,omitempty"`
 }
 
 type SinkFeature struct {
@@ -38,8 +66,57 @@ func (p *prometheusBackend) request(url string, payload interface{}, method stri
 
 func Register() bool {
 	backend.Register("prometheus", &prometheusBackend{})
-
 	return true
+}
+
+func (p *prometheusBackend) ParseConfigFromYaml(configAsYaml string) (configReturn types.Metadata, err error) {
+	// Parse the YAML data into a Config struct
+	var configUtil configParseUtility
+	err = yaml.Unmarshal([]byte(configAsYaml), &configUtil)
+	if err != nil {
+		return nil, errors.New("failed to parse config YAML")
+	}
+	// Check for Token Auth
+	configReturn[RemoteHostURLConfigFeature] = configUtil.RemoteHost
+	if configUtil.APIToken != nil {
+		configReturn[ApiTokenConfigFeature] = configUtil.APIToken
+	} else {
+		configReturn[UsernameConfigFeature] = configUtil.Username
+		configReturn[PasswordConfigFeature] = configUtil.Password
+	}
+	return
+}
+
+func (p *prometheusBackend) ValidateConfiguration(config types.Metadata) error {
+	authType := BasicAuth
+	for _, key := range maps.Keys(config) {
+		if key == ApiTokenConfigFeature {
+			authType = TokenAuth
+			break
+		}
+	}
+	switch authType {
+	case BasicAuth:
+		_, userOk := config[UsernameConfigFeature]
+		_, passwordOk := config[PasswordConfigFeature]
+		if !userOk || !passwordOk {
+			return errors.New("basic authentication, must provide username and password fields")
+		}
+	case TokenAuth:
+		if _, tokenOk := config[ApiTokenConfigFeature]; !tokenOk {
+			return errors.New("basic authentication, must provide username and password fields")
+		}
+	}
+	remoteUrl, remoteHostOk := config[RemoteHostURLConfigFeature]
+	if !remoteHostOk {
+		return errors.New("must send valid URL for Remote Write")
+	}
+	// Validate remote_host
+	_, err := url.ParseRequestURI(remoteUrl.(string))
+	if err != nil {
+		return errors.New("must send valid URL for Remote Write")
+	}
+	return nil
 }
 
 func (p *prometheusBackend) CreateFeatureConfig() []backend.ConfigFeature {
@@ -49,23 +126,31 @@ func (p *prometheusBackend) CreateFeatureConfig() []backend.ConfigFeature {
 		Type:     backend.ConfigFeatureTypeText,
 		Input:    "text",
 		Title:    "Remote Write URL",
-		Name:     "remote_host",
+		Name:     RemoteHostURLConfigFeature,
 		Required: true,
 	}
+
 	userName := backend.ConfigFeature{
 		Type:     backend.ConfigFeatureTypeText,
 		Input:    "text",
 		Title:    "Username",
-		Name:     "username",
+		Name:     UsernameConfigFeature,
 		Required: true,
 	}
 	password := backend.ConfigFeature{
 		Type:     backend.ConfigFeatureTypePassword,
 		Input:    "text",
 		Title:    "Password",
-		Name:     "password",
+		Name:     PasswordConfigFeature,
 		Required: true,
 	}
-	configs = append(configs, remoteHost, userName, password)
+	apiToken := backend.ConfigFeature{
+		Type:     backend.ConfigFeatureTypePassword,
+		Input:    "text",
+		Title:    "Authentication API Token",
+		Name:     ApiTokenConfigFeature,
+		Required: true,
+	}
+	configs = append(configs, remoteHost, userName, password, apiToken)
 	return configs
 }

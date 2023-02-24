@@ -4,9 +4,13 @@
 
 package backend
 
+import "github.com/ns1labs/orb/pkg/types"
+
 type Backend interface {
 	Metadata() interface{}
 	CreateFeatureConfig() []ConfigFeature
+	ValidateConfiguration(config types.Metadata) error
+	ParseConfigFromYaml(configAsYaml string) (types.Metadata, error)
 }
 
 const ConfigFeatureTypePassword = "password"

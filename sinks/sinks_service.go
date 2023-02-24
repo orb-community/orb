@@ -37,12 +37,6 @@ func (svc sinkService) CreateSink(ctx context.Context, token string, sink Sink) 
 		return Sink{}, err
 	}
 
-	// Validate remote_host
-	_, err = url.ParseRequestURI(sink.Config["remote_host"].(string))
-	if err != nil {
-		return Sink{}, errors.Wrap(errors.New("invalid remote url"), err)
-	}
-
 	// encrypt data for the password
 	sink, err = svc.encryptMetadata(sink)
 	if err != nil {
@@ -256,10 +250,10 @@ func (svc sinkService) ChangeSinkStateInternal(ctx context.Context, sinkID strin
 }
 
 func validateBackend(sink *Sink) error {
-	if backend.HaveBackend(sink.Backend) {
-		sink.State = Unknown
-	} else {
-		return ErrInvalidBackend
+	sinkBackend := backend.GetBackend(sink.Backend)
+	err := sinkBackend.ValidateConfiguration(sink.Config)
+	if err != nil {
+		return err
 	}
 	return nil
 }
