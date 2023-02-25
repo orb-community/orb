@@ -139,6 +139,7 @@ jobs:
         if: ${{ needs.prebuild.outputs.agent == 'true' || github.event_name != 'pull_request' }}
         uses: codecov/codecov-action@v3
         with:
+          version: "v0.1.15"
           files: coverage.xml
           name: orb
           verbose: true
@@ -177,6 +178,7 @@ jobs:
         if: ${{ needs.prebuild.outputs.orb == 'true' || github.event_name != 'pull_request' }}
         uses: codecov/codecov-action@v3
         with:
+          version: "v0.1.15"
           files: coverage.xml
           name: orb
           verbose: true
@@ -215,6 +217,7 @@ jobs:
         if: ${{ needs.prebuild.outputs.orb == 'true' || github.event_name != 'pull_request' }}
         uses: codecov/codecov-action@v3
         with:
+          version: "v0.1.15"
           files: coverage.xml
           name: orb
           verbose: true
@@ -253,6 +256,7 @@ jobs:
         if: ${{ needs.prebuild.outputs.orb == 'true' || github.event_name != 'pull_request' }}
         uses: codecov/codecov-action@v3
         with:
+          version: "v0.1.15"
           files: coverage.xml
           name: orb
           verbose: true
@@ -291,6 +295,7 @@ jobs:
         if: ${{ needs.prebuild.outputs.orb == 'true' || github.event_name != 'pull_request' }}
         uses: codecov/codecov-action@v3
         with:
+          version: "v0.1.15"
           files: coverage.xml
           name: orb
           verbose: true   
@@ -329,6 +334,7 @@ jobs:
         if: ${{ needs.prebuild.outputs.orb == 'true' || github.event_name != 'pull_request' }}
         uses: codecov/codecov-action@v3
         with:
+          version: "v0.1.15"
           files: coverage.xml
           name: orb
           verbose: true
