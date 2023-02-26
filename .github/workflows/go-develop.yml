@@ -89,6 +89,9 @@ jobs:
         with:
           go_report_threshold: 90.1 #grade A+
           github_token: ${{ secrets.GH_ORB_ACCESS_TOKEN }}
+          github_owner: orb-community
+          github_repo: orb
+          github_pr: $(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
 
       - name: refresh go-report
         uses: creekorful/goreportcard-action@v1.0
