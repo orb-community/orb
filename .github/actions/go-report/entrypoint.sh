@@ -11,7 +11,6 @@ function setup() {
   cd /tmp
   go get github.com/alecthomas/gometalinter
   gometalinter --install --update
-  go get github.com/gojp/goreportcard/cmd/goreportcard-cli
 }
 
 function run() {
