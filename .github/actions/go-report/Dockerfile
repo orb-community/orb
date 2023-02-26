@@ -10,6 +10,12 @@ WORKDIR /workspace
 
 COPY ./entrypoint.sh /entrypoint.sh
 
+RUN git clone https://github.com/gojp/goreportcard.git && \
+cd goreportcard && \
+make install && \
+go install ./cmd/goreportcard-cli && \
+mv /root/go/bin/goreportcard-cli /usr/local/bin/goreportcard-cli
+
 RUN apk add git && \
 wget https://github.com/cloudposse/github-commenter/releases/download/0.7.0/github-commenter_linux_amd64 -O /github-commenter && \
 apk add jq && \
