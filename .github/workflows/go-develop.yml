@@ -88,6 +88,7 @@ jobs:
         uses: ./.github/actions/go-report
         with:
           go_report_threshold: 90.1 #grade A+
+          github_token: ${{ secrets.GH_ORB_ACCESS_TOKEN }}
 
       - name: refresh go-report
         uses: creekorful/goreportcard-action@v1.0
