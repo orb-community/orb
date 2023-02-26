@@ -18,7 +18,7 @@ git clone https://github.com/gojp/goreportcard.git && \
 cd goreportcard && \
 make install && \
 go install ./cmd/goreportcard-cli && \
-mv /root/go/bin/goreportcard-cli /usr/local/bin/goreportcard-cli
+mv /go/bin/goreportcard-cli /usr/local/bin/goreportcard-cli
 
 WORKDIR /workspace
 
