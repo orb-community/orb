@@ -21,7 +21,7 @@ inputs:
     
   github_pr:
     description: " github PR"
-    required: true
+    required: false
 
 runs:
   using: 'docker'
