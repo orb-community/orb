@@ -6,7 +6,6 @@ function validateParams() {
   [[ -z $INPUT_GITHUB_TOKEN ]] && echo "GITHUB TOKEN is required" && exit 1 echo " GITHUB TOKEN present"
   [[ -z $INPUT_GITHUB_OWNER ]] && echo "GITHUB OWNER is required" && exit 1 echo " GITHUB OWNER present"
   [[ -z $INPUT_GITHUB_REPO ]] && echo "GITHUB REPO is required" && exit 1 echo " GITHUB REPO present"
-  [[ -z $INPUT_GITHUB_PR_ISSUE_NUMBER ]] && echo "GITHUB PR is required" && exit 1 echo " GITHUB PR present"
 
 }
 
@@ -45,7 +44,8 @@ function test() {
 
 function comment() {
   echo "========================= Adding Comment To PR ========================="
-  if [ GITHUB_PR_ISSUE_NUMBER -ne 0 ]; then
+  re='^[0-9]+$'
+  if [[ $INPUT_GITHUB_PR_ISSUE_NUMBER =~ $re ]]; then
     cat ./go-report.txt | /github-commenter \
       -token "${INPUT_GITHUB_TOKEN}" \
       -type pr \
@@ -53,6 +53,8 @@ function comment() {
       -repo ${INPUT_GITHUB_REPO} \
       -number ${INPUT_GITHUB_PR_ISSUE_NUMBER} \
       -template_file ./.github/ci/go-report-comment-template
+  else
+    echo "this is not a pr, nothing to comment"
   fi
 }
 
