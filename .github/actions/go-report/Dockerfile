@@ -1,4 +1,4 @@
-FROM golang:1.15.1-alpine3.12
+FROM golang:1.20-alpine
 
 LABEL author="Everton Taques<everton.taques@encora.com>"
 LABEL maintainer="ns1labs"
