@@ -9,7 +9,7 @@ function setup() {
   echo "========================= Installing Go Report Card ========================="
   validateParams
   cd /tmp
-  go get github.com/alecthomas/gometalinter
+  go install github.com/alecthomas/gometalinter
   gometalinter --install --update
 }
 
