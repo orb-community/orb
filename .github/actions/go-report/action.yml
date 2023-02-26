@@ -10,6 +10,18 @@ inputs:
   github_token:
     description: " github token"
     required: true
+    
+  github_owner:
+    description: " github owner"
+    required: true
+    
+  github_repo:
+    description: " github repo"
+    required: true
+    
+  github_pr:
+    description: " github PR"
+    required: true
 
 runs:
   using: 'docker'
