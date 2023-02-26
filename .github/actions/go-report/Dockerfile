@@ -13,7 +13,8 @@ wget https://github.com/cloudposse/github-commenter/releases/download/0.7.0/gith
 apk add jq && \
 chmod +x /github-commenter /entrypoint.sh
 
-RUN git clone https://github.com/gojp/goreportcard.git && \
+RUN apk add make && \
+git clone https://github.com/gojp/goreportcard.git && \
 cd goreportcard && \
 make install && \
 go install ./cmd/goreportcard-cli && \
