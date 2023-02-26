@@ -10,7 +10,7 @@ function setup() {
   validateParams
   cd /tmp
   curl -L https://git.io/vp6lP | sh
-  gometalinter --install --no-vendored-linters
+  gometalinter --no-vendored-linters
 }
 
 function run() {
