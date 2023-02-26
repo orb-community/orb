@@ -47,10 +47,11 @@ function comment() {
     -owner ${GITHUB_OWNER} \
     -repo ${GITHUB_REPO} \
     -number ${GITHUB_PR_ISSUE_NUMBER} \
-    -template_file ./build/ci/go-report-comment-template
+    -template_file ./.github/ci/go-report-comment-template
 
 }
 
 setup
 run
 test
+comment
