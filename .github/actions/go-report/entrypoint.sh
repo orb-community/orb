@@ -63,4 +63,3 @@ function comment() {
 setup
 run
 test
-comment
