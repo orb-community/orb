@@ -10,7 +10,7 @@ function validateParams() {
 }
 
 function setup() {
-  echo "========================= Installing Go Report Card ========================="
+  echo "========================= Installing Go Metalinter ========================="
   validateParams
   cd /tmp
   curl -L https://git.io/vp6lP | sh
