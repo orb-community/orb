@@ -9,7 +9,7 @@ function setup() {
   echo "========================= Installing Go Report Card ========================="
   validateParams
   cd /tmp
-  go install github.com/alecthomas/gometalinter@latest
+  curl -L https://git.io/vp6lP | sh
   gometalinter --install --no-vendored-linters
 }
 
