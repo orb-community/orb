@@ -19,10 +19,6 @@ inputs:
     description: " github repo"
     required: true
 
-  github_pr_issue_number:
-    description: " github PR"
-    required: false
-
 runs:
   using: 'docker'
   image: 'Dockerfile'
