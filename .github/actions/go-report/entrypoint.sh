@@ -3,6 +3,7 @@
 function validateParams() {
   echo "========================= Checking parameters ========================="
   [[ -z $INPUT_GO_REPORT_THRESHOLD ]] && echo "Threshold of failure is required" && exit 1 echo " Threshold of failure present"
+  [[ -z $INPUT_GITHUB_TOKEN ]] && echo "GITHUB TOKEN is required" && exit 1 echo " GITHUB TOKEN present"
 }
 
 function setup() {
@@ -42,7 +43,7 @@ function comment() {
   echo "========================= Adding Comment To PR ========================="
   export GITHUB_PR_ISSUE_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
   cat ./go-report.txt | /github-commenter \
-    -token "${GITHUB_TOKEN}" \
+    -token "${INPUT_GITHUB_TOKEN}" \
     -type pr \
     -owner ${GITHUB_OWNER} \
     -repo ${GITHUB_REPO} \
