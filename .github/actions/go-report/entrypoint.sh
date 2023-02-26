@@ -4,6 +4,10 @@ function validateParams() {
   echo "========================= Checking parameters ========================="
   [[ -z $INPUT_GO_REPORT_THRESHOLD ]] && echo "Threshold of failure is required" && exit 1 echo " Threshold of failure present"
   [[ -z $INPUT_GITHUB_TOKEN ]] && echo "GITHUB TOKEN is required" && exit 1 echo " GITHUB TOKEN present"
+  [[ -z $INPUT_GITHUB_OWNER ]] && echo "GITHUB OWNER is required" && exit 1 echo " GITHUB OWNER present"
+  [[ -z $INPUT_GITHUB_REPO ]] && echo "GITHUB REPO is required" && exit 1 echo " GITHUB REPO present"
+  [[ -z $INPUT_GITHUB_PR_ISSUE_NUMBER ]] && echo "GITHUB PR is required" && exit 1 echo " GITHUB PR present"
+
 }
 
 function setup() {
@@ -41,15 +45,15 @@ function test() {
 
 function comment() {
   echo "========================= Adding Comment To PR ========================="
-  export GITHUB_PR_ISSUE_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
-  cat ./go-report.txt | /github-commenter \
-    -token "${INPUT_GITHUB_TOKEN}" \
-    -type pr \
-    -owner ${GITHUB_OWNER} \
-    -repo ${GITHUB_REPO} \
-    -number ${GITHUB_PR_ISSUE_NUMBER} \
-    -template_file ./.github/ci/go-report-comment-template
-
+  if [ GITHUB_PR_ISSUE_NUMBER -ne 0 ]; then
+    cat ./go-report.txt | /github-commenter \
+      -token "${INPUT_GITHUB_TOKEN}" \
+      -type pr \
+      -owner ${INPUT_GITHUB_OWNER} \
+      -repo ${INPUT_GITHUB_REPO} \
+      -number ${INPUT_GITHUB_PR_ISSUE_NUMBER} \
+      -template_file ./.github/ci/go-report-comment-template
+  fi
 }
 
 setup
