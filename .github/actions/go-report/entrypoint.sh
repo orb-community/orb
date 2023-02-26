@@ -10,7 +10,7 @@ function setup() {
   validateParams
   cd /tmp
   go install github.com/alecthomas/gometalinter
-  gometalinter --install --update
+  gometalinter --install --no-vendored-linters
 }
 
 function run() {
