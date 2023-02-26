@@ -45,13 +45,15 @@ function test() {
 function comment() {
   echo "========================= Adding Comment To PR ========================="
   re='^[0-9]+$'
-  if [[ $INPUT_GITHUB_PR_ISSUE_NUMBER =~ $re ]]; then
+  GITHUB_PR_ISSUE_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
+  echo $GITHUB_PR_ISSUE_NUMBER
+  if [[ $GITHUB_PR_ISSUE_NUMBER =~ $re ]]; then
     cat ./go-report.txt | /github-commenter \
       -token "${INPUT_GITHUB_TOKEN}" \
       -type pr \
       -owner ${INPUT_GITHUB_OWNER} \
       -repo ${INPUT_GITHUB_REPO} \
-      -number ${INPUT_GITHUB_PR_ISSUE_NUMBER} \
+      -number ${GITHUB_PR_ISSUE_NUMBER} \
       -template_file ./.github/ci/go-report-comment-template
   else
     echo "this is not a pr, nothing to comment"
