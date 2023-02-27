@@ -19,6 +19,7 @@ import (
 	"github.com/orb-community/orb/sinks"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"io"
+	"k8s.io/utils/strings/slices"
 	"net/http"
 	"strings"
 )
@@ -97,7 +98,9 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc sinks.SinkServic
 }
 
 func decodeAddRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	if !strings.Contains(r.Header.Get("Content-Type"), "application/json") {
+	contentType := r.Header.Get("Content-Type")
+	acceptedTypes := []string{"application/json", "application/x-yml"}
+	if slices.Contains(acceptedTypes, contentType) {
 		return nil, errors.ErrUnsupportedContentType
 	}
 
@@ -110,7 +113,9 @@ func decodeAddRequest(_ context.Context, r *http.Request) (interface{}, error) {
 }
 
 func decodeEditRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	if !strings.Contains(r.Header.Get("Content-Type"), "application/json") {
+	contentType := r.Header.Get("Content-Type")
+	acceptedTypes := []string{"application/json", "application/x-yml"}
+	if slices.Contains(acceptedTypes, contentType) {
 		return nil, errors.ErrUnsupportedContentType
 	}
 	req := updateSinkReq{
