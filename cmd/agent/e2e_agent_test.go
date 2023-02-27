@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/ns1labs/orb/agent"
-	"github.com/ns1labs/orb/agent/backend/pktvisor"
-	"github.com/ns1labs/orb/agent/config"
+	"github.com/orb-community/orb/agent"
+	"github.com/orb-community/orb/agent/backend/pktvisor"
+	"github.com/orb-community/orb/agent/config"
 	"github.com/pkg/profile"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"

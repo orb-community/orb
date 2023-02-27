@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/mainflux/mainflux/pkg/uuid"
-	"github.com/ns1labs/orb/pkg/errors"
-	config2 "github.com/ns1labs/orb/sinker/config"
-	"github.com/ns1labs/orb/sinker/redis"
+	"github.com/orb-community/orb/pkg/errors"
+	config2 "github.com/orb-community/orb/sinker/config"
+	"github.com/orb-community/orb/sinker/redis"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

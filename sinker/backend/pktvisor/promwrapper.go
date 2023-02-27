@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ns1labs/orb/sinker/prometheus"
+	"github.com/orb-community/orb/sinker/prometheus"
 )
 
 type labelList []prometheus.Label

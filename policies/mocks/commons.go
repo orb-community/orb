@@ -9,7 +9,7 @@
 package mocks
 
 import (
-	"github.com/ns1labs/orb/policies"
+	"github.com/orb-community/orb/policies"
 	"sort"
 )
 

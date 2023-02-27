@@ -8,7 +8,7 @@
 
 package grpc
 
-import "github.com/ns1labs/orb/policies"
+import "github.com/orb-community/orb/policies"
 
 type accessByIDReq struct {
 	PolicyID string

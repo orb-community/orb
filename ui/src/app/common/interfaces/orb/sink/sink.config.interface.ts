@@ -1,7 +1,7 @@
 /**
  * Base Sink Config Interface
  *
- * [Sinks Architecture]{@link https://github.com/ns1labs/orb/wiki/Architecture:-Sinks}
+ * [Sinks Architecture]{@link https://github.com/orb-community/orb/wiki/Architecture:-Sinks}
  */
 
 /**

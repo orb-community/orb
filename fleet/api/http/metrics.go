@@ -8,8 +8,8 @@ import (
 	"context"
 	"github.com/go-kit/kit/metrics"
 	"github.com/mainflux/mainflux"
-	"github.com/ns1labs/orb/fleet"
-	"github.com/ns1labs/orb/pkg/errors"
+	"github.com/orb-community/orb/fleet"
+	"github.com/orb-community/orb/pkg/errors"
 	"time"
 )
 

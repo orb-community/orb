@@ -8,7 +8,7 @@
 package consumer
 
 import (
-	"github.com/ns1labs/orb/sinks"
+	"github.com/orb-community/orb/sinks"
 	"time"
 )
 

@@ -8,9 +8,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/ns1labs/orb/agent/backend"
-	"github.com/ns1labs/orb/agent/policies"
-	"github.com/ns1labs/orb/fleet"
+	"github.com/orb-community/orb/agent/backend"
+	"github.com/orb-community/orb/agent/policies"
+	"github.com/orb-community/orb/fleet"
 	"go.uber.org/zap"
 	"time"
 )

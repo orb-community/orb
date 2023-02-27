@@ -4,7 +4,7 @@
 
 package backend
 
-import "github.com/ns1labs/orb/pkg/types"
+import "github.com/orb-community/orb/pkg/types"
 
 type Backend interface {
 	SupportsFormat(format string) bool

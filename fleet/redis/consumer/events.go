@@ -9,7 +9,7 @@
 package consumer
 
 import (
-	"github.com/ns1labs/orb/pkg/types"
+	"github.com/orb-community/orb/pkg/types"
 	"time"
 )
 
