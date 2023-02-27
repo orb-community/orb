@@ -92,7 +92,7 @@ def agent_is_created_matching_group(context, amount_of_group):
 
 
 @then('the agent status in Orb should be {status} within {seconds} seconds')
-def check_agent_online(context, status, seconds):
+def check_agent_status_within_seconds(context, status, seconds):
     timeout = int(seconds)
     token = context.token
     agent_status, context.agent = wait_until_expected_agent_status(token, context.agent['id'], status, timeout=timeout)
@@ -100,6 +100,23 @@ def check_agent_online(context, status, seconds):
     assert_that(agent_status, is_(equal_to(status)),
                 f"Agent did not get '{status}' after {str(timeout)} seconds, but was '{agent_status}'."
                 f"\n Agent: {context.agent}. \nAgent logs: {logs}")
+
+
+@then('the agent status in Orb should be {status} after {seconds} seconds')
+def check_agent_status_after_seconds(context, status, seconds):
+    event = threading.Event()
+    event.wait(int(seconds))
+    event.set()
+    if event.is_set() is True:
+        token = context.token
+        agent_status, context.agent = wait_until_expected_agent_status(token, context.agent['id'], status, timeout=120)
+        try:
+            logs = get_orb_agent_logs(context.container_id)
+        except Exception as e:
+            logs = e
+        assert_that(agent_status, is_(equal_to(status)),
+                    f"Agent did not get '{status}' after {str(seconds)} seconds, but was '{agent_status}'."
+                    f"\n Agent: {context.agent}. \nAgent logs: {logs}")
 
 
 @step('the agent status is {status}')
@@ -390,7 +407,8 @@ def provision_agent_using_config_file(context, input_type, settings, provision, 
         if "config_file" in kwargs['pkt_config'].keys():
             pkt_configs["config_file"] = kwargs['pkt_config']["config_file"]
     context.agent_file_name, tags_on_agent, context.tap, safe_config_file = \
-        create_agent_config_file(context.token, agent_name, interface, agent_tags, orb_url, base_orb_address, context.port,
+        create_agent_config_file(context.token, agent_name, interface, agent_tags, orb_url, base_orb_address,
+                                 context.port,
                                  context.agent_groups, tap_name, input_type, input_tags, auto_provision,
                                  orb_cloud_mqtt_id, orb_cloud_mqtt_key, orb_cloud_mqtt_channel_id, settings,
                                  overwrite_default, paste_only_file, pkt_configs['binary'], pkt_configs['config_file'])
