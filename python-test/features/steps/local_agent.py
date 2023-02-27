@@ -53,9 +53,12 @@ def run_local_agent_container(context, status_port, **kwargs):
         enable_otel = kwargs["enable_otel"]
     else:
         enable_otel = configs.get("enable_otel")
+    include_receiver_env_var = configs.get("include_receiver_env_var")
+    receiver_type = configs.get("receiver_type")
 
     env_vars = create_agent_env_vars_set(context.agent['id'], context.agent['channel_id'], context.agent_key,
-                                         verify_ssl, use_orb_live_address_pattern, include_otel_env_var, enable_otel)
+                                         verify_ssl, use_orb_live_address_pattern, include_otel_env_var, enable_otel,
+                                         include_receiver_env_var, receiver_type)
     env_vars.update(kwargs)
     assert_that(status_port, any_of(equal_to("available"), equal_to("unavailable")), "Unexpected value for port")
     availability = {"available": True, "unavailable": False}
@@ -169,9 +172,12 @@ def run_container_using_ui_command(context, status_port):
     include_otel_env_var = configs.get("include_otel_env_var")
     enable_otel = configs.get("enable_otel")
     verify_ssl = configs.get("verify_ssl")
+    include_receiver_env_var = configs.get("include_receiver_env_var")
+    receiver_type = configs.get("receiver_type")
     context.container_id = run_local_agent_from_terminal(context.agent_provisioning_command,
                                                          verify_ssl, str(context.port),
-                                                         include_otel_env_var, enable_otel)
+                                                         include_otel_env_var, enable_otel, include_receiver_env_var,
+                                                         receiver_type)
     assert_that(context.container_id, is_not((none())), f"Agent container was not run")
     rename_container(context.container_id, LOCAL_AGENT_CONTAINER_NAME + context.agent['name'][-5:])
     if context.container_id not in context.containers_id.keys():
@@ -217,7 +223,7 @@ def remove_all_orb_agent_test_containers(context):
 
 
 def create_agent_env_vars_set(agent_id, agent_channel_id, agent_mqtt_key, verify_ssl,
-                              use_orb_live_address_pattern, include_otel_env_var, enable_otel):
+                              use_orb_live_address_pattern, include_otel_env_var, enable_otel, include_receiver_env_var, receiver_type):
     """
     Create the set of environmental variables to be passed to the agent
     :param agent_id: id of the agent
@@ -228,6 +234,8 @@ def create_agent_env_vars_set(agent_id, agent_channel_id, agent_mqtt_key, verify
                                               if false sets api and mqtt address.
     :param include_otel_env_var: If true, use the environmental variable "ORB_OTEL_ENABLE" on agent provisioning command
     :param enable_otel: Value to be used in variable "ORB_OTEL_ENABLE"
+    :param include_receiver_env_var: If true,  use the environmental variable "ORB_OTEL_RECEIVER_TYPE" on agent provisioning command
+    :param receiver_type: Value to be used in variable "ORB_OTEL_RECEIVER_TYPE"
     :return: set of environmental variables
     """
     orb_address = configs.get('orb_address')
@@ -248,6 +256,8 @@ def create_agent_env_vars_set(agent_id, agent_channel_id, agent_mqtt_key, verify
         env_vars["ORB_TLS_VERIFY"] = "false"
     if include_otel_env_var == "true":
         env_vars["ORB_OTEL_ENABLE"] = enable_otel
+    if include_receiver_env_var == "true":
+        env_vars["ORB_OTEL_RECEIVER_TYPE"] = receiver_type
     return env_vars
 
 
@@ -335,12 +345,17 @@ def check_logs_contain_log(logs, expected_log, event, start_time=0):
 
 
 def run_local_agent_from_terminal(command, verify_ssl, pktvisor_port,
-                                  include_otel_env_var="false", enable_otel="false"):
+                                  include_otel_env_var="false", enable_otel="false", include_receiver_env_var="false", receiver_type="false"):
     """
     :param (str) command: docker command to provision an agent
     :param (bool) verify_ssl: False if orb address doesn't have a valid certificate.
     :param (str or int) pktvisor_port: Port on which pktvisor should run
-    :param (str): if 'true', ORB_OTEL_ENABLE env ver is included on command provisioning of the agent
+    :param (str) include_otel_env_var: if 'true', ORB_OTEL_ENABLE env ver is included on command provisioning of the
+    agent
+    :param (str) enable_otel: Value to be used in variable "ORB_OTEL_ENABLE"
+    :param (str) include_receiver_env_var:  if 'true', ORB_OTEL_RECEIVER_TYPE env ver is included on command
+    provisioning of the agent
+    :param (str) receiver_type: Value to be used in variable "ORB_OTEL_RECEIVER_TYPE"
     :return: agent container ID
     """
     command = command.replace("\\\n", " ")
@@ -350,6 +365,8 @@ def run_local_agent_from_terminal(command, verify_ssl, pktvisor_port,
         args.insert(-1, "ORB_TLS_VERIFY=false")
     if include_otel_env_var == "true":
         args.insert(-1, f"ORB_OTEL_ENABLE={enable_otel}")
+    if include_receiver_env_var == "true":
+        args.insert(-1, f"ORB_OTEL_RECEIVER_TYPE={receiver_type}")
     if pktvisor_port != 'default':
         args.insert(-1, "-e")
         args.insert(-1, f"ORB_BACKENDS_PKTVISOR_API_PORT={pktvisor_port}")

@@ -88,5 +88,10 @@ def _read_configs():
     if include_otel_env_var == "false" and enable_otel == "true":
         raise ValueError("'enable_otel' is enabled, but the variable is not being included in the commands because of "
                          "'include_otel_env_var' is false. Check your parameters.")
+    include_receiver_env_var = configs.get("include_receiver_env_var", "false").lower()
+    receiver_type = configs.get("receiver_type", "prometheus").lower()
+    assert_that(receiver_type, any_of("otlp", "prometheus"), "Invalid value for 'receiver_type' parameter.")
+    configs['include_receiver_env_var'] = include_receiver_env_var
+    configs['receiver_type'] = receiver_type
 
     return configs

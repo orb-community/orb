@@ -46,12 +46,14 @@ def check_if_agents_exist(context, orb_tags, status):
                                                  f"Agent logs: {get_orb_agent_logs(context.container_id)}."
                                                  f"\nLogs: {logs}")
 
+
 # this step is only necessary for OTEL migration tests, so we can exclude it after the migration
-@given("that an agent with {orb_tags} orb tag(s) and OTEL {otel_type} already exists and is {status} within {timeout} seconds")
-def check_if_agents_exist(context, orb_tags, otel_type, status, timeout):
+@given("that an agent with {orb_tags} orb tag(s) and OTEL {otel_type} already exists and is {status} within {timeout} "
+       "seconds")
+def check_if_agents_exist_migration(context, orb_tags, otel_type, status, timeout):
     timeout = int(timeout)
     assert_that(otel_type, any_of("enabled", "disabled"), "Invalid otel type")
-    otel_map = {"enabled":"true", "disabled":"false"}
+    otel_map = {"enabled": "true", "disabled": "false"}
     context.agent_name = generate_random_string_with_predefined_prefix(agent_name_prefix)
     context.orb_tags = create_tags_set(orb_tags)
     context.agent = create_agent(context.token, context.agent_name, context.orb_tags)
@@ -390,7 +392,8 @@ def provision_agent_using_config_file(context, input_type, settings, provision, 
         if "config_file" in kwargs['pkt_config'].keys():
             pkt_configs["config_file"] = kwargs['pkt_config']["config_file"]
     context.agent_file_name, tags_on_agent, context.tap, safe_config_file = \
-        create_agent_config_file(context.token, agent_name, interface, agent_tags, orb_url, base_orb_address, context.port,
+        create_agent_config_file(context.token, agent_name, interface, agent_tags, orb_url, base_orb_address,
+                                 context.port,
                                  context.agent_groups, tap_name, input_type, input_tags, auto_provision,
                                  orb_cloud_mqtt_id, orb_cloud_mqtt_key, orb_cloud_mqtt_channel_id, settings,
                                  overwrite_default, paste_only_file, pkt_configs['binary'], pkt_configs['config_file'])
