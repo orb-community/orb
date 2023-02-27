@@ -24,12 +24,11 @@ const (
 )
 
 type addReq struct {
-	Name        string         `json:"name,omitempty"`
-	Backend     string         `json:"backend,omitempty"`
-	Config      types.Metadata `json:"config,omitempty"`
-	ConfigYaml  *string        `json:"configYaml,omitempty"`
-	Description string         `json:"description,omitempty"`
-	Tags        types.Tags     `json:"tags,omitempty"`
+	Name        string         `json:"name,omitempty" yaml:"name,omitempty"`
+	Backend     string         `json:"backend" yaml:"backend"`
+	Config      types.Metadata `json:"config" yaml:"config"`
+	Description string         `json:"description" yaml:"description"`
+	Tags        *types.Tags    `json:"tags,omitempty" yaml:"tags,omitempty"`
 	token       string
 }
 
@@ -38,7 +37,7 @@ func (req addReq) validate() error {
 		return errors.ErrUnauthorizedAccess
 	}
 
-	if req.Config == nil && req.ConfigYaml == nil {
+	if req.Config == nil {
 		return errors.ErrMalformedEntity
 	}
 
@@ -59,11 +58,10 @@ func (req addReq) validate() error {
 }
 
 type updateSinkReq struct {
-	Name        string         `json:"name"`
-	Config      types.Metadata `json:"config,omitempty"`
-	Description *string        `json:"description,omitempty"`
-	Tags        types.Tags     `json:"tags,omitempty"`
-	ConfigYaml  *string        `json:"configYaml,omitempty"`
+	Name        string          `json:"name" yaml:"name"`
+	Config      *types.Metadata `json:"config,omitempty" yaml:"config,omitempty"`
+	Description *string         `json:"description,omitempty" yaml:"description,omitempty"`
+	Tags        *types.Tags     `json:"tags,omitempty" yaml:"tags,omitempty"`
 	id          string
 	token       string
 }
@@ -77,7 +75,7 @@ func (req updateSinkReq) validate() error {
 		return errors.ErrMalformedEntity
 	}
 
-	if req.Description == nil && req.Name == "" && len(req.Config) == 0 && req.Tags == nil {
+	if req.Description == nil && req.Name == "" && len(*req.Config) == 0 && req.Tags == nil {
 		return errors.ErrMalformedEntity
 	}
 

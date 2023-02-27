@@ -181,14 +181,20 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/SinkCreateReqSchema"
+            $ref: "#/components/schemas/SinkCreateReqSchemaJson"
+        application/x-yml:
+          schema:
+            $ref: "#/components/schemas/SinkCreateReqSchemaYaml"
     SinkUpdateReq:
       description: JSON-formatted document describing the updated Sink configuration
       required: true
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/SinkUpdateReqSchema"
+            $ref: "#/components/schemas/SinkUpdateReqSchemaJson"
+        application/x-yml:
+          schema:
+            $ref: "#/components/schemas/SinkUpdateReqSchemaYaml"
   parameters:
     Name:
       name: name
@@ -297,7 +303,7 @@ components:
           schema:
             $ref: "#/components/schemas/SinkBackendObjSchema"
   schemas:
-    SinkUpdateReqSchema:
+    SinkUpdateReqSchemaJson:
       type: object
       properties:
         name:
@@ -320,14 +326,30 @@ components:
             username: dbuser
           description:
             Object representing backend specific configuration information
-        configYaml:
+    SinkUpdateReqSchemaYaml:
+      type: object
+      properties:
+        name:
           type: string
+          description: A unique name label
+          example: my-prom-sink
+        description:
+          type: string
+          description: User description of this Sink
+          example: An example prometheus sink
+        tags:
+          type: object
+          description: User defined key/values for organization and searching
           example:
-            "remote_host: my.prometheus-host.com
+            cloud: aws
+        config:
+          type: object
+          example:
+            remote_host: my.prometheus-host.com
             username: dbuser
-            password: secr3tp@ss`"
-          description: YAML representing Sink Configuration, for backend specific configuration information
-    SinkCreateReqSchema:
+          description:
+            Object representing backend specific configuration information
+    SinkCreateReqSchemaJson:
       type: object
       required:
         - name
@@ -356,13 +378,35 @@ components:
             remote_host: my.prometheus-host.com
             username: dbuser
           description: Object representing backend specific configuration information
-        configYaml:
+    SinkCreateReqSchemaYaml:
+      type: object
+      required:
+        - name
+        - backend
+      properties:
+        name:
           type: string
+          description: A unique name label
+          example: my-prom-sink
+        description:
+          type: string
+          description: User description of this Sink
+          example: An example prometheus sink
+        tags:
+          type: object
+          description: User defined key/values for organization and searching
           example:
-            "remote_host: my.prometheus-host.com
+            cloud: aws
+        backend:
+          type: string
+          example: prometheus
+          description: The sink backend to use. Must match a backend from /features/sinks. Cannot change once created.
+        config:
+          type: object
+          example:
+            remote_host: my.prometheus-host.com
             username: dbuser
-            password: secr3tp@ss`"
-          description: YAML representing Sink Configuration, for backend specific configuration information
+          description: Object representing backend specific configuration information
     SinkPageSchema:
       type: object
       properties:

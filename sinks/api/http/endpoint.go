@@ -44,22 +44,12 @@ func addEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 		if err != nil {
 			return nil, err
 		}
-		var config types.Metadata
-		if req.ConfigYaml != nil {
-			sinkBE := backend.GetBackend(req.Backend)
-			config, err = sinkBE.ParseConfigFromYaml(*req.ConfigYaml)
-			if err != nil {
-				return nil, err
-			}
-		} else if req.Config != nil {
-			config = req.Config
-		}
 		sink := sinks.Sink{
 			Name:        nID,
 			Backend:     req.Backend,
-			Config:      config,
+			Config:      req.Config,
 			Description: &req.Description,
-			Tags:        req.Tags,
+			Tags:        *req.Tags,
 		}
 		saved, err := svc.CreateSink(ctx, req.token, sink)
 		if err != nil {
@@ -89,24 +79,10 @@ func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 		if err := req.validate(); err != nil {
 			return nil, err
 		}
-		previousSink, err := svc.ViewSink(ctx, req.token, req.id)
-		if err != nil {
-			return nil, err
-		}
-		var config types.Metadata
-		if req.ConfigYaml != nil {
-			sinkBE := backend.GetBackend(previousSink.Backend)
-			config, err = sinkBE.ParseConfigFromYaml(*req.ConfigYaml)
-			if err != nil {
-				return nil, err
-			}
-		} else if req.Config != nil {
-			config = req.Config
-		}
 		sink := sinks.Sink{
 			ID:          req.id,
-			Tags:        req.Tags,
-			Config:      config,
+			Tags:        *req.Tags,
+			Config:      *req.Config,
 			Description: req.Description,
 		}
 

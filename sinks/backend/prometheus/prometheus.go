@@ -9,7 +9,6 @@ import (
 	"github.com/orb-community/orb/sinks/backend"
 	"golang.org/x/exp/maps"
 	"gopkg.in/errgo.v2/errors"
-	"gopkg.in/yaml.v3"
 	"io"
 	"net/url"
 )
@@ -68,24 +67,6 @@ func Register() bool {
 	backend.Register("prometheus", &prometheusBackend{})
 
 	return true
-}
-
-func (p *prometheusBackend) ParseConfigFromYaml(configAsYaml string) (configReturn types.Metadata, err error) {
-	// Parse the YAML data into a Config struct
-	var configUtil configParseUtility
-	err = yaml.Unmarshal([]byte(configAsYaml), &configUtil)
-	if err != nil {
-		return nil, errors.New("failed to parse config YAML")
-	}
-	// Check for Token Auth
-	configReturn[RemoteHostURLConfigFeature] = configUtil.RemoteHost
-	if configUtil.APIToken != nil {
-		configReturn[ApiTokenConfigFeature] = configUtil.APIToken
-	} else {
-		configReturn[UsernameConfigFeature] = configUtil.Username
-		configReturn[PasswordConfigFeature] = configUtil.Password
-	}
-	return
 }
 
 func (p *prometheusBackend) ValidateConfiguration(config types.Metadata) error {
