@@ -3,12 +3,12 @@ package policies
 import (
 	"context"
 	"github.com/mainflux/mainflux"
-	fleetpb "github.com/ns1labs/orb/fleet/pb"
-	"github.com/ns1labs/orb/pkg/errors"
-	"github.com/ns1labs/orb/pkg/types"
-	"github.com/ns1labs/orb/policies/backend/orb"
-	"github.com/ns1labs/orb/policies/backend/pktvisor"
-	sinkpb "github.com/ns1labs/orb/sinks/pb"
+	fleetpb "github.com/orb-community/orb/fleet/pb"
+	"github.com/orb-community/orb/pkg/errors"
+	"github.com/orb-community/orb/pkg/types"
+	"github.com/orb-community/orb/policies/backend/orb"
+	"github.com/orb-community/orb/policies/backend/pktvisor"
+	sinkpb "github.com/orb-community/orb/sinks/pb"
 	"go.uber.org/zap"
 	"time"
 )

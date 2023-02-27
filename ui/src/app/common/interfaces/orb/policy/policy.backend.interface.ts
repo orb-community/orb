@@ -1,7 +1,7 @@
 /**
  * Agent Policy / Backend Interface
  *
- * [Policies Architecture]{@link https://github.com/ns1labs/orb/wiki/Architecture:-Policies-and-Datasets}
+ * [Policies Architecture]{@link https://github.com/orb-community/orb/wiki/Architecture:-Policies-and-Datasets}
  */
 
 /**
@@ -23,4 +23,3 @@ export interface PolicyBackend {
    */
   schema_version?: string;
 }
-

@@ -15,10 +15,10 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
-	"github.com/ns1labs/orb/pkg/errors"
-	"github.com/ns1labs/orb/pkg/types"
-	"github.com/ns1labs/orb/policies"
-	"github.com/ns1labs/orb/policies/postgres"
+	"github.com/orb-community/orb/pkg/errors"
+	"github.com/orb-community/orb/pkg/types"
+	"github.com/orb-community/orb/policies"
+	"github.com/orb-community/orb/policies/postgres"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

@@ -10,7 +10,7 @@ package mocks
 
 import (
 	"context"
-	"github.com/ns1labs/orb/sinks/pb"
+	"github.com/orb-community/orb/sinks/pb"
 	"google.golang.org/grpc"
 )
 

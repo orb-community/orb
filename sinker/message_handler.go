@@ -11,14 +11,14 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/mainflux/mainflux/pkg/messaging"
-	"github.com/ns1labs/orb/fleet"
-	"github.com/ns1labs/orb/fleet/pb"
-	"github.com/ns1labs/orb/pkg/types"
-	pb2 "github.com/ns1labs/orb/policies/pb"
-	"github.com/ns1labs/orb/sinker/backend"
-	"github.com/ns1labs/orb/sinker/config"
-	"github.com/ns1labs/orb/sinker/prometheus"
-	pb3 "github.com/ns1labs/orb/sinks/pb"
+	"github.com/orb-community/orb/fleet"
+	"github.com/orb-community/orb/fleet/pb"
+	"github.com/orb-community/orb/pkg/types"
+	pb2 "github.com/orb-community/orb/policies/pb"
+	"github.com/orb-community/orb/sinker/backend"
+	"github.com/orb-community/orb/sinker/config"
+	"github.com/orb-community/orb/sinker/prometheus"
+	pb3 "github.com/orb-community/orb/sinks/pb"
 	"go.uber.org/zap"
 )
 

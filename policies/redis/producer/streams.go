@@ -12,9 +12,9 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-redis/redis/v8"
-	"github.com/ns1labs/orb/pkg/errors"
-	"github.com/ns1labs/orb/policies"
-	"github.com/ns1labs/orb/policies/backend"
+	"github.com/orb-community/orb/pkg/errors"
+	"github.com/orb-community/orb/policies"
+	"github.com/orb-community/orb/policies/backend"
 	"go.uber.org/zap"
 	"strings"
 )

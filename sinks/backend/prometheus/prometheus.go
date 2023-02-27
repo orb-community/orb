@@ -5,8 +5,8 @@
 package prometheus
 
 import (
-	"github.com/ns1labs/orb/pkg/types"
-	"github.com/ns1labs/orb/sinks/backend"
+	"github.com/orb-community/orb/pkg/types"
+	"github.com/orb-community/orb/sinks/backend"
 	"golang.org/x/exp/maps"
 	"gopkg.in/errgo.v2/errors"
 	"gopkg.in/yaml.v3"
@@ -66,6 +66,7 @@ func (p *prometheusBackend) request(url string, payload interface{}, method stri
 
 func Register() bool {
 	backend.Register("prometheus", &prometheusBackend{})
+
 	return true
 }
 

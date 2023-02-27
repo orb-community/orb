@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/ns1labs/orb/agent/policies"
+	"github.com/orb-community/orb/agent/policies"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 )
@@ -49,7 +49,7 @@ func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData, updatePolicy boo
 		return err
 	}
 
-	if p.scrapeOtel {
+	if p.scrapeOtel && p.otelReceiverType == Prometheus {
 		exeCtx, execCancelF := context.WithCancel(p.ctx)
 		p.addScraperProcess(exeCtx, execCancelF, data.ID, data.Name)
 	}
@@ -62,6 +62,7 @@ func (p *pktvisorBackend) RemovePolicy(data policies.PolicyData) error {
 	p.logger.Debug("pktvisor policy remove", zap.String("policy_id", data.ID))
 	var resp interface{}
 	var name string
+	// Since we use Name for removing policies not IDs, if there is a change, we need to remove the previous name of the policy
 	if data.PreviousPolicyData != nil && data.PreviousPolicyData.Name != data.Name {
 		name = data.PreviousPolicyData.Name
 	} else {
@@ -71,7 +72,7 @@ func (p *pktvisorBackend) RemovePolicy(data policies.PolicyData) error {
 	if err != nil {
 		return err
 	}
-	if p.scrapeOtel {
+	if p.scrapeOtel && p.otelReceiverType == Prometheus {
 		p.killScraperProcess(data.ID)
 	}
 	return nil

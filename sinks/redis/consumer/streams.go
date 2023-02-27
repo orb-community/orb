@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/ns1labs/orb/sinks"
+	"github.com/orb-community/orb/sinks"
 	"go.uber.org/zap"
 )
 

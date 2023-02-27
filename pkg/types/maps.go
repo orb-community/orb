@@ -6,7 +6,7 @@ package types
 
 import (
 	"encoding/json"
-	"github.com/ns1labs/orb/pkg/errors"
+	"github.com/orb-community/orb/pkg/errors"
 )
 
 // Tags A flat kv pair object

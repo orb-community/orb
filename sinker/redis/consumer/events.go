@@ -11,7 +11,7 @@ package consumer
 import (
 	"time"
 
-	"github.com/ns1labs/orb/pkg/types"
+	"github.com/orb-community/orb/pkg/types"
 )
 
 type updateSinkEvent struct {

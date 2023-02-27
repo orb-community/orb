@@ -8,9 +8,9 @@ import (
 	"context"
 	"github.com/go-kit/kit/metrics"
 	"github.com/mainflux/mainflux"
-	"github.com/ns1labs/orb/pkg/errors"
-	"github.com/ns1labs/orb/sinks"
-	"github.com/ns1labs/orb/sinks/backend"
+	"github.com/orb-community/orb/pkg/errors"
+	"github.com/orb-community/orb/sinks"
+	"github.com/orb-community/orb/sinks/backend"
 	"time"
 )
 
