@@ -9,11 +9,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ns1labs/orb/maestro/kubecontrol"
-	rediscons1 "github.com/ns1labs/orb/maestro/redis/consumer"
+	"github.com/orb-community/orb/maestro/kubecontrol"
+	rediscons1 "github.com/orb-community/orb/maestro/redis/consumer"
 
-	maestroconfig "github.com/ns1labs/orb/maestro/config"
-	sinkspb "github.com/ns1labs/orb/sinks/pb"
+	maestroconfig "github.com/orb-community/orb/maestro/config"
+	sinkspb "github.com/orb-community/orb/sinks/pb"
 	"go.uber.org/zap"
 	k8scorev1 "k8s.io/api/core/v1"
 	k8smetav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

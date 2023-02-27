@@ -19,7 +19,7 @@ import (
 	"crypto/sha512"
 	"fmt"
 
-	"github.com/ns1labs/orb/sinker/otel/kafkafanoutexporter/internal/awsmsk"
+	"github.com/orb-community/orb/sinker/otel/kafkafanoutexporter/internal/awsmsk"
 
 	"github.com/Shopify/sarama"
 	"go.opentelemetry.io/collector/config/configtls"

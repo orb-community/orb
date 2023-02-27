@@ -11,7 +11,7 @@ package grpc
 import (
 	"context"
 	"encoding/json"
-	"github.com/ns1labs/orb/policies"
+	"github.com/orb-community/orb/policies"
 
 	"github.com/go-kit/kit/endpoint"
 )

@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/ns1labs/orb/sinker/config"
+	"github.com/orb-community/orb/sinker/config"
 	"go.uber.org/zap"
 )
 

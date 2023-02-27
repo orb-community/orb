@@ -11,15 +11,15 @@ package maestro
 import (
 	"context"
 	"encoding/json"
-	"github.com/ns1labs/orb/maestro/monitor"
+	"github.com/orb-community/orb/maestro/monitor"
 	"strings"
 
 	"github.com/go-redis/redis/v8"
-	maestroconfig "github.com/ns1labs/orb/maestro/config"
-	"github.com/ns1labs/orb/maestro/kubecontrol"
-	rediscons1 "github.com/ns1labs/orb/maestro/redis/consumer"
-	"github.com/ns1labs/orb/pkg/config"
-	sinkspb "github.com/ns1labs/orb/sinks/pb"
+	maestroconfig "github.com/orb-community/orb/maestro/config"
+	"github.com/orb-community/orb/maestro/kubecontrol"
+	rediscons1 "github.com/orb-community/orb/maestro/redis/consumer"
+	"github.com/orb-community/orb/pkg/config"
+	sinkspb "github.com/orb-community/orb/sinks/pb"
 	"go.uber.org/zap"
 )
 

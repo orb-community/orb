@@ -7,8 +7,8 @@ package mocks
 import (
 	"context"
 	"github.com/gofrs/uuid"
-	"github.com/ns1labs/orb/pkg/errors"
-	"github.com/ns1labs/orb/policies"
+	"github.com/orb-community/orb/pkg/errors"
+	"github.com/orb-community/orb/policies"
 )
 
 var _ policies.Repository = (*mockPoliciesRepository)(nil)

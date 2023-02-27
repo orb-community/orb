@@ -11,9 +11,9 @@ package http
 import (
 	"context"
 	"github.com/go-kit/kit/endpoint"
-	"github.com/ns1labs/orb/fleet"
-	"github.com/ns1labs/orb/pkg/errors"
-	"github.com/ns1labs/orb/pkg/types"
+	"github.com/orb-community/orb/fleet"
+	"github.com/orb-community/orb/pkg/errors"
+	"github.com/orb-community/orb/pkg/types"
 )
 
 func addAgentGroupEndpoint(svc fleet.Service) endpoint.Endpoint {

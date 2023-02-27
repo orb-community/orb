@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/ns1labs/orb/agent/policies"
+	"github.com/orb-community/orb/agent/policies"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 )

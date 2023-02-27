@@ -6,8 +6,8 @@ package orb
 
 import (
 	"errors"
-	"github.com/ns1labs/orb/pkg/types"
-	"github.com/ns1labs/orb/policies/backend"
+	"github.com/orb-community/orb/pkg/types"
+	"github.com/orb-community/orb/policies/backend"
 )
 
 var _ backend.Backend = (*orbBackend)(nil)

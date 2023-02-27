@@ -19,16 +19,16 @@ import (
 	"syscall"
 	"time"
 
-	sinksgrpc "github.com/ns1labs/orb/sinks/api/grpc"
 	"github.com/opentracing/opentracing-go"
+	sinksgrpc "github.com/orb-community/orb/sinks/api/grpc"
 	"github.com/spf13/viper"
 	jconfig "github.com/uber/jaeger-client-go/config"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/ns1labs/orb/maestro"
-	"github.com/ns1labs/orb/pkg/config"
+	"github.com/orb-community/orb/maestro"
+	"github.com/orb-community/orb/pkg/config"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 

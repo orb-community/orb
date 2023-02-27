@@ -5,9 +5,9 @@ import (
 	"sort"
 	"time"
 
-	fleetpb "github.com/ns1labs/orb/fleet/pb"
-	policiespb "github.com/ns1labs/orb/policies/pb"
-	"github.com/ns1labs/orb/sinker/config"
+	fleetpb "github.com/orb-community/orb/fleet/pb"
+	policiespb "github.com/orb-community/orb/policies/pb"
+	"github.com/orb-community/orb/sinker/config"
 	"go.uber.org/zap"
 )
 
