@@ -8,8 +8,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/ns1labs/orb/buildinfo"
-	"github.com/ns1labs/orb/fleet"
+	"github.com/orb-community/orb/buildinfo"
+	"github.com/orb-community/orb/fleet"
 	"go.uber.org/zap"
 	"time"
 )

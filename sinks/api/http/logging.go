@@ -6,8 +6,8 @@ package http
 
 import (
 	"context"
-	"github.com/ns1labs/orb/sinks"
-	"github.com/ns1labs/orb/sinks/backend"
+	"github.com/orb-community/orb/sinks"
+	"github.com/orb-community/orb/sinks/backend"
 	"go.uber.org/zap"
 	"time"
 )

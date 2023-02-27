@@ -3,15 +3,18 @@
 function validateParams() {
   echo "========================= Checking parameters ========================="
   [[ -z $INPUT_GO_REPORT_THRESHOLD ]] && echo "Threshold of failure is required" && exit 1 echo " Threshold of failure present"
+  [[ -z $INPUT_GITHUB_TOKEN ]] && echo "GITHUB TOKEN is required" && exit 1 echo " GITHUB TOKEN present"
+  [[ -z $INPUT_GITHUB_OWNER ]] && echo "GITHUB OWNER is required" && exit 1 echo " GITHUB OWNER present"
+  [[ -z $INPUT_GITHUB_REPO ]] && echo "GITHUB REPO is required" && exit 1 echo " GITHUB REPO present"
+
 }
 
 function setup() {
-  echo "========================= Installing Go Report Card ========================="
+  echo "========================= Installing Go Metalinter ========================="
   validateParams
   cd /tmp
-  go get github.com/alecthomas/gometalinter
-  gometalinter --install --update
-  go get github.com/gojp/goreportcard/cmd/goreportcard-cli
+  curl -L https://git.io/vp6lP | sh
+  gometalinter --no-vendored-linters
 }
 
 function run() {
@@ -41,15 +44,20 @@ function test() {
 
 function comment() {
   echo "========================= Adding Comment To PR ========================="
-  export GITHUB_PR_ISSUE_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
-  cat ./go-report.txt | /github-commenter \
-    -token "${GITHUB_TOKEN}" \
-    -type pr \
-    -owner ${GITHUB_OWNER} \
-    -repo ${GITHUB_REPO} \
-    -number ${GITHUB_PR_ISSUE_NUMBER} \
-    -template_file ./build/ci/go-report-comment-template
-
+  re='^[0-9]+$'
+  GITHUB_PR_ISSUE_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
+  echo $GITHUB_PR_ISSUE_NUMBER
+  if [[ $GITHUB_PR_ISSUE_NUMBER =~ $re ]]; then
+    cat ./go-report.txt | /github-commenter \
+      -token "${INPUT_GITHUB_TOKEN}" \
+      -type pr \
+      -owner ${INPUT_GITHUB_OWNER} \
+      -repo ${INPUT_GITHUB_REPO} \
+      -number ${GITHUB_PR_ISSUE_NUMBER} \
+      -template_file ./.github/ci/go-report-comment-template
+  else
+    echo "this is not a pr, nothing to comment"
+  fi
 }
 
 setup

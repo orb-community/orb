@@ -1,8 +1,8 @@
 /**
  * Agent Policy / Tap Config Interface
  *
- * [Policies Architecture]{@link https://github.com/ns1labs/orb/wiki/Architecture:-Policies-and-Datasets}
- * [Agent Taps](https://github.com/ns1labs/pktvisor/blob/develop/RFCs/2021-04-16-75-taps.md)
+ * [Policies Architecture]{@link https://github.com/orb-community/orb/wiki/Architecture:-Policies-and-Datasets}
+ * [Agent Taps](https://github.com/orb-community/pktvisor/blob/develop/RFCs/2021-04-16-75-taps.md)
  */
 
 /**
@@ -51,4 +51,3 @@ export interface PolicyTap {
    */
   filter_predefined?: { [propName: string]: string | number | boolean | any };
 }
-

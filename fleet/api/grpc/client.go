@@ -13,8 +13,8 @@ import (
 	"github.com/go-kit/kit/endpoint"
 	kitot "github.com/go-kit/kit/tracing/opentracing"
 	kitgrpc "github.com/go-kit/kit/transport/grpc"
-	"github.com/ns1labs/orb/fleet/pb"
 	"github.com/opentracing/opentracing-go"
+	"github.com/orb-community/orb/fleet/pb"
 	"google.golang.org/grpc"
 	"time"
 )

@@ -9,11 +9,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ns1labs/orb/sinker/redis/producer"
+	"github.com/orb-community/orb/sinker/redis/producer"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/ns1labs/orb/sinker"
-	sinkerconfig "github.com/ns1labs/orb/sinker/config"
+	"github.com/orb-community/orb/sinker"
+	sinkerconfig "github.com/orb-community/orb/sinker/config"
 	"go.uber.org/zap"
 )
 

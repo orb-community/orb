@@ -12,9 +12,9 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-kit/kit/endpoint"
-	"github.com/ns1labs/orb/pkg/errors"
-	"github.com/ns1labs/orb/pkg/types"
-	"github.com/ns1labs/orb/policies"
+	"github.com/orb-community/orb/pkg/errors"
+	"github.com/orb-community/orb/pkg/types"
+	"github.com/orb-community/orb/policies"
 )
 
 func addPolicyEndpoint(svc policies.Service) endpoint.Endpoint {

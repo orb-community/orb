@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/ns1labs/orb/pkg/types"
+	"github.com/orb-community/orb/pkg/types"
 )
 
 type Maestro struct {

@@ -12,11 +12,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ns1labs/orb/agent/otel"
+	"github.com/orb-community/orb/agent/otel"
 
-	"github.com/ns1labs/orb/agent/otel/otlpmqttexporter"
-	"github.com/ns1labs/orb/agent/otel/pktvisorreceiver"
-	"github.com/ns1labs/orb/fleet"
+	"github.com/orb-community/orb/agent/otel/otlpmqttexporter"
+	"github.com/orb-community/orb/agent/otel/pktvisorreceiver"
+	"github.com/orb-community/orb/fleet"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.uber.org/zap"
