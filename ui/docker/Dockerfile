@@ -1,5 +1,5 @@
 # Stage 0, based on orb-ui-module, to build and compile Angular
-FROM orb-community/orb-ui-modules as built-module
+FROM ns1labs/orb-ui-modules as built-module
 
 # ARG variables which direct the UI build
 # can be overwritten with --build-arg docker flag
