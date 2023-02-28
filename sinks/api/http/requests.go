@@ -9,9 +9,9 @@
 package http
 
 import (
-	"github.com/ns1labs/orb/pkg/errors"
-	"github.com/ns1labs/orb/pkg/types"
-	"github.com/ns1labs/orb/sinks"
+	"github.com/orb-community/orb/pkg/errors"
+	"github.com/orb-community/orb/pkg/types"
+	"github.com/orb-community/orb/sinks"
 )
 
 const (

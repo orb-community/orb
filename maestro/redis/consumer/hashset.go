@@ -10,10 +10,10 @@ import (
 
 	redis2 "github.com/go-redis/redis/v8"
 
-	"github.com/ns1labs/orb/maestro/config"
-	"github.com/ns1labs/orb/maestro/redis"
-	"github.com/ns1labs/orb/pkg/types"
-	sinkspb "github.com/ns1labs/orb/sinks/pb"
+	"github.com/orb-community/orb/maestro/config"
+	"github.com/orb-community/orb/maestro/redis"
+	"github.com/orb-community/orb/pkg/types"
+	sinkspb "github.com/orb-community/orb/sinks/pb"
 	"go.uber.org/zap"
 )
 

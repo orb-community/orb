@@ -12,12 +12,13 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ns1labs/orb/agent/otel"
+	"github.com/orb-community/orb/agent/otel"
 
-	"github.com/ns1labs/orb/agent/otel/otlpmqttexporter"
-	"github.com/ns1labs/orb/agent/otel/pktvisorreceiver"
-	"github.com/ns1labs/orb/fleet"
+	"github.com/orb-community/orb/agent/otel/otlpmqttexporter"
+	"github.com/orb-community/orb/agent/otel/pktvisorreceiver"
+	"github.com/orb-community/orb/fleet"
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.uber.org/zap"
 )
 
@@ -156,9 +157,79 @@ func (p *pktvisorBackend) scrapeDefault() error {
 	return nil
 }
 
+func (p *pktvisorBackend) receiveOtlp() {
+	policyID := "__all"
+	policyName := "__all"
+	exeCtx, execCancelF := context.WithCancel(p.ctx)
+	exeCtx = context.WithValue(exeCtx, "policy_name", policyName)
+	exeCtx = context.WithValue(exeCtx, "policy_id", policyID)
+	exeCtx = context.WithValue(exeCtx, "all", true)
+	go func() {
+		defer execCancelF()
+		var err error
+		count := 0
+		for {
+			if p.mqttClient != nil {
+				p.exporter[policyID], err = p.createOtlpMqttExporter(exeCtx, execCancelF)
+				if err != nil {
+					p.logger.Error("failed to create a exporter", zap.Error(err))
+					return
+				}
+				pFactory := otlpreceiver.NewFactory()
+				cfg := pFactory.CreateDefaultConfig()
+				set := pktvisorreceiver.CreateDefaultSettings(p.logger)
+				p.receiver[policyID], err = pFactory.CreateMetricsReceiver(exeCtx, set, cfg, p.exporter[policyID])
+				if err != nil {
+					p.logger.Error("failed to create a receiver", zap.Error(err))
+					return
+				}
+
+				err = p.exporter[policyID].Start(exeCtx, nil)
+				if err != nil {
+					p.logger.Error("otel mqtt exporter startup error", zap.Error(err))
+					return
+				}
+
+				err = p.receiver[policyID].Start(exeCtx, nil)
+				if err != nil {
+					p.logger.Error("otel receiver startup error", zap.Error(err))
+					return
+				}
+				break
+			} else {
+				count++
+				p.logger.Info("waiting until mqtt client is connected try " + strconv.Itoa(count) + " from 10")
+				time.Sleep(time.Second * 3)
+				if count >= 10 {
+					execCancelF()
+					_ = p.Stop(exeCtx)
+					break
+				}
+			}
+		}
+		select {
+		case <-exeCtx.Done():
+			p.ctx.Done()
+			p.cancelFunc()
+		case <-p.ctx.Done():
+			err := p.exporter[policyID].Shutdown(exeCtx)
+			if err != nil {
+				return
+			}
+			err = p.receiver[policyID].Shutdown(exeCtx)
+			if err != nil {
+				return
+			}
+			p.logger.Info("stopped Orb OpenTelemetry agent collector")
+			return
+		}
+	}()
+}
+
 // Starts Orb OpenTelemetry Collector goroutine
 func (p *pktvisorBackend) scrapeOpenTelemetry(ctx context.Context) {
 	exeCtx, execCancelF := context.WithCancel(ctx)
+	exeCtx = context.WithValue(exeCtx, "all", false)
 	policyID := ctx.Value("policy_id").(string)
 	go func() {
 		defer execCancelF()
@@ -167,9 +238,8 @@ func (p *pktvisorBackend) scrapeOpenTelemetry(ctx context.Context) {
 		count := 0
 		if p.mqttClient != nil {
 			if !ok {
-				var errStartExp error
-				p.exporter[policyID], errStartExp = p.createOtlpMqttExporter(exeCtx, execCancelF)
-				if errStartExp != nil {
+				p.exporter[policyID], err = p.createOtlpMqttExporter(exeCtx, execCancelF)
+				if err != nil {
 					p.logger.Error("failed to create a exporter", zap.Error(err))
 					return
 				}

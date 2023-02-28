@@ -2,12 +2,12 @@ package migration
 
 import (
 	"context"
-	"github.com/ns1labs/orb/pkg/config"
-	"github.com/ns1labs/orb/pkg/db"
-	"github.com/ns1labs/orb/pkg/types"
-	"github.com/ns1labs/orb/sinks"
-	"github.com/ns1labs/orb/sinks/backend"
-	"github.com/ns1labs/orb/sinks/postgres"
+	"github.com/orb-community/orb/pkg/config"
+	"github.com/orb-community/orb/pkg/db"
+	"github.com/orb-community/orb/pkg/types"
+	"github.com/orb-community/orb/sinks"
+	"github.com/orb-community/orb/sinks/backend"
+	"github.com/orb-community/orb/sinks/postgres"
 	"go.uber.org/zap"
 )
 

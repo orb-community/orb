@@ -6,7 +6,7 @@ package http
 
 import (
 	"context"
-	"github.com/ns1labs/orb/policies"
+	"github.com/orb-community/orb/policies"
 	"go.uber.org/zap"
 	"time"
 )

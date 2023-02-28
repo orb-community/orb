@@ -1,0 +1,4 @@
+{{ $go_report_threshold := 90.1 }}
+Grade is below {{ $go_report_threshold }}% (Grade A+)
+Output from go report<br/>
+<pre>{{.}}</pre>

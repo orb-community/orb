@@ -1,7 +1,7 @@
 version: "1.0"
 
 # this section is used by pktvisor
-# see https://github.com/ns1labs/pktvisor/blob/develop/RFCs/2021-04-16-75-taps.md
+# see https://github.com/orb-community/pktvisor/blob/develop/RFCs/2021-04-16-75-taps.md
 visor:
   taps:
     mydefault:

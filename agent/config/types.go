@@ -36,7 +36,8 @@ type Cloud struct {
 }
 
 type Opentelemetry struct {
-	Enable bool `mapstructure:"enable"`
+	Enable       bool   `mapstructure:"enable"`
+	ReceiverType string `mapstructure:"receiver_type"`
 }
 
 type Debug struct {

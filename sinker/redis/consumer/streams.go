@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/ns1labs/orb/pkg/types"
-	"github.com/ns1labs/orb/sinker"
-	"github.com/ns1labs/orb/sinker/config"
+	"github.com/orb-community/orb/pkg/types"
+	"github.com/orb-community/orb/sinker"
+	"github.com/orb-community/orb/sinker/config"
 	"go.uber.org/zap"
 )
 

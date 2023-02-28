@@ -11,8 +11,8 @@ package postgres_test
 import (
 	"fmt"
 	"github.com/jmoiron/sqlx"
-	"github.com/ns1labs/orb/pkg/config"
-	"github.com/ns1labs/orb/policies/postgres"
+	"github.com/orb-community/orb/pkg/config"
+	"github.com/orb-community/orb/policies/postgres"
 	"go.uber.org/zap"
 	"log"
 	"os"

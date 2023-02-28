@@ -4,7 +4,7 @@
 
 package pktvisor
 
-import "github.com/ns1labs/orb/pkg/types"
+import "github.com/orb-community/orb/pkg/types"
 
 const CurrentSchemaVersion = "1.0"
 

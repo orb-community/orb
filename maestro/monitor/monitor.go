@@ -9,11 +9,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ns1labs/orb/maestro/kubecontrol"
-	rediscons1 "github.com/ns1labs/orb/maestro/redis/consumer"
+	"github.com/orb-community/orb/maestro/kubecontrol"
+	rediscons1 "github.com/orb-community/orb/maestro/redis/consumer"
 
-	maestroconfig "github.com/ns1labs/orb/maestro/config"
-	sinkspb "github.com/ns1labs/orb/sinks/pb"
+	maestroconfig "github.com/orb-community/orb/maestro/config"
+	sinkspb "github.com/orb-community/orb/sinks/pb"
 	"go.uber.org/zap"
 	k8scorev1 "k8s.io/api/core/v1"
 	k8smetav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -186,10 +186,10 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 		}
 		data.SinkID = sink.Id
 		data.OwnerID = sink.OwnerID
-		// only analyze logs if current status is active
+		// only analyze logs if current status is "active" or "warning"
 		var logsErr error
 		var status string
-		if sink.GetState() == "active" {
+		if sink.GetState() == "active" || sink.GetState() == "warning" {
 			logs, err := svc.getPodLogs(ctx, collector)
 			if err != nil {
 				svc.logger.Error("error on getting logs, skipping", zap.Error(err))
@@ -203,7 +203,8 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 		}
 		var lastActivity int64
 		var activityErr error
-		if status == "active" {
+		// if log analysis return active or warning we should check if have activity on collector
+		if status == "active" || status == "warning" {
 			lastActivity, activityErr = svc.eventStore.GetActivity(sink.Id)
 			// if logs reported 'active' status
 			// here we should check if LastActivity is up-to-date, otherwise we need to set sink as idle
@@ -266,11 +267,24 @@ func (svc *monitorService) analyzeLogs(logEntry []string) (status string, err er
 				errorMessage := "error: remote write returned HTTP status 404 Not Found"
 				return "error", errors.New(errorMessage)
 			}
-			if strings.Contains(logLine, "Permanent error: remote write returned HTTP status 429 Too Many Requests") {
+			if strings.Contains(logLine, "502 Bad Gateway") {
+				errorMessage := "error: remote write returned HTTP status 502 Bad Gateway"
+				return "error", errors.New(errorMessage)
+			}
+			if strings.Contains(logLine, "504 Gateway Timeout") {
+				errorMessage := "error: remote write returned HTTP status 504 Gateway Timeout"
+				return "error", errors.New(errorMessage)
+			}
+			// known warnings
+			if strings.Contains(logLine, "429 Too Many Requests") {
 				errorMessage := "error: remote write returned HTTP status 429 Too Many Requests"
 				return "warning", errors.New(errorMessage)
 			}
-			// other errors
+			if strings.Contains(logLine, "400 Bad Request") {
+				errorMessage := "error: remote write returned HTTP status 400 Bad Request"
+				return "warning", errors.New(errorMessage)
+			}		
+			// other generic errors
 			if strings.Contains(logLine, "error") {
 				errStringLog := strings.TrimRight(logLine, "error")
 				if len(errStringLog) > 4 {

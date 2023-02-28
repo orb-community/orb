@@ -2,7 +2,7 @@ package otel
 
 import (
 	"context"
-	"github.com/ns1labs/orb/agent/policies"
+	"github.com/orb-community/orb/agent/policies"
 	"strings"
 )
 

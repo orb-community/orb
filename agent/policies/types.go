@@ -11,17 +11,18 @@ import (
 )
 
 type PolicyData struct {
-	ID              string
-	Datasets        map[string]bool
-	GroupIds        map[string]bool
-	Name            string
-	Backend         string
-	Version         int32
-	Data            interface{}
-	State           PolicyState
-	BackendErr      string
-	LastScrapeBytes int64
-	LastScrapeTS    time.Time
+	ID                 string
+	Datasets           map[string]bool
+	GroupIds           map[string]bool
+	Name               string
+	Backend            string
+	Version            int32
+	Data               interface{}
+	State              PolicyState
+	BackendErr         string
+	LastScrapeBytes    int64
+	LastScrapeTS       time.Time
+	PreviousPolicyData *PolicyData
 }
 
 func (d *PolicyData) GetDatasetIDs() []string {

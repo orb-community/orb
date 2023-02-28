@@ -38,6 +38,7 @@ func TestCreateMetricsExporter(t *testing.T) {
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, "policy_name", "test")
 	ctx = context.WithValue(ctx, "policy_id", "test")
+	ctx = context.WithValue(ctx, "all", false)
 	oexp, err := factory.CreateMetricsExporter(ctx, set, cfg)
 	require.Nil(t, err)
 	require.NotNil(t, oexp)
