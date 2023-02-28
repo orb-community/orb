@@ -4,9 +4,9 @@ import (
 	"context"
 	kitot "github.com/go-kit/kit/tracing/opentracing"
 	kitgrpc "github.com/go-kit/kit/transport/grpc"
-	"github.com/ns1labs/orb/fleet"
-	"github.com/ns1labs/orb/fleet/pb"
 	"github.com/opentracing/opentracing-go"
+	"github.com/orb-community/orb/fleet"
+	"github.com/orb-community/orb/fleet/pb"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

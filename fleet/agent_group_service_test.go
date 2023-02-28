@@ -17,12 +17,12 @@ import (
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
 	"github.com/mainflux/mainflux/things"
 	thingsapi "github.com/mainflux/mainflux/things/api/things/http"
-	"github.com/ns1labs/orb/fleet"
-	"github.com/ns1labs/orb/fleet/backend/pktvisor"
-	flmocks "github.com/ns1labs/orb/fleet/mocks"
-	"github.com/ns1labs/orb/pkg/errors"
-	"github.com/ns1labs/orb/pkg/types"
 	"github.com/opentracing/opentracing-go/mocktracer"
+	"github.com/orb-community/orb/fleet"
+	"github.com/orb-community/orb/fleet/backend/pktvisor"
+	flmocks "github.com/orb-community/orb/fleet/mocks"
+	"github.com/orb-community/orb/pkg/errors"
+	"github.com/orb-community/orb/pkg/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -56,6 +56,7 @@ var (
 	}
 	invalidName = strings.Repeat("m", maxNameSize+1)
 	metadata    = map[string]interface{}{"meta": "data"}
+	emptyTags   = types.Tags{}
 )
 
 func generateChannels() map[string]things.Channel {
@@ -125,13 +126,11 @@ func TestCreateAgentGroup(t *testing.T) {
 		MFOwnerID:   ownerID.String(),
 		Name:        nameID,
 		Description: &description,
-		Tags:        make(map[string]string),
-		Created:     time.Time{},
-	}
-
-	validAgent.Tags = map[string]string{
-		"region":    "eu",
-		"node_type": "dns",
+		Tags: &types.Tags{
+			"region":    "eu",
+			"node_type": "dns",
+		},
+		Created: time.Time{},
 	}
 
 	cases := map[string]struct {
@@ -403,21 +402,6 @@ func TestUpdateAgentGroup(t *testing.T) {
 			token: token,
 			err:   nil,
 		},
-		"update existing agent group with tags empty": {
-			group: fleet.AgentGroup{
-				ID:        ag.ID,
-				Name:      ag.Name,
-				MFOwnerID: ag.MFOwnerID,
-				Tags:      map[string]string{},
-			},
-			expectedGroup: fleet.AgentGroup{
-				Name:        ag.Name,
-				Tags:        map[string]string{},
-				Description: ag.Description,
-			},
-			token: token,
-			err:   nil,
-		},
 		"update existing agent group with tags omitted": {
 			group: fleet.AgentGroup{
 				ID:        ag.ID,
@@ -432,6 +416,21 @@ func TestUpdateAgentGroup(t *testing.T) {
 			token: token,
 			err:   nil,
 		},
+		"update existing agent group with tags empty": {
+			group: fleet.AgentGroup{
+				ID:        ag.ID,
+				Name:      ag.Name,
+				MFOwnerID: ag.MFOwnerID,
+				Tags:      &emptyTags,
+			},
+			expectedGroup: fleet.AgentGroup{
+				Name:        ag.Name,
+				Tags:        ag.Tags,
+				Description: ag.Description,
+			},
+			token: token,
+			err:   errors.ErrMalformedEntity,
+		},
 	}
 
 	for desc, tc := range cases {
@@ -440,6 +439,7 @@ func TestUpdateAgentGroup(t *testing.T) {
 			if err == nil {
 				assert.Equal(t, *tc.expectedGroup.Description, *agentGroupTest.Description, fmt.Sprintf("%s: expected %s got %s", desc, *tc.expectedGroup.Description, *agentGroupTest.Description))
 				assert.Equal(t, tc.expectedGroup.Name, agentGroupTest.Name, fmt.Sprintf("%s: expected %s got %s", desc, tc.expectedGroup.Name, agentGroupTest.Name))
+				assert.Equal(t, tc.expectedGroup.Tags, agentGroupTest.Tags, fmt.Sprintf("%s: expected %p got %p", desc, tc.expectedGroup.Tags, agentGroupTest.Tags))
 			}
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %d got %d", desc, tc.err, err))
 		})
@@ -501,7 +501,7 @@ func createAgentGroup(t *testing.T, name string, svc fleet.AgentGroupService) (f
 	}
 	agCopy.Name = validName
 	agCopy.Description = &description
-	agCopy.Tags = map[string]string{
+	agCopy.Tags = &types.Tags{
 		"tag": "test",
 	}
 	ag, err := svc.CreateAgentGroup(context.Background(), token, agCopy)
@@ -545,12 +545,10 @@ func TestValidateAgentGroup(t *testing.T) {
 		MFOwnerID:   ownerID.String(),
 		Name:        nameID,
 		Description: &description,
-		Tags:        make(map[string]string),
-	}
-
-	validAgent.Tags = map[string]string{
-		"region":    "eu",
-		"node_type": "dns",
+		Tags: &types.Tags{
+			"region":    "eu",
+			"node_type": "dns",
+		},
 	}
 
 	cases := map[string]struct {

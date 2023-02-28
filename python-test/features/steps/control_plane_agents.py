@@ -46,6 +46,33 @@ def check_if_agents_exist(context, orb_tags, status):
                                                  f"Agent logs: {get_orb_agent_logs(context.container_id)}."
                                                  f"\nLogs: {logs}")
 
+# this step is only necessary for OTEL migration tests, so we can exclude it after the migration
+@given("that an agent with {orb_tags} orb tag(s) and OTEL {otel_type} already exists and is {status} within {timeout} seconds")
+def check_if_agents_exist(context, orb_tags, otel_type, status, timeout):
+    timeout = int(timeout)
+    assert_that(otel_type, any_of("enabled", "disabled"), "Invalid otel type")
+    otel_map = {"enabled":"true", "disabled":"false"}
+    context.agent_name = generate_random_string_with_predefined_prefix(agent_name_prefix)
+    context.orb_tags = create_tags_set(orb_tags)
+    context.agent = create_agent(context.token, context.agent_name, context.orb_tags)
+    context.agent_key = context.agent["key"]
+    token = context.token
+    run_local_agent_container(context, "available", include_otel_env_var="true", enable_otel=otel_map[otel_type])
+    agent_id = context.agent['id']
+    existing_agents = get_agent(token, agent_id)
+    assert_that(len(existing_agents), greater_than(0), "Agent not created")
+    logs = get_orb_agent_logs(context.container_id)
+    agent_status, context.agent = wait_until_expected_agent_status(token, agent_id, status, timeout=timeout)
+    assert_that(agent_status, is_(equal_to(status)),
+                f"Agent did not get '{status}' after {str(timeout)} seconds, but was '{agent_status}'. \n"
+                f"Agent: {json.dumps(context.agent, indent=4)}. \n Logs: {logs}")
+    local_orb_path = configs.get("local_orb_path")
+    agent_schema_path = local_orb_path + "/python-test/features/steps/schemas/agent_schema.json"
+    is_schema_valid = validate_json(context.agent, agent_schema_path)
+    assert_that(is_schema_valid, equal_to(True), f"Invalid agent json. \n Agent = {context.agent}."
+                                                 f"Agent logs: {get_orb_agent_logs(context.container_id)}."
+                                                 f"\nLogs: {logs}")
+
 
 @step('a new agent is created with {orb_tags} orb tag(s)')
 def agent_is_created(context, orb_tags):
@@ -318,13 +345,15 @@ def provision_agent_using_config_file(context, input_type, settings, provision, 
                                              f"{settings}")
     if ("tcp" in settings.keys() and settings["tcp"].split(":")[1] == "available_port") or (
             "port" in settings.keys() and settings["port"] == "available_port"):
-        port_to_attach = return_port_to_run_docker_container(context)
+        port_to_attach = return_port_by_availability(context)
         if "tcp" in settings.keys():
             ip = settings["tcp"].split(":")[0]
             tcp = f"{ip}:{port_to_attach}"
             settings["tcp"] = tcp
         else:
             settings["port"] = port_to_attach
+    if "port" in settings.keys() and settings["port"] == "switch":
+        settings["port"] = context.switch_port
     if 'input_tags' in settings.keys():
         input_tags = settings['input_tags']
         settings.pop('input_tags')
@@ -343,10 +372,13 @@ def provision_agent_using_config_file(context, input_type, settings, provision, 
         orb_cloud_mqtt_channel_id = None
         agent_name = f"{agent_name_prefix}{random_string(10)}"
 
-    interface = configs.get('orb_agent_interface', 'auto')
+    if "iface" in settings.keys() and isinstance(settings["iface"], str) and settings["iface"].lower() == "mocked":
+        interface = context.mock_iface_name
+    else:
+        interface = configs.get('orb_agent_interface', 'auto')
     orb_url = configs.get('orb_url')
     base_orb_address = configs.get('orb_address')
-    port = return_port_to_run_docker_container(context, True)
+    context.port = return_port_by_availability(context, True)
     if "tap_name" in context:
         tap_name = context.tap_name
     else:
@@ -358,7 +390,7 @@ def provision_agent_using_config_file(context, input_type, settings, provision, 
         if "config_file" in kwargs['pkt_config'].keys():
             pkt_configs["config_file"] = kwargs['pkt_config']["config_file"]
     context.agent_file_name, tags_on_agent, context.tap, safe_config_file = \
-        create_agent_config_file(context.token, agent_name, interface, agent_tags, orb_url, base_orb_address, port,
+        create_agent_config_file(context.token, agent_name, interface, agent_tags, orb_url, base_orb_address, context.port,
                                  context.agent_groups, tap_name, input_type, input_tags, auto_provision,
                                  orb_cloud_mqtt_id, orb_cloud_mqtt_key, orb_cloud_mqtt_channel_id, settings,
                                  overwrite_default, paste_only_file, pkt_configs['binary'], pkt_configs['config_file'])
@@ -367,8 +399,8 @@ def provision_agent_using_config_file(context, input_type, settings, provision, 
             context.tap_tags.update({key: value['tags']})
     context.container_id = run_agent_config_file(context.agent_file_name, overwrite_default, paste_only_file)
     if context.container_id not in context.containers_id.keys():
-        context.containers_id[context.container_id] = str(port)
-    log = f"web server listening on localhost:{port}"
+        context.containers_id[context.container_id] = str(context.port)
+    log = f"web server listening on localhost:{context.port}"
     agent_started, logs = get_logs_and_check(context.container_id, log, element_to_check="log")
     assert_that(agent_started, equal_to(True), f"Log {log} not found on agent logs. Agent Name: {agent_name}.\n"
                                                f"Logs:{logs}")
@@ -460,7 +492,7 @@ def kill_pktvisor_on_agent(context):
         assert_that(current_proc_pid, is_not(None), "Unable to find pid of pktvisor process")
     except psutil.AccessDenied:
         context.access_denied = True
-        raise ValueError(f"You are not allowed to run this scenario without root permissions.")
+        context.scenario.skip(f"You are not allowed to run this scenario without root permissions.")
     except Exception as exception:
         raise exception
 

@@ -1,10 +1,22 @@
 name: 'go-report'
-author: 'Rogiel Silva<rssilvas@daitan.com>'
-description: 'Daitan Digital Solutions Docker Actions'
+author: 'Everton Haise Taques<everton.taques@encora.com>'
+description: 'netboxlabs'
 
 inputs:
   go_report_threshold:
     description: " Threshold of failure"
+    required: true
+    
+  github_token:
+    description: " github token"
+    required: true
+    
+  github_owner:
+    description: " github owner"
+    required: true
+    
+  github_repo:
+    description: " github repo"
     required: true
 
 runs:

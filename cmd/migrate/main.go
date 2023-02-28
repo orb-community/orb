@@ -3,11 +3,11 @@ package main
 import (
 	"fmt"
 	"github.com/jmoiron/sqlx"
-	"github.com/ns1labs/orb/buildinfo"
-	"github.com/ns1labs/orb/migrate"
-	"github.com/ns1labs/orb/migrate/migration"
-	"github.com/ns1labs/orb/migrate/postgres"
-	"github.com/ns1labs/orb/pkg/config"
+	"github.com/orb-community/orb/buildinfo"
+	"github.com/orb-community/orb/migrate"
+	"github.com/orb-community/orb/migrate/migration"
+	"github.com/orb-community/orb/migrate/postgres"
+	"github.com/orb-community/orb/pkg/config"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -54,7 +54,7 @@ func main() {
 	usersDbCfg := config.LoadPostgresConfig(fmt.Sprintf("%s_%s", envPrefix, postgres.DbUsers), postgres.DbUsers)
 	thingsDbCfg := config.LoadPostgresConfig(fmt.Sprintf("%s_%s", envPrefix, postgres.DbThings), postgres.DbThings)
 	sinksDbCfg := config.LoadPostgresConfig(fmt.Sprintf("%s_%s", envPrefix, postgres.DBSinks), postgres.DBSinks)
-	sinksEncryptionKey := config.LoadEncryptionKey(fmt.Sprintf("%s_%s", envPrefix, postgres.DBSinks))
+	//sinksEncryptionKey := config.LoadEncryptionKey(fmt.Sprintf("%s_%s", envPrefix, postgres.DBSinks))
 
 	dbs := make(map[string]postgres.Database)
 
@@ -67,8 +67,11 @@ func main() {
 	svc := migrate.New(
 		log,
 		dbs,
-		migration.NewM1KetoPolicies(log, dbs),
-		migration.NewM2SinksCredentials(log, sinksDB, sinksEncryptionKey),
+		// When generating a new migration image
+		// Comment the previous and keep only the necessary steps to migrate up/down
+		//migration.NewM1KetoPolicies(log, dbs),
+		//migration.NewM2SinksCredentials(log, sinksDB, sinksEncryptionKey),
+		migration.NewM3SinksOpenTelemetry(log, sinksDB),
 	)
 
 	rootCmd := &cobra.Command{

@@ -7,7 +7,7 @@ package fleet
 import (
 	"context"
 	"database/sql/driver"
-	"github.com/ns1labs/orb/pkg/types"
+	"github.com/orb-community/orb/pkg/types"
 	"time"
 )
 
@@ -54,7 +54,7 @@ type Agent struct {
 	MFKeyID        string
 	MFChannelID    string
 	Created        time.Time
-	OrbTags        types.Tags
+	OrbTags        *types.Tags
 	AgentTags      types.Tags
 	AgentMetadata  types.Metadata
 	State          State

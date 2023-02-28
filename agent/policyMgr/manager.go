@@ -6,13 +6,14 @@ package manager
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/ns1labs/orb/agent/backend"
-	"github.com/ns1labs/orb/agent/config"
-	"github.com/ns1labs/orb/agent/policies"
-	"github.com/ns1labs/orb/fleet"
-	"github.com/ns1labs/orb/pkg/errors"
+	"github.com/orb-community/orb/agent/backend"
+	"github.com/orb-community/orb/agent/config"
+	"github.com/orb-community/orb/agent/policies"
+	"github.com/orb-community/orb/fleet"
+	"github.com/orb-community/orb/pkg/errors"
 	"go.uber.org/zap"
 )
 
@@ -101,6 +102,9 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 				return
 			} else {
 				updatePolicy = true
+			}
+			if currentPolicy.Name != pd.Name {
+				pd.PreviousPolicyData = &policies.PolicyData{Name: currentPolicy.Name}
 			}
 			pd.Datasets = currentPolicy.Datasets
 			pd.GroupIds = currentPolicy.GroupIds
@@ -195,7 +199,12 @@ func (a *policyManager) applyPolicy(payload fleet.AgentPolicyRPCPayload, be back
 	err := be.ApplyPolicy(*pd, updatePolicy)
 	if err != nil {
 		a.logger.Warn("policy failed to apply", zap.String("policy_id", payload.ID), zap.String("policy_name", payload.Name), zap.Error(err))
-		pd.State = policies.FailedToApply
+		switch {
+		case strings.Contains(err.Error(), "422"):
+			pd.State = policies.NoTapMatch
+		default:
+			pd.State = policies.FailedToApply
+		}
 		pd.BackendErr = err.Error()
 	} else {
 		a.logger.Info("policy applied successfully", zap.String("policy_id", payload.ID), zap.String("policy_name", payload.Name))

@@ -28,3 +28,7 @@ Scenario: cleanup yaml file
 @cleanup
 Scenario: cleanup test containers
   Then force remove of all agent containers whose names start with the test prefix
+
+@cleanup
+Scenario: cleanup dummy ifaces and virtual switches
+  Then remove all dummy ifaces and virtual switches generated on test process

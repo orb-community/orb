@@ -11,7 +11,7 @@ package consumer
 import (
 	"context"
 	"github.com/go-redis/redis/v8"
-	"github.com/ns1labs/orb/policies"
+	"github.com/orb-community/orb/policies"
 	"go.uber.org/zap"
 )
 

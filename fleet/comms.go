@@ -16,8 +16,8 @@ import (
 	"github.com/hashicorp/go-version"
 	"github.com/mainflux/mainflux/pkg/messaging"
 	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
-	"github.com/ns1labs/orb/buildinfo"
-	"github.com/ns1labs/orb/policies/pb"
+	"github.com/orb-community/orb/buildinfo"
+	"github.com/orb-community/orb/policies/pb"
 	"go.uber.org/zap"
 	"time"
 )

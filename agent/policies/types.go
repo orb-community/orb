@@ -11,17 +11,18 @@ import (
 )
 
 type PolicyData struct {
-	ID              string
-	Datasets        map[string]bool
-	GroupIds        map[string]bool
-	Name            string
-	Backend         string
-	Version         int32
-	Data            interface{}
-	State           PolicyState
-	BackendErr      string
-	LastScrapeBytes int64
-	LastScrapeTS    time.Time
+	ID                 string
+	Datasets           map[string]bool
+	GroupIds           map[string]bool
+	Name               string
+	Backend            string
+	Version            int32
+	Data               interface{}
+	State              PolicyState
+	BackendErr         string
+	LastScrapeBytes    int64
+	LastScrapeTS       time.Time
+	PreviousPolicyData *PolicyData
 }
 
 func (d *PolicyData) GetDatasetIDs() []string {
@@ -40,6 +41,7 @@ const (
 	Running
 	FailedToApply
 	Offline
+	NoTapMatch
 )
 
 type PolicyState int
@@ -49,6 +51,7 @@ var policyStateMap = [...]string{
 	"running",
 	"failed_to_apply",
 	"offline",
+	"no_tap_match",
 }
 
 var policyStateRevMap = map[string]PolicyState{
@@ -56,6 +59,7 @@ var policyStateRevMap = map[string]PolicyState{
 	"running":         Running,
 	"failed_to_apply": FailedToApply,
 	"offline":         Offline,
+	"no_tap_match":    NoTapMatch,
 }
 
 func (s PolicyState) String() string {

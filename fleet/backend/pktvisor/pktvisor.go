@@ -10,10 +10,10 @@ import (
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/go-zoo/bone"
 	"github.com/mainflux/mainflux"
-	"github.com/ns1labs/orb/fleet"
-	"github.com/ns1labs/orb/fleet/backend"
-	"github.com/ns1labs/orb/pkg/types"
 	"github.com/opentracing/opentracing-go"
+	"github.com/orb-community/orb/fleet"
+	"github.com/orb-community/orb/fleet/backend"
+	"github.com/orb-community/orb/pkg/types"
 )
 
 var _ backend.Backend = (*pktvisorBackend)(nil)

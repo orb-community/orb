@@ -15,8 +15,8 @@ import (
 	"github.com/go-kit/kit/endpoint"
 	kitot "github.com/go-kit/kit/tracing/opentracing"
 	kitgrpc "github.com/go-kit/kit/transport/grpc"
-	"github.com/ns1labs/orb/policies/pb"
 	opentracing "github.com/opentracing/opentracing-go"
+	"github.com/orb-community/orb/policies/pb"
 	"google.golang.org/grpc"
 )
 

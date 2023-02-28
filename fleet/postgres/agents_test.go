@@ -13,10 +13,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gofrs/uuid"
-	"github.com/ns1labs/orb/fleet"
-	"github.com/ns1labs/orb/fleet/postgres"
-	"github.com/ns1labs/orb/pkg/errors"
-	"github.com/ns1labs/orb/pkg/types"
+	"github.com/orb-community/orb/fleet"
+	"github.com/orb-community/orb/fleet/postgres"
+	"github.com/orb-community/orb/pkg/errors"
+	"github.com/orb-community/orb/pkg/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -61,7 +61,7 @@ func TestAgentSave(t *testing.T) {
 		MFThingID:     thID.String(),
 		MFOwnerID:     oID.String(),
 		MFChannelID:   chID.String(),
-		OrbTags:       types.Tags{"testkey": "testvalue"},
+		OrbTags:       &types.Tags{"testkey": "testvalue"},
 		AgentTags:     types.Tags{"testkey": "testvalue"},
 		AgentMetadata: types.Metadata{"testkey": "testvalue"},
 	}
@@ -154,7 +154,7 @@ func TestAgentRetrieve(t *testing.T) {
 		MFThingID:     thID.String(),
 		MFOwnerID:     oID.String(),
 		MFChannelID:   chID.String(),
-		OrbTags:       types.Tags{"testkey": "testvalue"},
+		OrbTags:       &types.Tags{"testkey": "testvalue"},
 		AgentTags:     types.Tags{"testkey": "testvalue"},
 		AgentMetadata: types.Metadata{"testkey": "testvalue"},
 	}
@@ -188,7 +188,7 @@ func TestAgentRetrieve(t *testing.T) {
 				assert.Equal(t, nameID, ag.Name, fmt.Sprintf("%s: expected %s got %s\n", desc, nameID, ag.Name))
 			}
 			if len(tc.tags) > 0 {
-				assert.Equal(t, tc.tags, ag.OrbTags)
+				assert.Equal(t, tc.tags, *ag.OrbTags)
 				assert.Equal(t, tc.tags, ag.AgentTags)
 			}
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
@@ -217,7 +217,7 @@ func TestAgentUpdateData(t *testing.T) {
 		MFThingID:     thID.String(),
 		MFOwnerID:     oID.String(),
 		MFChannelID:   chID.String(),
-		OrbTags:       types.Tags{"testkey": "testvalue"},
+		OrbTags:       &types.Tags{"testkey": "testvalue"},
 		AgentTags:     types.Tags{"testkey": "testvalue"},
 		AgentMetadata: types.Metadata{"testkey": "testvalue"},
 	}
@@ -409,7 +409,7 @@ func TestMultiAgentRetrieval(t *testing.T) {
 		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 		th.AgentMetadata = metadata
 		th.AgentTags = tags
-		th.OrbTags = subTags
+		th.OrbTags = &subTags
 
 		err = agentRepo.Save(context.Background(), th)
 		require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
@@ -577,7 +577,7 @@ func TestAgentUpdate(t *testing.T) {
 		MFThingID:     thID.String(),
 		MFOwnerID:     oID.String(),
 		MFChannelID:   chID.String(),
-		OrbTags:       types.Tags{"testkey": "testvalue"},
+		OrbTags:       &types.Tags{"testkey": "testvalue"},
 		AgentTags:     types.Tags{"testkey": "testvalue"},
 		AgentMetadata: types.Metadata{"testkey": "testvalue"},
 	}
@@ -587,7 +587,7 @@ func TestAgentUpdate(t *testing.T) {
 		MFThingID:     duplicatedThID.String(),
 		MFOwnerID:     oID.String(),
 		MFChannelID:   chID.String(),
-		OrbTags:       types.Tags{"testkey": "testvalue"},
+		OrbTags:       &types.Tags{"testkey": "testvalue"},
 		AgentTags:     types.Tags{"testkey": "testvalue"},
 		AgentMetadata: types.Metadata{"testkey": "testvalue"},
 	}
@@ -607,7 +607,7 @@ func TestAgentUpdate(t *testing.T) {
 				MFThingID: thID.String(),
 				MFOwnerID: oID.String(),
 				Name:      updatedNameID,
-				OrbTags:   types.Tags{"newkey": "newvalue"},
+				OrbTags:   &types.Tags{"newkey": "newvalue"},
 			},
 			err: nil,
 		},
@@ -616,7 +616,7 @@ func TestAgentUpdate(t *testing.T) {
 				MFThingID: oID.String(),
 				MFOwnerID: oID.String(),
 				Name:      updatedNameID,
-				OrbTags:   types.Tags{"newkey": "newvalue"},
+				OrbTags:   &types.Tags{"newkey": "newvalue"},
 			},
 			err: errors.ErrNotFound,
 		},
@@ -625,7 +625,7 @@ func TestAgentUpdate(t *testing.T) {
 				MFThingID: "",
 				MFOwnerID: oID.String(),
 				Name:      updatedNameID,
-				OrbTags:   types.Tags{"newkey": "newvalue"},
+				OrbTags:   &types.Tags{"newkey": "newvalue"},
 			},
 			err: errors.ErrMalformedEntity,
 		},
@@ -634,7 +634,7 @@ func TestAgentUpdate(t *testing.T) {
 				MFThingID: thID.String(),
 				MFOwnerID: "",
 				Name:      updatedNameID,
-				OrbTags:   types.Tags{"newkey": "newvalue"},
+				OrbTags:   &types.Tags{"newkey": "newvalue"},
 			},
 			err: errors.ErrMalformedEntity,
 		},
@@ -694,7 +694,7 @@ func TestDeleteAgent(t *testing.T) {
 		MFThingID:     thID.String(),
 		MFOwnerID:     oID.String(),
 		MFChannelID:   chID.String(),
-		OrbTags:       types.Tags{"testkey": "testvalue"},
+		OrbTags:       &types.Tags{"testkey": "testvalue"},
 		AgentTags:     types.Tags{"testkey": "testvalue"},
 		AgentMetadata: types.Metadata{"testkey": "testvalue"},
 	}
@@ -749,7 +749,7 @@ func TestAgentBackendTapsRetrieve(t *testing.T) {
 		MFThingID:     thID.String(),
 		MFOwnerID:     oID.String(),
 		MFChannelID:   chID.String(),
-		OrbTags:       types.Tags{"testkey": "testvalue"},
+		OrbTags:       &types.Tags{"testkey": "testvalue"},
 		AgentTags:     types.Tags{"testkey": "testvalue"},
 		AgentMetadata: types.Metadata{"testkey": "testvalue"},
 	}
@@ -815,7 +815,7 @@ func TestMultiAgentRetrievalByAgentGroup(t *testing.T) {
 		Name:        groupNameID,
 		MFOwnerID:   oID.String(),
 		MFChannelID: chID.String(),
-		Tags:        tags,
+		Tags:        &tags,
 	}
 
 	id, err := agentGroupRepo.Save(context.Background(), group)
@@ -838,7 +838,7 @@ func TestMultiAgentRetrievalByAgentGroup(t *testing.T) {
 		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 		th.AgentMetadata = metadata
 		th.AgentTags = tags
-		th.OrbTags = subTags
+		th.OrbTags = &subTags
 		th.State = fleet.Online
 
 		err = agentRepo.Save(context.Background(), th)
@@ -914,7 +914,7 @@ func TestAgentRetrieveByID(t *testing.T) {
 		MFThingID:     thID.String(),
 		MFOwnerID:     oID.String(),
 		MFChannelID:   chID.String(),
-		OrbTags:       types.Tags{"testkey": "testvalue"},
+		OrbTags:       &types.Tags{"testkey": "testvalue"},
 		AgentTags:     types.Tags{"testkey": "testvalue"},
 		AgentMetadata: types.Metadata{"testkey": "testvalue"},
 	}
@@ -953,7 +953,7 @@ func TestAgentRetrieveByID(t *testing.T) {
 				assert.Equal(t, nameID, ag.Name, fmt.Sprintf("%s: expected %s got %s\n", desc, nameID, ag.Name))
 			}
 			if len(tc.tags) > 0 {
-				assert.Equal(t, tc.tags, ag.OrbTags)
+				assert.Equal(t, tc.tags, *ag.OrbTags)
 				assert.Equal(t, tc.tags, ag.AgentTags)
 			}
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
@@ -982,7 +982,7 @@ func TestRetrieveAgentInfoByChannelID(t *testing.T) {
 		MFThingID:     thID.String(),
 		MFOwnerID:     oID.String(),
 		MFChannelID:   chID.String(),
-		OrbTags:       types.Tags{"testkey": "testvalue"},
+		OrbTags:       &types.Tags{"testkey": "testvalue"},
 		AgentTags:     types.Tags{"testkey": "testvalue"},
 		AgentMetadata: types.Metadata{"testkey": "testvalue"},
 	}
@@ -1004,7 +1004,7 @@ func TestRetrieveAgentInfoByChannelID(t *testing.T) {
 			ownerID:   oID.String(),
 			name:      nameID.String(),
 			agentTags: agent.AgentTags,
-			orbTags:   agent.OrbTags,
+			orbTags:   *agent.OrbTags,
 			agentID:   agent.MFThingID,
 			err:       nil,
 		},
@@ -1026,7 +1026,7 @@ func TestRetrieveAgentInfoByChannelID(t *testing.T) {
 				assert.Equal(t, tc.name, ag.Name.String(), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.name, ag.Name.String()))
 				assert.Equal(t, tc.ownerID, ag.MFOwnerID, fmt.Sprintf("%s: expected %s got %s\n", desc, tc.ownerID, ag.MFOwnerID))
 				assert.Equal(t, tc.agentTags, ag.AgentTags, fmt.Sprintf("%s: expected %s got %s\n", desc, tc.agentTags, ag.AgentTags))
-				assert.Equal(t, tc.orbTags, ag.OrbTags, fmt.Sprintf("%s: expected %s got %s\n", desc, tc.orbTags, ag.OrbTags))
+				assert.Equal(t, tc.orbTags, *ag.OrbTags, fmt.Sprintf("%s: expected %s got %s\n", desc, tc.orbTags, *ag.OrbTags))
 				assert.Equal(t, tc.agentID, ag.MFThingID, fmt.Sprintf("%s: expected %s got %s\n", desc, tc.agentID, ag.MFThingID))
 			}
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
@@ -1089,7 +1089,7 @@ func TestMatchingAgentRetrieval(t *testing.T) {
 		require.True(t, th.Name.IsValid(), "invalid Identifier name: %s")
 		require.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
 		th.AgentTags = agentTags
-		th.OrbTags = orbTags
+		th.OrbTags = &orbTags
 
 		err = agentRepo.Save(context.Background(), th)
 		require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
@@ -1178,7 +1178,7 @@ func TestSetAgentStale(t *testing.T) {
 		MFThingID:     thID.String(),
 		MFOwnerID:     oID.String(),
 		MFChannelID:   chID.String(),
-		OrbTags:       types.Tags{"testkey": "testvalue"},
+		OrbTags:       &types.Tags{"testkey": "testvalue"},
 		AgentTags:     types.Tags{"testkey": "testvalue"},
 		AgentMetadata: types.Metadata{"testkey": "testvalue"},
 		LastHB:        time.Now().Add(fleet.DefaultTimeout),

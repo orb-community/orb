@@ -11,12 +11,6 @@ package main
 import (
 	"context"
 	"fmt"
-	sinksgrpc "github.com/ns1labs/orb/sinks/api/grpc"
-	"github.com/opentracing/opentracing-go"
-	jconfig "github.com/uber/jaeger-client-go/config"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/credentials/insecure"
 	"io"
 	"os"
 	"os/signal"
@@ -25,8 +19,16 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/ns1labs/orb/maestro"
-	"github.com/ns1labs/orb/pkg/config"
+	"github.com/opentracing/opentracing-go"
+	sinksgrpc "github.com/orb-community/orb/sinks/api/grpc"
+	"github.com/spf13/viper"
+	jconfig "github.com/uber/jaeger-client-go/config"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
+
+	"github.com/orb-community/orb/maestro"
+	"github.com/orb-community/orb/pkg/config"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
@@ -41,7 +43,8 @@ const (
 
 func main() {
 
-	esCfg := config.LoadEsConfig(envPrefix)
+	streamEsCfg := loadStreamEsConfig(envPrefix)
+	sinkerEsCfg := loadSinkerEsConfig(envPrefix)
 	svcCfg := config.LoadBaseServiceConfig(envPrefix, httpPort)
 	jCfg := config.LoadJaegerConfig(envPrefix)
 	sinksGRPCCfg := config.LoadGRPCConfig("orb", "sinks")
@@ -71,14 +74,20 @@ func main() {
 		_ = logger.Sync()
 	}(logger)
 	log := logger.Sugar()
-	esClient := connectToRedis(esCfg.URL, esCfg.Pass, esCfg.DB, logger)
+	streamEsClient := connectToRedis(streamEsCfg.URL, streamEsCfg.Pass, streamEsCfg.DB, logger)
 	defer func(esClient *r.Client) {
 		err := esClient.Close()
 		if err != nil {
 			return
 		}
-	}(esClient)
-
+	}(streamEsClient)
+	sinkerEsClient := connectToRedis(sinkerEsCfg.URL, sinkerEsCfg.Pass, sinkerEsCfg.DB, logger)
+	defer func(esClient *r.Client) {
+		err := esClient.Close()
+		if err != nil {
+			return
+		}
+	}(sinkerEsClient)
 	tracer, tracerCloser := initJaeger(svcName, jCfg.URL, logger)
 	defer func(tracerCloser io.Closer) {
 		err := tracerCloser.Close()
@@ -102,7 +111,7 @@ func main() {
 	sinksGRPCClient := sinksgrpc.NewClient(tracer, sinksGRPCConn, sinksGRPCTimeout, logger)
 	otelCfg := config.LoadOtelConfig(envPrefix)
 
-	svc := maestro.NewMaestroService(logger, esClient, sinksGRPCClient, esCfg, otelCfg)
+	svc := maestro.NewMaestroService(logger, streamEsClient, sinkerEsClient, sinksGRPCClient, streamEsCfg, otelCfg)
 	errs := make(chan error, 2)
 
 	mainContext, mainCancelFunction := context.WithCancel(context.Background())
@@ -188,4 +197,35 @@ func connectToRedis(redisURL, redisPass, redisDB string, logger *zap.Logger) *r.
 		Password: redisPass,
 		DB:       db,
 	})
+}
+
+func loadStreamEsConfig(prefix string) config.EsConfig {
+	cfg := viper.New()
+	cfg.SetEnvPrefix(fmt.Sprintf("%s_stream_es", prefix))
+
+	cfg.SetDefault("url", "localhost:6379")
+	cfg.SetDefault("pass", "")
+	cfg.SetDefault("db", "0")
+	cfg.SetDefault("consumer", fmt.Sprintf("%s-es-consumer", prefix))
+
+	cfg.AllowEmptyEnv(true)
+	cfg.AutomaticEnv()
+	var esC config.EsConfig
+	cfg.Unmarshal(&esC)
+	return esC
+}
+
+func loadSinkerEsConfig(prefix string) config.EsConfig {
+	cfg := viper.New()
+	cfg.SetEnvPrefix(fmt.Sprintf("%s_sinker_es", prefix))
+
+	cfg.SetDefault("url", "localhost:6378")
+	cfg.SetDefault("pass", "")
+	cfg.SetDefault("db", "1")
+
+	cfg.AllowEmptyEnv(true)
+	cfg.AutomaticEnv()
+	var esC config.EsConfig
+	cfg.Unmarshal(&esC)
+	return esC
 }

@@ -3,7 +3,7 @@ package grpc
 import (
 	"context"
 	"github.com/go-kit/kit/endpoint"
-	"github.com/ns1labs/orb/fleet"
+	"github.com/orb-community/orb/fleet"
 )
 
 func retrieveAgentEndpoint(svc fleet.Service) endpoint.Endpoint {
@@ -83,7 +83,7 @@ func retrieveAgentInfoByChannelIDEndpoint(svc fleet.Service) endpoint.Endpoint {
 			ownerID:       agent.MFOwnerID,
 			agentName:     agent.Name.String(),
 			agentTags:     agent.AgentTags,
-			orbTags:       agent.OrbTags,
+			orbTags:       *agent.OrbTags,
 			agentGroupIDs: groupIDs,
 		}
 		return res, nil

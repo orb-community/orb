@@ -10,8 +10,10 @@ package sinks
 
 import (
 	"context"
-	"github.com/ns1labs/orb/pkg/errors"
-	"github.com/ns1labs/orb/sinks/backend"
+	"github.com/orb-community/orb/pkg/errors"
+	"github.com/orb-community/orb/pkg/types"
+	"github.com/orb-community/orb/sinks/backend"
+	"net/url"
 )
 
 var (
@@ -35,11 +37,22 @@ func (svc sinkService) CreateSink(ctx context.Context, token string, sink Sink) 
 		return Sink{}, err
 	}
 
+	// Validate remote_host
+	_, err = url.ParseRequestURI(sink.Config["remote_host"].(string))
+	if err != nil {
+		return Sink{}, errors.Wrap(errors.New("invalid remote url"), err)
+	}
+
 	// encrypt data for the password
 	sink, err = svc.encryptMetadata(sink)
 	if err != nil {
 		return Sink{}, errors.Wrap(ErrCreateSink, err)
 	}
+
+	//// add default values
+	defaultMetadata := make(types.Metadata, 1)
+	defaultMetadata["opentelemetry"] = "enabled"
+	sink.Config.Merge(defaultMetadata)
 
 	id, err := svc.sinkRepo.Save(ctx, sink)
 	if err != nil {
@@ -97,6 +110,15 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 
 	if sink.Config == nil {
 		sink.Config = currentSink.Config
+	} else {
+		// Validate remote_host
+		_, err := url.ParseRequestURI(sink.Config["remote_host"].(string))
+		if err != nil {
+			return Sink{}, errors.Wrap(ErrUpdateEntity, err)
+		}
+		// This will keep the previous tags
+		currentSink.Config.Merge(sink.Config)
+		sink.Config = currentSink.Config
 	}
 
 	if sink.Tags == nil {
@@ -125,11 +147,11 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 	}
 	sinkEdited, err := svc.sinkRepo.RetrieveById(ctx, sink.ID)
 	if err != nil {
-		return Sink{}, err
+		return Sink{}, errors.Wrap(ErrUpdateEntity, err)
 	}
 	sinkEdited, err = svc.decryptMetadata(sinkEdited)
 	if err != nil {
-		return Sink{}, err
+		return Sink{}, errors.Wrap(ErrUpdateEntity, err)
 	}
 
 	return sinkEdited, nil

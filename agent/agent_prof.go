@@ -15,12 +15,12 @@ import (
 	"github.com/fatih/structs"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
-	"github.com/ns1labs/orb/agent/backend"
-	"github.com/ns1labs/orb/agent/cloud_config"
-	"github.com/ns1labs/orb/agent/config"
-	manager "github.com/ns1labs/orb/agent/policyMgr"
-	"github.com/ns1labs/orb/buildinfo"
-	"github.com/ns1labs/orb/fleet"
+	"github.com/orb-community/orb/agent/backend"
+	"github.com/orb-community/orb/agent/cloud_config"
+	"github.com/orb-community/orb/agent/config"
+	manager "github.com/orb-community/orb/agent/policyMgr"
+	"github.com/orb-community/orb/buildinfo"
+	"github.com/orb-community/orb/fleet"
 	"go.uber.org/zap"
 )
 

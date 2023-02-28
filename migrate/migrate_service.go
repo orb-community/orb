@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/jmoiron/sqlx"
-	"github.com/ns1labs/orb/migrate/postgres"
-	"github.com/ns1labs/orb/pkg/errors"
+	"github.com/orb-community/orb/migrate/postgres"
+	"github.com/orb-community/orb/pkg/errors"
 	"go.uber.org/zap"
 )
 
@@ -30,54 +30,40 @@ func (s *serviceMigrate) Up() (err error) {
 		return
 	}
 
-	errorIndex := int64(0)
-	index := current
-	for index < latest {
-		s.logger.Info(fmt.Sprintf("applying migration %d of %d", index+1, latest))
-		err = s.migrations[index].Up()
-		if err != nil {
-			s.logger.Error(fmt.Sprintf("error on migration up %d of %d", index+1, latest), zap.Error(err))
-			errorIndex = index
-			break
-		}
-		index++
-	}
-
-	for errorIndex > current {
-		s.logger.Info(fmt.Sprintf("rolling back migration %d of %d", errorIndex+1, latest))
-		errMigration := s.migrations[errorIndex].Down()
+	s.logger.Info(fmt.Sprintf("applying last migration version %d", latest))
+	err = s.migrations[0].Up()
+	if err != nil {
+		s.logger.Error(fmt.Sprintf("error on migration"), zap.Error(err))
+		s.logger.Info(fmt.Sprintf("rolling back migration to %d", current))
+		errMigration := s.migrations[0].Down()
 		if errMigration != nil {
-			s.logger.Error(fmt.Sprintf("error on migration down %d of %d", errorIndex+1, latest), zap.Error(errMigration))
-			break
+			s.logger.Error(fmt.Sprintf("error on migration down to %d", current), zap.Error(errMigration))
+			return errMigration
 		}
-		errorIndex--
+		return err
 	}
 
-	if errSchema = s.SetSchemaVersion(index); errSchema != nil {
+	if errSchema = s.SetSchemaVersion(latest); errSchema != nil {
 		return errSchema
 	}
 	return
 }
 
 func (s *serviceMigrate) Down() (err error) {
-	current, errSchema := s.CurrentSchemaVersion()
+	_, errSchema := s.CurrentSchemaVersion()
 	latest := s.LatestSchemaVersion()
 	if errSchema != nil {
 		return errSchema
 	}
 
-	index := current
-	for index >= 1 {
-		s.logger.Info(fmt.Sprintf("applying migration %d of %d", index, latest))
-		err = s.migrations[index-1].Down()
-		if err != nil {
-			s.logger.Error(fmt.Sprintf("error on migration down %d of %d", index, latest), zap.Error(err))
-			break
-		}
-		index--
+	s.logger.Info(fmt.Sprintf("applying last migration version %d", latest))
+	err = s.migrations[0].Down()
+	if err != nil {
+		s.logger.Error(fmt.Sprintf("error on migration"), zap.Error(err))
+		return err
 	}
 
-	if errSchema = s.SetSchemaVersion(index); errSchema != nil {
+	if errSchema = s.SetSchemaVersion(latest - 1); errSchema != nil {
 		return errSchema
 	}
 	return
@@ -112,8 +98,9 @@ func (s *serviceMigrate) CurrentSchemaVersion() (int64, error) {
 	return schemaVersion, err
 }
 
+// TODO This will need to be manually updated up until refactored
 func (s *serviceMigrate) LatestSchemaVersion() int64 {
-	return int64(len(s.migrations))
+	return 3
 }
 
 func (s *serviceMigrate) doOnTx(f func(tx *sqlx.Tx) error) error {

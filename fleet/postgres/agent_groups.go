@@ -14,10 +14,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/lib/pq"
-	"github.com/ns1labs/orb/fleet"
-	"github.com/ns1labs/orb/pkg/db"
-	"github.com/ns1labs/orb/pkg/errors"
-	"github.com/ns1labs/orb/pkg/types"
+	"github.com/orb-community/orb/fleet"
+	"github.com/orb-community/orb/pkg/db"
+	"github.com/orb-community/orb/pkg/errors"
+	"github.com/orb-community/orb/pkg/types"
 	"go.uber.org/zap"
 	"time"
 )
@@ -392,17 +392,27 @@ func toDBAgentGroup(group fleet.AgentGroup) (dbAgentGroup, error) {
 		description = *group.Description
 	}
 
+	groupTags := make(db.Tags)
+	if group.Tags != nil {
+		groupTags = db.Tags(*group.Tags)
+	}
+
 	return dbAgentGroup{
 		ID:          group.ID,
 		Name:        group.Name,
 		Description: description,
 		MFOwnerID:   group.MFOwnerID,
 		MFChannelID: group.MFChannelID,
-		Tags:        db.Tags(group.Tags),
+		Tags:        groupTags,
 	}, nil
 
 }
 func toAgentGroup(dba dbAgentGroup) (fleet.AgentGroup, error) {
+
+	groupTags := make(types.Tags)
+	if len(dba.Tags) != 0 {
+		groupTags.Merge(dba.Tags)
+	}
 
 	return fleet.AgentGroup{
 		ID:             dba.ID,
@@ -411,7 +421,7 @@ func toAgentGroup(dba dbAgentGroup) (fleet.AgentGroup, error) {
 		MFOwnerID:      dba.MFOwnerID,
 		MFChannelID:    dba.MFChannelID,
 		Created:        dba.Created,
-		Tags:           types.Tags(dba.Tags),
+		Tags:           &groupTags,
 		MatchingAgents: types.Metadata(dba.MatchingAgents),
 	}, nil
 

@@ -85,8 +85,7 @@ Feature: agent groups creation
             And 1 agent must be matching on response field matching_agents of the last group created
 
 
-#    @smoke
-    @MUTE
+    @smoke
     Scenario: Edit Agent Group description (description informed but empty)
         Given the Orb user has a registered account
             And the Orb user logs in
@@ -131,7 +130,8 @@ Feature: agent groups creation
             And the container logs contain the message "completed RPC subscription to group" referred to each matching group within 30 seconds
 
 
-    @smoke
+#    @smoke
+    @MUTE
     Scenario: Edit Agent Group tags (tags informed but empty)
         Given the Orb user has a registered account
             And the Orb user logs in

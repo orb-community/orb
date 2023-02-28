@@ -3,6 +3,7 @@ from test_config import TestConfig
 from utils import random_string, filter_list_by_parameter_start_with, threading_wait_until, validate_json
 from hamcrest import *
 import requests
+import threading
 
 configs = TestConfig.configs()
 sink_name_prefix = "test_sink_label_name_"
@@ -28,14 +29,20 @@ def check_prometheus_grafana_credentials(context):
 
 
 @step("a new sink is created")
-def create_sink(context):
+def create_sink(context, **kwargs):
     sink_label_name = sink_name_prefix + random_string(10)
     token = context.token
     endpoint = context.remote_prometheus_endpoint
     username = context.prometheus_username
     password = context.prometheus_key
-    include_otel_env_var = configs.get("include_otel_env_var")
-    enable_otel = configs.get("enable_otel")
+    if "enable_otel" in kwargs:  # this if/else logic can be removed after otel migration
+        kwargs["enable_otel"] = kwargs["enable_otel"].lower()
+        assert_that(kwargs["enable_otel"], any_of("true", "false"))
+        include_otel_env_var = "true"
+        enable_otel = kwargs["enable_otel"]
+    else:
+        include_otel_env_var = configs.get("include_otel_env_var")
+        enable_otel = configs.get("enable_otel")
     otel_map = {"true": "enabled", "false": "disabled"}
     if include_otel_env_var == "true":
         context.sink = create_new_sink(token, sink_label_name, endpoint, username, password,
@@ -85,6 +92,15 @@ def create_multiple_sinks(context, amount_of_sinks):
 def new_sink(context):
     check_prometheus_grafana_credentials(context)
     create_sink(context)
+
+
+# this step is only necessary for OTEL migration tests, so we can exclude it after the migration
+@step("that a/an {sink_type} sink already exists (migration)")
+def new_sink(context, sink_type):
+    assert_that(sink_type, any_of("OTEL", "legacy"), "Unexpected type of sink")
+    otel_map = {"OTEL": "true", "legacy": "false"}
+    check_prometheus_grafana_credentials(context)
+    create_sink(context, enable_otel=otel_map[sink_type])
 
 
 @step("that {amount_of_sinks} sinks already exists")
@@ -140,6 +156,47 @@ def check_sink_status(context, status, time_to_wait):
     get_sink_response = get_sink_status_and_check(context.token, sink_id, status, timeout=time_to_wait)
 
     assert_that(get_sink_response['state'], equal_to(status), f"Sink {context.sink} state failed")
+
+
+@step("referred sink must have {status} state on response after {time_to_wait} seconds")
+def check_sink_status(context, status, time_to_wait):
+    sink_id = context.sink["id"]
+    assert_that(time_to_wait.isdigit(), is_(True), f"Invalid type: 'time_to_wait' must be an int and is {time_to_wait}")
+    time_to_wait = int(time_to_wait)
+    threading.Event().wait(time_to_wait)
+    get_sink_response = get_sink_status_and_check(context.token, sink_id, status)
+
+    assert_that(get_sink_response['state'], equal_to(status), f"Sink {context.sink} state failed")
+
+
+# this step is only necessary for OTEL migration tests, so we can exclude it after the migration
+@step("the sink is updated and OTEL is {otel}")
+def edit_sink_field(context, otel):
+    assert_that(otel, any_of("enabled", "disabled"))
+    sink = get_sink(context.token, context.sink['id'])
+    sink['config']['password'] = configs.get('prometheus_key')
+    sink['config']["opentelemetry"] = otel
+    context.sink = edit_sink(context.token, context.sink['id'], sink)
+
+
+# this step is only necessary for OTEL migration tests, so we can exclude it after the migration
+@step("all existing sinks must have OTEL enabled")
+def check_all_sinks_status(context):
+    all_sinks = list_sinks(context.token)
+    otel_sinks = list()
+    legacy_sinks = list()
+    migrated_sinks = list()
+    for sink in all_sinks:
+        if "opentelemetry" in sink["config"].keys() and sink["config"]["opentelemetry"] == "enabled":
+            otel_sinks.append(sink["id"])
+        else:
+            legacy_sinks.append(sink["id"])
+
+        if "migrated" in sink["config"].keys() and sink["config"]["migrated"] == "m3":
+            migrated_sinks.append(sink["id"])
+    print(f"{len(migrated_sinks)} sinks were migrated")
+    assert_that(len(otel_sinks), equal_to(len(all_sinks)), f"{len(legacy_sinks)} sinks are not with otel tag enabled: "
+                                                           f"{legacy_sinks}")
 
 
 @step("the sink {field_to_edit} is edited and an {type_of_field} one is used")

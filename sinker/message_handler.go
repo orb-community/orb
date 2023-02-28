@@ -11,14 +11,14 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/mainflux/mainflux/pkg/messaging"
-	"github.com/ns1labs/orb/fleet"
-	"github.com/ns1labs/orb/fleet/pb"
-	"github.com/ns1labs/orb/pkg/types"
-	pb2 "github.com/ns1labs/orb/policies/pb"
-	"github.com/ns1labs/orb/sinker/backend"
-	"github.com/ns1labs/orb/sinker/config"
-	"github.com/ns1labs/orb/sinker/prometheus"
-	pb3 "github.com/ns1labs/orb/sinks/pb"
+	"github.com/orb-community/orb/fleet"
+	"github.com/orb-community/orb/fleet/pb"
+	"github.com/orb-community/orb/pkg/types"
+	pb2 "github.com/orb-community/orb/policies/pb"
+	"github.com/orb-community/orb/sinker/backend"
+	"github.com/orb-community/orb/sinker/config"
+	"github.com/orb-community/orb/sinker/prometheus"
+	pb3 "github.com/orb-community/orb/sinks/pb"
 	"go.uber.org/zap"
 )
 
@@ -28,9 +28,10 @@ func (svc SinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, owner
 		svc.logger.Error("unable to retrieve the sink config", zap.Error(err))
 		return err
 	}
+	ctx := context.Background()
 	if cfgRepo.Opentelemetry == "enabled" {
-		svc.logger.Info("ignoring sink state update on OpenTelemetry sinks")
-		return nil	
+		svc.logger.Info("deprecate warning opentelemetry sink scraping legacy agent", zap.String("sink-ID", cfgRepo.SinkID))
+		ctx = context.WithValue(ctx, "deprecation", "opentelemetry")
 	}
 	cfg := prometheus.NewConfig(
 		prometheus.WriteURLOption(cfgRepo.Url),
@@ -44,7 +45,7 @@ func (svc SinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, owner
 
 	var headers = make(map[string]string)
 	headers["Authorization"] = svc.encodeBase64(cfgRepo.User, cfgRepo.Password)
-	result, writeErr := promClient.WriteTimeSeries(context.Background(), tsList, prometheus.WriteOptions{Headers: headers})
+	result, writeErr := promClient.WriteTimeSeries(ctx, tsList, prometheus.WriteOptions{Headers: headers})
 	if err := error(writeErr); err != nil {
 		if cfgRepo.State != config.Error || cfgRepo.Msg != fmt.Sprint(err) {
 			cfgRepo.State = config.Error
@@ -128,7 +129,7 @@ func (svc SinkerService) handleMetrics(ctx context.Context, agentID string, chan
 		MFOwnerID:   agentPb.OwnerID,
 		MFThingID:   agentID,
 		MFChannelID: channelID,
-		OrbTags:     agentPb.OrbTags,
+		OrbTags:     (*types.Tags)(&agentPb.OrbTags),
 		AgentTags:   agentPb.AgentTags,
 	}
 

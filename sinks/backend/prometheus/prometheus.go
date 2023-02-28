@@ -5,7 +5,7 @@
 package prometheus
 
 import (
-	"github.com/ns1labs/orb/sinks/backend"
+	"github.com/orb-community/orb/sinks/backend"
 	"io"
 )
 

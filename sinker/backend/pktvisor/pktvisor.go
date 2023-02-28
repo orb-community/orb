@@ -12,11 +12,11 @@ import (
 
 	"github.com/fatih/structs"
 	"github.com/mitchellh/mapstructure"
-	"github.com/ns1labs/orb/fleet"
-	"github.com/ns1labs/orb/fleet/pb"
-	"github.com/ns1labs/orb/pkg/errors"
-	"github.com/ns1labs/orb/sinker/backend"
-	"github.com/ns1labs/orb/sinker/prometheus"
+	"github.com/orb-community/orb/fleet"
+	"github.com/orb-community/orb/fleet/pb"
+	"github.com/orb-community/orb/pkg/errors"
+	"github.com/orb-community/orb/sinker/backend"
+	"github.com/orb-community/orb/sinker/prometheus"
 	"go.uber.org/zap"
 	"golang.org/x/exp/slices"
 )
@@ -40,6 +40,7 @@ type metricAppendix struct {
 	format       string
 	tags         map[string]string
 	logger       *zap.Logger
+	warning      string
 }
 
 func (p pktvisorBackend) ProcessMetrics(agent *pb.AgentInfoRes, agentID string, data fleet.AgentMetricsRPCPayload) ([]prometheus.TimeSeries, error) {
@@ -75,6 +76,7 @@ func (p pktvisorBackend) ProcessMetrics(agent *pb.AgentInfoRes, agentID string, 
 		deviceIF:     "",
 		handlerLabel: "",
 		format:       "prom_sinker",
+		warning:      "Deprecated, soon we will substitute for openTelemetry, check https://orb.community/documentation to how enable openTelemetry in your agent",
 		tags:         tags,
 		logger:       p.logger,
 	}

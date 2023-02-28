@@ -7,18 +7,18 @@ import (
 	"github.com/mainflux/mainflux"
 	mflog "github.com/mainflux/mainflux/logger"
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
-	"github.com/ns1labs/orb/fleet"
-	"github.com/ns1labs/orb/fleet/backend/pktvisor"
-	flmocks "github.com/ns1labs/orb/fleet/mocks"
-	"github.com/ns1labs/orb/pkg/config"
-	"github.com/ns1labs/orb/pkg/errors"
-	"github.com/ns1labs/orb/pkg/types"
-	"github.com/ns1labs/orb/policies"
-	policyGRPC "github.com/ns1labs/orb/policies/api/grpc"
-	plmocks "github.com/ns1labs/orb/policies/mocks"
-	"github.com/ns1labs/orb/policies/pb"
-	sinkmocks "github.com/ns1labs/orb/sinks/mocks"
 	"github.com/opentracing/opentracing-go/mocktracer"
+	"github.com/orb-community/orb/fleet"
+	"github.com/orb-community/orb/fleet/backend/pktvisor"
+	flmocks "github.com/orb-community/orb/fleet/mocks"
+	"github.com/orb-community/orb/pkg/config"
+	"github.com/orb-community/orb/pkg/errors"
+	"github.com/orb-community/orb/pkg/types"
+	"github.com/orb-community/orb/policies"
+	policyGRPC "github.com/orb-community/orb/policies/api/grpc"
+	plmocks "github.com/orb-community/orb/policies/mocks"
+	"github.com/orb-community/orb/policies/pb"
+	sinkmocks "github.com/orb-community/orb/sinks/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -226,7 +226,9 @@ func TestNotifyAgentAllDatasets(t *testing.T) {
 
 	group, err := fleetSVC.CreateAgentGroup(context.Background(), "token", fleet.AgentGroup{
 		Name: validGroupName,
-		Tags: map[string]string{"test": "true"},
+		Tags: &types.Tags{
+			"test": "true",
+		},
 	})
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
@@ -365,7 +367,9 @@ func TestNotifyAgentGroupMembership(t *testing.T) {
 
 	_, err = fleetSVC.CreateAgentGroup(context.Background(), "token", fleet.AgentGroup{
 		Name: validGroupName,
-		Tags: map[string]string{"test": "true"},
+		Tags: &types.Tags{
+			"test": "true",
+		},
 	})
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
@@ -497,7 +501,9 @@ func TestNotifyAgentNewGroupMembership(t *testing.T) {
 
 	_, err = fleetSVC.CreateAgentGroup(context.Background(), "token", fleet.AgentGroup{
 		Name: validGroupName,
-		Tags: map[string]string{"test": "true"},
+		Tags: &types.Tags{
+			"test": "true",
+		},
 	})
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 

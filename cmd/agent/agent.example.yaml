@@ -1,18 +1,18 @@
 version: "1.0"
 
 # this section is used by pktvisor
-# see https://github.com/ns1labs/pktvisor/blob/develop/RFCs/2021-04-16-75-taps.md
+# see https://github.com/orb-community/pktvisor/blob/develop/RFCs/2021-04-16-75-taps.md
 visor:
   taps:
     mydefault:
       input_type: pcap
       config:
-        iface: "eth0"
+        iface: "auto"
 
 # this section is used orb-agent
 # most sections and keys are optional
 orb:
-  # these are arbitrary key value pairs used for organization in the control plane and UI
+  # these are arbitrary key value pairs used for dynamically define a group of agents by matching against agent group tags
   tags:
     region: EU
     pop: ams02
@@ -28,7 +28,7 @@ orb:
       # if auto provisioning, specify API token here (or pass on the command line)
       token: TOKEN
     mqtt:
-      address: tls://127.0.0.1:8883
+      address: tls://agents.orb.live:8883
       # if not auto provisioning, specify agent connection details here
 #      id: "f420a133-7651-412d-852a-6141fafeaea5"
 #      key: "14ae65ae-092f-4fdc-be6a-0cfb378119dc"
@@ -41,4 +41,4 @@ orb:
     pktvisor:
       binary: "/usr/local/sbin/pktvisord"
       # this example assumes the file is saved as agent.yaml. If your file has another name, you must replace it with the proper name
-      config_file: "/usr/local/orb/etc/agent.yaml"
+      config_file: "/opt/orb/agent.yaml"

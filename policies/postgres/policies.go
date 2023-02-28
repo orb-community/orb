@@ -19,11 +19,11 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
-	"github.com/ns1labs/orb/fleet"
-	"github.com/ns1labs/orb/pkg/db"
-	"github.com/ns1labs/orb/pkg/errors"
-	"github.com/ns1labs/orb/pkg/types"
-	"github.com/ns1labs/orb/policies"
+	"github.com/orb-community/orb/fleet"
+	"github.com/orb-community/orb/pkg/db"
+	"github.com/orb-community/orb/pkg/errors"
+	"github.com/orb-community/orb/pkg/types"
+	"github.com/orb-community/orb/policies"
 	"go.uber.org/zap"
 )
 
@@ -831,10 +831,6 @@ func toDataset(dba dbDataset) policies.Dataset {
 		Created:      dba.TsCreated,
 		Tags:         types.Tags(dba.Tags),
 	}
-
-	//var sinkIDs []string
-	//sinkIDs = dba.SinkIDs
-	//dataset.SinkIDs = &sinkIDs
 
 	return dataset
 }

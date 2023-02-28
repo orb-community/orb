@@ -12,9 +12,9 @@ import (
 	"context"
 	kitot "github.com/go-kit/kit/tracing/opentracing"
 	kitgrpc "github.com/go-kit/kit/transport/grpc"
-	"github.com/ns1labs/orb/sinks"
-	"github.com/ns1labs/orb/sinks/pb"
 	"github.com/opentracing/opentracing-go"
+	"github.com/orb-community/orb/sinks"
+	"github.com/orb-community/orb/sinks/pb"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -75,6 +75,7 @@ func encodeSinksResponse(_ context.Context, grpcRes interface{}) (interface{}, e
 	for i, sink := range res.sinks {
 		sList[i] = &pb.SinkRes{
 			Id:          sink.id,
+			OwnerID:     sink.mfOwnerId,
 			Name:        sink.name,
 			Description: sink.description,
 			Tags:        sink.tags,

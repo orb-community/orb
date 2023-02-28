@@ -1,4 +1,4 @@
-from utils import safe_load_json, random_string, threading_wait_until, return_port_to_run_docker_container
+from utils import safe_load_json, random_string, threading_wait_until, return_port_by_availability
 from behave import then, step
 from hamcrest import *
 from test_config import TestConfig, LOCAL_AGENT_CONTAINER_NAME
@@ -10,17 +10,52 @@ import threading
 import json
 from datetime import datetime
 import ciso8601
+from metrics import expected_metrics_by_handlers_and_groups, wait_until_metrics_scraped
+
 
 configs = TestConfig.configs()
 verify_ssl_bool = eval(configs.get('verify_ssl').title())
+
+
+@step("metrics must be correctly generated for {handler_type} handler")
+def check_metrics_by_handler(context, handler_type):
+    expected_metrics = expected_metrics_by_handlers_and_groups(handler_type, context.metric_groups_enabled,
+                                                               context.metric_groups_disabled)
+    policy_name = context.policy['name']
+    local_prometheus_endpoint = f"http://localhost:{context.port}/api/v1/policies/{policy_name}/metrics/prometheus"
+    correct_metrics, metrics_dif, metrics_present = wait_until_metrics_scraped(local_prometheus_endpoint,
+                                                                               expected_metrics, timeout=60,
+                                                                               wait_time=5)
+    expected_metrics_not_present = expected_metrics.difference(metrics_present)
+    if expected_metrics_not_present == set():
+        expected_metrics_not_present = None
+    else:
+        expected_metrics_not_present = sorted(expected_metrics_not_present)
+    extra_metrics_present = metrics_present.difference(expected_metrics)
+    if extra_metrics_present == set():
+        extra_metrics_present = None
+    else:
+        extra_metrics_present = sorted(extra_metrics_present)
+    assert_that(correct_metrics, equal_to(True), f"Metrics are not the expected. "
+                                           f"Metrics expected that are not present: {expected_metrics_not_present}."
+                                           f"Extra metrics present: {extra_metrics_present}")
 
 
 @step('the agent container is started on an {status_port} port')
 def run_local_agent_container(context, status_port, **kwargs):
     use_orb_live_address_pattern = configs.get("use_orb_live_address_pattern")
     verify_ssl = configs.get('verify_ssl')
+    if "include_otel_env_var" in kwargs: # this if/else logic can be removed after otel migration (only else is needed)
+        include_otel_env_var = kwargs["include_otel_env_var"]
+    else:
+        include_otel_env_var = configs.get("include_otel_env_var")
+    if "enable_otel" in kwargs: # this if/else logic can be removed after otel migration (only else is needed)
+        enable_otel = kwargs["enable_otel"]
+    else:
+        enable_otel = configs.get("enable_otel")
+
     env_vars = create_agent_env_vars_set(context.agent['id'], context.agent['channel_id'], context.agent_key,
-                                         verify_ssl, use_orb_live_address_pattern)
+                                         verify_ssl, use_orb_live_address_pattern, include_otel_env_var, enable_otel)
     env_vars.update(kwargs)
     assert_that(status_port, any_of(equal_to("available"), equal_to("unavailable")), "Unexpected value for port")
     availability = {"available": True, "unavailable": False}
@@ -28,12 +63,12 @@ def run_local_agent_container(context, status_port, **kwargs):
     image_tag = ':' + configs.get('agent_docker_tag', 'latest')
     agent_image = agent_docker_image + image_tag
 
-    context.port = return_port_to_run_docker_container(context, availability[status_port])
+    context.port = return_port_by_availability(context, availability[status_port])
 
     if context.port != 10583:
         env_vars["ORB_BACKENDS_PKTVISOR_API_PORT"] = str(context.port)
 
-    context.container_id = run_agent_container(agent_image, env_vars, LOCAL_AGENT_CONTAINER_NAME +
+    context.container_id = run_agent_container(agent_image, env_vars, LOCAL_AGENT_CONTAINER_NAME + random_string(2) +
                                                context.agent['name'][-5:])
     if context.container_id not in context.containers_id.keys():
         context.containers_id[context.container_id] = str(context.port)
@@ -47,24 +82,26 @@ def run_local_agent_container(context, status_port, **kwargs):
                 f"\n Logs:{logs}")
 
 
-@step('the agent container is started on an {status_port} port and use {agent_tap} env vars')
-def run_local_agents_with_extra_env_vars(context, status_port, agent_tap):
-    agent_tap = agent_tap.upper()
-    assert_that(agent_tap, any_of("PCAP", "NETFLOW", "SFLOW", "DNSTAP", "ALL"))
+@step('the agent container is started on an {status_port} port and use {group} env vars')
+def run_local_agents_with_extra_env_vars(context, status_port, group):
+    group = group.upper()
+    assert_that(group, any_of("PCAP", "NETFLOW", "SFLOW", "DNSTAP", "ALL", "OTEL:ENABLED"))
     vars_by_input = {
         "PCAP": {"PKTVISOR_PCAP_IFACE_DEFAULT": configs.get("orb_agent_interface", "auto")},
         "NETFLOW": {"PKTVISOR_NETFLOW": "true", "PKTVISOR_NETFLOW_PORT_DEFAULT": 9995},
         "SFLOW": {"PKTVISOR_SFLOW": "true", "PKTVISOR_SFLOW_PORT_DEFAULT": 9994},
-        "DNSTAP": {"PKTVISOR_DNSTAP": "true", "PKTVISOR_DNSTAP_PORT_DEFAULT": 9990}
+        "DNSTAP": {"PKTVISOR_DNSTAP": "true", "PKTVISOR_DNSTAP_PORT_DEFAULT": 9990},
+        # this line below is only necessary for OTEL migration tests, so we can exclude it after the migration
+        "OTEL:ENABLED": {"ORB_OTEL_ENABLE": "true"}
     }
-    if agent_tap == "ALL":
+    if group == "ALL":
         vars_by_input["ALL"] = dict()
         vars_by_input["ALL"].update(vars_by_input["PCAP"])
         vars_by_input["ALL"].update(vars_by_input["NETFLOW"])
         vars_by_input["ALL"].update(vars_by_input["SFLOW"])
         vars_by_input["ALL"].update(vars_by_input["DNSTAP"])
 
-    run_local_agent_container(context, status_port, **vars_by_input[agent_tap])
+    run_local_agent_container(context, status_port, **vars_by_input[group])
 
 
 @step('the container logs that were output after {condition} contain the message "{text_to_match}" within'
@@ -128,7 +165,7 @@ def check_last_container_status_after_time(context, order, status, seconds):
 def run_container_using_ui_command(context, status_port):
     assert_that(status_port, any_of(equal_to("available"), equal_to("unavailable")), "Unexpected value for port")
     availability = {"available": True, "unavailable": False}
-    context.port = return_port_to_run_docker_container(context, availability[status_port])
+    context.port = return_port_by_availability(context, availability[status_port])
     include_otel_env_var = configs.get("include_otel_env_var")
     enable_otel = configs.get("enable_otel")
     verify_ssl = configs.get("verify_ssl")
@@ -180,7 +217,7 @@ def remove_all_orb_agent_test_containers(context):
 
 
 def create_agent_env_vars_set(agent_id, agent_channel_id, agent_mqtt_key, verify_ssl,
-                              use_orb_live_address_pattern):
+                              use_orb_live_address_pattern, include_otel_env_var, enable_otel):
     """
     Create the set of environmental variables to be passed to the agent
     :param agent_id: id of the agent
@@ -189,11 +226,11 @@ def create_agent_env_vars_set(agent_id, agent_channel_id, agent_mqtt_key, verify
     :param verify_ssl: ignore process to verify tls if false
     :param use_orb_live_address_pattern: if true, uses the shortcut orb_cloud_address.
                                               if false sets api and mqtt address.
+    :param include_otel_env_var: If true, use the environmental variable "ORB_OTEL_ENABLE" on agent provisioning command
+    :param enable_otel: Value to be used in variable "ORB_OTEL_ENABLE"
     :return: set of environmental variables
     """
     orb_address = configs.get('orb_address')
-    include_otel_env_var = configs.get("include_otel_env_var")
-    enable_otel = configs.get("enable_otel")
     env_vars = {"ORB_CLOUD_MQTT_ID": agent_id,
                 "ORB_CLOUD_MQTT_CHANNEL_ID": agent_channel_id,
                 "ORB_CLOUD_MQTT_KEY": agent_mqtt_key}

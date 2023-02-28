@@ -12,7 +12,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/go-kit/kit/endpoint"
-	"github.com/ns1labs/orb/sinks"
+	"github.com/orb-community/orb/sinks"
 )
 
 func retrieveSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
@@ -50,6 +50,7 @@ func retrieveSinksEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 		req := request.(sinksFilter)
 		filter := sinks.Filter{
 			OpenTelemetry: req.isOtel,
+			StateFilter:   req.state,
 		}
 		sinksInternal, err := svc.ListSinksInternal(ctx, filter)
 		if err != nil {
@@ -81,6 +82,7 @@ func buildSinkResponse(sink sinks.Sink) (sinkRes, error) {
 
 	return sinkRes{
 		id:          sink.ID,
+		mfOwnerId:   sink.MFOwnerID,
 		name:        sink.Name.String(),
 		description: *sink.Description,
 		tags:        tagData,

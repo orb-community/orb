@@ -13,8 +13,8 @@ import (
 	"encoding/json"
 	"github.com/mainflux/mainflux"
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
-	"github.com/ns1labs/orb/fleet/backend"
-	"github.com/ns1labs/orb/pkg/errors"
+	"github.com/orb-community/orb/fleet/backend"
+	"github.com/orb-community/orb/pkg/errors"
 	"go.uber.org/zap"
 	"strings"
 )
@@ -193,6 +193,9 @@ func (svc fleetService) EditAgent(ctx context.Context, token string, agent Agent
 
 	if newName := agent.Name.String(); newName == "" {
 		agent.Name = currentAgent.Name
+	}
+	if agent.OrbTags == nil {
+		agent.OrbTags = currentAgent.OrbTags
 	}
 
 	err = svc.agentRepo.UpdateAgentByID(ctx, ownerID, agent)
