@@ -167,7 +167,32 @@ paths:
           description: Database can't process request.
         '500':
           $ref: "#/components/responses/ServiceErrorRes"
-
+  /v2/sinks:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+    post:
+      summary: 'Create a new Sink with YAML support'
+      operationId: createSink
+      tags:
+        - sink
+      requestBody:
+        required: true
+        $ref: "#/components/requestBodies/SinkCreateReq"
+      responses:
+        '201':
+          $ref: "#/components/responses/SinkObjRes"
+        '400':
+          description: Failed due to malformed JSON.
+        '401':
+          description: Missing or invalid access token provided.
+        '409':
+          description: Entity already exist.
+        '415':
+          description: Missing or invalid content type.
+        '422':
+          description: Database can't process request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
 components:
   securitySchemes:
     bearerAuth:
@@ -182,6 +207,13 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/SinkCreateReqSchema"
+    SinkCreateReqV2:
+      description: JSON-formatted document describing the new Sink configuration
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/SinkCreateReqV2Schema"
     SinkUpdateReq:
       description: JSON-formatted document describing the updated Sink configuration
       required: true
@@ -350,6 +382,39 @@ components:
             remote_host: my.prometheus-host.com
             username: dbuser
           description: Object representing backend specific configuration information
+    SinkCreateReqV2Schema:
+      type: object
+      required:
+        - name
+        - backend
+        - config
+      properties:
+        name:
+          type: string
+          description: A unique name label
+          example: my-prom-sink
+        description:
+          type: string
+          description: User description of this Sink
+          example: An example prometheus sink
+        tags:
+          type: object
+          description: User defined key/values for organization and searching
+          example:
+            cloud: aws
+        backend:
+          type: string
+          example: prometheus
+          description: The sink backend to use. Must match a backend from /features/sinks. Cannot change once created.
+        format:
+          type: string
+          enum:
+            - json
+            - yaml
+          description: Format that the config will be passed on
+        config:
+          type: string
+          description: Configuration as String aligned with given format
     SinkPageSchema:
       type: object
       properties:

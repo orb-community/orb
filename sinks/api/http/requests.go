@@ -12,6 +12,7 @@ import (
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks"
+	"github.com/orb-community/orb/sinks/backend"
 )
 
 const (
@@ -21,7 +22,53 @@ const (
 	idOrder      = "id"
 	ascDir       = "asc"
 	descDir      = "desc"
+	yamlFormat   = "yaml"
+	jsonForma    = "json"
 )
+
+type addReqV2 struct {
+	Name        string     `json:"name,omitempty"`
+	Backend     string     `json:"backend,omitempty"`
+	Format      string     `json:"format,omitempty"`
+	Config      string     `json:"config,omitempty"`
+	Description string     `json:"description,omitempty"`
+	Tags        types.Tags `json:"tags,omitempty"`
+	token       string
+}
+
+func (req addReqV2) validate() (err error) {
+	if req.token == "" {
+		return errors.ErrUnauthorizedAccess
+	}
+
+	if req.Backend == "" || !backend.HaveBackend(req.Backend) {
+		return errors.ErrMalformedEntity
+	}
+	reqBackend := backend.GetBackend(req.Backend)
+	if req.Config == "" {
+		return errors.ErrMalformedEntity
+	}
+	config, err := reqBackend.ParseConfig(req.Format, req.Config)
+	if err != nil {
+		return errors.Wrap(errors.ErrMalformedEntity, err)
+	}
+
+	err = reqBackend.ValidateConfiguration(config)
+	if err != nil {
+		return errors.Wrap(errors.ErrMalformedEntity, err)
+	}
+
+	if req.Name == "" {
+		return errors.ErrMalformedEntity
+	}
+
+	_, err = types.NewIdentifier(req.Name)
+	if err != nil {
+		return errors.Wrap(errors.ErrMalformedEntity, err)
+	}
+
+	return nil
+}
 
 type addReq struct {
 	Name        string         `json:"name,omitempty"`
