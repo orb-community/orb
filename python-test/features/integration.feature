@@ -92,7 +92,7 @@ Scenario: Apply two simple policies to an agent
         And 2 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
 
-@smoke
+@sanity
 Scenario: apply one policy using multiple datasets to the same group
     Given the Orb user has a registered account
         And the Orb user logs in
