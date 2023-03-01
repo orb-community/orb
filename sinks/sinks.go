@@ -86,7 +86,7 @@ func (s *State) Scan(value interface{}) error {
 		}
 		asString = string(asBytes)
 	}
-	*s = stateRevMap[string(asString)]
+	*s = stateRevMap[asString]
 	return nil
 }
 func (s State) Value() (driver.Value, error) { return s.String(), nil }
