@@ -95,7 +95,7 @@ func (svc SinkerService) Start() error {
 func (svc SinkerService) startOtel(ctx context.Context) error {
 	if svc.otel {
 		var err error
-		bridgeService := bridgeservice.NewBridgeService(svc.logger, svc.sinkerCache, svc.policiesClient, svc.fleetClient)
+		bridgeService := bridgeservice.NewBridgeService(svc.logger, svc.sinkerCache, svc.policiesClient, svc.fleetClient, svc.messageInputCounter)
 		svc.otelCancelFunct, err = otel.StartOtelComponents(ctx, &bridgeService, svc.logger, svc.otelKafkaUrl, svc.pubSub)
 		if err != nil {
 			svc.logger.Error("error during StartOtelComponents", zap.Error(err))
