@@ -71,10 +71,12 @@ func Register() bool {
 
 func (p *prometheusBackend) ConfigToFormat(format string, metadata types.Metadata) (string, error) {
 	if format == "yaml" {
+		username := metadata[UsernameConfigFeature].(string)
+		password := metadata[PasswordConfigFeature].(string)
 		parseUtil := configParseUtility{
 			RemoteHost: metadata[RemoteHostURLConfigFeature].(string),
-			Username:   metadata[UsernameConfigFeature].(*string),
-			Password:   metadata[PasswordConfigFeature].(*string),
+			Username:   &username,
+			Password:   &password,
 		}
 		config, err := yaml.Marshal(parseUtil)
 		if err != nil {
