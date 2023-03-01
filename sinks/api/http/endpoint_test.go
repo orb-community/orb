@@ -1009,7 +1009,7 @@ func TestOmitPasswords(t *testing.T) {
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
-			metadata := omitSecretInformation(tc.inputMetadata)
+			metadata, _ := omitSecretInformation(tc.inputMetadata)
 			assert.Equal(t, tc.expectedMetadata, metadata)
 		})
 	}

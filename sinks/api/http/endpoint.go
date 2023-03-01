@@ -15,11 +15,12 @@ import (
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks"
 	"github.com/orb-community/orb/sinks/backend"
+	"time"
 )
 
 var restrictiveKeyPrefixes = []string{backend.ConfigFeatureTypePassword}
 
-func omitSecretInformation(metadata types.Metadata) (restrictedMetadata types.Metadata) {
+func omitSecretInformation(be backend.Backend, format string, metadata types.Metadata) (restrictedMetadata types.Metadata, configData string) {
 	metadata.RestrictKeys(func(key string) bool {
 		match := false
 		for _, restrictiveKey := range restrictiveKeyPrefixes {
@@ -30,10 +31,17 @@ func omitSecretInformation(metadata types.Metadata) (restrictedMetadata types.Me
 		}
 		return match
 	})
-	return metadata
+	var err error
+	if format != "" {
+		configData, err = be.ConfigToFormat(format, metadata)
+		if err != nil {
+			return metadata, ""
+		}
+	}
+	return metadata, configData
 }
 
-func addV2Endpoint(svc sinks.SinkService) endpoint.Endpoint {
+func addEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(addReq)
 		if err := req.validate(); err != nil {
@@ -45,8 +53,8 @@ func addV2Endpoint(svc sinks.SinkService) endpoint.Endpoint {
 			return nil, err
 		}
 		var config types.Metadata
+		reqBackend := backend.GetBackend(req.Backend)
 		if req.Format != "" {
-			reqBackend := backend.GetBackend(req.Backend)
 			config, err = reqBackend.ParseConfig(req.Format, req.ConfigData)
 		} else {
 			if req.Config != nil {
@@ -61,11 +69,16 @@ func addV2Endpoint(svc sinks.SinkService) endpoint.Endpoint {
 			Config:      config,
 			Description: &req.Description,
 			Tags:        req.Tags,
+			ConfigData:  req.ConfigData,
+			Format:      req.Format,
+			Created:     time.Now(),
 		}
 		saved, err := svc.CreateSink(ctx, req.token, sink)
 		if err != nil {
 			return nil, err
 		}
+
+		omittedConfig, omittedConfigData := omitSecretInformation(reqBackend, saved.Format, saved.Config)
 
 		res := sinkRes{
 			ID:          saved.ID,
@@ -75,7 +88,9 @@ func addV2Endpoint(svc sinks.SinkService) endpoint.Endpoint {
 			State:       saved.State.String(),
 			Error:       saved.Error,
 			Backend:     saved.Backend,
-			Config:      omitSecretInformation(saved.Config),
+			Config:      omittedConfig,
+			ConfigData:  omittedConfigData,
+			Format:      saved.Format,
 			TsCreated:   saved.Created,
 			created:     true,
 		}
@@ -90,10 +105,23 @@ func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 		if err := req.validate(); err != nil {
 			return nil, err
 		}
+		var config types.Metadata
+		reqBackend := backend.GetBackend(req.Backend)
+		if req.Format != "" {
+			config, err = reqBackend.ParseConfig(req.Format, req.ConfigData)
+		} else {
+			if req.Config != nil {
+				config = req.Config
+			} else {
+				return nil, errors.ErrMalformedEntity
+			}
+		}
 		sink := sinks.Sink{
 			ID:          req.id,
 			Tags:        req.Tags,
-			Config:      req.Config,
+			Config:      config,
+			ConfigData:  req.ConfigData,
+			Format:      req.Format,
 			Description: req.Description,
 		}
 
@@ -109,6 +137,7 @@ func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 		if err != nil {
 			return nil, err
 		}
+		omittedConfig, omittedConfigData := omitSecretInformation(reqBackend, sinkEdited.Format, sinkEdited.Config)
 		res := sinkRes{
 			ID:          sinkEdited.ID,
 			Name:        sinkEdited.Name.String(),
@@ -117,7 +146,9 @@ func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			State:       sinkEdited.State.String(),
 			Error:       sinkEdited.Error,
 			Backend:     sinkEdited.Backend,
-			Config:      omitSecretInformation(sinkEdited.Config),
+			Config:      omittedConfig,
+			ConfigData:  omittedConfigData,
+			Format:      sinkEdited.Format,
 			created:     false,
 		}
 		return res, nil
@@ -149,15 +180,19 @@ func listSinksEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 		}
 
 		for _, sink := range page.Sinks {
+			reqBackend := backend.GetBackend(sink.Backend)
+			omittedConfig, omittedConfigData := omitSecretInformation(reqBackend, sink.Format, sink.Config)
 			view := sinkRes{
-				ID:        sink.ID,
-				Name:      sink.Name.String(),
-				Tags:      sink.Tags,
-				State:     sink.State.String(),
-				Error:     sink.Error,
-				Backend:   sink.Backend,
-				Config:    omitSecretInformation(sink.Config),
-				TsCreated: sink.Created,
+				ID:         sink.ID,
+				Name:       sink.Name.String(),
+				Tags:       sink.Tags,
+				State:      sink.State.String(),
+				Error:      sink.Error,
+				Backend:    sink.Backend,
+				Config:     omittedConfig,
+				ConfigData: omittedConfigData,
+				Format:     sink.Format,
+				TsCreated:  sink.Created,
 			}
 			if sink.Description != nil {
 				view.Description = *sink.Description
@@ -226,7 +261,8 @@ func viewSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 		if err != nil {
 			return sink, err
 		}
-
+		reqBackend := backend.GetBackend(sink.Backend)
+		omittedConfig, omittedConfigData := omitSecretInformation(reqBackend, sink.Format, sink.Config)
 		res := sinkRes{
 			ID:          sink.ID,
 			Name:        sink.Name.String(),
@@ -235,7 +271,9 @@ func viewSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			State:       sink.State.String(),
 			Error:       sink.Error,
 			Backend:     sink.Backend,
-			Config:      omitSecretInformation(sink.Config),
+			Config:      omittedConfig,
+			ConfigData:  omittedConfigData,
+			Format:      sink.Format,
 			TsCreated:   sink.Created,
 		}
 		if sink.Description != nil {

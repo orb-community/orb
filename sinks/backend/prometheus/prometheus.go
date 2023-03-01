@@ -75,7 +75,6 @@ func (p *prometheusBackend) ConfigToFormat(format string, metadata types.Metadat
 			RemoteHost: metadata[RemoteHostURLConfigFeature].(string),
 			Username:   metadata[UsernameConfigFeature].(*string),
 			Password:   metadata[PasswordConfigFeature].(*string),
-			APIToken:   metadata[ApiTokenConfigFeature].(*string),
 		}
 		config, err := yaml.Marshal(parseUtil)
 		if err != nil {
@@ -99,12 +98,8 @@ func (p *prometheusBackend) ParseConfig(format string, config string) (configRet
 		configReturn = make(types.Metadata)
 		// Check for Token Auth
 		configReturn[RemoteHostURLConfigFeature] = configUtil.RemoteHost
-		if configUtil.APIToken != nil {
-			configReturn[ApiTokenConfigFeature] = configUtil.APIToken
-		} else {
-			configReturn[UsernameConfigFeature] = configUtil.Username
-			configReturn[PasswordConfigFeature] = configUtil.Password
-		}
+		configReturn[UsernameConfigFeature] = configUtil.Username
+		configReturn[PasswordConfigFeature] = configUtil.Password
 		return
 	} else {
 		return nil, errors.New("unsupported format")
@@ -127,9 +122,7 @@ func (p *prometheusBackend) ValidateConfiguration(config types.Metadata) error {
 			return errors.New("basic authentication, must provide username and password fields")
 		}
 	case TokenAuth:
-		if _, tokenOk := config[ApiTokenConfigFeature]; !tokenOk {
-			return errors.New("basic authentication, must provide username and password fields")
-		}
+		return errors.New("not implemented yet")
 	}
 	remoteUrl, remoteHostOk := config[RemoteHostURLConfigFeature]
 	if !remoteHostOk {
