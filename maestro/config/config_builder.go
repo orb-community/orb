@@ -395,15 +395,20 @@ func GetServiceApplyConfig(sinkId string) string {
 
 // ReturnConfigYamlFromSink this is the main method, which will generate the YAML file from the
 func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig, sinkId, sinkUrl, sinkUsername, sinkPassword string) (string, error) {
-	config := OtelConfigFile{
-		Receivers: Receivers{
-			Kafka: KafkaReceiver{
-				Brokers:         []string{kafkaUrlConfig},
-				Topic:           fmt.Sprintf("otlp_metrics-%s", sinkId),
-				ProtocolVersion: "2.0.0", // Leaving default of over 2.0.0
+	var extensions *Extensions
+	if sinkUsername != "" {
+		extensions = &Extensions{
+			PProf: &PProfExtension{
+				Endpoint: "0.0.0.0:1888", // Leaving default for now, will need to change with more processes
 			},
-		},
-		Extensions: &Extensions{
+			BearerAuth: &BearerAuthExtension{
+				BearerAuth: &struct {
+					Token string `json:"token" yaml:"token"`
+				}{Token: sinkPassword},
+			},
+		}
+	} else {
+		extensions = &Extensions{
 			PProf: &PProfExtension{
 				Endpoint: "0.0.0.0:1888", // Leaving default for now, will need to change with more processes
 			},
@@ -413,7 +418,18 @@ func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig, sinkId, sinkUrl
 					Password string `json:"password" yaml:"password"`
 				}{Username: sinkUsername, Password: sinkPassword},
 			},
+		}
+	}
+
+	config := OtelConfigFile{
+		Receivers: Receivers{
+			Kafka: KafkaReceiver{
+				Brokers:         []string{kafkaUrlConfig},
+				Topic:           fmt.Sprintf("otlp_metrics-%s", sinkId),
+				ProtocolVersion: "2.0.0", // Leaving default of over 2.0.0
+			},
 		},
+		Extensions: extensions,
 		Exporters: Exporters{
 			PrometheusRemoteWrite: &PrometheusRemoteWriteExporterConfig{
 				Endpoint: sinkUrl,
@@ -481,11 +497,12 @@ type Processors struct {
 }
 
 type Extensions struct {
-	HealthCheckExtConfig *HealthCheckExtension `json:"health_check,omitempty" yaml:"health_check,omitempty"`
-	PProf                *PProfExtension       `json:"pprof,omitempty" yaml:"pprof,omitempty"`
-	ZPages               *ZPagesExtension      `json:"zpages,omitempty" yaml:"zpages,omitempty"`
+	HealthCheckExtConfig *HealthCheckExtension `json:"health_check,omitempty" yaml:"health_check,omitempty" :"health_check_ext_config"`
+	PProf                *PProfExtension       `json:"pprof,omitempty" yaml:"pprof,omitempty" :"p_prof"`
+	ZPages               *ZPagesExtension      `json:"zpages,omitempty" yaml:"zpages,omitempty" :"z_pages"`
 	// Exporters Authentication
-	BasicAuth *BasicAuthenticationExtension `json:"basicauth/exporter,omitempty" yaml:"basicauth/exporter,omitempty"`
+	BasicAuth  *BasicAuthenticationExtension `json:"auth/exporter,omitempty" yaml:"auth/exporter,omitempty" :"basic_auth"`
+	BearerAuth *BearerAuthExtension          `json:"auth/exporter,omitempty" yaml:"auth/exporter,omitempty" :"bearer_auth"`
 }
 
 type HealthCheckExtension struct {
@@ -512,6 +529,12 @@ type BasicAuthenticationExtension struct {
 	ClientAuth *struct {
 		Username string `json:"username" yaml:"username"`
 		Password string `json:"password" yaml:"password"`
+	} `json:"client_auth" yaml:"client_auth"`
+}
+
+type BearerAuthExtension struct {
+	BearerAuth *struct {
+		Token string `json:"token" yaml:"token"`
 	} `json:"client_auth" yaml:"client_auth"`
 }
 
