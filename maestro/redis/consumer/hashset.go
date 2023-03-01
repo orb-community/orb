@@ -67,7 +67,7 @@ func (es eventStore) handleSinksCreateCollector(ctx context.Context, event redis
 		sinkUsername = data.User
 		sinkPassword = data.Password
 	} else {
-		sinkPassword = data.Password
+		sinkPassword = data.Token
 	}
 
 	err2 := es.CreateDeploymentEntry(ctx, event.SinkID, sinkUrl, sinkUsername, sinkPassword)
