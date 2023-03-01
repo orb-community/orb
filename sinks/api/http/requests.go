@@ -27,12 +27,12 @@ const (
 )
 
 type addReqV2 struct {
-	Name        string     `json:"name,omitempty"`
-	Backend     string     `json:"backend,omitempty"`
-	Format      string     `json:"format,omitempty"`
-	Config      string     `json:"config,omitempty"`
-	Description string     `json:"description,omitempty"`
-	Tags        types.Tags `json:"tags,omitempty"`
+	Name        string      `json:"name,omitempty"`
+	Backend     string      `json:"backend,omitempty"`
+	Format      string      `json:"format,omitempty"`
+	Config      interface{} `json:"config,omitempty"`
+	Description string      `json:"description,omitempty"`
+	Tags        types.Tags  `json:"tags,omitempty"`
 	token       string
 }
 

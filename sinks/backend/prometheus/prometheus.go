@@ -5,7 +5,6 @@
 package prometheus
 
 import (
-	"encoding/json"
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks/backend"
@@ -70,11 +69,12 @@ func Register() bool {
 	return true
 }
 
-func (p *prometheusBackend) ParseConfig(format, config string) (configReturn types.Metadata, err error) {
+func (p *prometheusBackend) ParseConfig(format string, config interface{}) (configReturn types.Metadata, err error) {
 	if format == "yaml" {
+		configAsByte := []byte(config.(string))
 		// Parse the YAML data into a Config struct
 		var configUtil configParseUtility
-		err = yaml.Unmarshal([]byte(config), &configUtil)
+		err = yaml.Unmarshal(configAsByte, &configUtil)
 		if err != nil {
 			return nil, errors.New("failed to parse config YAML")
 		}
@@ -88,19 +88,14 @@ func (p *prometheusBackend) ParseConfig(format, config string) (configReturn typ
 		}
 		return
 	} else {
-		// Parse the YAML data into a Config struct
-		var configUtil configParseUtility
-		err = json.Unmarshal([]byte(config), &configUtil)
-		if err != nil {
-			return nil, errors.New("failed to parse config YAML")
-		}
+		configAsMetadata := config.(types.Metadata)
 		// Check for Token Auth
-		configReturn[RemoteHostURLConfigFeature] = configUtil.RemoteHost
-		if configUtil.APIToken != nil {
-			configReturn[ApiTokenConfigFeature] = configUtil.APIToken
+		configReturn[RemoteHostURLConfigFeature] = configAsMetadata[RemoteHostURLConfigFeature]
+		if value, ok := configAsMetadata[ApiTokenConfigFeature]; ok {
+			configReturn[ApiTokenConfigFeature] = value
 		} else {
-			configReturn[UsernameConfigFeature] = configUtil.Username
-			configReturn[PasswordConfigFeature] = configUtil.Password
+			configReturn[UsernameConfigFeature] = configAsMetadata[UsernameConfigFeature]
+			configReturn[PasswordConfigFeature] = configAsMetadata[PasswordConfigFeature]
 		}
 		return
 	}

@@ -10,7 +10,7 @@ type Backend interface {
 	Metadata() interface{}
 	CreateFeatureConfig() []ConfigFeature
 	ValidateConfiguration(config types.Metadata) error
-	ParseConfig(format, config string) (types.Metadata, error)
+	ParseConfig(format string, config interface{}) (types.Metadata, error)
 }
 
 const ConfigFeatureTypePassword = "password"
