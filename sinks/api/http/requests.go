@@ -22,35 +22,41 @@ const (
 	idOrder      = "id"
 	ascDir       = "asc"
 	descDir      = "desc"
-	yamlFormat   = "yaml"
-	jsonForma    = "json"
 )
 
-type addReqV2 struct {
-	Name        string      `json:"name,omitempty"`
-	Backend     string      `json:"backend,omitempty"`
-	Format      string      `json:"format,omitempty"`
-	Config      interface{} `json:"config,omitempty"`
-	Description string      `json:"description,omitempty"`
-	Tags        types.Tags  `json:"tags,omitempty"`
+type addReq struct {
+	Name        string         `json:"name,omitempty"`
+	Backend     string         `json:"backend,omitempty"`
+	Config      types.Metadata `json:"config,omitempty"`
+	Format      string         `json:"format,omitempty"`
+	ConfigData  string         `json:"config_data,omitempty"`
+	Description string         `json:"description,omitempty"`
+	Tags        types.Tags     `json:"tags,omitempty"`
 	token       string
 }
 
-func (req addReqV2) validate() (err error) {
+func (req addReq) validate() (err error) {
 	if req.token == "" {
 		return errors.ErrUnauthorizedAccess
 	}
 
 	if req.Backend == "" || !backend.HaveBackend(req.Backend) {
-		return errors.Wrap(errors.ErrMalformedEntity, errors.New("no backend"))
+		return errors.Wrap(errors.ErrMalformedEntity, errors.New("backend not found"))
 	}
+
 	reqBackend := backend.GetBackend(req.Backend)
-	if req.Config == "" {
-		return errors.Wrap(errors.ErrMalformedEntity, errors.New("no config"))
+	if req.ConfigData == "" || req.Config != nil {
+		return errors.Wrap(errors.ErrMalformedEntity, errors.New("config not found"))
 	}
-	config, err := reqBackend.ParseConfig(req.Format, req.Config)
-	if err != nil {
-		return errors.Wrap(errors.ErrMalformedEntity, err)
+
+	var config types.Metadata
+	if req.Format != "" {
+		config, err = reqBackend.ParseConfig(req.Format, req.ConfigData)
+		if err != nil {
+			return errors.Wrap(errors.ErrMalformedEntity, err)
+		}
+	} else {
+		config = req.Config
 	}
 
 	err = reqBackend.ValidateConfiguration(config)
@@ -59,55 +65,10 @@ func (req addReqV2) validate() (err error) {
 	}
 
 	if req.Name == "" {
-		return errors.Wrap(errors.ErrMalformedEntity, errors.New("no name"))
+		return errors.Wrap(errors.ErrMalformedEntity, errors.New("name not found"))
 	}
 
 	_, err = types.NewIdentifier(req.Name)
-	if err != nil {
-		return errors.Wrap(errors.ErrMalformedEntity, err)
-	}
-
-	return nil
-}
-
-type addReq struct {
-	Name        string         `json:"name,omitempty"`
-	Backend     string         `json:"backend,omitempty"`
-	Config      types.Metadata `json:"config,omitempty"`
-	Description string         `json:"description,omitempty"`
-	Tags        types.Tags     `json:"tags,omitempty"`
-	token       string
-}
-
-func (req addReq) validate() error {
-	if req.token == "" {
-		return errors.ErrUnauthorizedAccess
-	}
-
-	keySize := 0
-	if req.Config == nil {
-		return errors.ErrMalformedEntity
-	} else if !req.Config.IsApplicable(func(key string, value interface{}) bool {
-		if key != "" {
-			keySize++
-		}
-		//currently, with only prometheus, 2 keys is enough, maybe change latter
-		if keySize >= 2 {
-			//minimal number of keys passed, valid config
-			return true
-		}
-		//still not get enough keys to create sink, check if there are more keys on map
-		return false
-	}) {
-		//not get enough keys to create sink, invalid config
-		return errors.ErrMalformedEntity
-	}
-
-	if req.Name == "" {
-		return errors.ErrMalformedEntity
-	}
-
-	_, err := types.NewIdentifier(req.Name)
 	if err != nil {
 		return errors.Wrap(errors.ErrMalformedEntity, err)
 	}

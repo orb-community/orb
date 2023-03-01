@@ -79,6 +79,15 @@ func (svc sinkService) encryptMetadata(sink Sink) (Sink, error) {
 		}
 		return key, newValue
 	})
+	if sink.ConfigData != "" {
+		sinkBE := backend.GetBackend(sink.Backend)
+		sink.ConfigData, err = sinkBE.ConfigToFormat(sink.Format, sink.Config)
+		if err != nil {
+			svc.logger.Error("error on parsing encrypted config in data")
+			return sink, err
+		}
+	}
+
 	return sink, err
 }
 
@@ -94,6 +103,14 @@ func (svc sinkService) decryptMetadata(sink Sink) (Sink, error) {
 		}
 		return key, newValue
 	})
+	if sink.ConfigData != "" {
+		sinkBE := backend.GetBackend(sink.Backend)
+		sink.ConfigData, err = sinkBE.ConfigToFormat(sink.Format, sink.Config)
+		if err != nil {
+			svc.logger.Error("error on parsing encrypted config in data")
+			return sink, err
+		}
+	}
 	return sink, err
 }
 

@@ -35,49 +35,6 @@ func omitSecretInformation(metadata types.Metadata) (restrictedMetadata types.Me
 
 func addV2Endpoint(svc sinks.SinkService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(addReqV2)
-		if err := req.validate(); err != nil {
-			return nil, err
-		}
-
-		nID, err := types.NewIdentifier(req.Name)
-		if err != nil {
-			return nil, err
-		}
-
-		reqBackend := backend.GetBackend(req.Backend)
-		config, err := reqBackend.ParseConfig(req.Format, req.Config)
-		sink := sinks.Sink{
-			Name:        nID,
-			Backend:     req.Backend,
-			Config:      config,
-			Description: &req.Description,
-			Tags:        req.Tags,
-		}
-		saved, err := svc.CreateSink(ctx, req.token, sink)
-		if err != nil {
-			return nil, err
-		}
-
-		res := sinkRes{
-			ID:          saved.ID,
-			Name:        saved.Name.String(),
-			Description: *saved.Description,
-			Tags:        saved.Tags,
-			State:       saved.State.String(),
-			Error:       saved.Error,
-			Backend:     saved.Backend,
-			Config:      omitSecretInformation(saved.Config),
-			TsCreated:   saved.Created,
-			created:     true,
-		}
-
-		return res, nil
-	}
-}
-
-func addEndpoint(svc sinks.SinkService) endpoint.Endpoint {
-	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(addReq)
 		if err := req.validate(); err != nil {
 			return nil, err
@@ -87,11 +44,21 @@ func addEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 		if err != nil {
 			return nil, err
 		}
-
+		var config types.Metadata
+		if req.Format != "" {
+			reqBackend := backend.GetBackend(req.Backend)
+			config, err = reqBackend.ParseConfig(req.Format, req.ConfigData)
+		} else {
+			if req.Config != nil {
+				config = req.Config
+			} else {
+				return nil, errors.ErrMalformedEntity
+			}
+		}
 		sink := sinks.Sink{
 			Name:        nID,
 			Backend:     req.Backend,
-			Config:      req.Config,
+			Config:      config,
 			Description: &req.Description,
 			Tags:        req.Tags,
 		}

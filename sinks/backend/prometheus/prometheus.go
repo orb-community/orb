@@ -69,9 +69,27 @@ func Register() bool {
 	return true
 }
 
-func (p *prometheusBackend) ParseConfig(format string, config interface{}) (configReturn types.Metadata, err error) {
+func (p *prometheusBackend) ConfigToFormat(format string, metadata types.Metadata) (string, error) {
 	if format == "yaml" {
-		configAsByte := []byte(config.(string))
+		parseUtil := configParseUtility{
+			RemoteHost: metadata[RemoteHostURLConfigFeature].(string),
+			Username:   metadata[UsernameConfigFeature].(*string),
+			Password:   metadata[PasswordConfigFeature].(*string),
+			APIToken:   metadata[ApiTokenConfigFeature].(*string),
+		}
+		config, err := yaml.Marshal(parseUtil)
+		if err != nil {
+			return "", err
+		}
+		return string(config), nil
+	} else {
+		return "", errors.New("unsupported format")
+	}
+}
+
+func (p *prometheusBackend) ParseConfig(format string, config string) (configReturn types.Metadata, err error) {
+	if format == "yaml" {
+		configAsByte := []byte(config)
 		// Parse the YAML data into a Config struct
 		var configUtil configParseUtility
 		err = yaml.Unmarshal(configAsByte, &configUtil)
@@ -89,17 +107,7 @@ func (p *prometheusBackend) ParseConfig(format string, config interface{}) (conf
 		}
 		return
 	} else {
-		configAsMetadata := config.(map[string]interface{})
-		// Check for Token Auth
-		configReturn = make(types.Metadata)
-		configReturn[RemoteHostURLConfigFeature] = configAsMetadata[RemoteHostURLConfigFeature]
-		if value, ok := configAsMetadata[ApiTokenConfigFeature]; ok {
-			configReturn[ApiTokenConfigFeature] = value
-		} else {
-			configReturn[UsernameConfigFeature] = configAsMetadata[UsernameConfigFeature]
-			configReturn[PasswordConfigFeature] = configAsMetadata[PasswordConfigFeature]
-		}
-		return
+		return nil, errors.New("unsupported format")
 	}
 }
 

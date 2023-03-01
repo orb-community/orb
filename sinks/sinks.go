@@ -98,6 +98,8 @@ type Sink struct {
 	Description *string
 	Backend     string
 	Config      types.Metadata
+	Format      string
+	ConfigData  string
 	Tags        types.Tags
 	State       State
 	Error       string
