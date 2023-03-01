@@ -78,6 +78,7 @@ func (p *prometheusBackend) ParseConfig(format string, config interface{}) (conf
 		if err != nil {
 			return nil, errors.New("failed to parse config YAML")
 		}
+		configReturn = make(types.Metadata)
 		// Check for Token Auth
 		configReturn[RemoteHostURLConfigFeature] = configUtil.RemoteHost
 		if configUtil.APIToken != nil {
@@ -90,6 +91,7 @@ func (p *prometheusBackend) ParseConfig(format string, config interface{}) (conf
 	} else {
 		configAsMetadata := config.(types.Metadata)
 		// Check for Token Auth
+		configReturn = make(types.Metadata)
 		configReturn[RemoteHostURLConfigFeature] = configAsMetadata[RemoteHostURLConfigFeature]
 		if value, ok := configAsMetadata[ApiTokenConfigFeature]; ok {
 			configReturn[ApiTokenConfigFeature] = value
@@ -158,13 +160,6 @@ func (p *prometheusBackend) CreateFeatureConfig() []backend.ConfigFeature {
 		Name:     PasswordConfigFeature,
 		Required: true,
 	}
-	apiToken := backend.ConfigFeature{
-		Type:     backend.ConfigFeatureTypePassword,
-		Input:    "text",
-		Title:    "Authentication API Token",
-		Name:     ApiTokenConfigFeature,
-		Required: true,
-	}
-	configs = append(configs, remoteHost, userName, password, apiToken)
+	configs = append(configs, remoteHost, userName, password)
 	return configs
 }

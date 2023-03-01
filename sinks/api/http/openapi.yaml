@@ -176,7 +176,6 @@ paths:
       tags:
         - sink
       requestBody:
-        required: true
         $ref: "#/components/requestBodies/SinkCreateReq"
       responses:
         '201':
@@ -206,7 +205,9 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/SinkCreateReqSchema"
+            oneOf:
+              - $ref: "#/components/schemas/SinkCreateReqSchema"
+              - $ref: "#/components/schemas/SinkCreateReqV2Schema"
     SinkCreateReqV2:
       description: JSON-formatted document describing the new Sink configuration
       required: true

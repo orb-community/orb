@@ -42,11 +42,11 @@ func (req addReqV2) validate() (err error) {
 	}
 
 	if req.Backend == "" || !backend.HaveBackend(req.Backend) {
-		return errors.ErrMalformedEntity
+		return errors.Wrap(errors.ErrMalformedEntity, errors.New("no backend"))
 	}
 	reqBackend := backend.GetBackend(req.Backend)
 	if req.Config == "" {
-		return errors.ErrMalformedEntity
+		return errors.Wrap(errors.ErrMalformedEntity, errors.New("no config"))
 	}
 	config, err := reqBackend.ParseConfig(req.Format, req.Config)
 	if err != nil {
@@ -59,7 +59,7 @@ func (req addReqV2) validate() (err error) {
 	}
 
 	if req.Name == "" {
-		return errors.ErrMalformedEntity
+		return errors.Wrap(errors.ErrMalformedEntity, errors.New("no name"))
 	}
 
 	_, err = types.NewIdentifier(req.Name)
