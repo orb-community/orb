@@ -89,7 +89,7 @@ func (p *prometheusBackend) ParseConfig(format string, config interface{}) (conf
 		}
 		return
 	} else {
-		configAsMetadata := config.(types.Metadata)
+		configAsMetadata := config.(map[string]interface{})
 		// Check for Token Auth
 		configReturn = make(types.Metadata)
 		configReturn[RemoteHostURLConfigFeature] = configAsMetadata[RemoteHostURLConfigFeature]

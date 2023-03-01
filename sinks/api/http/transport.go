@@ -213,7 +213,7 @@ func decodeValidateRequest(_ context.Context, r *http.Request) (interface{}, err
 }
 
 func encodeError(_ context.Context, err error, w http.ResponseWriter) {
-	fmt.Printf("Error : %e")
+	fmt.Printf("Error : %e", err)
 	switch errorVal := err.(type) {
 	case errors.Error:
 		w.Header().Set("Content-Type", types.ContentType)
