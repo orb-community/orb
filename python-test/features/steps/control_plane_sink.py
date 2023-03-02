@@ -1,4 +1,4 @@
-from behave import given, then, step
+from behave import given, when, then, step
 from test_config import TestConfig
 from utils import random_string, filter_list_by_parameter_start_with, threading_wait_until, validate_json
 from hamcrest import *
@@ -225,6 +225,63 @@ def edit_sink_field(context, field_to_edit, type_of_field):
     context.sink = edit_sink(context.token, context.sink['id'], sink)
 
 
+@when("the {sink_keys} of this sink is updated")
+def sink_partial_update(context, sink_keys):
+    sink_keys = sink_keys.replace(" and ", ", ")
+    keys_to_update = sink_keys.split(", ")
+    update_sink_body = get_sink(context.token, context.sink['id'])
+    keys_to_not_update = list(set(update_sink_body.keys()).symmetric_difference(set(keys_to_update)))
+    all_sink_keys = list(update_sink_body.keys())
+    for sink_key in all_sink_keys:
+        if sink_key in keys_to_not_update:
+            del update_sink_body[sink_key]
+        else:
+            assert_that(sink_key, any_of("name", "description", "tags", "config"), f"Unexpected key for sink")
+            remote_host = context.remote_prometheus_endpoint
+            username = context.prometheus_username
+            password = context.prometheus_key
+            include_otel_env_var = configs.get("include_otel_env_var")
+            enable_otel = configs.get("enable_otel")
+            otel_map = {"true": "enabled", "false": "disabled"}
+            assert_that(enable_otel, any_of("true", "false"), "Unexpected value for 'enable_otel' on sinks "
+                                                              "partial update")
+            assert_that(include_otel_env_var, any_of("true", "false"), "Unexpected value for 'include_otel_env_var' on "
+                                                                       "sinks partial update")
+            if include_otel_env_var == "true":
+                sink_configs = {"remote_host": remote_host, "username": username, "password": password,
+                                "opentelemetry": otel_map[enable_otel]}
+            else:
+                sink_configs = {"remote_host": remote_host, "username": username, "password": password}
+            context.values_to_use_to_update_sink = {"name": f"{context.sink['name']}_updated",
+                                                    "description": "this sink has been updated",
+                                                    "tags": {"sink": "updated", "new": "tag"},
+                                                    "config": sink_configs}
+            update_sink_body[sink_key] = context.values_to_use_to_update_sink[sink_key]
+    context.sink_before_update = get_sink(context.token, context.sink['id'])
+    context.sink = edit_sink(context.token, context.sink['id'], update_sink_body, 200)
+
+
+@then("the {sink_keys} updates to the new value and other fields remains the same")
+def verify_sink_after_update(context, sink_keys):
+    sink_keys = sink_keys.replace(" and ", ", ")
+    updated_keys = sink_keys.split(", ")
+    all_sink_keys = list(context.sink.keys())
+    assert_that(set(context.sink.keys()), equal_to(set(context.sink_before_update)),
+                f"Sink keys are not the same after sink partial update:"
+                f"Sink before update: {context.sink_before_update}. Sink after update: {context.sink}")
+    for sink_key in all_sink_keys:
+        if sink_key in updated_keys and sink_key != "config":  # config returns empty as a security action
+            assert_that(context.sink[sink_key], equal_to(context.values_to_use_to_update_sink[sink_key]),
+                        f"{sink_key} was not correctly updated on sink. Sink before update: "
+                        f"{context.sink_before_update}. Sink after update: {context.sink}")
+        elif sink_key != "ts_created":
+            assert_that(context.sink[sink_key], equal_to(context.sink_before_update[sink_key]),
+                        f"Unexpected value for {sink_key} after sink partial update."
+                        f"Sink before update: {context.sink_before_update}. Sink after update: {context.sink}")
+        else:
+            pass  # insert validation to ts_created > must be higher than before
+
+
 @then('cleanup sinks')
 def clean_sinks(context):
     """
@@ -270,7 +327,8 @@ def create_new_sink(token, name_label, remote_host, username, password, descript
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*',
                        'Authorization': f'Bearer {token}'}
 
-    response = requests.post(orb_url + '/api/v1/sinks', json=json_request, headers=headers_request, verify=verify_ssl_bool)
+    response = requests.post(orb_url + '/api/v1/sinks', json=json_request, headers=headers_request,
+                             verify=verify_ssl_bool)
     try:
         response_json = response.json()
     except ValueError:
