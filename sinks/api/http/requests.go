@@ -102,7 +102,7 @@ func (req updateSinkReq) validate() error {
 	}
 
 	reqBackend := backend.GetBackend(req.Backend)
-	if req.ConfigData == "" || req.Config != nil {
+	if req.ConfigData == "" || req.Config == nil {
 		return errors.Wrap(errors.ErrMalformedEntity, errors.New("config not found"))
 	}
 
