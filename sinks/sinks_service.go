@@ -13,6 +13,7 @@ import (
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks/backend"
+	"go.uber.org/zap"
 	"net/url"
 )
 
@@ -87,6 +88,7 @@ func (svc sinkService) encryptMetadata(sink Sink) (Sink, error) {
 	})
 	if sink.ConfigData != "" {
 		sinkBE := backend.GetBackend(sink.Backend)
+		svc.logger.Info("debugging values", zap.Any("sink", sink), zap.Any("sinkBE", sinkBE))
 		sink.ConfigData, err = sinkBE.ConfigToFormat(sink.Format, sink.Config)
 		if err != nil {
 			svc.logger.Error("error on parsing encrypted config in data")
@@ -161,6 +163,9 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 		return Sink{}, errors.ErrUpdateEntity
 	}
 	sink.MFOwnerID = skOwnerID
+	if sink.Backend == "" && currentSink.Backend != "" {
+		sink.Backend = currentSink.Backend
+	}
 	sink, err = svc.encryptMetadata(sink)
 	if err != nil {
 		return Sink{}, errors.Wrap(ErrUpdateEntity, err)
