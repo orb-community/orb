@@ -145,7 +145,7 @@ Scenario: Forced remove agent container
         And the agent container is started on an available port
         And the agent status is online
     When forced remove the orb-agent container
-    Then the agent status in Orb should be stale within 360 seconds
+    Then the agent status in Orb should be stale after 360 seconds
 
 
 @smoke
