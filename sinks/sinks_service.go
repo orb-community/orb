@@ -71,7 +71,13 @@ func (svc sinkService) encryptMetadata(sink Sink) (Sink, error) {
 	sink.Config.FilterMap(func(key string) bool {
 		return key == backend.ConfigFeatureTypePassword
 	}, func(key string, value interface{}) (string, interface{}) {
-		stringVal := value.(string)
+		var stringVal string
+		switch v := value.(type) {
+		case *string:
+			stringVal = *v
+		case string:
+			stringVal = v
+		}
 		newValue, err2 := svc.passwordService.EncodePassword(stringVal)
 		if err2 != nil {
 			err = err2
