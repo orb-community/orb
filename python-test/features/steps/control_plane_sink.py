@@ -164,9 +164,9 @@ def check_sink_status(context, status, time_to_wait):
     assert_that(time_to_wait.isdigit(), is_(True), f"Invalid type: 'time_to_wait' must be an int and is {time_to_wait}")
     time_to_wait = int(time_to_wait)
     threading.Event().wait(time_to_wait)
-    get_sink_response = get_sink_status_and_check(context.token, sink_id, status)
+    context.sink = get_sink_status_and_check(context.token, sink_id, status)
 
-    assert_that(get_sink_response['state'], equal_to(status), f"Sink {context.sink} state failed")
+    assert_that(context.sink['state'], equal_to(status), f"Sink {context.sink} state failed")
 
 
 # this step is only necessary for OTEL migration tests, so we can exclude it after the migration
