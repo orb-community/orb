@@ -301,7 +301,7 @@ type dbSink struct {
 	MFOwnerID   string           `db:"mf_owner_id"`
 	Metadata    db.Metadata      `db:"metadata"`
 	ConfigData  string           `db:"config_data"`
-	Format      string           `db:"metadata"`
+	Format      string           `db:"format"`
 	Backend     string           `db:"backend"`
 	Description string           `db:"description"`
 	Created     time.Time        `db:"ts_created"`
