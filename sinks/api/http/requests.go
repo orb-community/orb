@@ -97,29 +97,25 @@ func (req updateSinkReq) validate() error {
 		return errors.ErrMalformedEntity
 	}
 
-	if req.Backend == "" || !backend.HaveBackend(req.Backend) {
-		return errors.ErrMalformedEntity
-	}
-
-	reqBackend := backend.GetBackend(req.Backend)
-	if req.ConfigData == "" && req.Config == nil {
-		return errors.Wrap(errors.ErrMalformedEntity, errors.New("config not found"))
-	}
-
-	var config types.Metadata
-	var err error
-	if req.Format != "" {
-		config, err = reqBackend.ParseConfig(req.Format, req.ConfigData)
+	if req.ConfigData != "" || req.Config != nil {
+		if req.Backend == "" || !backend.HaveBackend(req.Backend) {
+			return errors.ErrMalformedEntity
+		}
+		reqBackend := backend.GetBackend(req.Backend)
+		var config types.Metadata
+		var err error
+		if req.Format != "" {
+			config, err = reqBackend.ParseConfig(req.Format, req.ConfigData)
+			if err != nil {
+				return errors.Wrap(errors.ErrMalformedEntity, err)
+			}
+		} else {
+			config = req.Config
+		}
+		err = reqBackend.ValidateConfiguration(config)
 		if err != nil {
 			return errors.Wrap(errors.ErrMalformedEntity, err)
 		}
-	} else {
-		config = req.Config
-	}
-
-	err = reqBackend.ValidateConfiguration(config)
-	if err != nil {
-		return errors.Wrap(errors.ErrMalformedEntity, err)
 	}
 
 	if req.Description == nil && req.Name == "" && len(req.Config) == 0 && req.Tags == nil {
