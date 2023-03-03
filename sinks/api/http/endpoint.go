@@ -15,6 +15,7 @@ import (
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks"
 	"github.com/orb-community/orb/sinks/backend"
+	"go.uber.org/zap"
 	"time"
 )
 
@@ -44,22 +45,30 @@ func omitSecretInformation(be backend.Backend, format string, metadata types.Met
 func addEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(addReq)
+		svc.GetLogger().Debug("validating request")
 		if err := req.validate(); err != nil {
+			svc.GetLogger().Error("got error in validating request", zap.Error(err))
 			return nil, err
 		}
 
 		nID, err := types.NewIdentifier(req.Name)
 		if err != nil {
+			svc.GetLogger().Error("got error in creating new identifier", zap.Error(err))
 			return nil, err
 		}
 		var config types.Metadata
 		reqBackend := backend.GetBackend(req.Backend)
 		if req.Format != "" {
 			config, err = reqBackend.ParseConfig(req.Format, req.ConfigData)
+			if err != nil {
+				svc.GetLogger().Error("got error in parsing configuration", zap.Error(err))
+				return nil, err
+			}
 		} else {
 			if req.Config != nil {
 				config = req.Config
 			} else {
+				svc.GetLogger().Error("did not receive any valid configuration")
 				return nil, errors.ErrMalformedEntity
 			}
 		}
@@ -75,6 +84,7 @@ func addEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 		}
 		saved, err := svc.CreateSink(ctx, req.token, sink)
 		if err != nil {
+			svc.GetLogger().Error("received error on creating sink")
 			return nil, err
 		}
 
@@ -103,16 +113,22 @@ func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(updateSinkReq)
 		if err := req.validate(); err != nil {
+			svc.GetLogger().Error("error validating request", zap.Error(err))
 			return nil, err
 		}
 		var config types.Metadata
 		reqBackend := backend.GetBackend(req.Backend)
 		if req.Format != "" {
 			config, err = reqBackend.ParseConfig(req.Format, req.ConfigData)
+			if err != nil {
+				svc.GetLogger().Error("got error in parsing configuration", zap.Error(err))
+				return nil, err
+			}
 		} else {
 			if req.Config != nil {
 				config = req.Config
 			} else {
+				svc.GetLogger().Error("did not receive any valid configuration")
 				return nil, errors.ErrMalformedEntity
 			}
 		}
@@ -128,6 +144,7 @@ func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 		if req.Name != "" {
 			nameID, err := types.NewIdentifier(req.Name)
 			if err != nil {
+				svc.GetLogger().Error("error on getting new identifier", zap.Error(err))
 				return nil, errors.ErrMalformedEntity
 			}
 			sink.Name = nameID
@@ -135,6 +152,7 @@ func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 
 		sinkEdited, err := svc.UpdateSink(ctx, req.token, sink)
 		if err != nil {
+			svc.GetLogger().Error("error on updating sink", zap.Error(err))
 			return nil, err
 		}
 		omittedConfig, omittedConfigData := omitSecretInformation(reqBackend, sinkEdited.Format, sinkEdited.Config)

@@ -13,6 +13,7 @@ import (
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks"
 	"github.com/orb-community/orb/sinks/backend"
+	"go.uber.org/zap"
 )
 
 const (
@@ -36,16 +37,20 @@ type addReq struct {
 }
 
 func (req addReq) validate() (err error) {
+	logger, _ := zap.NewProductionConfig().Build()
 	if req.token == "" {
+		logger.Error("unauthorized")
 		return errors.ErrUnauthorizedAccess
 	}
 
 	if req.Backend == "" || !backend.HaveBackend(req.Backend) {
+		logger.Error("backend not found")
 		return errors.Wrap(errors.ErrMalformedEntity, errors.New("backend not found"))
 	}
 
 	reqBackend := backend.GetBackend(req.Backend)
 	if req.ConfigData == "" && req.Config == nil {
+		logger.Error("config not found")
 		return errors.Wrap(errors.ErrMalformedEntity, errors.New("config not found"))
 	}
 
@@ -53,7 +58,8 @@ func (req addReq) validate() (err error) {
 	if req.Format != "" {
 		config, err = reqBackend.ParseConfig(req.Format, req.ConfigData)
 		if err != nil {
-			return errors.Wrap(errors.ErrMalformedEntity, err)
+			logger.Error("config not found")
+			return errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
 		}
 	} else {
 		config = req.Config
@@ -61,18 +67,22 @@ func (req addReq) validate() (err error) {
 
 	err = reqBackend.ValidateConfiguration(config)
 	if err != nil {
-		return errors.Wrap(errors.ErrMalformedEntity, err)
+		logger.Error("config not found")
+		return errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
 	}
 
 	if req.Name == "" {
+		logger.Error("config not found")
 		return errors.Wrap(errors.ErrMalformedEntity, errors.New("name not found"))
 	}
 
 	_, err = types.NewIdentifier(req.Name)
 	if err != nil {
-		return errors.Wrap(errors.ErrMalformedEntity, err)
+		logger.Error("config not found")
+		return errors.Wrap(errors.ErrMalformedEntity, errors.New("identifier duplicated"))
 	}
 
+	logger.Info("validated successfully")
 	return nil
 }
 
