@@ -111,14 +111,19 @@ func addEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(updateSinkReq)
-		if err := req.validate(); err != nil {
+		currentSink, err := svc.ViewSink(ctx, req.token, req.id)
+		if err != nil {
+			svc.GetLogger().Error("could not find sink with id", zap.String("sinkID", req.id), zap.Error(err))
+			return nil, errors.ErrNotFound
+		}
+		sinkBackend := backend.GetBackend(currentSink.Backend)
+		if err := req.validate(sinkBackend); err != nil {
 			svc.GetLogger().Error("error validating request", zap.Error(err))
 			return nil, err
 		}
 		var config types.Metadata
-		reqBackend := backend.GetBackend(req.Backend)
 		if req.Format != "" {
-			config, err = reqBackend.ParseConfig(req.Format, req.ConfigData)
+			config, err = sinkBackend.ParseConfig(req.Format, req.ConfigData)
 			if err != nil {
 				svc.GetLogger().Error("got error in parsing configuration", zap.Error(err))
 				return nil, errors.Wrap(errors.ErrMalformedEntity, err)
@@ -154,7 +159,7 @@ func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			svc.GetLogger().Error("error on updating sink", zap.Error(err))
 			return nil, err
 		}
-		omittedConfig, omittedConfigData := omitSecretInformation(reqBackend, sinkEdited.Format, sinkEdited.Config)
+		omittedConfig, omittedConfigData := omitSecretInformation(sinkBackend, sinkEdited.Format, sinkEdited.Config)
 		res := sinkRes{
 			ID:          sinkEdited.ID,
 			Name:        sinkEdited.Name.String(),
