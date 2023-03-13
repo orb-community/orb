@@ -194,7 +194,7 @@ def check_all_sinks_status(context):
 
         if "migrated" in sink["config"].keys() and sink["config"]["migrated"] == "m3":
             migrated_sinks.append(sink["id"])
-    print(f"{len(migrated_sinks)} sinks were migrated")
+    print(f"{len(migrated_sinks)} of {len(all_sinks)} sinks have migration tags")
     assert_that(len(otel_sinks), equal_to(len(all_sinks)), f"{len(legacy_sinks)} sinks are not with otel tag enabled: "
                                                            f"{legacy_sinks}")
 
