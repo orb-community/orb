@@ -111,10 +111,13 @@ func addEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(updateSinkReq)
+		if req.token == "" {
+			return nil, errors.ErrUnauthorizedAccess
+		}
 		currentSink, err := svc.ViewSink(ctx, req.token, req.id)
 		if err != nil {
 			svc.GetLogger().Error("could not find sink with id", zap.String("sinkID", req.id), zap.Error(err))
-			return nil, errors.ErrNotFound
+			return nil, err
 		}
 		sinkBackend := backend.GetBackend(currentSink.Backend)
 		if err := req.validate(sinkBackend); err != nil {
