@@ -3,7 +3,7 @@ Feature: Integration tests validating metric groups
 
 #### netprobe
 
-@sanity @metric_groups @metrics_netprobe
+@sanity @metric_groups @metrics_netprobe @auto_provision
 Scenario: netprobe handler with default metric groups configuration
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -21,7 +21,7 @@ Scenario: netprobe handler with default metric groups configuration
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_netprobe
+@sanity @metric_groups @metrics_netprobe @auto_provision
 Scenario: netprobe handler with all metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -39,7 +39,7 @@ Scenario: netprobe handler with all metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_netprobe
+@sanity @metric_groups @metrics_netprobe @auto_provision
 Scenario: netprobe handler with all metric groups disabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -57,7 +57,7 @@ Scenario: netprobe handler with all metric groups disabled
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_netprobe
+@sanity @metric_groups @metrics_netprobe @auto_provision
 Scenario: netprobe handler with only counters metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -75,7 +75,7 @@ Scenario: netprobe handler with only counters metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_netprobe
+@sanity @metric_groups @metrics_netprobe @auto_provision
 Scenario: netprobe handler with only quantiles metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -93,7 +93,7 @@ Scenario: netprobe handler with only quantiles metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_netprobe
+@sanity @metric_groups @metrics_netprobe @auto_provision
 Scenario: netprobe handler with only histograms metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -111,7 +111,7 @@ Scenario: netprobe handler with only histograms metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_netprobe
+@sanity @metric_groups @metrics_netprobe @auto_provision
 Scenario: netprobe handler with counters and histograms metric groups enabled and quantiles disabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -129,7 +129,7 @@ Scenario: netprobe handler with counters and histograms metric groups enabled an
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_netprobe
+@sanity @metric_groups @metrics_netprobe @auto_provision
 Scenario: netprobe handler with counters and quantiles metric groups enabled and histograms disabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -147,7 +147,7 @@ Scenario: netprobe handler with counters and quantiles metric groups enabled and
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_netprobe
+@sanity @metric_groups @metrics_netprobe @auto_provision
 Scenario: netprobe handler with histograms and quantiles metric groups enabled and counters disabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -166,7 +166,7 @@ Scenario: netprobe handler with histograms and quantiles metric groups enabled a
 
 #### flow netflow
 
-@sanity @metric_groups @metrics_flow @root @mocked_interface
+@sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
 Scenario: flow handler type netflow with default metric groups configuration
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -187,7 +187,7 @@ Scenario: flow handler type netflow with default metric groups configuration
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_flow @root @mocked_interface
+@sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
 Scenario: flow handler type netflow with all metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -208,7 +208,7 @@ Scenario: flow handler type netflow with all metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_flow @root @mocked_interface
+@sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
 Scenario: flow handler type netflow with all metric groups disabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -229,7 +229,7 @@ Scenario: flow handler type netflow with all metric groups disabled
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_flow @root @mocked_interface
+@sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
 Scenario: flow handler type netflow with only cardinality metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -250,7 +250,7 @@ Scenario: flow handler type netflow with only cardinality metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_flow @root @mocked_interface
+@sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
 Scenario: flow handler type netflow with only counters metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -271,7 +271,7 @@ Scenario: flow handler type netflow with only counters metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_flow @root @mocked_interface
+@sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
 Scenario: flow handler type netflow with only by_packets metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -292,7 +292,7 @@ Scenario: flow handler type netflow with only by_packets metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_flow @root @mocked_interface
+@sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
 Scenario: flow handler type netflow with only by_bytes metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -313,7 +313,7 @@ Scenario: flow handler type netflow with only by_bytes metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_flow @root @mocked_interface
+@sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
 Scenario: flow handler type netflow with only top_geo metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -334,7 +334,7 @@ Scenario: flow handler type netflow with only top_geo metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_flow @root @mocked_interface
+@sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
 Scenario: flow handler type netflow with only conversations metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -355,7 +355,7 @@ Scenario: flow handler type netflow with only conversations metric groups enable
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_flow @root @mocked_interface
+@sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
 Scenario: flow handler type netflow with only top_ports metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -376,7 +376,7 @@ Scenario: flow handler type netflow with only top_ports metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_flow @root @mocked_interface
+@sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
 Scenario: flow handler type netflow with only top_ips_ports metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -397,7 +397,7 @@ Scenario: flow handler type netflow with only top_ips_ports metric groups enable
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_flow @root @mocked_interface
+@sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
 Scenario: flow handler type netflow with only top_interfaces metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -418,7 +418,7 @@ Scenario: flow handler type netflow with only top_interfaces metric groups enabl
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_flow @root @mocked_interface
+@sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
 Scenario: flow handler type netflow with only top_ips metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -441,7 +441,7 @@ Scenario: flow handler type netflow with only top_ips metric groups enabled
 
 #### flow sflow
 
-@sanity @metric_groups @metrics_flow @root @mocked_interface
+@sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
 Scenario: flow handler type sflow with default metric groups configuration
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -462,7 +462,7 @@ Scenario: flow handler type sflow with default metric groups configuration
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_flow @root @mocked_interface
+@sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
 Scenario: flow handler type sflow with all metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -483,7 +483,7 @@ Scenario: flow handler type sflow with all metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_flow @root @mocked_interface
+@sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
 Scenario: flow handler type sflow with all metric groups disabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -504,7 +504,7 @@ Scenario: flow handler type sflow with all metric groups disabled
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_flow @root @mocked_interface
+@sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
 Scenario: flow handler type sflow with only cardinality metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -525,7 +525,7 @@ Scenario: flow handler type sflow with only cardinality metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_flow @root @mocked_interface
+@sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
 Scenario: flow handler type sflow with only counters metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -546,7 +546,7 @@ Scenario: flow handler type sflow with only counters metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_flow @root @mocked_interface
+@sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
 Scenario: flow handler type sflow with only by_packets metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -567,7 +567,7 @@ Scenario: flow handler type sflow with only by_packets metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_flow @root @mocked_interface
+@sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
 Scenario: flow handler type sflow with only by_bytes metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -588,7 +588,7 @@ Scenario: flow handler type sflow with only by_bytes metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_flow @root @mocked_interface
+@sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
 Scenario: flow handler type sflow with only top_geo metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -609,7 +609,7 @@ Scenario: flow handler type sflow with only top_geo metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_flow @root @mocked_interface
+@sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
 Scenario: flow handler type sflow with only conversations metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -630,7 +630,7 @@ Scenario: flow handler type sflow with only conversations metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_flow @root @mocked_interface
+@sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
 Scenario: flow handler type sflow with only top_ports metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -651,7 +651,7 @@ Scenario: flow handler type sflow with only top_ports metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_flow @root @mocked_interface
+@sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
 Scenario: flow handler type sflow with only top_ips_ports metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -672,7 +672,7 @@ Scenario: flow handler type sflow with only top_ips_ports metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_flow @root @mocked_interface
+@sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
 Scenario: flow handler type sflow with only top_interfaces metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -693,7 +693,7 @@ Scenario: flow handler type sflow with only top_interfaces metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_flow @root @mocked_interface
+@sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
 Scenario: flow handler type sflow with only top_ips metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -716,7 +716,7 @@ Scenario: flow handler type sflow with only top_ips metric groups enabled
 
 #### pcap
 
-@sanity @metric_groups @metrics_pcap @root @mocked_interface
+@sanity @metric_groups @metrics_pcap @root @mocked_interface @auto_provision
 Scenario: pcap handler with default metric groups configuration
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -736,7 +736,7 @@ Scenario: pcap handler with default metric groups configuration
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_pcap @root @mocked_interface
+@sanity @metric_groups @metrics_pcap @root @mocked_interface @auto_provision
 Scenario: pcap handler with all metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -756,7 +756,7 @@ Scenario: pcap handler with all metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_pcap @root @mocked_interface
+@sanity @metric_groups @metrics_pcap @root @mocked_interface @auto_provision
 Scenario: pcap handler with all metric groups disabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -778,7 +778,7 @@ Scenario: pcap handler with all metric groups disabled
 
 #### bgp
 
-@sanity @metric_groups @metrics_bgp @root @mocked_interface
+@sanity @metric_groups @metrics_bgp @root @mocked_interface @auto_provision
 Scenario: bgp handler with default metric groups configuration
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -798,7 +798,7 @@ Scenario: bgp handler with default metric groups configuration
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_bgp @root @mocked_interface
+@sanity @metric_groups @metrics_bgp @root @mocked_interface @auto_provision
 Scenario: bgp handler with all metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -818,7 +818,7 @@ Scenario: bgp handler with all metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_bgp @root @mocked_interface
+@sanity @metric_groups @metrics_bgp @root @mocked_interface @auto_provision
 Scenario: bgp handler with all metric groups disabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -840,7 +840,7 @@ Scenario: bgp handler with all metric groups disabled
 
 #### dhcp
 
-@sanity @metric_groups @metrics_dhcp @root @mocked_interface
+@sanity @metric_groups @metrics_dhcp @root @mocked_interface @auto_provision
 Scenario: dhcp handler with default metric groups configuration
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -860,7 +860,7 @@ Scenario: dhcp handler with default metric groups configuration
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_dhcp @root @mocked_interface
+@sanity @metric_groups @metrics_dhcp @root @mocked_interface @auto_provision
 Scenario: dhcp handler with all metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -880,7 +880,7 @@ Scenario: dhcp handler with all metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_dhcp @root @mocked_interface
+@sanity @metric_groups @metrics_dhcp @root @mocked_interface @auto_provision
 Scenario: dhcp handler with all metric groups disabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -902,7 +902,7 @@ Scenario: dhcp handler with all metric groups disabled
 
 #### net v1.0
 
-@sanity @metric_groups @metrics_net @root @mocked_interface
+@sanity @metric_groups @metrics_net @root @mocked_interface @auto_provision
 Scenario: net handler with default metric groups configuration
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -922,7 +922,7 @@ Scenario: net handler with default metric groups configuration
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_net @root @mocked_interface
+@sanity @metric_groups @metrics_net @root @mocked_interface @auto_provision
 Scenario: net handler with all metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -942,7 +942,7 @@ Scenario: net handler with all metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_net @root @mocked_interface
+@sanity @metric_groups @metrics_net @root @mocked_interface @auto_provision
 Scenario: net handler with all metric groups disabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -962,7 +962,7 @@ Scenario: net handler with all metric groups disabled
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_net @root @mocked_interface
+@sanity @metric_groups @metrics_net @root @mocked_interface @auto_provision
 Scenario: net handler with only cardinality metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -982,7 +982,7 @@ Scenario: net handler with only cardinality metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_net @root @mocked_interface
+@sanity @metric_groups @metrics_net @root @mocked_interface @auto_provision
 Scenario: net handler with only counters metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -1002,7 +1002,7 @@ Scenario: net handler with only counters metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_net @root @mocked_interface
+@sanity @metric_groups @metrics_net @root @mocked_interface @auto_provision
 Scenario: net handler with only top_geo metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -1022,7 +1022,7 @@ Scenario: net handler with only top_geo metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_net @root @mocked_interface
+@sanity @metric_groups @metrics_net @root @mocked_interface @auto_provision
 Scenario: net handler with only top_ips metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -1044,7 +1044,7 @@ Scenario: net handler with only top_ips metric groups enabled
 
 #### dns v1.0
 
-@sanity @metric_groups @metrics_dns @root @mocked_interface
+@sanity @metric_groups @metrics_dns @root @mocked_interface @auto_provision
 Scenario: dns handler with default metric groups configuration
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -1064,7 +1064,7 @@ Scenario: dns handler with default metric groups configuration
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_dns @root @mocked_interface
+@sanity @metric_groups @metrics_dns @root @mocked_interface @auto_provision
 Scenario: dns handler with all metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -1084,7 +1084,7 @@ Scenario: dns handler with all metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_dns @root @mocked_interface
+@sanity @metric_groups @metrics_dns @root @mocked_interface @auto_provision
 Scenario: dns handler with all metric groups disabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -1104,7 +1104,7 @@ Scenario: dns handler with all metric groups disabled
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_dns @root @mocked_interface
+@sanity @metric_groups @metrics_dns @root @mocked_interface @auto_provision
 Scenario: dns handler with only top_ecs metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -1124,7 +1124,7 @@ Scenario: dns handler with only top_ecs metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_dns @root @mocked_interface
+@sanity @metric_groups @metrics_dns @root @mocked_interface @auto_provision
 Scenario: dns handler with only top_qnames_details metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -1144,7 +1144,7 @@ Scenario: dns handler with only top_qnames_details metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_dns @root @mocked_interface
+@sanity @metric_groups @metrics_dns @root @mocked_interface @auto_provision
 Scenario: dns handler with only cardinality metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -1164,7 +1164,7 @@ Scenario: dns handler with only cardinality metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_dns @root @mocked_interface
+@sanity @metric_groups @metrics_dns @root @mocked_interface @auto_provision
 Scenario: dns handler with only counters metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -1184,7 +1184,7 @@ Scenario: dns handler with only counters metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_dns @root @mocked_interface
+@sanity @metric_groups @metrics_dns @root @mocked_interface @auto_provision
 Scenario: dns handler with only dns_transaction metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -1204,7 +1204,7 @@ Scenario: dns handler with only dns_transaction metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_dns @root @mocked_interface
+@sanity @metric_groups @metrics_dns @root @mocked_interface @auto_provision
 Scenario: dns handler with only top_qnames metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -1224,7 +1224,7 @@ Scenario: dns handler with only top_qnames metric groups enabled
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_dns @root @mocked_interface
+@sanity @metric_groups @metrics_dns @root @mocked_interface @auto_provision
 Scenario: dns handler with only top_ports metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -1246,7 +1246,7 @@ Scenario: dns handler with only top_ports metric groups enabled
 
 #### dns v2.0
 
-@sanity @metric_groups @metrics_dns_v2 @root @mocked_interface
+@sanity @metric_groups @metrics_dns_v2 @root @mocked_interface @auto_provision
 Scenario: dns handler with default metric groups configuration (v2)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -1266,7 +1266,7 @@ Scenario: dns handler with default metric groups configuration (v2)
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_dns_v2 @root @mocked_interface
+@sanity @metric_groups @metrics_dns_v2 @root @mocked_interface @auto_provision
 Scenario: dns handler with all metric groups enabled (v2)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -1286,7 +1286,7 @@ Scenario: dns handler with all metric groups enabled (v2)
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_dns_v2 @root @mocked_interface
+@sanity @metric_groups @metrics_dns_v2 @root @mocked_interface @auto_provision
 Scenario: dns handler with all metric groups disabled (v2)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -1306,7 +1306,7 @@ Scenario: dns handler with all metric groups disabled (v2)
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_dns_v2 @root @mocked_interface
+@sanity @metric_groups @metrics_dns_v2 @root @mocked_interface @auto_provision
 Scenario: dns handler with only top_ecs metric groups enabled (v2)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -1326,7 +1326,7 @@ Scenario: dns handler with only top_ecs metric groups enabled (v2)
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_dns_v2 @root @mocked_interface
+@sanity @metric_groups @metrics_dns_v2 @root @mocked_interface @auto_provision
 Scenario: dns handler with only top_ports metric groups enabled (v2)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -1346,7 +1346,7 @@ Scenario: dns handler with only top_ports metric groups enabled (v2)
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_dns_v2 @root @mocked_interface
+@sanity @metric_groups @metrics_dns_v2 @root @mocked_interface @auto_provision
 Scenario: dns handler with only top_size metric groups enabled (v2)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -1366,7 +1366,7 @@ Scenario: dns handler with only top_size metric groups enabled (v2)
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_dns_v2 @root @mocked_interface
+@sanity @metric_groups @metrics_dns_v2 @root @mocked_interface @auto_provision
 Scenario: dns handler with only xact_times metric groups enabled (v2)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -1386,7 +1386,7 @@ Scenario: dns handler with only xact_times metric groups enabled (v2)
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_dns_v2 @root @mocked_interface
+@sanity @metric_groups @metrics_dns_v2 @root @mocked_interface @auto_provision
 Scenario: dns handler with only cardinality metric groups enabled (v2)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -1406,7 +1406,7 @@ Scenario: dns handler with only cardinality metric groups enabled (v2)
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_dns_v2 @root @mocked_interface
+@sanity @metric_groups @metrics_dns_v2 @root @mocked_interface @auto_provision
 Scenario: dns handler with only counters metric groups enabled (v2)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -1426,7 +1426,7 @@ Scenario: dns handler with only counters metric groups enabled (v2)
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_dns_v2 @root @mocked_interface
+@sanity @metric_groups @metrics_dns_v2 @root @mocked_interface @auto_provision
 Scenario: dns handler with only top_qnames metric groups enabled (v2)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -1446,7 +1446,7 @@ Scenario: dns handler with only top_qnames metric groups enabled (v2)
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_dns_v2 @root @mocked_interface
+@sanity @metric_groups @metrics_dns_v2 @root @mocked_interface @auto_provision
 Scenario: dns handler with only quantiles metric groups enabled (v2)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -1466,7 +1466,7 @@ Scenario: dns handler with only quantiles metric groups enabled (v2)
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_dns_v2 @root @mocked_interface
+@sanity @metric_groups @metrics_dns_v2 @root @mocked_interface @auto_provision
 Scenario: dns handler with only top_qtypes metric groups enabled (v2)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -1486,7 +1486,7 @@ Scenario: dns handler with only top_qtypes metric groups enabled (v2)
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_dns_v2 @root @mocked_interface
+@sanity @metric_groups @metrics_dns_v2 @root @mocked_interface @auto_provision
 Scenario: dns handler with only top_rcodes metric groups enabled (v2)
     Given the Orb user has a registered account
         And the Orb user logs in
