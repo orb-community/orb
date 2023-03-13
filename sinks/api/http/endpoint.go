@@ -45,7 +45,6 @@ func omitSecretInformation(be backend.Backend, format string, metadata types.Met
 func addEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(addReq)
-		svc.GetLogger().Debug("validating request")
 		if err := req.validate(); err != nil {
 			svc.GetLogger().Error("got error in validating request", zap.Error(err))
 			return nil, err
