@@ -7,7 +7,6 @@ package http
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	kitot "github.com/go-kit/kit/tracing/opentracing"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/go-zoo/bone"
@@ -213,7 +212,6 @@ func decodeValidateRequest(_ context.Context, r *http.Request) (interface{}, err
 }
 
 func encodeError(_ context.Context, err error, w http.ResponseWriter) {
-	fmt.Printf("Error : %e", err)
 	switch errorVal := err.(type) {
 	case errors.Error:
 		w.Header().Set("Content-Type", types.ContentType)

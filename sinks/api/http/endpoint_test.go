@@ -240,7 +240,7 @@ func TestCreateSinks(t *testing.T) {
 				body:        strings.NewReader(tc.req),
 			}
 			res, err := req.make()
-			assert.Nil(t, err, fmt.Sprintf("unexpected erro %s", err))
+			assert.Nil(t, err, fmt.Sprintf("unexpected error %s", err))
 			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
 		})
 	}
