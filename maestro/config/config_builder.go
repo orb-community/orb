@@ -501,8 +501,8 @@ type Extensions struct {
 	PProf                *PProfExtension       `json:"pprof,omitempty" yaml:"pprof,omitempty" :"p_prof"`
 	ZPages               *ZPagesExtension      `json:"zpages,omitempty" yaml:"zpages,omitempty" :"z_pages"`
 	// Exporters Authentication
-	BasicAuth  *BasicAuthenticationExtension `json:"auth/exporter,omitempty" yaml:"auth/exporter,omitempty" :"basic_auth"`
-	BearerAuth *BearerAuthExtension          `json:"auth/exporter,omitempty" yaml:"auth/exporter,omitempty" :"bearer_auth"`
+	BasicAuth  *BasicAuthenticationExtension `json:"basicauth/exporter,omitempty" yaml:"basicauth/exporter,omitempty" :"basic_auth"`
+	BearerAuth *BearerAuthExtension          `json:"bearerauth/exporter,omitempty" yaml:"bearerauth/exporter,omitempty" :"bearer_auth"`
 }
 
 type HealthCheckExtension struct {
