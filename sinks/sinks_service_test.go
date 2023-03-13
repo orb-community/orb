@@ -50,7 +50,7 @@ var (
 func newService(tokens map[string]string) sinks.SinkService {
 	auth := thmocks.NewAuthService(tokens, make(map[string][]thmocks.MockSubjectSet))
 	sinkRepo := skmocks.NewSinkRepository()
-	var logger *zap.Logger
+	logger := zap.NewNop()
 
 	config := mfsdk.Config{
 		ThingsURL: "localhost",
