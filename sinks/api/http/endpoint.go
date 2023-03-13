@@ -121,14 +121,14 @@ func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			config, err = reqBackend.ParseConfig(req.Format, req.ConfigData)
 			if err != nil {
 				svc.GetLogger().Error("got error in parsing configuration", zap.Error(err))
-				return nil, err
+				return nil, errors.Wrap(errors.ErrMalformedEntity, err)
 			}
 		} else {
 			if req.Config != nil {
 				config = req.Config
 			} else {
 				svc.GetLogger().Error("did not receive any valid configuration")
-				return nil, errors.ErrMalformedEntity
+				return nil, errors.Wrap(errors.ErrMalformedEntity, errors.New("configuration is invalid"))
 			}
 		}
 		sink := sinks.Sink{

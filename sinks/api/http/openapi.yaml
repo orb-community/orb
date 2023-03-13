@@ -347,6 +347,10 @@ components:
           type: string
           description: User description of this Sink
           example: An example prometheus sink
+        backend:
+          type: string
+          description: User description of this Sink
+          example: An example prometheus sink
         tags:
           type: object
           description: User defined key/values for organization and searching
