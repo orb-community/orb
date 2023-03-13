@@ -173,6 +173,7 @@ func (s sinksRepository) RetrieveAllByOwnerID(ctx context.Context, owner string,
 		"tags":        tags,
 	}
 	rows, err := s.db.NamedQueryContext(ctx, q, params)
+	s.logger.Debug("debugging query result", zap.Any("rows", rows), zap.Error(err))
 	if err != nil {
 		return sinks.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
 	}
@@ -180,12 +181,13 @@ func (s sinksRepository) RetrieveAllByOwnerID(ctx context.Context, owner string,
 
 	var items []sinks.Sink
 	for rows.Next() {
-		dbSink := dbSink{MFOwnerID: owner}
-		if err := rows.StructScan(&dbSink); err != nil {
+		d := dbSink{MFOwnerID: owner}
+		s.logger.Debug("iterating over rows", zap.Any("sink", d))
+		if err := rows.StructScan(&d); err != nil {
 			return sinks.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
 		}
 
-		sink, err := toSink(dbSink)
+		sink, err := toSink(d)
 		if err != nil {
 			return sinks.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
 		}

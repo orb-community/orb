@@ -13,6 +13,7 @@ import (
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks/backend"
+	"go.uber.org/zap"
 	"net/url"
 )
 
@@ -246,6 +247,7 @@ func (svc sinkService) ListSinksInternal(ctx context.Context, filter Filter) (si
 func (svc sinkService) ListSinks(ctx context.Context, token string, pm PageMetadata) (Page, error) {
 	res, err := svc.identify(token)
 	if err != nil {
+		svc.GetLogger().Error("got error on identifying token", zap.Error(err))
 		return Page{}, err
 	}
 

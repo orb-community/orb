@@ -196,7 +196,7 @@ func listSinksEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			},
 			Sinks: []sinkRes{},
 		}
-
+		svc.GetLogger().Info("got sinks", zap.Int("length", len(page.Sinks)))
 		for _, sink := range page.Sinks {
 			reqBackend := backend.GetBackend(sink.Backend)
 			omittedConfig, omittedConfigData := omitSecretInformation(reqBackend, sink.Format, sink.Config)
