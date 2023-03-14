@@ -21,7 +21,7 @@ type database struct {
 	db *sqlx.DB
 }
 
-// Provides a database interface
+// Database Provides a database interface
 type Database interface {
 	NamedExecContext(context.Context, string, interface{}) (sql.Result, error)
 	QueryRowxContext(context.Context, string, ...interface{}) *sqlx.Row

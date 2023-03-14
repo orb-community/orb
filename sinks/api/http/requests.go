@@ -12,6 +12,7 @@ import (
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks"
+	"github.com/orb-community/orb/sinks/backend"
 )
 
 const (
@@ -27,42 +28,49 @@ type addReq struct {
 	Name        string         `json:"name,omitempty"`
 	Backend     string         `json:"backend,omitempty"`
 	Config      types.Metadata `json:"config,omitempty"`
+	Format      string         `json:"format,omitempty"`
+	ConfigData  string         `json:"config_data,omitempty"`
 	Description string         `json:"description,omitempty"`
 	Tags        types.Tags     `json:"tags,omitempty"`
 	token       string
 }
 
-func (req addReq) validate() error {
+func (req addReq) validate() (err error) {
 	if req.token == "" {
 		return errors.ErrUnauthorizedAccess
 	}
 
-	keySize := 0
-	if req.Config == nil {
-		return errors.ErrMalformedEntity
-	} else if !req.Config.IsApplicable(func(key string, value interface{}) bool {
-		if key != "" {
-			keySize++
+	if req.Backend == "" || !backend.HaveBackend(req.Backend) {
+		return errors.Wrap(errors.ErrMalformedEntity, errors.New("backend not found"))
+	}
+
+	reqBackend := backend.GetBackend(req.Backend)
+	if req.ConfigData == "" && req.Config == nil {
+		return errors.Wrap(errors.ErrMalformedEntity, errors.New("config not found"))
+	}
+
+	var config types.Metadata
+	if req.Format != "" {
+		config, err = reqBackend.ParseConfig(req.Format, req.ConfigData)
+		if err != nil {
+			return errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
 		}
-		//currently, with only prometheus, 2 keys is enough, maybe change latter
-		if keySize >= 2 {
-			//minimal number of keys passed, valid config
-			return true
-		}
-		//still not get enough keys to create sink, check if there are more keys on map
-		return false
-	}) {
-		//not get enough keys to create sink, invalid config
-		return errors.ErrMalformedEntity
+	} else {
+		config = req.Config
+	}
+
+	err = reqBackend.ValidateConfiguration(config)
+	if err != nil {
+		return errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
 	}
 
 	if req.Name == "" {
-		return errors.ErrMalformedEntity
+		return errors.Wrap(errors.ErrMalformedEntity, errors.New("name not found"))
 	}
 
-	_, err := types.NewIdentifier(req.Name)
+	_, err = types.NewIdentifier(req.Name)
 	if err != nil {
-		return errors.Wrap(errors.ErrMalformedEntity, err)
+		return errors.Wrap(errors.ErrMalformedEntity, errors.New("identifier duplicated"))
 	}
 
 	return nil
@@ -71,19 +79,39 @@ func (req addReq) validate() error {
 type updateSinkReq struct {
 	Name        string         `json:"name,omitempty"`
 	Config      types.Metadata `json:"config,omitempty"`
+	Backend     string         `json:"backend,omitempty"`
+	Format      string         `json:"format,omitempty"`
+	ConfigData  string         `json:"config_data,omitempty"`
 	Description *string        `json:"description,omitempty"`
 	Tags        types.Tags     `json:"tags,omitempty"`
 	id          string
 	token       string
 }
 
-func (req updateSinkReq) validate() error {
+func (req updateSinkReq) validate(sinkBackend backend.Backend) error {
 	if req.token == "" {
 		return errors.ErrUnauthorizedAccess
 	}
 
 	if req.id == "" {
 		return errors.ErrMalformedEntity
+	}
+
+	if req.ConfigData != "" || req.Config != nil {
+		var config types.Metadata
+		var err error
+		if req.Format != "" {
+			config, err = sinkBackend.ParseConfig(req.Format, req.ConfigData)
+			if err != nil {
+				return errors.Wrap(errors.ErrMalformedEntity, err)
+			}
+		} else {
+			config = req.Config
+		}
+		err = sinkBackend.ValidateConfiguration(config)
+		if err != nil {
+			return errors.Wrap(errors.ErrMalformedEntity, err)
+		}
 	}
 
 	if req.Description == nil && req.Name == "" && len(req.Config) == 0 && req.Tags == nil {
