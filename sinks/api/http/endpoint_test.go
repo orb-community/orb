@@ -36,8 +36,8 @@ const (
 	token             = "token"
 	invalidToken      = "invalid"
 	email             = "user@example.com"
-	validJson         = "{\n    \"name\": \"my-prom-sink\",\n    \"backend\": \"prometheus\",\n    \"config\": {\n        \"remote_host\": \"https://orb.community/\",\n        \"username\": \"dbuser\"\n    },\n    \"description\": \"An example prometheus sink\",\n    \"tags\": {\n        \"cloud\": \"aws\"\n    },\n    \"validate_only\": false\n}"
-	conflictValidJson = "{\n    \"name\": \"conflict\",\n    \"backend\": \"prometheus\",\n    \"config\": {\n        \"remote_host\": \"https://orb.community/\",\n        \"username\": \"dbuser\"\n    },\n    \"description\": \"An example prometheus sink\",\n    \"tags\": {\n        \"cloud\": \"aws\"\n    },\n    \"validate_only\": false\n}"
+	validJson         = "{    \"name\": \"my-prom-sink\",    \"backend\": \"prometheus\",    \"config\": {        \"remote_host\": \"https://orb.community/\",        \"username\": \"dbuser\",        \"password\": \"dbpassword\"   },    \"description\": \"An example prometheus sink\",    \"tags\": {        \"cloud\": \"aws\"    },    \"validate_only\": false}"
+	conflictValidJson = "{\n    \"name\": \"conflict\",\n    \"backend\": \"prometheus\",\n    \"config\": {\n        \"remote_host\": \"https://orb.community/\",\n        \"username\": \"dbuser\"\n, \"password\": \"dbpass\"\n    },\n    \"description\": \"An example prometheus sink\",\n    \"tags\": {\n        \"cloud\": \"aws\"\n    },\n    \"validate_only\": false\n}"
 	invalidJson       = "{"
 )
 
@@ -48,7 +48,7 @@ var (
 		Name:        nameID,
 		Description: &description,
 		Backend:     "prometheus",
-		Config:      map[string]interface{}{"remote_host": "https://orb.community/", "username": "dbuser"},
+		Config:      map[string]interface{}{"remote_host": "https://orb.community/", "username": "dbuser", "password": "dbpass"},
 		Tags:        map[string]string{"cloud": "aws"},
 	}
 	invalidName        = strings.Repeat("m", maxNameSize+1)
@@ -242,7 +242,7 @@ func TestCreateSinks(t *testing.T) {
 				body:        strings.NewReader(tc.req),
 			}
 			res, err := req.make()
-			assert.Nil(t, err, fmt.Sprintf("unexpected erro %s", err))
+			assert.Nil(t, err, fmt.Sprintf("unexpected error %s", err))
 			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
 		})
 	}
@@ -259,6 +259,7 @@ func TestUpdateSink(t *testing.T) {
 
 	dataInvalidName := toJSON(updateSinkReq{
 		Name:        invalidName,
+		Backend:     "prometheus",
 		Description: sk.Description,
 		Config:      sink.Config,
 		Tags:        sk.Tags,
@@ -266,6 +267,7 @@ func TestUpdateSink(t *testing.T) {
 
 	dataInvalidRgxName := toJSON(updateSinkReq{
 		Name:        "&*sink*&",
+		Backend:     "prometheus",
 		Description: sk.Description,
 		Config:      sink.Config,
 		Tags:        sk.Tags,
@@ -281,6 +283,7 @@ func TestUpdateSink(t *testing.T) {
 		"update existing sink": {
 			req: toJSON(updateSinkReq{
 				Name:        sk.Name.String(),
+				Backend:     "prometheus",
 				Description: sk.Description,
 				Config:      sink.Config,
 				Tags:        sk.Tags,
@@ -300,6 +303,7 @@ func TestUpdateSink(t *testing.T) {
 		"update sink with a invalid id": {
 			req: toJSON(updateSinkReq{
 				Name:        sk.Name.String(),
+				Backend:     "prometheus",
 				Description: sk.Description,
 				Config:      sink.Config,
 				Tags:        sk.Tags,
@@ -312,6 +316,7 @@ func TestUpdateSink(t *testing.T) {
 		"update non-existing sink": {
 			req: toJSON(updateSinkReq{
 				Name:        sk.Name.String(),
+				Backend:     "prometheus",
 				Description: sk.Description,
 				Config:      sink.Config,
 				Tags:        sk.Tags,
@@ -324,6 +329,7 @@ func TestUpdateSink(t *testing.T) {
 		"update sink with invalid user token": {
 			req: toJSON(updateSinkReq{
 				Name:        sk.Name.String(),
+				Backend:     "prometheus",
 				Description: sk.Description,
 				Config:      sink.Config,
 				Tags:        sk.Tags,
@@ -336,6 +342,7 @@ func TestUpdateSink(t *testing.T) {
 		"update sink with empty user token": {
 			req: toJSON(updateSinkReq{
 				Name:        sk.Name.String(),
+				Backend:     "prometheus",
 				Description: sk.Description,
 				Config:      sink.Config,
 				Tags:        sk.Tags,
@@ -348,6 +355,7 @@ func TestUpdateSink(t *testing.T) {
 		"update sink with invalid content type": {
 			req: toJSON(updateSinkReq{
 				Name:        sk.Name.String(),
+				Backend:     "prometheus",
 				Description: sk.Description,
 				Config:      sink.Config,
 				Tags:        sk.Tags,
@@ -360,6 +368,7 @@ func TestUpdateSink(t *testing.T) {
 		"update sink without content type": {
 			req: toJSON(updateSinkReq{
 				Name:        sk.Name.String(),
+				Backend:     "prometheus",
 				Description: sk.Description,
 				Config:      sink.Config,
 				Tags:        sk.Tags,
