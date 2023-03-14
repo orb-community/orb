@@ -113,3 +113,38 @@ func TestBackend_ParseConfig(t *testing.T) {
 		})
 	}
 }
+
+func TestBackend_CreateFeatureConfig(t *testing.T) {
+	tests := []struct {
+		name string
+	}{
+		{name: "valid"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := &Backend{}
+			got := p.CreateFeatureConfig()
+			usernameOk := false
+			passwordOk := false
+			remoteHostOk := false
+			for _, feature := range got {
+				if feature.Name == UsernameConfigFeature {
+					usernameOk = true
+					continue
+				}
+				if feature.Name == PasswordConfigFeature {
+					passwordOk = true
+					continue
+				}
+				if feature.Name == RemoteHostURLConfigFeature {
+					remoteHostOk = true
+				}
+			}
+			if usernameOk && passwordOk && remoteHostOk {
+				return
+			} else {
+				t.Fail()
+			}
+		})
+	}
+}
