@@ -2,7 +2,7 @@
 Feature: Integration tests using agent provided via config file
 
 
-@private
+@private @auto_provision
 Scenario: General smoke test to validate private agent image - using configuration files
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -23,7 +23,7 @@ Scenario: General smoke test to validate private agent image - using configurati
 
 ########### provisioning agents without specify pktvisor configs on backend
 
-@smoke @config_file @pktvisor_configs
+@smoke @config_file @pktvisor_configs @auto_provision
 Scenario: provisioning agent without specify pktvisor binary path and path to config file (config file - auto_provision=true)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -43,7 +43,7 @@ Scenario: provisioning agent without specify pktvisor binary path and path to co
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @config_file @pktvisor_configs
+@smoke @config_file @pktvisor_configs @auto_provision
 Scenario: provisioning agent without specify pktvisor binary path (config file - auto_provision=true)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -63,7 +63,7 @@ Scenario: provisioning agent without specify pktvisor binary path (config file -
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @config_file @pktvisor_configs
+@smoke @config_file @pktvisor_configs @auto_provision
 Scenario: provisioning agent without specify pktvisor path to config file (config file - auto_provision=true)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -149,7 +149,7 @@ Scenario: provisioning agent without specify pktvisor path to config file (confi
 
 ########### tap_selector
 
-@smoke @config_file
+@smoke @config_file @auto_provision
 Scenario: tap_selector - any - matching 0 of all tags from an agent
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -165,7 +165,7 @@ Scenario: tap_selector - any - matching 0 of all tags from an agent
         And the policy application error details must show that 422 no tap match found for specified 'input.tap_selector' tags
         And remove the agent .yaml generated on each scenario
 
-@smoke @config_file
+@smoke @config_file @auto_provision
 Scenario: tap_selector - any - matching 1 of all tags from an agent
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -183,7 +183,7 @@ Scenario: tap_selector - any - matching 1 of all tags from an agent
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
-@smoke @config_file
+@smoke @config_file @auto_provision
 Scenario: tap_selector - any - matching 1 of all tags (plus 1 random tag) from an agent
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -201,7 +201,7 @@ Scenario: tap_selector - any - matching 1 of all tags (plus 1 random tag) from a
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
-@smoke @config_file
+@smoke @config_file @auto_provision
 Scenario: tap_selector - all - matching 0 of all tags from an agent
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -217,7 +217,7 @@ Scenario: tap_selector - all - matching 0 of all tags from an agent
         And the policy application error details must show that 422 no tap match found for specified 'input.tap_selector' tags
         And remove the agent .yaml generated on each scenario
 
-@smoke @config_file
+@smoke @config_file @auto_provision
 Scenario: tap_selector - all - matching 1 of all tags from an agent
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -236,7 +236,7 @@ Scenario: tap_selector - all - matching 1 of all tags from an agent
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @config_file
+@smoke @config_file @auto_provision
 Scenario: tap_selector - all - matching all tags from an agent
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -256,7 +256,7 @@ Scenario: tap_selector - all - matching all tags from an agent
 
 ########### pcap
 
-@smoke @config_file
+@smoke @config_file @auto_provision
 Scenario: agent pcap with only agent tags subscription to a group with policies created after provision the agent (config file - auto_provision=true)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -275,7 +275,7 @@ Scenario: agent pcap with only agent tags subscription to a group with policies 
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @config_file
+@smoke @config_file @auto_provision
 Scenario: agent pcap with only agent tags subscription to a group with policies created before provision the agent (config file - auto_provision=true)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -295,7 +295,7 @@ Scenario: agent pcap with only agent tags subscription to a group with policies 
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @config_file
+@smoke @config_file @auto_provision
 Scenario: agent pcap with mixed tags subscription to a group with policies created after provision the agent (config file - auto_provision=true)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -315,7 +315,7 @@ Scenario: agent pcap with mixed tags subscription to a group with policies creat
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @config_file
+@smoke @config_file @auto_provision
 Scenario: agent pcap with mixed tags subscription to a group with policies created before provision the agent (config file - auto_provision=true)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -416,7 +416,7 @@ Scenario: agent pcap with mixed tags subscription to a group with policies creat
 
 ########### flow
 
-@smoke @config_file
+@smoke @config_file @auto_provision
 Scenario: agent flow with only agent tags subscription to a group with policies created after provision the agent (config file - auto_provision=true)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -435,7 +435,7 @@ Scenario: agent flow with only agent tags subscription to a group with policies 
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @config_file
+@smoke @config_file @auto_provision
 Scenario: agent flow with only agent tags subscription to a group with policies created before provision the agent (config file - auto_provision=true)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -455,7 +455,7 @@ Scenario: agent flow with only agent tags subscription to a group with policies 
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @config_file
+@smoke @config_file @auto_provision
 Scenario: agent flow with mixed tags subscription to a group with policies created after provision the agent (config file - auto_provision=true)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -475,7 +475,7 @@ Scenario: agent flow with mixed tags subscription to a group with policies creat
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @config_file
+@smoke @config_file @auto_provision
 Scenario: agent flow with mixed tags subscription to a group with policies created before provision the agent (config file - auto_provision=true)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -577,7 +577,7 @@ Scenario: agent flow with mixed tags subscription to a group with policies creat
 
 ########### dnstap
 
-@smoke @config_file
+@smoke @config_file @auto_provision
 Scenario: agent dnstap with only agent tags subscription to a group with policies created after provision the agent (config file - auto_provision=true)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -596,7 +596,7 @@ Scenario: agent dnstap with only agent tags subscription to a group with policie
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @config_file
+@smoke @config_file @auto_provision
 Scenario: agent dnstap with only agent tags subscription to a group with policies created before provision the agent (config file - auto_provision=true)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -616,7 +616,7 @@ Scenario: agent dnstap with only agent tags subscription to a group with policie
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @config_file
+@smoke @config_file @auto_provision
 Scenario: agent dnstap with mixed tags subscription to a group with policies created after provision the agent (config file - auto_provision=true)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -636,7 +636,7 @@ Scenario: agent dnstap with mixed tags subscription to a group with policies cre
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @config_file
+@smoke @config_file @auto_provision
 Scenario: agent dnstap with mixed tags subscription to a group with policies created before provision the agent (config file - auto_provision=true)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -738,7 +738,7 @@ Scenario: agent dnstap with mixed tags subscription to a group with policies cre
 ########### netprobe
 
 
-@smoke @config_file @netprobe
+@smoke @config_file @netprobe @auto_provision
 Scenario: agent netprobe with only agent tags subscription to a group with policies created after provision the agent (config file - auto_provision=true)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -757,7 +757,7 @@ Scenario: agent netprobe with only agent tags subscription to a group with polic
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @config_file @netprobe
+@smoke @config_file @netprobe @auto_provision
 Scenario: agent netprobe with only agent tags subscription to a group with policies created before provision the agent (config file - auto_provision=true)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -777,7 +777,7 @@ Scenario: agent netprobe with only agent tags subscription to a group with polic
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @config_file @netprobe
+@smoke @config_file @netprobe @auto_provision
 Scenario: agent netprobe with mixed tags subscription to a group with policies created after provision the agent (config file - auto_provision=true)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -797,7 +797,7 @@ Scenario: agent netprobe with mixed tags subscription to a group with policies c
         And remove the agent .yaml generated on each scenario
 
 
-@smoke @config_file @netprobe
+@smoke @config_file @netprobe @auto_provision
 Scenario: agent netprobe with mixed tags subscription to a group with policies created before provision the agent (config file - auto_provision=true)
     Given the Orb user has a registered account
         And the Orb user logs in
