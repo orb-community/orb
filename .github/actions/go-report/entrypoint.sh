@@ -3,7 +3,6 @@
 function validateParams() {
   echo "========================= Checking parameters ========================="
   [[ -z $INPUT_GO_REPORT_THRESHOLD ]] && echo "Threshold of failure is required" && exit 1 echo " Threshold of failure present"
-  [[ -z $INPUT_GITHUB_TOKEN ]] && echo "GITHUB TOKEN is required" && exit 1 echo " GITHUB TOKEN present"
   [[ -z $INPUT_GITHUB_OWNER ]] && echo "GITHUB OWNER is required" && exit 1 echo " GITHUB OWNER present"
   [[ -z $INPUT_GITHUB_REPO ]] && echo "GITHUB REPO is required" && exit 1 echo " GITHUB REPO present"
 
