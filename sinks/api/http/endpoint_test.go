@@ -17,6 +17,8 @@ import (
 	"github.com/opentracing/opentracing-go/mocktracer"
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks"
+	"github.com/orb-community/orb/sinks/backend"
+	prometheusbackend "github.com/orb-community/orb/sinks/backend/prometheus"
 	skmocks "github.com/orb-community/orb/sinks/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -997,19 +999,22 @@ func TestValidateSink(t *testing.T) {
 }
 
 func TestOmitPasswords(t *testing.T) {
+	username := "387157"
 	cases := map[string]struct {
+		backend          backend.Backend
 		inputMetadata    types.Metadata
 		expectedMetadata types.Metadata
 	}{
 		"omit configuration with password": {
-			inputMetadata:    types.Metadata{"user": 387157, "password": "s3cr3tp@ssw0rd", "url": "someUrl"},
-			expectedMetadata: types.Metadata{"user": 387157, "password": "", "url": "someUrl"},
+			backend:          &prometheusbackend.Backend{},
+			inputMetadata:    types.Metadata{"username": &username, "password": "s3cr3tp@ssw0rd", "remote_host": "someUrl"},
+			expectedMetadata: types.Metadata{"username": &username, "password": "", "remote_host": "someUrl"},
 		},
 	}
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
-			metadata, _ := omitSecretInformation(tc.inputMetadata)
+			metadata, _ := omitSecretInformation(tc.backend, "yaml", tc.inputMetadata)
 			assert.Equal(t, tc.expectedMetadata, metadata)
 		})
 	}
