@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"fmt"
 	"testing"
 )
 
@@ -37,6 +38,7 @@ func TestReturnConfigYamlFromSink(t *testing.T) {
 				t.Errorf("ReturnConfigYamlFromSink() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+			fmt.Printf("%s\n", got)
 			if got != tt.want {
 				t.Errorf("ReturnConfigYamlFromSink() got = \n%v\n, want \n%v", got, tt.want)
 			}
