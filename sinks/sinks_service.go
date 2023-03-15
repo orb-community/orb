@@ -88,6 +88,9 @@ func (svc sinkService) encryptMetadata(sink Sink) (Sink, error) {
 	})
 	if sink.ConfigData != "" {
 		sinkBE := backend.GetBackend(sink.Backend)
+		if sinkBE == nil {
+			return sink, errors.New("backend cannot be nil")
+		}
 		sink.ConfigData, err = sinkBE.ConfigToFormat(sink.Format, sink.Config)
 		if err != nil {
 			svc.logger.Error("error on parsing encrypted config in data")
@@ -112,6 +115,9 @@ func (svc sinkService) decryptMetadata(sink Sink) (Sink, error) {
 	})
 	if sink.ConfigData != "" {
 		sinkBE := backend.GetBackend(sink.Backend)
+		if sinkBE == nil {
+			return sink, errors.New("backend cannot be nil")
+		}
 		sink.ConfigData, err = sinkBE.ConfigToFormat(sink.Format, sink.Config)
 		if err != nil {
 			svc.logger.Error("error on parsing encrypted config in data")
