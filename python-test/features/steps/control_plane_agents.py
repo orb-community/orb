@@ -687,8 +687,12 @@ def list_up_to_limit_agents(token, limit=100, offset=0):
 
     response = requests.get(orb_url + '/api/v1/agents', headers={'Authorization': f'Bearer {token}'},
                             params={"limit": limit, "offset": offset}, verify=verify_ssl_bool)
+    try:
+        response_json = response.json()
+    except ValueError:
+        response_json = response.text
     assert_that(response.status_code, equal_to(200),
-                f"Request to list agents failed with status= {str(response.status_code)}:{str(response.json())}")
+                f"Request to list agents failed with status= {str(response.status_code)}:{str(response_json)}")
     agents_as_json = response.json()
     return agents_as_json['agents'], agents_as_json['total'], agents_as_json['offset']
 
@@ -731,7 +735,7 @@ def wait_until_agent_being_created(token, name, tags, expected_status_code=201, 
     try:
         response_json = response.json()
     except ValueError:
-        response_json = ValueError
+        response_json = response.text
     if response.status_code == expected_status_code:
         event.set()
         return response, response_json
@@ -770,10 +774,14 @@ def edit_agent(token, agent_id, name, tags, expected_status_code=200):
                        'Authorization': f'Bearer {token}'}
     response = requests.put(orb_url + '/api/v1/agents/' + agent_id, json=json_request, headers=headers_request,
                             verify=verify_ssl_bool)
+    try:
+        response_json = response.json()
+    except ValueError:
+        response_json = response.text
     assert_that(response.status_code, equal_to(expected_status_code),
-                'Request to edit agent failed with status=' + str(response.status_code) + ":" + str(response.json()))
+                'Request to edit agent failed with status=' + str(response.status_code) + ":" + str(response_json))
 
-    return response.json()
+    return response_json
 
 
 @threading_wait_until
