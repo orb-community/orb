@@ -14,6 +14,7 @@ import (
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
+	"github.com/orb-community/orb/sinks/backend/otlpexporter"
 	"github.com/orb-community/orb/sinks/backend/prometheus"
 	"go.uber.org/zap"
 	"time"
@@ -63,6 +64,7 @@ func (svc sinkService) GetLogger() *zap.Logger {
 func NewSinkService(logger *zap.Logger, auth mainflux.AuthServiceClient, sinkRepo SinkRepository, mfsdk mfsdk.SDK, services PasswordService) SinkService {
 
 	prometheus.Register()
+	otlpexporter.Register()
 
 	return &sinkService{
 		logger:          logger,

@@ -26,3 +26,8 @@ func (b Backend) Metadata() interface{} {
 		Config:      b.CreateFeatureConfig(),
 	}
 }
+
+func Register() bool {
+	backend.Register("otlpexporter", &Backend{})
+	return true
+}
