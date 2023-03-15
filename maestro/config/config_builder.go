@@ -401,11 +401,6 @@ func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig, sinkId, sinkUrl
 			PProf: &PProfExtension{
 				Endpoint: "0.0.0.0:1888", // Leaving default for now, will need to change with more processes
 			},
-			BearerAuth: &BearerAuthExtension{
-				BearerAuth: &struct {
-					Token string `json:"token" yaml:"token"`
-				}{Token: sinkPassword},
-			},
 		}
 	} else {
 		extensions = &Extensions{
@@ -501,8 +496,8 @@ type Extensions struct {
 	PProf                *PProfExtension       `json:"pprof,omitempty" yaml:"pprof,omitempty" :"p_prof"`
 	ZPages               *ZPagesExtension      `json:"zpages,omitempty" yaml:"zpages,omitempty" :"z_pages"`
 	// Exporters Authentication
-	BasicAuth  *BasicAuthenticationExtension `json:"basicauth/exporter,omitempty" yaml:"basicauth/exporter,omitempty" :"basic_auth"`
-	BearerAuth *BearerAuthExtension          `json:"bearerauth/exporter,omitempty" yaml:"bearerauth/exporter,omitempty" :"bearer_auth"`
+	BasicAuth *BasicAuthenticationExtension `json:"basicauth/exporter,omitempty" yaml:"basicauth/exporter,omitempty" :"basic_auth"`
+	//BearerAuth *BearerAuthExtension          `json:"bearerauth/exporter,omitempty" yaml:"bearerauth/exporter,omitempty" :"bearer_auth"`
 }
 
 type HealthCheckExtension struct {
