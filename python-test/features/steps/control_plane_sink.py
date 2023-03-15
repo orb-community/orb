@@ -153,9 +153,9 @@ def create_invalid_sink(context, credential):
 @step("referred sink must have {status} state on response within {time_to_wait} seconds")
 def check_sink_status(context, status, time_to_wait):
     sink_id = context.sink["id"]
-    get_sink_response = get_sink_status_and_check(context.token, sink_id, status, timeout=time_to_wait)
+    context.sink = get_sink_status_and_check(context.token, sink_id, status, timeout=time_to_wait)
 
-    assert_that(get_sink_response['state'], equal_to(status), f"Sink {context.sink} state failed")
+    assert_that(context.sink['state'], equal_to(status), f"Sink {context.sink} state failed")
 
 
 @step("referred sink must have {status} state on response after {time_to_wait} seconds")
@@ -332,7 +332,7 @@ def create_new_sink(token, name_label, remote_host, username, password, descript
     try:
         response_json = response.json()
     except ValueError:
-        response_json = ValueError
+        response_json = response.text
     assert_that(response.status_code, equal_to(expected_status_code),
                 'Request to create sink failed with status=' + str(response.status_code) + ': ' + str(response_json))
 
@@ -354,7 +354,7 @@ def get_sink(token, sink_id):
     try:
         response_json = get_sink_response.json()
     except ValueError:
-        response_json = ValueError
+        response_json = get_sink_response.text
 
     assert_that(get_sink_response.status_code, equal_to(200),
                 'Request to get sink id=' + sink_id + ' failed with status=' + str(get_sink_response.status_code) + ': '
@@ -396,10 +396,15 @@ def list_up_to_limit_sinks(token, limit=100, offset=0):
 
     response = requests.get(orb_url + '/api/v1/sinks', headers={'Authorization': f'Bearer {token}'},
                             params={'limit': limit, 'offset': offset}, verify=verify_ssl_bool)
+    
+    try:
+        response_json = response.json()
+    except ValueError:
+        response_json = response.text
 
     assert_that(response.status_code, equal_to(200),
                 'Request to list sinks failed with status=' + str(response.status_code) + ': '
-                + str(response.json()))
+                + str(response_json))
 
     sinks_as_json = response.json()
     return sinks_as_json['sinks'], sinks_as_json['total'], sinks_as_json['offset']
@@ -463,8 +468,12 @@ def edit_sink(token, sink_id, sink_body, expected_status_code=200):
 
     response = requests.put(orb_url + '/api/v1/sinks/' + sink_id, json=sink_body,
                             headers=headers_request, verify=verify_ssl_bool)
+    try:
+        response_json = response.json()
+    except ValueError:
+        response_json = response.text
 
     assert_that(response.status_code, equal_to(expected_status_code),
-                'Request to edit sink failed with status=' + str(response.status_code) + ":" + str(response.json()))
+                'Request to edit sink failed with status=' + str(response.status_code) + ":" + str(response_json))
 
     return response.json()
