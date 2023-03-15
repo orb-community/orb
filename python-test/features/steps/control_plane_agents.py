@@ -800,7 +800,7 @@ def get_policies_applied_to_an_agent(token, agent_id, amount_of_policies, event=
 @threading_wait_until
 def get_policies_applied_to_an_agent_by_status(token, agent_id, amount_of_policies, amount_of_policies_with_status,
                                                status, event=None):
-    agent, list_agent_policies_id = get_policies_applied_to_an_agent(token, agent_id, amount_of_policies, wait_time=1, timeout=180)
+    agent, list_agent_policies_id = get_policies_applied_to_an_agent(token, agent_id, amount_of_policies, timeout=180)
     list_of_policies_status = list()
     for policy_id in list_agent_policies_id:
         list_of_policies_status.append(agent['last_hb_data']['policy_state'][policy_id]["state"])

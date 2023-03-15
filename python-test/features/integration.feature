@@ -1122,7 +1122,7 @@ Scenario: Check new policies applied after pktvisor stop running
     Then this agent's heartbeat shows that 12 policies are applied and all has status running
 
 
-@sanity @sink_partial_update @this_guy
+@sanity @sink_partial_update
 Scenario: Partial Update: sink status after updating only sink name
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -1141,7 +1141,7 @@ Scenario: Partial Update: sink status after updating only sink name
         And referred sink must have active state on response after 360 seconds
 
 
-  @sanity @sink_partial_update @this_guy
+  @sanity @sink_partial_update
 Scenario: Partial Update: sink status after updating only sink description
     Given the Orb user has a registered account
         And the Orb user logs in
