@@ -56,9 +56,9 @@ func newService(tokens map[string]string) sinks.SinkService {
 		ThingsURL: "localhost",
 	}
 
-	mfsdk := mfsdk.NewSDK(config)
+	newSDK := mfsdk.NewSDK(config)
 	pwdSvc := sinks.NewPasswordService(logger, "_testing_string_")
-	return sinks.NewSinkService(logger, auth, sinkRepo, mfsdk, pwdSvc)
+	return sinks.NewSinkService(logger, auth, sinkRepo, newSDK, pwdSvc)
 }
 
 func TestCreateSink(t *testing.T) {

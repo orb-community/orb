@@ -167,6 +167,31 @@ paths:
           description: Database can't process request.
         '500':
           $ref: "#/components/responses/ServiceErrorRes"
+  /v2/sinks:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+    post:
+      summary: 'Create a new Sink with YAML support'
+      operationId: createSinkExperimental
+      tags:
+        - sink
+      requestBody:
+        $ref: "#/components/requestBodies/SinkCreateReqV2"
+      responses:
+        '201':
+          $ref: "#/components/responses/SinkObjV2Res"
+        '400':
+          description: Failed due to malformed JSON.
+        '401':
+          description: Missing or invalid access token provided.
+        '409':
+          description: Entity already exist.
+        '415':
+          description: Missing or invalid content type.
+        '422':
+          description: Database can't process request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
 components:
   securitySchemes:
     bearerAuth:
