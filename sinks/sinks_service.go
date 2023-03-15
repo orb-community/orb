@@ -139,13 +139,16 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 		return Sink{}, err
 	}
 
-	if sink.Config == nil {
+	if sink.Config == nil || sink.ConfigData == "" {
+		// No config sent
 		sink.Config = currentSink.Config
 	} else {
-		// Validate remote_host
-		_, err := url.ParseRequestURI(sink.Config["remote_host"].(string))
-		if err != nil {
-			return Sink{}, errors.Wrap(ErrUpdateEntity, err)
+		if sink.ConfigData != "" {
+			sinkBE := backend.GetBackend(currentSink.Backend)
+			if sinkBE == nil {
+				return sink, errors.New("backend cannot be nil")
+			}
+			sink.Config, err = sinkBE.ParseConfig(sink.Format, sink.ConfigData)
 		}
 		// This will keep the previous tags
 		currentSink.Config.Merge(sink.Config)
@@ -164,9 +167,6 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 		sink.Name = currentSink.Name
 	}
 
-	if sink.Backend != "" || sink.Error != "" {
-		return Sink{}, errors.ErrUpdateEntity
-	}
 	sink.MFOwnerID = skOwnerID
 	if sink.Backend == "" && currentSink.Backend != "" {
 		sink.Backend = currentSink.Backend
