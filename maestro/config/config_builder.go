@@ -395,15 +395,15 @@ func GetServiceApplyConfig(sinkId string) string {
 
 // ReturnConfigYamlFromSink this is the main method, which will generate the YAML file from the
 func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig, sinkId, sinkUrl, sinkUsername, sinkPassword string) (string, error) {
-	var extensions *Extensions
-	if sinkUsername != "" {
-		extensions = &Extensions{
-			PProf: &PProfExtension{
-				Endpoint: "0.0.0.0:1888", // Leaving default for now, will need to change with more processes
+	config := OtelConfigFile{
+		Receivers: Receivers{
+			Kafka: KafkaReceiver{
+				Brokers:         []string{kafkaUrlConfig},
+				Topic:           fmt.Sprintf("otlp_metrics-%s", sinkId),
+				ProtocolVersion: "2.0.0", // Leaving default of over 2.0.0
 			},
-		}
-	} else {
-		extensions = &Extensions{
+		},
+		Extensions: &Extensions{
 			PProf: &PProfExtension{
 				Endpoint: "0.0.0.0:1888", // Leaving default for now, will need to change with more processes
 			},
@@ -413,18 +413,7 @@ func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig, sinkId, sinkUrl
 					Password string `json:"password" yaml:"password"`
 				}{Username: sinkUsername, Password: sinkPassword},
 			},
-		}
-	}
-
-	config := OtelConfigFile{
-		Receivers: Receivers{
-			Kafka: KafkaReceiver{
-				Brokers:         []string{kafkaUrlConfig},
-				Topic:           fmt.Sprintf("otlp_metrics-%s", sinkId),
-				ProtocolVersion: "2.0.0", // Leaving default of over 2.0.0
-			},
 		},
-		Extensions: extensions,
 		Exporters: Exporters{
 			PrometheusRemoteWrite: &PrometheusRemoteWriteExporterConfig{
 				Endpoint: sinkUrl,
@@ -466,7 +455,6 @@ func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig, sinkId, sinkUrl
 	s := strings.ReplaceAll(returnedString, "\"", "")
 	s = strings.ReplaceAll(s, "\n", `\n`)
 	return s, nil
-
 }
 
 type OtelConfigFile struct {
