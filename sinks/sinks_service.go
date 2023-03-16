@@ -149,10 +149,17 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 				return sink, errors.New("backend cannot be nil")
 			}
 			sink.Config, err = sinkBE.ParseConfig(sink.Format, sink.ConfigData)
+			if err != nil {
+				return Sink{}, err
+			}
+			if err := sinkBE.ValidateConfiguration(sink.Config); err != nil {
+				return Sink{}, err
+			}
 		}
-		// This will keep the previous tags
-		currentSink.Config.Merge(sink.Config)
-		sink.Config = currentSink.Config
+		//// add default values
+		defaultMetadata := make(types.Metadata, 1)
+		defaultMetadata["opentelemetry"] = "enabled"
+		sink.Config.Merge(defaultMetadata)
 	}
 
 	if sink.Tags == nil {
