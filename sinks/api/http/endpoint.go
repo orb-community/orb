@@ -134,9 +134,6 @@ func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 		} else {
 			if req.Config != nil {
 				config = req.Config
-			} else {
-				svc.GetLogger().Error("did not receive any valid configuration")
-				return nil, errors.Wrap(errors.ErrMalformedEntity, errors.New("configuration is invalid"))
 			}
 		}
 		sink := sinks.Sink{

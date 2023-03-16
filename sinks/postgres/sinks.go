@@ -117,7 +117,15 @@ func (s sinksRepository) Save(ctx context.Context, sink sinks.Sink) (string, err
 }
 
 func (s sinksRepository) Update(ctx context.Context, sink sinks.Sink) error {
-	q := `UPDATE sinks SET description = :description, tags = :tags, metadata = :metadata,  config_data = :config_data, format = :format, name = :name WHERE mf_owner_id = :mf_owner_id AND id = :id;`
+	q := `UPDATE sinks 
+			SET description = :description, 
+			    tags = :tags, 
+			    metadata = :metadata,  
+			    config_data = :config_data, 
+			    format = :format, 
+			    name = :name 
+			WHERE mf_owner_id = :mf_owner_id 
+			  AND id = :id;`
 
 	sinkDB, err := toDBSink(sink)
 	if err != nil {
@@ -163,7 +171,10 @@ func (s sinksRepository) RetrieveAllByOwnerID(ctx context.Context, owner string,
 	}
 
 	q := fmt.Sprintf(`SELECT id, name, mf_owner_id, description, tags, state, coalesce(error, '') as error, backend, metadata, ts_created
-								FROM sinks WHERE mf_owner_id = :mf_owner_id %s%s%s ORDER BY %s %s LIMIT :limit OFFSET :offset;`, tagsQuery, metadataQuery, nameQuery, orderQuery, dirQuery)
+								FROM sinks 
+								WHERE mf_owner_id = :mf_owner_id %s%s%s 
+								ORDER BY %s %s LIMIT :limit OFFSET :offset;`,
+		tagsQuery, metadataQuery, nameQuery, orderQuery, dirQuery)
 	params := map[string]interface{}{
 		"mf_owner_id": owner,
 		"limit":       pm.Limit,
@@ -216,7 +227,7 @@ func (s sinksRepository) RetrieveAllByOwnerID(ctx context.Context, owner string,
 
 func (s sinksRepository) RetrieveById(ctx context.Context, id string) (sinks.Sink, error) {
 
-	q := `SELECT id, name, mf_owner_id, description, tags, backend, metadata, ts_created, state, coalesce(error, '') as error
+	q := `SELECT id, name, mf_owner_id, description, tags, backend, metadata, format, config_data, ts_created, state, coalesce(error, '') as error
 			FROM sinks where id = $1`
 
 	dba := dbSink{}
