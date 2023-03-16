@@ -614,13 +614,6 @@ jobs:
             yarn:
               ui/package.json
 
-      - name: Login to Docker Hub
-        if: ${{ steps.filter.outputs.yarn == 'true' }}
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
       - name: Build orb yarn image
         if: ${{ steps.filter.outputs.yarn == 'true' }}
         env:
@@ -628,7 +621,14 @@ jobs:
         run: |
           make ui-modules
 
-      - name: Push ui image
+      - name: Login to Docker Hub
+        if: ${{ steps.filter.outputs.yarn == 'true' }}
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push ui image ns1labs
         if: ${{ steps.filter.outputs.yarn == 'true' }}
         run: |
           docker push -a ns1labs/orb-ui-modules
@@ -639,13 +639,6 @@ jobs:
         with:
           username: ${{ secrets.ORB_DOCKERHUB_USERNAME }}
           password: ${{ secrets.ORB_DOCKERHUB_TOKEN }}
-
-      - name: Build orb yarn image orbcommunity
-        if: ${{ steps.filter.outputs.yarn == 'true' }}
-        env:
-          IMAGE_NAME: orbcommunity/orb-ui-modules
-        run: |
-          make ui-modules
 
       - name: Push ui image orbcommunity
         if: ${{ steps.filter.outputs.yarn == 'true' }}
