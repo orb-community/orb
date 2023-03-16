@@ -142,6 +142,11 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 	if sink.Config == nil && sink.ConfigData == "" {
 		// No config sent
 		sink.Config = currentSink.Config
+		// get the decrypted config, otherwise the password would be encrypted again
+		sink, err = svc.decryptMetadata(sink)
+		if err != nil {
+			return Sink{}, err
+		}
 	} else {
 		if sink.ConfigData != "" {
 			sinkBE := backend.GetBackend(currentSink.Backend)
