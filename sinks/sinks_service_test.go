@@ -132,7 +132,7 @@ func TestIdempotencyUpdateSink(t *testing.T) {
 		Backend:     "prometheus",
 		State:       sinks.Unknown,
 		Error:       "",
-		ConfigData:  "remote_host:https://orb.community/\nusername: netops\npassword: w0w-orb-Rocks!",
+		ConfigData:  "remote_host: https://orb.community/\nusername: netops\npassword: w0w-orb-Rocks!",
 		Format:      "yaml",
 		MFOwnerID:   "OrbCommunity",
 		Config:      map[string]interface{}{"remote_host": "https://orb.community/", "username": &initialUsername, "password": &initialPassword},
@@ -179,7 +179,8 @@ func TestIdempotencyUpdateSink(t *testing.T) {
 				require.True(t, tagOk)
 				require.Equal(t, "aws", tagVal)
 				require.Equalf(t, "https://orb.community/", value.Config["remote_host"], "remote host is not equal")
-				require.Equalf(t, "netops", value.Config["username"], "username is not equal")
+				actual := value.Config["username"].(*string)
+				require.Equalf(t, "netops", *actual, "username is not equal")
 			},
 			token: token,
 		},
@@ -280,9 +281,8 @@ func TestPartialUpdateSink(t *testing.T) {
 			token: token,
 		}, "update config json": {
 			requestSink: sinks.Sink{
-				ID:         jsonCreatedSink.ID,
-				Config:     map[string]interface{}{"remote_host": "https://orb.community/prom/push", "username": "netops_admin", "password": "w0w-orb-Rocks!"},
-				ConfigData: "",
+				ID:     jsonCreatedSink.ID,
+				Config: map[string]interface{}{"remote_host": "https://orb.community/prom/push", "username": "netops_admin", "password": "w0w-orb-Rocks!"},
 			},
 			expected: func(t *testing.T, value sinks.Sink, err error) {
 				require.NoError(t, err, "no error expected")
@@ -295,7 +295,6 @@ func TestPartialUpdateSink(t *testing.T) {
 				ID:         yamlCreatedSink.ID,
 				Format:     "yaml",
 				ConfigData: "remote_host: https://orb.community/prom/push\nusername: netops_admin\npassword: \"w0w-orb-Rocks!\"",
-				Config:     map[string]interface{}{"remote_host": "https://orb.community/prom/push", "username": &userHelper, "password": "w0w-orb-Rocks!"},
 			},
 			expected: func(t *testing.T, value sinks.Sink, err error) {
 				require.NoError(t, err, "no error expected")
@@ -402,11 +401,6 @@ func TestUpdateSink(t *testing.T) {
 			token:        token,
 			err:          sinks.ErrNotFound,
 		},
-		"update sink read only fields": {
-			incomingSink: sink,
-			token:        token,
-			err:          errors.ErrUpdateEntity,
-		},
 		"update existing sink - only updating config": {
 			incomingSink: sinks.Sink{
 				ID: sinkTestConfigAttribute.ID,
@@ -418,7 +412,7 @@ func TestUpdateSink(t *testing.T) {
 			expectedSink: sinks.Sink{
 				Name: sinkTestConfigAttribute.Name,
 				Config: types.Metadata{
-					"opentelemetry": "enabled", "remote_host": "https://orb.community/", "username": "dbuser",
+					"opentelemetry": "enabled", "remote_host": "https://orb.community/",
 				},
 				Description: sinkTestConfigAttribute.Description,
 				Tags:        sinkTestConfigAttribute.Tags,
@@ -515,10 +509,10 @@ func TestUpdateSink(t *testing.T) {
 		t.Run(desc, func(t *testing.T) {
 			res, err := service.UpdateSink(context.Background(), tc.token, tc.incomingSink)
 			if err == nil {
-				assert.Equal(t, tc.expectedSink.Config, res.Config, fmt.Sprintf("%s: expected %s got %s", desc, tc.expectedSink.Config, res.Config))
-				assert.Equal(t, tc.expectedSink.Name.String(), res.Name.String(), fmt.Sprintf("%s: expected name %s got %s", desc, tc.expectedSink.Name.String(), res.Name.String()))
-				assert.Equal(t, *tc.expectedSink.Description, *res.Description, fmt.Sprintf("%s: expected description %s got %s", desc, *tc.expectedSink.Description, *res.Description))
-				assert.Equal(t, tc.expectedSink.Tags, res.Tags, fmt.Sprintf("%s: expected tags %s got %s", desc, tc.expectedSink.Tags, res.Tags))
+				assert.Equal(t, tc.expectedSink.Config, res.Config, "config not as expected")
+				assert.Equal(t, tc.expectedSink.Name.String(), res.Name.String(), "sink name not as expected")
+				assert.Equal(t, *tc.expectedSink.Description, *res.Description, "sink description not as expected")
+				assert.Equal(t, tc.expectedSink.Tags, res.Tags, "sink tags not as expected")
 			}
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %d got %d", desc, tc.err, err))
 		})

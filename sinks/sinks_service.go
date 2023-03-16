@@ -139,7 +139,7 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 		return Sink{}, err
 	}
 
-	if sink.Config == nil || sink.ConfigData == "" {
+	if sink.Config == nil && sink.ConfigData == "" {
 		// No config sent
 		sink.Config = currentSink.Config
 	} else {

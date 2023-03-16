@@ -778,13 +778,15 @@ func TestViewSink(t *testing.T) {
 
 	sk, err := service.CreateSink(context.Background(), token, sink)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
-
+	sinkBE := backend.GetBackend("prometheus")
+	omitedConfig, _ := omitSecretInformation(sinkBE, sk.Format, sk.Config)
+	require.NoError(t, err, "error during omitting secrets")
 	data := toJSON(sinkRes{
 		ID:          sk.ID,
 		Name:        sk.Name.String(),
 		Description: *sk.Description,
 		Backend:     sk.Backend,
-		Config:      sk.Config,
+		Config:      omitedConfig,
 		Tags:        sk.Tags,
 		State:       sk.State.String(),
 		Error:       sk.Error,
