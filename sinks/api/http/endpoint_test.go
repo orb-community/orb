@@ -83,16 +83,17 @@ func (tr testRequest) make() (*http.Response, error) {
 }
 
 func newService(tokens map[string]string) sinks.SinkService {
-	auth := skmocks.NewAuthService(tokens)
-	sinkRepo := skmocks.NewSinkRepository()
 	logger := zap.NewNop()
+	auth := skmocks.NewAuthService(tokens)
+	pwdSvc := sinks.NewPasswordService(logger, "_testing_string_")
+	sinkRepo := skmocks.NewSinkRepository(pwdSvc)
 
 	config := mfsdk.Config{
 		ThingsURL: "localhost",
 	}
 
 	mfsdk := mfsdk.NewSDK(config)
-	pwdSvc := sinks.NewPasswordService(logger, "_testing_string_")
+
 	return sinks.NewSinkService(logger, auth, sinkRepo, mfsdk, pwdSvc)
 }
 
