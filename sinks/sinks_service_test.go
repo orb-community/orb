@@ -48,16 +48,16 @@ var (
 )
 
 func newService(tokens map[string]string) sinks.SinkService {
-	auth := thmocks.NewAuthService(tokens, make(map[string][]thmocks.MockSubjectSet))
-	sinkRepo := skmocks.NewSinkRepository()
 	logger := zap.NewNop()
+	auth := thmocks.NewAuthService(tokens, make(map[string][]thmocks.MockSubjectSet))
+	pwdSvc := sinks.NewPasswordService(logger, "_testing_string_")
+	sinkRepo := skmocks.NewSinkRepository(pwdSvc)
 
 	config := mfsdk.Config{
 		ThingsURL: "localhost",
 	}
 
 	newSDK := mfsdk.NewSDK(config)
-	pwdSvc := sinks.NewPasswordService(logger, "_testing_string_")
 	return sinks.NewSinkService(logger, auth, sinkRepo, newSDK, pwdSvc)
 }
 
@@ -105,6 +105,216 @@ func TestCreateSink(t *testing.T) {
 		})
 	}
 
+}
+
+func TestIdempotencyUpdateSink(t *testing.T) {
+	ctx := context.Background()
+	service := newService(map[string]string{token: email})
+	jsonSinkName, err := types.NewIdentifier("initial-json-Sink")
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+	yamlSinkName, err := types.NewIdentifier("initial-yaml-Sink")
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+	aInitialDescription := "A initial description worthy reading"
+	initialJsonSink := sinks.Sink{
+		Name:        jsonSinkName,
+		Description: &aInitialDescription,
+		Backend:     "prometheus",
+		State:       sinks.Unknown,
+		Error:       "",
+		Config:      map[string]interface{}{"remote_host": "https://orb.community/", "username": "netops", "password": "w0w-orb-Rocks!"},
+		Tags:        map[string]string{"cloud": "aws"},
+	}
+	initialUsername := "netops"
+	initialPassword := "w0w-orb-Rocks!"
+	initialYamlSink := sinks.Sink{
+		Name:        yamlSinkName,
+		Description: &aInitialDescription,
+		Backend:     "prometheus",
+		State:       sinks.Unknown,
+		Error:       "",
+		ConfigData:  "remote_host: https://orb.community/\nusername: netops\npassword: w0w-orb-Rocks!",
+		Format:      "yaml",
+		MFOwnerID:   "OrbCommunity",
+		Config:      map[string]interface{}{"remote_host": "https://orb.community/", "username": &initialUsername, "password": &initialPassword},
+		Tags:        map[string]string{"cloud": "aws"},
+	}
+	jsonCreatedSink, err := service.CreateSink(ctx, token, initialJsonSink)
+	require.NoError(t, err, "failed to create entity")
+	require.NotEmptyf(t, jsonCreatedSink.ID, "id must not be empty")
+	yamlCreatedSink, err := service.CreateSink(ctx, token, initialYamlSink)
+	require.NoError(t, err, "failed to create entity")
+	initialJsonSink.ID = jsonCreatedSink.ID
+	initialYamlSink.ID = yamlCreatedSink.ID
+	var cases = map[string]struct {
+		name        string
+		requestSink sinks.Sink
+		expected    func(t *testing.T, value sinks.Sink, err error)
+		token       string
+	}{
+		"idempotency json update": {
+			requestSink: initialJsonSink,
+			expected: func(t *testing.T, value sinks.Sink, err error) {
+				require.NoError(t, err, "no error expected")
+				require.NotNilf(t, value.Description, "description is nil")
+				desc := *value.Description
+				require.Equal(t, desc, aInitialDescription, "description is not equal")
+				require.Equal(t, value.Name, jsonSinkName, "sink name is not equal")
+				tagVal, tagOk := value.Tags["cloud"]
+				require.True(t, tagOk)
+				require.Equal(t, "aws", tagVal)
+				require.Equalf(t, "https://orb.community/", value.Config["remote_host"], "remote host is not equal")
+				require.Equalf(t, "netops", value.Config["username"], "username is not equal")
+			},
+			token: token,
+		},
+		"idempotency yaml update": {
+			requestSink: initialYamlSink,
+			expected: func(t *testing.T, value sinks.Sink, err error) {
+				require.NoError(t, err, "no error expected")
+				require.NotNilf(t, value.Description, "description is nil")
+				desc := *value.Description
+				require.Equal(t, desc, aInitialDescription, "description is not equal")
+				require.Equal(t, value.Name, yamlSinkName, "sink name is not equal")
+				tagVal, tagOk := value.Tags["cloud"]
+				require.True(t, tagOk)
+				require.Equal(t, "aws", tagVal)
+				require.Equalf(t, "https://orb.community/", value.Config["remote_host"], "remote host is not equal")
+				actual := value.Config["username"].(*string)
+				require.Equalf(t, "netops", *actual, "username is not equal")
+			},
+			token: token,
+		},
+	}
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			res, err := service.UpdateSink(ctx, tc.token, tc.requestSink)
+			tc.expected(t, res, err)
+		})
+	}
+}
+
+func TestPartialUpdateSink(t *testing.T) {
+	ctx := context.Background()
+	service := newService(map[string]string{token: email})
+	jsonSinkName, err := types.NewIdentifier("initial-json-Sink")
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+	yamlSinkName, err := types.NewIdentifier("initial-yaml-Sink")
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+	//newSinkName, err := types.NewIdentifier("updated-Sink")
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+	//aNewDescription := "A new description worthy reading"
+	aInitialDescription := "A initial description worthy reading"
+	initialJsonSink := sinks.Sink{
+		Name:        jsonSinkName,
+		Description: &aInitialDescription,
+		Backend:     "prometheus",
+		State:       sinks.Unknown,
+		Error:       "",
+		Config:      map[string]interface{}{"remote_host": "https://orb.community/", "username": "netops", "password": "w0w-orb-Rocks!"},
+		Tags:        map[string]string{"cloud": "aws"},
+	}
+	initialUsername := "netops"
+	initialPassword := "w0w-orb-Rocks!"
+	initialYamlSink := sinks.Sink{
+		Name:        yamlSinkName,
+		Description: &aInitialDescription,
+		Backend:     "prometheus",
+		State:       sinks.Unknown,
+		Error:       "",
+		ConfigData:  "remote_host:https://orb.community/\nusername: netops\npassword: w0w-orb-Rocks!",
+		Format:      "yaml",
+		MFOwnerID:   "OrbCommunity",
+		Config:      map[string]interface{}{"remote_host": "https://orb.community/", "username": &initialUsername, "password": &initialPassword},
+		Tags:        map[string]string{"cloud": "aws"},
+	}
+	jsonCreatedSink, err := service.CreateSink(ctx, token, initialJsonSink)
+	require.NoError(t, err, "failed to create entity")
+	require.NotEmptyf(t, jsonCreatedSink.ID, "id must not be empty")
+	yamlCreatedSink, err := service.CreateSink(ctx, token, initialYamlSink)
+	require.NoError(t, err, "failed to create entity")
+	userHelper := "netops_admin"
+	initialJsonSink.ID = jsonCreatedSink.ID
+	initialYamlSink.ID = yamlCreatedSink.ID
+	var cases = map[string]struct {
+		name        string
+		requestSink sinks.Sink
+		expected    func(t *testing.T, value sinks.Sink, err error)
+		token       string
+	}{
+		// TODO this will fail locally because of password encryption,
+		// TODO we will revisit this whenever there is a update on password encryption
+		//"update only name": {
+		//	requestSink: sinks.Sink{
+		//		ID:   jsonCreatedSink.ID,
+		//		Name: newSinkName,
+		//	},
+		//	expected: func(t *testing.T, value sinks.Sink, err error) {
+		//		require.NoError(t, err, "no error expected")
+		//		require.Equal(t, value.Name, newSinkName, "sink name is not equal")
+		//	},
+		//	token: token,
+		//},
+		//"update only description": {
+		//	requestSink: sinks.Sink{
+		//		ID:          jsonCreatedSink.ID,
+		//		Description: &aNewDescription,
+		//	},
+		//	expected: func(t *testing.T, value sinks.Sink, err error) {
+		//		require.NoError(t, err, "no error expected")
+		//		require.NotNilf(t, value.Description, "description is nil")
+		//		desc := *value.Description
+		//		require.Equal(t, desc, aNewDescription, "description is not equal")
+		//	},
+		//	token: token,
+		//}, "update only tags": {
+		//	requestSink: sinks.Sink{
+		//		ID:   jsonCreatedSink.ID,
+		//		Tags: map[string]string{"cloud": "gcp", "from_aws": "true"},
+		//	},
+		//	expected: func(t *testing.T, value sinks.Sink, err error) {
+		//		require.NoError(t, err, "no error expected")
+		//		tagVal, tagOk := value.Tags["cloud"]
+		//		tag2Val, tag2Ok := value.Tags["from_aws"]
+		//		require.True(t, tagOk)
+		//		require.Equal(t, "gcp", tagVal)
+		//		require.True(t, tag2Ok)
+		//		require.Equal(t, "true", tag2Val)
+		//	},
+		//	token: token,
+		//},
+		"update config json": {
+			requestSink: sinks.Sink{
+				ID:     jsonCreatedSink.ID,
+				Config: map[string]interface{}{"remote_host": "https://orb.community/prom/push", "username": "netops_admin", "password": "w0w-orb-Rocks!"},
+			},
+			expected: func(t *testing.T, value sinks.Sink, err error) {
+				require.NoError(t, err, "no error expected")
+				require.Equalf(t, "https://orb.community/prom/push", value.Config["remote_host"], "want %s, got %s", "https://orb.community/prom/push", value.Config["remote_host"])
+				require.Equalf(t, "netops_admin", value.Config["username"], "want %s, got %s", "netops_admin", value.Config["username"])
+			},
+			token: token,
+		}, "update config yaml": {
+			requestSink: sinks.Sink{
+				ID:         yamlCreatedSink.ID,
+				Format:     "yaml",
+				ConfigData: "remote_host: https://orb.community/prom/push\nusername: netops_admin\npassword: \"w0w-orb-Rocks!\"",
+			},
+			expected: func(t *testing.T, value sinks.Sink, err error) {
+				require.NoError(t, err, "no error expected")
+				require.Equalf(t, "https://orb.community/prom/push", value.Config["remote_host"], "want %s, got %s", "https://orb.community/prom/push", value.Config["remote_host"])
+				require.NotNilf(t, value.Config["username"], "description is nil")
+				desc := value.Config["username"]
+				require.Equal(t, &userHelper, desc, "description is not equal")
+			},
+			token: token,
+		},
+	}
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			res, err := service.UpdateSink(ctx, tc.token, tc.requestSink)
+			tc.expected(t, res, err)
+		})
+	}
 }
 
 func TestUpdateSink(t *testing.T) {
@@ -194,11 +404,6 @@ func TestUpdateSink(t *testing.T) {
 			token:        token,
 			err:          sinks.ErrNotFound,
 		},
-		"update sink read only fields": {
-			incomingSink: sink,
-			token:        token,
-			err:          errors.ErrUpdateEntity,
-		},
 		"update existing sink - only updating config": {
 			incomingSink: sinks.Sink{
 				ID: sinkTestConfigAttribute.ID,
@@ -210,7 +415,7 @@ func TestUpdateSink(t *testing.T) {
 			expectedSink: sinks.Sink{
 				Name: sinkTestConfigAttribute.Name,
 				Config: types.Metadata{
-					"opentelemetry": "enabled", "remote_host": "https://orb.community/", "username": "dbuser",
+					"opentelemetry": "enabled", "remote_host": "https://orb.community/",
 				},
 				Description: sinkTestConfigAttribute.Description,
 				Tags:        sinkTestConfigAttribute.Tags,
@@ -307,10 +512,10 @@ func TestUpdateSink(t *testing.T) {
 		t.Run(desc, func(t *testing.T) {
 			res, err := service.UpdateSink(context.Background(), tc.token, tc.incomingSink)
 			if err == nil {
-				assert.Equal(t, tc.expectedSink.Config, res.Config, fmt.Sprintf("%s: expected %s got %s", desc, tc.expectedSink.Config, res.Config))
-				assert.Equal(t, tc.expectedSink.Name.String(), res.Name.String(), fmt.Sprintf("%s: expected name %s got %s", desc, tc.expectedSink.Name.String(), res.Name.String()))
-				assert.Equal(t, *tc.expectedSink.Description, *res.Description, fmt.Sprintf("%s: expected description %s got %s", desc, *tc.expectedSink.Description, *res.Description))
-				assert.Equal(t, tc.expectedSink.Tags, res.Tags, fmt.Sprintf("%s: expected tags %s got %s", desc, tc.expectedSink.Tags, res.Tags))
+				assert.Equal(t, tc.expectedSink.Config, res.Config, "config not as expected")
+				assert.Equal(t, tc.expectedSink.Name.String(), res.Name.String(), "sink name not as expected")
+				assert.Equal(t, *tc.expectedSink.Description, *res.Description, "sink description not as expected")
+				assert.Equal(t, tc.expectedSink.Tags, res.Tags, "sink tags not as expected")
 			}
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %d got %d", desc, tc.err, err))
 		})

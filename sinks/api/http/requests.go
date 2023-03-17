@@ -114,7 +114,7 @@ func (req updateSinkReq) validate(sinkBackend backend.Backend) error {
 		}
 	}
 
-	if req.Description == nil && req.Name == "" && len(req.Config) == 0 && req.Tags == nil {
+	if req.Description == nil && req.Name == "" && req.ConfigData == "" && len(req.Config) == 0 && req.Tags == nil {
 		return errors.ErrMalformedEntity
 	}
 

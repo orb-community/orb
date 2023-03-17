@@ -88,6 +88,9 @@ func (svc sinkService) encryptMetadata(sink Sink) (Sink, error) {
 	})
 	if sink.ConfigData != "" {
 		sinkBE := backend.GetBackend(sink.Backend)
+		if sinkBE == nil {
+			return sink, errors.New("backend cannot be nil")
+		}
 		sink.ConfigData, err = sinkBE.ConfigToFormat(sink.Format, sink.Config)
 		if err != nil {
 			svc.logger.Error("error on parsing encrypted config in data")
@@ -112,6 +115,9 @@ func (svc sinkService) decryptMetadata(sink Sink) (Sink, error) {
 	})
 	if sink.ConfigData != "" {
 		sinkBE := backend.GetBackend(sink.Backend)
+		if sinkBE == nil {
+			return sink, errors.New("backend cannot be nil")
+		}
 		sink.ConfigData, err = sinkBE.ConfigToFormat(sink.Format, sink.Config)
 		if err != nil {
 			svc.logger.Error("error on parsing encrypted config in data")
@@ -133,17 +139,32 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 		return Sink{}, err
 	}
 
-	if sink.Config == nil {
+	if sink.Config == nil && sink.ConfigData == "" {
+		// No config sent
 		sink.Config = currentSink.Config
-	} else {
-		// Validate remote_host
-		_, err := url.ParseRequestURI(sink.Config["remote_host"].(string))
+		// get the decrypted config, otherwise the password would be encrypted again
+		sink, err = svc.decryptMetadata(sink)
 		if err != nil {
-			return Sink{}, errors.Wrap(ErrUpdateEntity, err)
+			return Sink{}, err
 		}
-		// This will keep the previous tags
-		currentSink.Config.Merge(sink.Config)
-		sink.Config = currentSink.Config
+	} else {
+		if sink.ConfigData != "" {
+			sinkBE := backend.GetBackend(currentSink.Backend)
+			if sinkBE == nil {
+				return sink, errors.New("backend cannot be nil")
+			}
+			sink.Config, err = sinkBE.ParseConfig(sink.Format, sink.ConfigData)
+			if err != nil {
+				return Sink{}, err
+			}
+			if err := sinkBE.ValidateConfiguration(sink.Config); err != nil {
+				return Sink{}, err
+			}
+		}
+		//// add default values
+		defaultMetadata := make(types.Metadata, 1)
+		defaultMetadata["opentelemetry"] = "enabled"
+		sink.Config.Merge(defaultMetadata)
 	}
 
 	if sink.Tags == nil {
@@ -158,9 +179,6 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 		sink.Name = currentSink.Name
 	}
 
-	if sink.Backend != "" || sink.Error != "" {
-		return Sink{}, errors.ErrUpdateEntity
-	}
 	sink.MFOwnerID = skOwnerID
 	if sink.Backend == "" && currentSink.Backend != "" {
 		sink.Backend = currentSink.Backend

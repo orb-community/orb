@@ -83,16 +83,17 @@ func (tr testRequest) make() (*http.Response, error) {
 }
 
 func newService(tokens map[string]string) sinks.SinkService {
-	auth := skmocks.NewAuthService(tokens)
-	sinkRepo := skmocks.NewSinkRepository()
 	logger := zap.NewNop()
+	auth := skmocks.NewAuthService(tokens)
+	pwdSvc := sinks.NewPasswordService(logger, "_testing_string_")
+	sinkRepo := skmocks.NewSinkRepository(pwdSvc)
 
 	config := mfsdk.Config{
 		ThingsURL: "localhost",
 	}
 
 	mfsdk := mfsdk.NewSDK(config)
-	pwdSvc := sinks.NewPasswordService(logger, "_testing_string_")
+
 	return sinks.NewSinkService(logger, auth, sinkRepo, mfsdk, pwdSvc)
 }
 
@@ -778,13 +779,15 @@ func TestViewSink(t *testing.T) {
 
 	sk, err := service.CreateSink(context.Background(), token, sink)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
-
+	sinkBE := backend.GetBackend("prometheus")
+	omitedConfig, _ := omitSecretInformation(sinkBE, sk.Format, sk.Config)
+	require.NoError(t, err, "error during omitting secrets")
 	data := toJSON(sinkRes{
 		ID:          sk.ID,
 		Name:        sk.Name.String(),
 		Description: *sk.Description,
 		Backend:     sk.Backend,
-		Config:      sk.Config,
+		Config:      omitedConfig,
 		Tags:        sk.Tags,
 		State:       sk.State.String(),
 		Error:       sk.Error,
