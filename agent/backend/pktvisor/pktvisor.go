@@ -68,6 +68,7 @@ type pktvisorBackend struct {
 	mqttClient       *mqtt.Client
 	metricsTopic     string
 	otlpMetricsTopic string
+	otlpLogsTopic    string
 	scraper          *gocron.Scheduler
 	policyRepo       policies.PolicyRepo
 
