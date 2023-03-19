@@ -124,9 +124,10 @@ func (p *pktvisorBackend) GetStartTime() time.Time {
 func (p *pktvisorBackend) SetCommsClient(agentID string, client *mqtt.Client, baseTopic string) {
 	p.mqttClient = client
 	metricsTopic := strings.Replace(baseTopic, "?", "be", 1)
-	otelMetricsTopic := strings.Replace(baseTopic, "?", "otlp", 1)
+	otelTopic := strings.Replace(baseTopic, "?", "otlp", 1)
 	p.metricsTopic = fmt.Sprintf("%s/m/%c", metricsTopic, agentID[0])
-	p.otlpMetricsTopic = fmt.Sprintf("%s/m/%c", otelMetricsTopic, agentID[0])
+	p.otlpMetricsTopic = fmt.Sprintf("%s/m/%c", otelTopic, agentID[0])
+	p.otlpLogsTopic = fmt.Sprintf("%s/l/%c", otelTopic, agentID[0])
 }
 
 func (p *pktvisorBackend) GetRunningStatus() (backend.RunningStatus, string, error) {
