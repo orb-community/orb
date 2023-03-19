@@ -141,7 +141,7 @@ func CreateMetricsExporter(
 		exporterhelper.WithQueue(oCfg.QueueSettings))
 }
 
-func createLogsExporter(
+func CreateLogsExporter(
 	ctx context.Context,
 	set component.ExporterCreateSettings,
 	cfg config.Exporter,
