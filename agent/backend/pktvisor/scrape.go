@@ -63,6 +63,32 @@ func (p *pktvisorBackend) createOtlpMqttExporter(ctx context.Context, cancelFunc
 
 }
 
+func (p *pktvisorBackend) createOtlpLogsMqttExporter(ctx context.Context, cancelFunc context.CancelFunc) (component.LogsExporter, error) {
+
+	bridgeService := otel.NewBridgeService(ctx, &p.policyRepo, p.agentTags)
+	if p.mqttClient != nil {
+		cfg := otlpmqttexporter.CreateConfigClient(p.mqttClient, p.otlpLogsTopic, p.pktvisorVersion, bridgeService)
+		set := otlpmqttexporter.CreateDefaultSettings(p.logger)
+		// Create the OTLP metrics exporter that'll receive and verify the metrics produced.
+		exporter, err := otlpmqttexporter.CreateMetricsExporter(ctx, set, cfg)
+		if err != nil {
+			return nil, err
+		}
+		return exporter, nil
+	} else {
+		cfg := otlpmqttexporter.CreateConfig(p.mqttConfig.Address, p.mqttConfig.Id, p.mqttConfig.Key,
+			p.mqttConfig.ChannelID, p.pktvisorVersion, p.otlpLogsTopic, bridgeService)
+		set := otlpmqttexporter.CreateDefaultSettings(p.logger)
+		// Create the OTLP metrics exporter that'll receive and verify the metrics produced.
+		exporter, err := otlpmqttexporter.CreateLogsExporter(ctx, set, cfg)
+		if err != nil {
+			return nil, err
+		}
+		return exporter, nil
+	}
+
+}
+
 func (p *pktvisorBackend) createReceiver(ctx context.Context, exporter component.MetricsExporter, logger *zap.Logger) (component.MetricsReceiver, error) {
 	set := pktvisorreceiver.CreateDefaultSettings(logger)
 	var pktvisorEndpoint string
