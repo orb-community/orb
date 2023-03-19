@@ -16,6 +16,7 @@ import (
 
 	"github.com/orb-community/orb/agent/otel/otlpmqttexporter"
 	"github.com/orb-community/orb/agent/otel/pktvisorreceiver"
+	"github.com/orb-community/orb/agent/otel/syslogreceiver"
 	"github.com/orb-community/orb/fleet"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/confighttp"
