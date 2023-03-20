@@ -31,10 +31,20 @@ const enableMaintenace = () => {
   }
 };
 
+const enableGTAG = () => {
+  if (process.env.GTAGID) {
+    return `
+    GTAGID: '${ process.env.GTAGID }',
+    `;
+  } else {
+    return '';
+  }
+};
+
 // we have access to our environment variables
 // in the process.env object thanks to dotenv
 const environmentFileContent = `
-export const environment = {${enablePS()}${enableMaintenace()}};
+export const environment = {${enablePS()}${enableMaintenace()}${enableGTAG()}};
 `;
 
 // write the content to the respective file
