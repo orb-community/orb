@@ -1,6 +1,6 @@
 orb:
   defaults:
-    logLevel: "info"
+    logLevel: "debug"
     image:
       pullPolicy: "IfNotPresent"
       repository: "ns1labs"

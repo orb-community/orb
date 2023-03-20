@@ -101,10 +101,14 @@ def authenticate(user_email, user_password, expected_status_code=201):
                              json=json_request,
                              headers=headers,
                              verify=verify_ssl_bool)
+    try:
+        response_json = response.json()
+    except ValueError:
+        response_json = response.text
     assert_that(response.status_code, equal_to(expected_status_code),
-                'Authentication failed with status= ' + str(response.status_code) + str(response.json()))
-
-    return response.json()
+                f"Authentication failed with status= {str(response.status_code)}. Response: {str(response_json)}"
+                )
+    return response_json
 
 
 def register_account(user_email, user_password, company_name=None, user_full_name=None, expected_status_code=201):
@@ -143,7 +147,12 @@ def get_account_information(token, expected_status_code=200):
     """
     response = requests.get(orb_url + '/api/v1/users/profile',
                             headers={'Authorization': f'Bearer {token}'}, verify=verify_ssl_bool)
+
+    try:
+        response_json = response.json()
+    except ValueError:
+        response_json = response.text
     assert_that(response.status_code, equal_to(expected_status_code), f"Unexpected status code for get account data."
                                                                       f"Status Code = {response.status_code}."
-                                                                      f"Response = {str(response.json())}")
-    return response.json()
+                                                                      f"Response = {str(response_json)}")
+    return response_json

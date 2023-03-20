@@ -15,11 +15,13 @@ import (
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks"
 	"github.com/orb-community/orb/sinks/backend"
+	"go.uber.org/zap"
+	"time"
 )
 
 var restrictiveKeyPrefixes = []string{backend.ConfigFeatureTypePassword}
 
-func omitSecretInformation(metadata types.Metadata) (restrictedMetadata types.Metadata) {
+func omitSecretInformation(be backend.Backend, format string, metadata types.Metadata) (restrictedMetadata types.Metadata, configData string) {
 	metadata.RestrictKeys(func(key string) bool {
 		match := false
 		for _, restrictiveKey := range restrictiveKeyPrefixes {
@@ -30,32 +32,62 @@ func omitSecretInformation(metadata types.Metadata) (restrictedMetadata types.Me
 		}
 		return match
 	})
-	return metadata
+	var err error
+	if format != "" {
+		configData, err = be.ConfigToFormat(format, metadata)
+		if err != nil {
+			return metadata, ""
+		}
+	}
+	return metadata, configData
 }
 
 func addEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(addReq)
 		if err := req.validate(); err != nil {
+			svc.GetLogger().Error("got error in validating request", zap.Error(err))
 			return nil, err
 		}
 
 		nID, err := types.NewIdentifier(req.Name)
 		if err != nil {
+			svc.GetLogger().Error("got error in creating new identifier", zap.Error(err))
 			return nil, err
 		}
-
+		var config types.Metadata
+		reqBackend := backend.GetBackend(req.Backend)
+		if req.Format != "" {
+			config, err = reqBackend.ParseConfig(req.Format, req.ConfigData)
+			if err != nil {
+				svc.GetLogger().Error("got error in parsing configuration", zap.Error(err))
+				return nil, err
+			}
+		} else {
+			if req.Config != nil {
+				config = req.Config
+			} else {
+				svc.GetLogger().Error("did not receive any valid configuration")
+				return nil, errors.ErrMalformedEntity
+			}
+		}
 		sink := sinks.Sink{
 			Name:        nID,
 			Backend:     req.Backend,
-			Config:      req.Config,
+			Config:      config,
 			Description: &req.Description,
 			Tags:        req.Tags,
+			ConfigData:  req.ConfigData,
+			Format:      req.Format,
+			Created:     time.Now(),
 		}
 		saved, err := svc.CreateSink(ctx, req.token, sink)
 		if err != nil {
+			svc.GetLogger().Error("received error on creating sink")
 			return nil, err
 		}
+
+		omittedConfig, omittedConfigData := omitSecretInformation(reqBackend, saved.Format, saved.Config)
 
 		res := sinkRes{
 			ID:          saved.ID,
@@ -65,7 +97,9 @@ func addEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			State:       saved.State.String(),
 			Error:       saved.Error,
 			Backend:     saved.Backend,
-			Config:      omitSecretInformation(saved.Config),
+			Config:      omittedConfig,
+			ConfigData:  omittedConfigData,
+			Format:      saved.Format,
 			TsCreated:   saved.Created,
 			created:     true,
 		}
@@ -77,19 +111,44 @@ func addEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(updateSinkReq)
-		if err := req.validate(); err != nil {
+		if req.token == "" {
+			return nil, errors.ErrUnauthorizedAccess
+		}
+		currentSink, err := svc.ViewSink(ctx, req.token, req.id)
+		if err != nil {
+			svc.GetLogger().Error("could not find sink with id", zap.String("sinkID", req.id), zap.Error(err))
 			return nil, err
+		}
+		sinkBackend := backend.GetBackend(currentSink.Backend)
+		if err := req.validate(sinkBackend); err != nil {
+			svc.GetLogger().Error("error validating request", zap.Error(err))
+			return nil, err
+		}
+		var config types.Metadata
+		if req.Format != "" {
+			config, err = sinkBackend.ParseConfig(req.Format, req.ConfigData)
+			if err != nil {
+				svc.GetLogger().Error("got error in parsing configuration", zap.Error(err))
+				return nil, errors.Wrap(errors.ErrMalformedEntity, err)
+			}
+		} else {
+			if req.Config != nil {
+				config = req.Config
+			}
 		}
 		sink := sinks.Sink{
 			ID:          req.id,
 			Tags:        req.Tags,
-			Config:      req.Config,
+			Config:      config,
+			ConfigData:  req.ConfigData,
+			Format:      req.Format,
 			Description: req.Description,
 		}
 
 		if req.Name != "" {
 			nameID, err := types.NewIdentifier(req.Name)
 			if err != nil {
+				svc.GetLogger().Error("error on getting new identifier", zap.Error(err))
 				return nil, errors.ErrMalformedEntity
 			}
 			sink.Name = nameID
@@ -97,8 +156,10 @@ func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 
 		sinkEdited, err := svc.UpdateSink(ctx, req.token, sink)
 		if err != nil {
+			svc.GetLogger().Error("error on updating sink", zap.Error(err))
 			return nil, err
 		}
+		omittedConfig, omittedConfigData := omitSecretInformation(sinkBackend, sinkEdited.Format, sinkEdited.Config)
 		res := sinkRes{
 			ID:          sinkEdited.ID,
 			Name:        sinkEdited.Name.String(),
@@ -107,7 +168,9 @@ func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			State:       sinkEdited.State.String(),
 			Error:       sinkEdited.Error,
 			Backend:     sinkEdited.Backend,
-			Config:      omitSecretInformation(sinkEdited.Config),
+			Config:      omittedConfig,
+			ConfigData:  omittedConfigData,
+			Format:      sinkEdited.Format,
 			created:     false,
 		}
 		return res, nil
@@ -137,17 +200,20 @@ func listSinksEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			},
 			Sinks: []sinkRes{},
 		}
-
 		for _, sink := range page.Sinks {
+			reqBackend := backend.GetBackend(sink.Backend)
+			omittedConfig, omittedConfigData := omitSecretInformation(reqBackend, sink.Format, sink.Config)
 			view := sinkRes{
-				ID:        sink.ID,
-				Name:      sink.Name.String(),
-				Tags:      sink.Tags,
-				State:     sink.State.String(),
-				Error:     sink.Error,
-				Backend:   sink.Backend,
-				Config:    omitSecretInformation(sink.Config),
-				TsCreated: sink.Created,
+				ID:         sink.ID,
+				Name:       sink.Name.String(),
+				Tags:       sink.Tags,
+				State:      sink.State.String(),
+				Error:      sink.Error,
+				Backend:    sink.Backend,
+				Config:     omittedConfig,
+				ConfigData: omittedConfigData,
+				Format:     sink.Format,
+				TsCreated:  sink.Created,
 			}
 			if sink.Description != nil {
 				view.Description = *sink.Description
@@ -216,7 +282,8 @@ func viewSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 		if err != nil {
 			return sink, err
 		}
-
+		reqBackend := backend.GetBackend(sink.Backend)
+		omittedConfig, omittedConfigData := omitSecretInformation(reqBackend, sink.Format, sink.Config)
 		res := sinkRes{
 			ID:          sink.ID,
 			Name:        sink.Name.String(),
@@ -225,7 +292,9 @@ func viewSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			State:       sink.State.String(),
 			Error:       sink.Error,
 			Backend:     sink.Backend,
-			Config:      omitSecretInformation(sink.Config),
+			Config:      omittedConfig,
+			ConfigData:  omittedConfigData,
+			Format:      sink.Format,
 			TsCreated:   sink.Created,
 		}
 		if sink.Description != nil {

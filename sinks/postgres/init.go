@@ -64,6 +64,17 @@ func migrateDB(db *sqlx.DB) error {
 					"DROP TABLE sinks",
 				},
 			},
+			{
+				Id: "sinks_2",
+				Up: []string{
+					`ALTER TABLE sinks ADD COLUMN format TEXT ;`,
+					`ALTER TABLE sinks ADD COLUMN config_data TEXT ;`,
+				},
+				Down: []string{
+					`ALTER TABLE sinks DROP COLUMN format;`,
+					`ALTER TABLE sinks DROP COLUMN config_data;`,
+				},
+			},
 		},
 	}
 

@@ -11,6 +11,7 @@ type SinkData struct {
 	Url             string          `json:"remote_host"`
 	User            string          `json:"username"`
 	Password        string          `json:"password"`
+	Token           string          `json:"token"`
 	OpenTelemetry   string          `json:"opentelemetry"`
 	State           PrometheusState `json:"state,omitempty"`
 	Migrate         string          `json:"migrate,omitempty"`

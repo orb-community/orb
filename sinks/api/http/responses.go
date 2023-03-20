@@ -19,6 +19,8 @@ type sinkRes struct {
 	Error       string         `json:"error,omitempty"`
 	Backend     string         `json:"backend,omitempty"`
 	Config      types.Metadata `json:"config,omitempty"`
+	Format      string         `json:"format,omitempty"`
+	ConfigData  string         `json:"config_data,omitempty"`
 	TsCreated   time.Time      `json:"ts_created,omitempty"`
 	created     bool
 }

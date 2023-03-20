@@ -11,6 +11,7 @@ import (
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/sinks"
 	"github.com/orb-community/orb/sinks/backend"
+	"go.uber.org/zap"
 	"time"
 )
 
@@ -233,6 +234,10 @@ func (m metricsMiddleware) identify(token string) (string, error) {
 	}
 
 	return res.GetId(), nil
+}
+
+func (m metricsMiddleware) GetLogger() *zap.Logger {
+	return m.svc.GetLogger()
 }
 
 // MetricsMiddleware instruments core service by tracking request count and latency.
