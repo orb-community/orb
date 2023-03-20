@@ -18,6 +18,7 @@ import (
 	"github.com/orb-community/orb/agent/otel/pktvisorreceiver"
 	"github.com/orb-community/orb/fleet"
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/config/confighttp"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.uber.org/zap"
 )
@@ -177,6 +178,11 @@ func (p *pktvisorBackend) receiveOtlp() {
 				}
 				pFactory := otlpreceiver.NewFactory()
 				cfg := pFactory.CreateDefaultConfig()
+				cfg.(*otlpreceiver.Config).Protocols = otlpreceiver.Protocols{
+					HTTP: &confighttp.HTTPServerSettings{
+						Endpoint: p.otelReceiverHost + ":" + strconv.Itoa(p.otelReceiverPort),
+					},
+				}
 				set := pktvisorreceiver.CreateDefaultSettings(p.logger)
 				p.receiver[policyID], err = pFactory.CreateMetricsReceiver(exeCtx, set, cfg, p.exporter[policyID])
 				if err != nil {
@@ -207,21 +213,23 @@ func (p *pktvisorBackend) receiveOtlp() {
 				}
 			}
 		}
-		select {
-		case <-exeCtx.Done():
-			p.ctx.Done()
-			p.cancelFunc()
-		case <-p.ctx.Done():
-			err := p.exporter[policyID].Shutdown(exeCtx)
-			if err != nil {
+		for {
+			select {
+			case <-exeCtx.Done():
+				p.ctx.Done()
+				p.cancelFunc()
+			case <-p.ctx.Done():
+				err := p.exporter[policyID].Shutdown(exeCtx)
+				if err != nil {
+					return
+				}
+				err = p.receiver[policyID].Shutdown(exeCtx)
+				if err != nil {
+					return
+				}
+				p.logger.Info("stopped Orb OpenTelemetry agent collector")
 				return
 			}
-			err = p.receiver[policyID].Shutdown(exeCtx)
-			if err != nil {
-				return
-			}
-			p.logger.Info("stopped Orb OpenTelemetry agent collector")
-			return
 		}
 	}()
 }

@@ -455,7 +455,6 @@ func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig, sinkId, sinkUrl
 	s := strings.ReplaceAll(returnedString, "\"", "")
 	s = strings.ReplaceAll(s, "\n", `\n`)
 	return s, nil
-
 }
 
 type OtelConfigFile struct {
@@ -481,11 +480,12 @@ type Processors struct {
 }
 
 type Extensions struct {
-	HealthCheckExtConfig *HealthCheckExtension `json:"health_check,omitempty" yaml:"health_check,omitempty"`
-	PProf                *PProfExtension       `json:"pprof,omitempty" yaml:"pprof,omitempty"`
-	ZPages               *ZPagesExtension      `json:"zpages,omitempty" yaml:"zpages,omitempty"`
+	HealthCheckExtConfig *HealthCheckExtension `json:"health_check,omitempty" yaml:"health_check,omitempty" :"health_check_ext_config"`
+	PProf                *PProfExtension       `json:"pprof,omitempty" yaml:"pprof,omitempty" :"p_prof"`
+	ZPages               *ZPagesExtension      `json:"zpages,omitempty" yaml:"zpages,omitempty" :"z_pages"`
 	// Exporters Authentication
-	BasicAuth *BasicAuthenticationExtension `json:"basicauth/exporter,omitempty" yaml:"basicauth/exporter,omitempty"`
+	BasicAuth *BasicAuthenticationExtension `json:"basicauth/exporter,omitempty" yaml:"basicauth/exporter,omitempty" :"basic_auth"`
+	//BearerAuth *BearerAuthExtension          `json:"bearerauth/exporter,omitempty" yaml:"bearerauth/exporter,omitempty" :"bearer_auth"`
 }
 
 type HealthCheckExtension struct {
@@ -512,6 +512,12 @@ type BasicAuthenticationExtension struct {
 	ClientAuth *struct {
 		Username string `json:"username" yaml:"username"`
 		Password string `json:"password" yaml:"password"`
+	} `json:"client_auth" yaml:"client_auth"`
+}
+
+type BearerAuthExtension struct {
+	BearerAuth *struct {
+		Token string `json:"token" yaml:"token"`
 	} `json:"client_auth" yaml:"client_auth"`
 }
 

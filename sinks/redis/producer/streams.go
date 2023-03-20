@@ -115,6 +115,10 @@ func (es eventStore) ViewSink(ctx context.Context, token string, key string) (_ 
 	return es.svc.ViewSink(ctx, token, key)
 }
 
+func (es eventStore) GetLogger() *zap.Logger {
+	return es.logger
+}
+
 func (es eventStore) DeleteSink(ctx context.Context, token, id string) (err error) {
 	sink, err := es.svc.ViewSink(ctx, token, id)
 	if err != nil {

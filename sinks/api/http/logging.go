@@ -173,6 +173,10 @@ func (l loggingMiddleware) ValidateSink(ctx context.Context, token string, s sin
 	return l.svc.ValidateSink(ctx, token, s)
 }
 
+func (l loggingMiddleware) GetLogger() *zap.Logger {
+	return l.logger
+}
+
 func NewLoggingMiddleware(svc sinks.SinkService, logger *zap.Logger) sinks.SinkService {
 	return &loggingMiddleware{logger, svc}
 }

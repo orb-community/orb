@@ -8,8 +8,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"os/exec"
+	"strconv"
 	"strings"
 	"time"
 
@@ -79,9 +81,24 @@ type pktvisorBackend struct {
 	// OpenTelemetry management
 	scrapeOtel       bool
 	otelReceiverType string
+	otelReceiverHost string
+	otelReceiverPort int
 	receiver         map[string]component.MetricsReceiver
 	exporter         map[string]component.MetricsExporter
 	routineMap       map[string]context.CancelFunc
+}
+
+func (p *pktvisorBackend) getFreePort() (int, error) {
+	addr, err := net.ResolveTCPAddr("tcp", "localhost:0")
+	if err != nil {
+		return 0, err
+	}
+	l, err := net.ListenTCP("tcp", addr)
+	if err != nil {
+		return 0, err
+	}
+	defer l.Close()
+	return l.Addr().(*net.TCPAddr).Port, nil
 }
 
 func (p *pktvisorBackend) addScraperProcess(ctx context.Context, cancel context.CancelFunc, policyID string, policyName string) {
@@ -175,6 +192,15 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 
 	if p.scrapeOtel && p.otelReceiverType == Otlp {
 		pvOptions = append(pvOptions, "--otel")
+		pvOptions = append(pvOptions, "--otel-host", p.otelReceiverHost)
+		if p.otelReceiverPort == 0 {
+			p.otelReceiverPort, err = p.getFreePort()
+			if err != nil {
+				p.logger.Error("pktvisor otlp startup error", zap.Error(err))
+				return err
+			}
+		}
+		pvOptions = append(pvOptions, "--otel-port", strconv.Itoa(p.otelReceiverPort))
 	}
 
 	// the macros should be properly configured to enable crashpad
@@ -330,6 +356,11 @@ func (p *pktvisorBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo
 			if v.(string) == Otlp {
 				p.logger.Info("OTLP receiver enabled")
 			}
+
+		case "Host":
+			p.otelReceiverHost = v.(string)
+		case "Port":
+			p.otelReceiverPort = v.(int)
 		}
 	}
 

@@ -17,6 +17,8 @@ import (
 	"github.com/opentracing/opentracing-go/mocktracer"
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks"
+	"github.com/orb-community/orb/sinks/backend"
+	prometheusbackend "github.com/orb-community/orb/sinks/backend/prometheus"
 	skmocks "github.com/orb-community/orb/sinks/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -34,8 +36,8 @@ const (
 	token             = "token"
 	invalidToken      = "invalid"
 	email             = "user@example.com"
-	validJson         = "{\n    \"name\": \"my-prom-sink\",\n    \"backend\": \"prometheus\",\n    \"config\": {\n        \"remote_host\": \"https://orb.community/\",\n        \"username\": \"dbuser\"\n    },\n    \"description\": \"An example prometheus sink\",\n    \"tags\": {\n        \"cloud\": \"aws\"\n    },\n    \"validate_only\": false\n}"
-	conflictValidJson = "{\n    \"name\": \"conflict\",\n    \"backend\": \"prometheus\",\n    \"config\": {\n        \"remote_host\": \"https://orb.community/\",\n        \"username\": \"dbuser\"\n    },\n    \"description\": \"An example prometheus sink\",\n    \"tags\": {\n        \"cloud\": \"aws\"\n    },\n    \"validate_only\": false\n}"
+	validJson         = "{    \"name\": \"my-prom-sink\",    \"backend\": \"prometheus\",    \"config\": {        \"remote_host\": \"https://orb.community/\",        \"username\": \"dbuser\",        \"password\": \"dbpassword\"   },    \"description\": \"An example prometheus sink\",    \"tags\": {        \"cloud\": \"aws\"    },    \"validate_only\": false}"
+	conflictValidJson = "{\n    \"name\": \"conflict\",\n    \"backend\": \"prometheus\",\n    \"config\": {\n        \"remote_host\": \"https://orb.community/\",\n        \"username\": \"dbuser\"\n, \"password\": \"dbpass\"\n    },\n    \"description\": \"An example prometheus sink\",\n    \"tags\": {\n        \"cloud\": \"aws\"\n    },\n    \"validate_only\": false\n}"
 	invalidJson       = "{"
 )
 
@@ -46,7 +48,7 @@ var (
 		Name:        nameID,
 		Description: &description,
 		Backend:     "prometheus",
-		Config:      map[string]interface{}{"remote_host": "https://orb.community/", "username": "dbuser"},
+		Config:      map[string]interface{}{"remote_host": "https://orb.community/", "username": "dbuser", "password": "dbpass"},
 		Tags:        map[string]string{"cloud": "aws"},
 	}
 	invalidName        = strings.Repeat("m", maxNameSize+1)
@@ -81,16 +83,17 @@ func (tr testRequest) make() (*http.Response, error) {
 }
 
 func newService(tokens map[string]string) sinks.SinkService {
+	logger := zap.NewNop()
 	auth := skmocks.NewAuthService(tokens)
-	sinkRepo := skmocks.NewSinkRepository()
-	var logger *zap.Logger
+	pwdSvc := sinks.NewPasswordService(logger, "_testing_string_")
+	sinkRepo := skmocks.NewSinkRepository(pwdSvc)
 
 	config := mfsdk.Config{
 		ThingsURL: "localhost",
 	}
 
 	mfsdk := mfsdk.NewSDK(config)
-	pwdSvc := sinks.NewPasswordService(logger, "_testing_string_")
+
 	return sinks.NewSinkService(logger, auth, sinkRepo, mfsdk, pwdSvc)
 }
 
@@ -240,7 +243,7 @@ func TestCreateSinks(t *testing.T) {
 				body:        strings.NewReader(tc.req),
 			}
 			res, err := req.make()
-			assert.Nil(t, err, fmt.Sprintf("unexpected erro %s", err))
+			assert.Nil(t, err, fmt.Sprintf("unexpected error %s", err))
 			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
 		})
 	}
@@ -257,6 +260,7 @@ func TestUpdateSink(t *testing.T) {
 
 	dataInvalidName := toJSON(updateSinkReq{
 		Name:        invalidName,
+		Backend:     "prometheus",
 		Description: sk.Description,
 		Config:      sink.Config,
 		Tags:        sk.Tags,
@@ -264,6 +268,7 @@ func TestUpdateSink(t *testing.T) {
 
 	dataInvalidRgxName := toJSON(updateSinkReq{
 		Name:        "&*sink*&",
+		Backend:     "prometheus",
 		Description: sk.Description,
 		Config:      sink.Config,
 		Tags:        sk.Tags,
@@ -279,6 +284,7 @@ func TestUpdateSink(t *testing.T) {
 		"update existing sink": {
 			req: toJSON(updateSinkReq{
 				Name:        sk.Name.String(),
+				Backend:     "prometheus",
 				Description: sk.Description,
 				Config:      sink.Config,
 				Tags:        sk.Tags,
@@ -298,6 +304,7 @@ func TestUpdateSink(t *testing.T) {
 		"update sink with a invalid id": {
 			req: toJSON(updateSinkReq{
 				Name:        sk.Name.String(),
+				Backend:     "prometheus",
 				Description: sk.Description,
 				Config:      sink.Config,
 				Tags:        sk.Tags,
@@ -310,6 +317,7 @@ func TestUpdateSink(t *testing.T) {
 		"update non-existing sink": {
 			req: toJSON(updateSinkReq{
 				Name:        sk.Name.String(),
+				Backend:     "prometheus",
 				Description: sk.Description,
 				Config:      sink.Config,
 				Tags:        sk.Tags,
@@ -322,6 +330,7 @@ func TestUpdateSink(t *testing.T) {
 		"update sink with invalid user token": {
 			req: toJSON(updateSinkReq{
 				Name:        sk.Name.String(),
+				Backend:     "prometheus",
 				Description: sk.Description,
 				Config:      sink.Config,
 				Tags:        sk.Tags,
@@ -334,6 +343,7 @@ func TestUpdateSink(t *testing.T) {
 		"update sink with empty user token": {
 			req: toJSON(updateSinkReq{
 				Name:        sk.Name.String(),
+				Backend:     "prometheus",
 				Description: sk.Description,
 				Config:      sink.Config,
 				Tags:        sk.Tags,
@@ -346,6 +356,7 @@ func TestUpdateSink(t *testing.T) {
 		"update sink with invalid content type": {
 			req: toJSON(updateSinkReq{
 				Name:        sk.Name.String(),
+				Backend:     "prometheus",
 				Description: sk.Description,
 				Config:      sink.Config,
 				Tags:        sk.Tags,
@@ -358,6 +369,7 @@ func TestUpdateSink(t *testing.T) {
 		"update sink without content type": {
 			req: toJSON(updateSinkReq{
 				Name:        sk.Name.String(),
+				Backend:     "prometheus",
 				Description: sk.Description,
 				Config:      sink.Config,
 				Tags:        sk.Tags,
@@ -767,13 +779,15 @@ func TestViewSink(t *testing.T) {
 
 	sk, err := service.CreateSink(context.Background(), token, sink)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
-
+	sinkBE := backend.GetBackend("prometheus")
+	omitedConfig, _ := omitSecretInformation(sinkBE, sk.Format, sk.Config)
+	require.NoError(t, err, "error during omitting secrets")
 	data := toJSON(sinkRes{
 		ID:          sk.ID,
 		Name:        sk.Name.String(),
 		Description: *sk.Description,
 		Backend:     sk.Backend,
-		Config:      sk.Config,
+		Config:      omitedConfig,
 		Tags:        sk.Tags,
 		State:       sk.State.String(),
 		Error:       sk.Error,
@@ -997,19 +1011,22 @@ func TestValidateSink(t *testing.T) {
 }
 
 func TestOmitPasswords(t *testing.T) {
+	username := "387157"
 	cases := map[string]struct {
+		backend          backend.Backend
 		inputMetadata    types.Metadata
 		expectedMetadata types.Metadata
 	}{
 		"omit configuration with password": {
-			inputMetadata:    types.Metadata{"user": 387157, "password": "s3cr3tp@ssw0rd", "url": "someUrl"},
-			expectedMetadata: types.Metadata{"user": 387157, "password": "", "url": "someUrl"},
+			backend:          &prometheusbackend.Backend{},
+			inputMetadata:    types.Metadata{"username": &username, "password": "s3cr3tp@ssw0rd", "remote_host": "someUrl"},
+			expectedMetadata: types.Metadata{"username": &username, "password": "", "remote_host": "someUrl"},
 		},
 	}
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
-			metadata := omitSecretInformation(tc.inputMetadata)
+			metadata, _ := omitSecretInformation(tc.backend, "yaml", tc.inputMetadata)
 			assert.Equal(t, tc.expectedMetadata, metadata)
 		})
 	}
