@@ -29,11 +29,13 @@ import (
 //      insecure_skip_verify: true
 
 type parserHelper struct {
-	Endpoint string     `yaml:"endpoint"`
-	Tls      *tlsConfig `yaml:"tls,omitempty,flow"`
-	Auth     authConfig `yaml:"auth,flow"`
+	Endpoint string `yaml:"endpoint"`
+	//TODO will keep TLS until we confirm there is no need for those
+	//Tls      *tlsConfig `yaml:"tls,omitempty,flow"`
+	Auth authConfig `yaml:"auth,flow"`
 }
 
+// TODO will keep TLS until we confirm there is no need for those
 type tlsConfig struct {
 	Insecure           *bool   `yaml:"insecure,omitempty"`
 	CaFile             *string `yaml:"ca_file,omitempty"`
@@ -73,7 +75,6 @@ func (b Backend) ParseConfig(format string, config string) (retConfig types.Meta
 		retConfig = make(types.Metadata)
 		retConfig["endpoint"] = parsedConfig.Endpoint
 		authMap := make(types.Metadata)
-		tlsMap := make(types.Metadata)
 		if parsedConfig.Auth.Username != nil {
 			authMap["username"] = *parsedConfig.Auth.Username
 		}
@@ -81,30 +82,7 @@ func (b Backend) ParseConfig(format string, config string) (retConfig types.Meta
 			authMap["password"] = *parsedConfig.Auth.Password
 		}
 		retConfig["auth"] = authMap
-		if parsedConfig.Tls != nil {
-			if parsedConfig.Tls.Insecure != nil {
-				tlsMap["insecure"] = *parsedConfig.Tls.Insecure
-			}
-			if parsedConfig.Tls.InsecureSkipVerify != nil {
-				tlsMap["insecure_skip_verify"] = *parsedConfig.Tls.InsecureSkipVerify
-			}
-			if parsedConfig.Tls.CaFile != nil {
-				tlsMap["ca_file"] = *parsedConfig.Tls.CaFile
-			}
-			if parsedConfig.Tls.CertFile != nil {
-				tlsMap["cert_file"] = *parsedConfig.Tls.CertFile
-			}
-			if parsedConfig.Tls.KeyFile != nil {
-				tlsMap["key_file"] = *parsedConfig.Tls.KeyFile
-			}
-			if parsedConfig.Tls.MinVersion != nil {
-				tlsMap["min_version"] = *parsedConfig.Tls.MinVersion
-			}
-			if parsedConfig.Tls.MaxVersion != nil {
-				tlsMap["max_version"] = *parsedConfig.Tls.MaxVersion
-			}
-			retConfig["tls"] = tlsMap
-		}
+
 	} else {
 		return nil, errors.New("format not supported")
 	}
