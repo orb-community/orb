@@ -168,7 +168,7 @@ func main() {
 	sinksGRPCClient := sinksgrpc.NewClient(tracer, sinksGRPCConn, sinksGRPCTimeout, logger)
 
 	configRepo := cacheconfig.NewSinkerCache(cacheClient, logger)
-	configRepo = producer.NewEventStoreMiddleware(configRepo, esClient)
+	configRepo = producer.NewEventStoreMiddleware(configRepo, esClient, logger)
 	gauge := kitprometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
 		Namespace: "sinker",
 		Subsystem: "sink",
