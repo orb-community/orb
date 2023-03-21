@@ -5,6 +5,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/go-kit/kit/metrics"
 	fleetpb "github.com/orb-community/orb/fleet/pb"
 	policiespb "github.com/orb-community/orb/policies/pb"
 	"github.com/orb-community/orb/sinker/config"
@@ -16,25 +17,40 @@ type BridgeService interface {
 	GetDataSetsFromAgentGroups(ctx context.Context, mfOwnerId string, agentGroupIds []string) (map[string]string, error)
 	NotifyActiveSink(ctx context.Context, mfOwnerId, sinkId, state, message string) error
 	GetSinkIdsFromPolicyID(ctx context.Context, mfOwnerId string, policyID string) (map[string]string, error)
+	IncreamentMessageCounter(publisher, subtopic, channel, protocol string)
 }
 
 func NewBridgeService(logger *zap.Logger,
 	sinkerCache config.ConfigRepo,
 	policiesClient policiespb.PolicyServiceClient,
-	fleetClient fleetpb.FleetServiceClient) SinkerOtelBridgeService {
+	fleetClient fleetpb.FleetServiceClient, messageInputCounter metrics.Counter) SinkerOtelBridgeService {
 	return SinkerOtelBridgeService{
-		logger:         logger,
-		sinkerCache:    sinkerCache,
-		policiesClient: policiesClient,
-		fleetClient:    fleetClient,
+		logger:              logger,
+		sinkerCache:         sinkerCache,
+		policiesClient:      policiesClient,
+		fleetClient:         fleetClient,
+		messageInputCounter: messageInputCounter,
 	}
 }
 
 type SinkerOtelBridgeService struct {
-	logger         *zap.Logger
-	sinkerCache    config.ConfigRepo
-	policiesClient policiespb.PolicyServiceClient
-	fleetClient    fleetpb.FleetServiceClient
+	logger              *zap.Logger
+	sinkerCache         config.ConfigRepo
+	policiesClient      policiespb.PolicyServiceClient
+	fleetClient         fleetpb.FleetServiceClient
+	messageInputCounter metrics.Counter
+}
+
+// Implementar nova funcao
+func (bs *SinkerOtelBridgeService) IncreamentMessageCounter(publisher, subtopic, channel, protocol string) {
+	labels := []string{
+		"method", "handleMsgFromAgent",
+		"agent_id", publisher,
+		"subtopic", subtopic,
+		"channel", channel,
+		"protocol", protocol,
+	}
+	bs.messageInputCounter.With(labels...).Add(1)
 }
 
 func (bs *SinkerOtelBridgeService) NotifyActiveSink(ctx context.Context, mfOwnerId, sinkId, newState, message string) error {
