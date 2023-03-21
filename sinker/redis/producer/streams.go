@@ -142,9 +142,10 @@ func (e eventStore) GetAllOwners() ([]string, error) {
 	return e.sinkCache.GetAllOwners()
 }
 
-func NewEventStoreMiddleware(repo config.ConfigRepo, client *redis.Client) config.ConfigRepo {
+func NewEventStoreMiddleware(repo config.ConfigRepo, client *redis.Client, logger *zap.Logger) config.ConfigRepo {
 	return eventStore{
 		sinkCache: repo,
 		client:    client,
+		logger:    logger,
 	}
 }
