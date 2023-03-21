@@ -21,9 +21,10 @@ var _ sinks.SinkRepository = (*sinkRepositoryMock)(nil)
 
 // Mock Repository
 type sinkRepositoryMock struct {
-	mu        sync.Mutex
-	counter   uint64
-	sinksMock map[string]sinks.Sink
+	mu              sync.Mutex
+	counter         uint64
+	sinksMock       map[string]sinks.Sink
+	passwordService sinks.PasswordService
 }
 
 func (s *sinkRepositoryMock) SearchAllSinks(ctx context.Context, filter sinks.Filter) ([]sinks.Sink, error) {
@@ -49,9 +50,10 @@ func (s *sinkRepositoryMock) RetrieveByOwnerAndId(ctx context.Context, ownerID s
 	return sinks.Sink{}, sinks.ErrNotFound
 }
 
-func NewSinkRepository() sinks.SinkRepository {
+func NewSinkRepository(service sinks.PasswordService) sinks.SinkRepository {
 	return &sinkRepositoryMock{
-		sinksMock: make(map[string]sinks.Sink),
+		sinksMock:       make(map[string]sinks.Sink),
+		passwordService: service,
 	}
 }
 
@@ -69,7 +71,6 @@ func (s *sinkRepositoryMock) Save(ctx context.Context, sink sinks.Sink) (string,
 	ID, _ := uuid.NewV4()
 	sink.ID = ID.String()
 	s.sinksMock[sink.ID] = sink
-
 	return sink.ID, nil
 }
 

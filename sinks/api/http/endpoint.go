@@ -134,9 +134,6 @@ func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 		} else {
 			if req.Config != nil {
 				config = req.Config
-			} else {
-				svc.GetLogger().Error("did not receive any valid configuration")
-				return nil, errors.Wrap(errors.ErrMalformedEntity, errors.New("configuration is invalid"))
 			}
 		}
 		sink := sinks.Sink{
@@ -203,7 +200,6 @@ func listSinksEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			},
 			Sinks: []sinkRes{},
 		}
-		svc.GetLogger().Info("got sinks", zap.Int("length", len(page.Sinks)))
 		for _, sink := range page.Sinks {
 			reqBackend := backend.GetBackend(sink.Backend)
 			omittedConfig, omittedConfigData := omitSecretInformation(reqBackend, sink.Format, sink.Config)

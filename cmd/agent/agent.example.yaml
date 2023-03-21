@@ -4,7 +4,7 @@ version: "1.0"
 # see https://github.com/orb-community/pktvisor/blob/develop/RFCs/2021-04-16-75-taps.md
 visor:
   taps:
-    mydefault:
+    default_pcap:
       input_type: pcap
       config:
         iface: "auto"

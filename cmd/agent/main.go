@@ -7,6 +7,11 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
+	"os/signal"
+	"strings"
+	"syscall"
+
 	"github.com/orb-community/orb/agent"
 	"github.com/orb-community/orb/agent/backend/pktvisor"
 	"github.com/orb-community/orb/agent/config"
@@ -15,10 +20,6 @@ import (
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"os"
-	"os/signal"
-	"strings"
-	"syscall"
 )
 
 const (
@@ -147,6 +148,8 @@ func mergeOrError(path string) {
 	v.SetDefault("orb.tls.verify", true)
 	v.SetDefault("orb.otel.enable", false)
 	v.SetDefault("orb.otel.receiver_type", "prometheus")
+	v.SetDefault("orb.otel.host", "localhost")
+	v.SetDefault("orb.otel.port", 0)
 	v.SetDefault("orb.debug.enable", false)
 
 	v.SetDefault("orb.backends.pktvisor.binary", "/usr/local/sbin/pktvisord")

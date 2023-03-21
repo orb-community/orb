@@ -315,7 +315,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/SinksObjV2Schema"
+            $ref: "#/components/schemas/SinksObjSchemaV2"
     SinksPageRes:
       description: Data retrieved.
       content:
@@ -419,7 +419,7 @@ components:
             - yaml
             - json
           description: Format that the config will be passed on
-        config:
+        config_data:
           type: string
           description: Configuration as String aligned with given format
     SinkPageSchema:
