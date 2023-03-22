@@ -38,6 +38,7 @@ func (e eventStore) DeployCollector(ctx context.Context, config config.SinkConfi
 	}
 	recordToSink := &redis.XAddArgs{
 		Stream: streamID,
+		MaxLen: 1000,
 		Values: eventToSink.Encode(),
 		MaxLen: streamLen,
 		Approx: true,
@@ -69,6 +70,7 @@ func (e eventStore) Add(config config.SinkConfig) error {
 	}
 	record := &redis.XAddArgs{
 		Stream: streamID,
+		MaxLen: 1000,
 		Values: event.Encode(),
 		MaxLen: streamLen,
 		Approx: true,
@@ -94,6 +96,7 @@ func (e eventStore) Remove(ownerID string, sinkID string) error {
 	}
 	record := &redis.XAddArgs{
 		Stream: streamID,
+		MaxLen: 1000,
 		Values: event.Encode(),
 		MaxLen: streamLen,
 		Approx: true,
@@ -124,6 +127,7 @@ func (e eventStore) Edit(config config.SinkConfig) error {
 	}
 	record := &redis.XAddArgs{
 		Stream: streamID,
+		MaxLen: 1000,
 		Values: event.Encode(),
 		MaxLen: streamLen,
 		Approx: true,
