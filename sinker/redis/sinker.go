@@ -133,7 +133,6 @@ func (s *sinkerCache) DeployCollector(ctx context.Context, config sinkerconfig.S
 	encodeEvent := redis.XAddArgs{
 		ID:     config.SinkID,
 		Stream: idPrefix,
-		MaxLen: 1000,
 		Values: event,
 		MaxLen: streamLen,
 		Approx: true,
