@@ -194,7 +194,6 @@ func (es eventStore) PublishSinkStateChange(sink *sinkspb.SinkRes, status string
 
 	record := &redis2.XAddArgs{
 		Stream: streamID,
-		MaxLen: 1000,
 		Values: event.Encode(),
 		MaxLen: streamLen,
 		Approx: true,
