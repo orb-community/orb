@@ -21,6 +21,7 @@ const (
 	keyPrefix      = "sinker_key"
 	activityPrefix = "sinker_activity"
 	idPrefix       = "orb.maestro"
+	streamLen      = 1000
 )
 
 var _ sinkerconfig.ConfigRepo = (*sinkerCache)(nil)
@@ -134,6 +135,8 @@ func (s *sinkerCache) DeployCollector(ctx context.Context, config sinkerconfig.S
 		Stream: idPrefix,
 		MaxLen: 1000,
 		Values: event,
+		MaxLen: streamLen,
+		Approx: true,
 	}
 	if cmd := s.client.XAdd(ctx, &encodeEvent); cmd.Err() != nil {
 		return cmd.Err()
