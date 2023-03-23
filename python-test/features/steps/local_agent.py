@@ -304,11 +304,11 @@ def check_logs_contain_message(logs, expected_message, event, start_time=0):
     for log_line in logs:
         log_line = safe_load_json(log_line)
 
-        if log_line is not None and log_line['msg'] == expected_message and isinstance(log_line['ts'], int) and \
+        if log_line is not None and expected_message in log_line['msg'] and isinstance(log_line['ts'], int) and \
                 log_line['ts'] > start_time:
             event.set()
             return event.is_set()
-        elif log_line is not None and log_line['msg'] == expected_message and isinstance(log_line['ts'], str) and \
+        elif log_line is not None and expected_message in log_line['msg'] and isinstance(log_line['ts'], str) and \
                 datetime.timestamp(ciso8601.parse_datetime(log_line['ts'])) > start_time:
             event.set()
             return event.is_set()

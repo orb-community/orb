@@ -888,6 +888,8 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
         tags = {"tags": create_tags_set(agent_tags)}
     include_otel_env_var = configs.get('include_otel_env_var')
     enable_otel = configs.get('enable_otel')
+    include_receiver_env_var = configs.get("include_receiver_env_var")
+    receiver_type = configs.get("receiver_type")
     mqtt_url = configs.get('mqtt_url')
     if configs.get('verify_ssl') == 'false':
         agent_config_file, tap = FleetAgent.config_file_of_orb_agent(agent_name, token, iface, orb_url, mqtt_url,
@@ -900,6 +902,8 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
                                                                      settings=settings,
                                                                      include_otel_env_var=include_otel_env_var,
                                                                      enable_otel=enable_otel,
+                                                                     include_receiver_env_var=include_receiver_env_var,
+                                                                     receiver_type=receiver_type,
                                                                      overwrite_default=overwrite_default)
     else:
         agent_config_file, tap = FleetAgent.config_file_of_orb_agent(agent_name, token, iface, orb_url, mqtt_url,
@@ -912,6 +916,8 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
                                                                      settings=settings,
                                                                      include_otel_env_var=include_otel_env_var,
                                                                      enable_otel=enable_otel,
+                                                                     include_receiver_env_var=include_receiver_env_var,
+                                                                     receiver_type=receiver_type,
                                                                      overwrite_default=overwrite_default)
     agent_config_file = yaml.load(agent_config_file, Loader=SafeLoader)
     if pktvisor_config_file is None or pktvisor_config_file == "None":

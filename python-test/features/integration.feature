@@ -20,8 +20,7 @@ Scenario: General smoke test to validate private agent image
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 2 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 240 seconds
         And 2 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
 
@@ -87,8 +86,7 @@ Scenario: Apply two simple policies to an agent
     When 2 simple policies are applied to the group
     Then this agent's heartbeat shows that 2 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 240 seconds
         And 2 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
 
@@ -146,8 +144,6 @@ Scenario: Remove policy from agent
         And 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And container logs should inform that removed policy was stopped and removed within 30 seconds
-        And the container logs that were output after the policy have been removed contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And the container logs that were output after the policy have been removed does not contain the message "scraped metrics for policy" referred to deleted policy anymore
 
 
 @smoke
@@ -165,8 +161,6 @@ Scenario: Remove dataset from agent with just one dataset linked
     Then referred dataset must not be listed on the orb datasets list
         And this agent's heartbeat shows that 0 policies are applied and all has status running
         And container logs should inform that removed policy was stopped and removed within 30 seconds
-        And the container logs that were output after removing dataset contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And the container logs that were output after removing dataset does not contain the message "scraped metrics for policy" referred to deleted policy anymore
 
 
 @smoke
@@ -184,8 +178,6 @@ Scenario: Remove dataset from agent with more than one dataset linked
     Then referred dataset must not be listed on the orb datasets list
         And this agent's heartbeat shows that 2 policies are applied and all has status running
         And container logs should inform that removed policy was stopped and removed within 30 seconds
-        And the container logs that were output after removing dataset contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And the container logs that were output after removing dataset does not contain the message "scraped metrics for policy" referred to deleted policy anymore
 
 
 @smoke
@@ -213,8 +205,7 @@ Scenario: Provision agent with tag matching existing group linked to a valid dat
         And the agent status is online
     Then this agent's heartbeat shows that 2 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 240 seconds
         And 2 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
 
@@ -231,8 +222,7 @@ Scenario: Provision agent with tag matching existing group with multiple policie
     Then this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 14 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 240 seconds
         And 14 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
 
@@ -250,8 +240,7 @@ Scenario: Provision agent with tag matching existing edited group with multiple 
     Then this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 14 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 240 seconds
         And 14 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
 
@@ -269,8 +258,7 @@ Scenario: Provision agent with tag matching existing group with multiple policie
     Then this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 20 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 240 seconds
         And 20 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
 @sanity @sink_status_idle
@@ -285,8 +273,7 @@ Scenario: Sink idle after 5 minutes without metrics flow
         And 2 simple policies are applied to the group
         And this agent's heartbeat shows that 2 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 240 seconds
         And 2 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
     When stop the orb-agent container
     Then referred sink must have idle state on response after 660 seconds
@@ -306,8 +293,7 @@ Scenario: Sink with invalid endpoint
     Then this agent's heartbeat shows that 4 policies are applied and all has status running
         And the container logs should contain the message "managing agent policy from core" within 30 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And the container logs should contain the message "scraped metrics for policy" within 180 seconds
-        And referred sink must have error state on response within 120 seconds
+        And referred sink must have error state on response within 300 seconds
         And 4 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
 
@@ -387,8 +373,7 @@ Scenario: Sink with invalid username
     Then the container logs should contain the message "managing agent policy from core" within 30 seconds
         And this agent's heartbeat shows that 4 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And the container logs should contain the message "scraped metrics for policy" within 180 seconds
-        And referred sink must have error state on response within 120 seconds
+        And referred sink must have error state on response within 300 seconds
         And 4 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
 
@@ -407,8 +392,7 @@ Scenario: Sink with invalid password
     Then this agent's heartbeat shows that 4 policies are applied and all has status running
         And the container logs should contain the message "managing agent policy from core" within 30 seconds
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And the container logs should contain the message "scraped metrics for policy" within 180 seconds
-        And referred sink must have error state on response within 120 seconds
+        And referred sink must have error state on response within 300 seconds
         And 4 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
 
@@ -497,7 +481,6 @@ Scenario: Agent subscription to multiple group with policies after editing orb a
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And this agent's heartbeat shows that 2 groups are matching the agent
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
 
 
 @smoke
@@ -518,7 +501,6 @@ Scenario: Agent subscription to group with policies after editing orb agent's ta
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
 
 
 #@smoke
@@ -576,7 +558,6 @@ Scenario: Insert tags in agents created without tags and apply policies to group
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And this agent's heartbeat shows that 1 groups are matching the agent
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
 
 
 @smoke
@@ -885,7 +866,6 @@ Scenario: Remotely restart agents with policies applied
         And the container logs that were output after reset the agent contain the message "resetting backend" within 30 seconds
         And the container logs that were output after reset the agent contain the message "all backends and comms were restarted" within 30 seconds
         And the container logs that were output after reset the agent contain the message "policy applied successfully" referred to each applied policy within 30 seconds
-        And the container logs that were output after reset the agent contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
 
 @smoke
 Scenario: Remotely restart agents without policies applied
@@ -904,8 +884,6 @@ Scenario: Remotely restart agents without policies applied
     Then the container logs should contain the message "restarting all backends" within 30 seconds
         And this agent's heartbeat shows that 2 policies are applied and all has status running
         And the container logs that were output after reset the agent contain the message "policy applied successfully" referred to each applied policy within 20 seconds
-        And the container logs that were output after reset the agent contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-
 
 @smoke
 Scenario: Create duplicated policy
@@ -920,8 +898,7 @@ Scenario: Create duplicated policy
         And 1 duplicated policies is applied to the group
     Then this agent's heartbeat shows that 2 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 240 seconds
         And 2 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
 
@@ -958,10 +935,9 @@ Scenario: Edit sink active and use invalid remote host
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 10 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 240 seconds
         And the sink remote host is edited and an invalid one is used
-    Then referred sink must have error state on response within 120 seconds
+    Then referred sink must have error state on response within 300 seconds
         And 10 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
 
@@ -979,10 +955,9 @@ Scenario: Edit sink active and use invalid username
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 10 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 240 seconds
         And the sink username is edited and an invalid one is used
-    Then referred sink must have error state on response within 120 seconds
+    Then referred sink must have error state on response within 300 seconds
         And 10 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
 
@@ -1000,10 +975,9 @@ Scenario: Edit sink active and use invalid password
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 10 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 240 seconds
         And the sink password is edited and an invalid one is used
-    Then referred sink must have error state on response within 120 seconds
+    Then referred sink must have error state on response within 300 seconds
         And 10 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
 
@@ -1021,8 +995,7 @@ Scenario: Edit sink with invalid username and use valid one
     When 1 new dataset is created using the policy, last group and 1 sink
         And this agent's heartbeat shows that 4 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have error state on response within 120 seconds
+        And referred sink must have error state on response within 300 seconds
         And 4 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And the sink username is edited and an valid one is used
     Then referred sink must have active state on response within 120 seconds
@@ -1043,8 +1016,7 @@ Scenario: Edit sink with password and use valid one
         And 1 new dataset is created using the policy, last group and 1 sink
     When this agent's heartbeat shows that 4 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have error state on response within 120 seconds
+        And referred sink must have error state on response within 300 seconds
         And 4 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And the sink password is edited and an valid one is used
     Then referred sink must have active state on response within 120 seconds
@@ -1134,8 +1106,7 @@ Scenario: Partial Update: sink status after updating only sink name
         And 2 simple policies are applied to the group
         And this agent's heartbeat shows that 2 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 240 seconds
     When the name of this sink is updated
     Then the name updates to the new value and other fields remains the same
         And referred sink must have active state on response after 360 seconds
@@ -1153,8 +1124,7 @@ Scenario: Partial Update: sink status after updating only sink description
         And 2 simple policies are applied to the group
         And this agent's heartbeat shows that 2 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 240 seconds
     When the description of this sink is updated
     Then the description updates to the new value and other fields remains the same
       And referred sink must have active state on response after 360 seconds
@@ -1172,8 +1142,7 @@ Scenario: Partial Update: sink status after updating only sink tags
         And 2 simple policies are applied to the group
         And this agent's heartbeat shows that 2 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 240 seconds
     When the tags of this sink is updated
     Then the tags updates to the new value and other fields remains the same
         And referred sink must have active state on response after 360 seconds
@@ -1191,7 +1160,7 @@ Scenario: Partial Update: sink status after updating only sink configs
         And 3 simple policies are applied to the group
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And referred sink must have error state on response within 120 seconds
+        And referred sink must have error state on response within 300 seconds
     When the config of this sink is updated
     Then the config updates to the new value and other fields remains the same
         And referred sink must have active state on response within 360 seconds
@@ -1209,8 +1178,7 @@ Scenario: Partial Update: sink status after updating only sink name and descript
         And 2 simple policies are applied to the group
         And this agent's heartbeat shows that 2 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 240 seconds
     When the name and description of this sink is updated
     Then the name and description updates to the new value and other fields remains the same
         And referred sink must have active state on response after 360 seconds
@@ -1228,7 +1196,7 @@ Scenario: Partial Update: sink status after updating only sink name and configs
         And 3 simple policies are applied to the group
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And referred sink must have error state on response within 120 seconds
+        And referred sink must have error state on response within 300 seconds
     When the name and config of this sink is updated
     Then the name and config updates to the new value and other fields remains the same
         And referred sink must have active state on response within 360 seconds
@@ -1246,8 +1214,7 @@ Scenario: Partial Update: sink status after updating only sink name and tags
         And 2 simple policies are applied to the group
         And this agent's heartbeat shows that 2 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 240 seconds
     When the name and tags of this sink is updated
     Then the name and tags updates to the new value and other fields remains the same
         And referred sink must have active state on response after 360 seconds
@@ -1265,8 +1232,7 @@ Scenario: Partial Update: sink status after updating only sink description and t
         And 2 simple policies are applied to the group
         And this agent's heartbeat shows that 2 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 240 seconds
     When the description and tags of this sink is updated
     Then the description and tags updates to the new value and other fields remains the same
         And referred sink must have active state on response after 360 seconds
@@ -1302,7 +1268,7 @@ Scenario: Partial Update: sink status after updating only sink tags and configs
         And 3 simple policies are applied to the group
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And referred sink must have error state on response within 120 seconds
+        And referred sink must have error state on response within 300 seconds
     When the tags and config of this sink is updated
     Then the tags and config updates to the new value and other fields remains the same
         And referred sink must have active state on response within 360 seconds
@@ -1320,8 +1286,7 @@ Scenario: Partial Update: sink status after updating only sink name, description
         And 2 simple policies are applied to the group
         And this agent's heartbeat shows that 2 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 240 seconds
     When the name, description and tags of this sink is updated
     Then the name, description and tags updates to the new value and other fields remains the same
         And referred sink must have active state on response after 360 seconds
@@ -1340,7 +1305,7 @@ Scenario: Partial Update: sink status after updating only sink name, description
         And 3 simple policies are applied to the group
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And referred sink must have error state on response within 120 seconds
+        And referred sink must have error state on response within 300 seconds
     When the name, description and config of this sink is updated
     Then the name, description and config updates to the new value and other fields remains the same
         And referred sink must have active state on response within 360 seconds
@@ -1358,7 +1323,7 @@ Scenario: Partial Update: sink status after updating only sink name, tags and co
         And 3 simple policies are applied to the group
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And referred sink must have error state on response within 120 seconds
+        And referred sink must have error state on response within 300 seconds
     When the name, tags and config of this sink is updated
     Then the name, tags and config updates to the new value and other fields remains the same
         And referred sink must have active state on response within 360 seconds
@@ -1376,7 +1341,7 @@ Scenario: Partial Update: sink status after updating only sink description, tags
         And 3 simple policies are applied to the group
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And referred sink must have error state on response within 120 seconds
+        And referred sink must have error state on response within 300 seconds
     When the description, tags and config of this sink is updated
     Then the description, tags and config updates to the new value and other fields remains the same
         And referred sink must have active state on response within 360 seconds

@@ -60,7 +60,7 @@ def expected_metrics_by_handlers_and_groups(handler, groups_enabled, groups_disa
 
     default_enabled_metric_groups = default_enabled_metric_groups_by_handler(handler)
     groups_enabled = groups_enabled.split(", ")
-    groups_enabled = groups_enabled + default_enabled_metric_groups
+    groups_enabled = list(set(groups_enabled + default_enabled_metric_groups))
     groups_disabled = groups_disabled.split(", ")
     if all(metric_group in groups_disabled for metric_group in groups_enabled) or "all" in groups_disabled:
         if len(default_enabled_metric_groups) > 0:
@@ -526,5 +526,4 @@ def expected_metrics_by_handlers_and_groups(handler, groups_enabled, groups_disa
                 metric_groups.add("netprobe_response_min_us")
     else:
         raise f"{handler} is not a valid handler"
-
     return metric_groups

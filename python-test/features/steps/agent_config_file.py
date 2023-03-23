@@ -31,10 +31,11 @@ class FleetAgent:
 
         if isinstance(include_receiver_env_var, str):
             assert_that(include_receiver_env_var.lower(), any_of("true", "false"), "Unexpected value for "
-                                                                      "'include_receiver_env_var'.")
+                                                                                   "'include_receiver_env_var'.")
             include_receiver_env_var = eval(include_receiver_env_var.title())
         else:
-            assert_that(include_receiver_env_var, any_of(False, True), "Unexpected value for 'include_receiver_env_var'")
+            assert_that(include_receiver_env_var, any_of(False, True),
+                        "Unexpected value for 'include_receiver_env_var'")
         if include_receiver_env_var is True:
             assert_that(receiver_type, any_of("prometheus", "otlp"), "Unexpected value for 'receiver_type'")
 
@@ -98,7 +99,7 @@ class FleetAgent:
             if include_otel_env_var is True:
                 agent['orb']['otel'] = {"enable": enable_otel}
             if include_receiver_env_var is True:
-                agent['orb']['otel'] = {"receiver_type": receiver_type}
+                agent['orb']['otel']["receiver_type"] = receiver_type
         else:
             assert_that(orb_cloud_mqtt_id, not_(is_(None)), "orb_cloud_mqtt_id must have a valid value")
             assert_that(orb_cloud_mqtt_channel_id, not_(is_(None)), "orb_cloud_mqtt_channel_id must have a valid value")
@@ -138,6 +139,6 @@ class FleetAgent:
             if include_otel_env_var is True:
                 agent['orb']['otel'] = {"enable": enable_otel}
             if include_receiver_env_var is True:
-                agent['orb']['otel'] = {"receiver_type": receiver_type}
+                agent['orb']['otel']["receiver_type"] = receiver_type
         agent = yaml.dump(agent)
         return agent, tap.taps
