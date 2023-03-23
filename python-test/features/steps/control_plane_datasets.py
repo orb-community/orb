@@ -183,7 +183,7 @@ def create_dataset(token, name_label, policy_id, agent_group_id, sink_id, expect
     try:
         response_json = response.json()
     except ValueError:
-        response_json = ValueError
+        response_json = response.text
     assert_that(response.status_code, equal_to(expected_status_code),
                 'Request to create dataset failed with status=' + str(response.status_code) + ': ' +
                 str(response_json))
@@ -210,10 +210,14 @@ def edit_dataset(token, dataset_id, name_label, policy_id, agent_group_id, sink_
 
     response = requests.put(f"{orb_url}/api/v1/policies/dataset/{dataset_id}", json=json_request,
                             headers=header_request, verify=verify_ssl_bool)
+    try:
+        response_json = response.json()
+    except ValueError:
+        response_json = response.text
     assert_that(response.status_code, equal_to(expected_status_code),
-                'Request to edit dataset failed with status=' + str(response.status_code) + ': ' + str(response.json()))
+                'Request to edit dataset failed with status=' + str(response.status_code) + ': ' + str(response_json))
 
-    return response.json()
+    return response_json
 
 
 @then('cleanup datasets')
@@ -262,9 +266,13 @@ def list_up_to_limit_datasets(token, limit=100, offset=0):
 
     response = requests.get(orb_url + '/api/v1/policies/dataset', headers={'Authorization': f'Bearer {token}'},
                             params={"limit": limit, "offset": offset}, verify=verify_ssl_bool)
+    try:
+        response_json = response.json()
+    except ValueError:
+        response_json = response.text
 
     assert_that(response.status_code, equal_to(200),
-                'Request to list datasets failed with status=' + str(response.status_code) + ':' + str(response.json()))
+                'Request to list datasets failed with status=' + str(response.status_code) + ':' + str(response_json))
 
     datasets_as_json = response.json()
     return datasets_as_json['datasets'], datasets_as_json['total'], datasets_as_json['offset']
@@ -313,7 +321,7 @@ def get_dataset(token, dataset_id, expected_status_code=200):
     try:
         response_json = get_dataset_response.json()
     except ValueError:
-        response_json = ValueError
+        response_json = get_dataset_response.text
 
     assert_that(get_dataset_response.status_code, equal_to(expected_status_code),
                 'Request to get policy id=' + dataset_id + ' failed with status=' +

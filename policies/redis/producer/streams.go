@@ -62,9 +62,10 @@ func (e eventStore) RemoveDataset(ctx context.Context, token string, dsID string
 		datasetID:    ds.ID,
 	}
 	record := &redis.XAddArgs{
-		Stream:       streamID,
-		MaxLenApprox: streamLen,
-		Values:       event.Encode(),
+		Stream: streamID,
+		MaxLen: streamLen,
+		Approx: true,
+		Values: event.Encode(),
 	}
 
 	err = e.client.XAdd(ctx, record).Err()
@@ -107,9 +108,10 @@ func (e eventStore) EditDataset(ctx context.Context, token string, ds policies.D
 	}
 
 	record := &redis.XAddArgs{
-		Stream:       streamID,
-		MaxLenApprox: streamLen,
-		Values:       event.Encode(),
+		Stream: streamID,
+		MaxLen: streamLen,
+		Approx: true,
+		Values: event.Encode(),
 	}
 	err = e.client.XAdd(ctx, record).Err()
 	if err != nil {
@@ -158,9 +160,10 @@ func (e eventStore) RemovePolicy(ctx context.Context, token string, policyID str
 		groupIDs: strings.Join(groupsIDs, ","),
 	}
 	record := &redis.XAddArgs{
-		Stream:       streamID,
-		MaxLenApprox: streamLen,
-		Values:       event.Encode(),
+		Stream: streamID,
+		MaxLen: streamLen,
+		Approx: true,
+		Values: event.Encode(),
 	}
 	err = e.client.XAdd(ctx, record).Err()
 	if err != nil {
@@ -202,9 +205,10 @@ func (e eventStore) EditPolicy(ctx context.Context, token string, pol policies.P
 		groupIDs: strings.Join(groupsIDs, ","),
 	}
 	record := &redis.XAddArgs{
-		Stream:       streamID,
-		MaxLenApprox: streamLen,
-		Values:       event.Encode(),
+		Stream: streamID,
+		MaxLen: streamLen,
+		Approx: true,
+		Values: event.Encode(),
 	}
 	err = e.client.XAdd(ctx, record).Err()
 	if err != nil {
@@ -250,9 +254,10 @@ func (e eventStore) AddDataset(ctx context.Context, token string, d policies.Dat
 		sinkIDs:      strings.Join(*ds.SinkIDs, ","),
 	}
 	record := &redis.XAddArgs{
-		Stream:       streamID,
-		MaxLenApprox: streamLen,
-		Values:       event.Encode(),
+		Stream: streamID,
+		MaxLen: streamLen,
+		Approx: true,
+		Values: event.Encode(),
 	}
 	err = e.client.XAdd(ctx, record).Err()
 	if err != nil {
@@ -296,9 +301,10 @@ func (e eventStore) InactivateDatasetByIDInternal(ctx context.Context, ownerID s
 		turnedInvalid: true,
 	}
 	record := &redis.XAddArgs{
-		Stream:       streamID,
-		MaxLenApprox: streamLen,
-		Values:       event.Encode(),
+		Stream: streamID,
+		MaxLen: streamLen,
+		Approx: true,
+		Values: event.Encode(),
 	}
 
 	err = e.client.XAdd(ctx, record).Err()

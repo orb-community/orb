@@ -80,8 +80,8 @@ func (s sinksRepository) SearchAllSinks(ctx context.Context, filter sinks.Filter
 }
 
 func (s sinksRepository) Save(ctx context.Context, sink sinks.Sink) (string, error) {
-	q := `INSERT INTO sinks (name, mf_owner_id, metadata, description, backend, tags, state, error)         
-			  VALUES (:name, :mf_owner_id, :metadata, :description, :backend, :tags, :state, :error) RETURNING id`
+	q := `INSERT INTO sinks (name, mf_owner_id, metadata, config_data, format, description, backend, tags, state, error)         
+			  VALUES (:name, :mf_owner_id, :metadata, :config_data, :format, :description, :backend, :tags, :state, :error) RETURNING id`
 
 	if !sink.Name.IsValid() || sink.MFOwnerID == "" {
 		return "", errors.ErrMalformedEntity
@@ -117,7 +117,15 @@ func (s sinksRepository) Save(ctx context.Context, sink sinks.Sink) (string, err
 }
 
 func (s sinksRepository) Update(ctx context.Context, sink sinks.Sink) error {
-	q := `UPDATE sinks SET description = :description, tags = :tags, metadata = :metadata, name = :name WHERE mf_owner_id = :mf_owner_id AND id = :id;`
+	q := `UPDATE sinks 
+			SET description = :description, 
+			    tags = :tags, 
+			    metadata = :metadata,  
+			    config_data = :config_data, 
+			    format = :format, 
+			    name = :name 
+			WHERE mf_owner_id = :mf_owner_id 
+			  AND id = :id;`
 
 	sinkDB, err := toDBSink(sink)
 	if err != nil {
@@ -163,7 +171,10 @@ func (s sinksRepository) RetrieveAllByOwnerID(ctx context.Context, owner string,
 	}
 
 	q := fmt.Sprintf(`SELECT id, name, mf_owner_id, description, tags, state, coalesce(error, '') as error, backend, metadata, ts_created
-								FROM sinks WHERE mf_owner_id = :mf_owner_id %s%s%s ORDER BY %s %s LIMIT :limit OFFSET :offset;`, tagsQuery, metadataQuery, nameQuery, orderQuery, dirQuery)
+								FROM sinks 
+								WHERE mf_owner_id = :mf_owner_id %s%s%s 
+								ORDER BY %s %s LIMIT :limit OFFSET :offset;`,
+		tagsQuery, metadataQuery, nameQuery, orderQuery, dirQuery)
 	params := map[string]interface{}{
 		"mf_owner_id": owner,
 		"limit":       pm.Limit,
@@ -180,12 +191,12 @@ func (s sinksRepository) RetrieveAllByOwnerID(ctx context.Context, owner string,
 
 	var items []sinks.Sink
 	for rows.Next() {
-		dbSink := dbSink{MFOwnerID: owner}
-		if err := rows.StructScan(&dbSink); err != nil {
+		d := dbSink{MFOwnerID: owner}
+		if err := rows.StructScan(&d); err != nil {
 			return sinks.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
 		}
 
-		sink, err := toSink(dbSink)
+		sink, err := toSink(d)
 		if err != nil {
 			return sinks.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
 		}
@@ -216,7 +227,7 @@ func (s sinksRepository) RetrieveAllByOwnerID(ctx context.Context, owner string,
 
 func (s sinksRepository) RetrieveById(ctx context.Context, id string) (sinks.Sink, error) {
 
-	q := `SELECT id, name, mf_owner_id, description, tags, backend, metadata, ts_created, state, coalesce(error, '') as error
+	q := `SELECT id, name, mf_owner_id, description, tags, backend, metadata, format, config_data, ts_created, state, coalesce(error, '') as error
 			FROM sinks where id = $1`
 
 	dba := dbSink{}
@@ -234,7 +245,7 @@ func (s sinksRepository) RetrieveById(ctx context.Context, id string) (sinks.Sin
 
 func (s sinksRepository) RetrieveByOwnerAndId(ctx context.Context, ownerID string, id string) (sinks.Sink, error) {
 
-	q := `SELECT id, name, mf_owner_id, description, tags, backend, metadata, ts_created, state, coalesce(error, '') as error
+	q := `SELECT id, name, mf_owner_id, description, tags, backend, metadata, format, config_data, ts_created, state, coalesce(error, '') as error
 			FROM sinks where id = $1 and mf_owner_id = $2`
 
 	if ownerID == "" || id == "" {
@@ -300,6 +311,8 @@ type dbSink struct {
 	Name        types.Identifier `db:"name"`
 	MFOwnerID   string           `db:"mf_owner_id"`
 	Metadata    db.Metadata      `db:"metadata"`
+	ConfigData  *string          `db:"config_data"`
+	Format      *string          `db:"format"`
 	Backend     string           `db:"backend"`
 	Description string           `db:"description"`
 	Created     time.Time        `db:"ts_created"`
@@ -328,16 +341,27 @@ func toDBSink(sink sinks.Sink) (dbSink, error) {
 		Name:        sink.Name,
 		MFOwnerID:   uID.String(),
 		Metadata:    db.Metadata(sink.Config),
+		ConfigData:  &sink.ConfigData,
+		Format:      &sink.Format,
 		Backend:     sink.Backend,
 		Description: description,
+		Created:     sink.Created,
+		Tags:        db.Tags(sink.Tags),
 		State:       sink.State,
 		Error:       sink.Error,
-		Tags:        db.Tags(sink.Tags),
 	}, nil
 
 }
 
 func toSink(dba dbSink) (sinks.Sink, error) {
+	configData := ""
+	format := ""
+	if dba.ConfigData != nil {
+		configData = *dba.ConfigData
+	}
+	if dba.Format != nil {
+		format = *dba.Format
+	}
 	sink := sinks.Sink{
 		ID:          dba.ID,
 		Name:        dba.Name,
@@ -347,6 +371,8 @@ func toSink(dba dbSink) (sinks.Sink, error) {
 		State:       dba.State,
 		Error:       dba.Error,
 		Config:      types.Metadata(dba.Metadata),
+		ConfigData:  configData,
+		Format:      format,
 		Created:     dba.Created,
 		Tags:        types.Tags(dba.Tags),
 	}

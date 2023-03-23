@@ -365,6 +365,8 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 			return
 		}
 
+		r.sinkerService.IncreamentMessageCounter(msg.Publisher, msg.Subtopic, msg.Channel, msg.Protocol)
+
 		if mr.Metrics().ResourceMetrics().Len() == 0 || mr.Metrics().ResourceMetrics().At(0).ScopeMetrics().Len() == 0 {
 			r.cfg.Logger.Info("No data information from metrics request")
 			return

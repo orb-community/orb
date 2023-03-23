@@ -40,7 +40,6 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc sinks.SinkServic
 		kithttp.ServerErrorEncoder(encodeError),
 	}
 	r := bone.New()
-
 	r.Post("/sinks", kithttp.NewServer(
 		kitot.TraceServer(tracer, "create_sink")(addEndpoint(svc)),
 		decodeAddRequest,

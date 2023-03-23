@@ -4,9 +4,14 @@
 
 package backend
 
+import "github.com/orb-community/orb/pkg/types"
+
 type Backend interface {
 	Metadata() interface{}
 	CreateFeatureConfig() []ConfigFeature
+	ValidateConfiguration(config types.Metadata) error
+	ParseConfig(format string, config string) (types.Metadata, error)
+	ConfigToFormat(format string, metadata types.Metadata) (string, error)
 }
 
 const ConfigFeatureTypePassword = "password"
