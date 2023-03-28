@@ -153,7 +153,7 @@ def create_invalid_sink(context, credential):
 @step("referred sink must have {status} state on response within {time_to_wait} seconds")
 def check_sink_status(context, status, time_to_wait):
     sink_id = context.sink["id"]
-    context.sink = get_sink_status_and_check(context.token, sink_id, status, timeout=time_to_wait)
+    context.sink = get_sink_status_and_check(context.token, sink_id, status, timeout=time_to_wait, wait_time=10)
 
     assert_that(context.sink['state'], equal_to(status), f"Sink {context.sink} state failed")
 
