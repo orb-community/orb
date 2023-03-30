@@ -11,7 +11,7 @@
     </xng-breadcrumb>
     <h4>{{ strings.sink.view.header }}</h4>
   </div>
-  <div class="col-5">
+  <div class="col-3">
     <button
       (click)="save()"
       [disabled]="!canSave()"
@@ -35,12 +35,8 @@
 </header>
 
 <div *ngIf="!isLoading" class="row">
-  <ngx-sink-details class="col-5" [(editMode)]="editMode.details" [sink]="sink">
+  <ngx-sink-details [(editMode)]="editMode.details" [sink]="sink">
   </ngx-sink-details>
-  <ngx-sink-config
-    class="col-5"
-    [(editMode)]="editMode.config"
-    [sink]="sink"
-  >
+  <ngx-sink-config [(editMode)]="editMode.config" [sink]="sink">
   </ngx-sink-config>
 </div>

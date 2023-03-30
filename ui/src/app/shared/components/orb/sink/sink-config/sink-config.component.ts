@@ -28,6 +28,7 @@ export class SinkConfigComponent implements OnInit, OnChanges {
     detectIndentation: true,
     tabSize: 2,
     autoIndent: 'full',
+    formatOnPaste: true,
     trimAutoWhitespace: true,
     formatOnType: true,
     matchBrackets: 'always',
