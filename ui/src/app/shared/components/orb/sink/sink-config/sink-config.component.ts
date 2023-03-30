@@ -55,7 +55,7 @@ export class SinkConfigComponent implements OnInit, OnChanges {
   }
 
   ngOnInit(): void {
-    this.code = JSON.stringify(this.sink.config);
+    this.code = JSON.stringify(this.sink.config, null, 2);
   }
 
   ngOnChanges(changes: SimpleChanges) {
