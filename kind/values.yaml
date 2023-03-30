@@ -3,7 +3,7 @@ orb:
     logLevel: "debug"
     image:
       pullPolicy: "IfNotPresent"
-      repository: "ns1labs"
+      repository: "orbcommunity"
       tag: "develop"
       mfRepository: "mainflux"
       mfTag: "0.13.0"
@@ -13,28 +13,28 @@ orb:
     image:
       name: "orb-sinks"
       pullPolicy: "IfNotPresent"
-      repository: "ns1labs"
+      repository: "orbcommunity"
       tag: "develop"
 
   policies:
     image:
       name: "orb-policies"
       pullPolicy: "IfNotPresent"
-      repository: "ns1labs"
+      repository: "orbcommunity"
       tag: "develop"
 
   fleet:
     image:
       name: "orb-fleet"
       pullPolicy: "IfNotPresent"
-      repository: "ns1labs"
+      repository: "orbcommunity"
       tag: "develop"
 
   sinker:
     image:
       name: "orb-sinker"
       pullPolicy: "IfNotPresent"
-      repository: "ns1labs"
+      repository: "orbcommunity"
       tag: "develop"
 
   sinkerOtel:
@@ -107,7 +107,7 @@ orb:
     image:
       name: "orb-maestro"
       pullPolicy: "IfNotPresent"
-      repository: ns1labs
+      repository: orbcommunity
       tag: "develop" #0.22.0-develop-478d318
     rbac:
       serviceAccountName: "k8s-maestro-role"
@@ -119,7 +119,7 @@ orb:
     image:
       name: "orb-migrate"
       pullPolicy: "IfNotPresent"
-      repository: ns1labs
+      repository: orbcommunity
       tag: "develop"
     autoMigrate: false
     logLevel: "debug"
