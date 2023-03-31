@@ -179,7 +179,7 @@ jobs:
       - name: Build orb-agent
         shell: bash
         env:
-          IMAGE_NAME: ns1labs/orb-agent
+          IMAGE_NAME: orbcommunity/orb-agent
         run: |
           if [ "${{ github.event.inputs.pktvisor_tag }}" == "" ]; then
             make agent_debug
@@ -187,14 +187,14 @@ jobs:
             PKTVISOR_TAG=${{ github.event.inputs.pktvisor_tag }} make agent_debug
           fi
 
-      - name: Login to Docker Hub ns1labs
+      - name: Login to Docker Hub orbcommunity
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Push agent container ns1labs
-        run: docker push -a ns1labs/orb-agent
+      - name: Push agent container orbcommunity
+        run: docker push -a orbcommunity/orb-agent
         
       - name: Login to Docker Hub orbcommunity
         if: github.event_name != 'pull_request'
@@ -231,7 +231,7 @@ jobs:
 
       - name: Push service containers
         if: github.event_name != 'pull_request'
-        run: docker push -a ns1labs/orb-fleet
+        run: docker push -a orbcommunity/orb-fleet
         
       - name: Login to Docker Hub orbcommunity
         uses: docker/login-action@v2
@@ -268,7 +268,7 @@ jobs:
 
       - name: Push service containers
         if: github.event_name != 'pull_request'
-        run: docker push -a ns1labs/orb-policies
+        run: docker push -a orbcommunity/orb-policies
         
       - name: Login to Docker Hub orbcommunity
         uses: docker/login-action@v2
@@ -296,16 +296,16 @@ jobs:
       - name: Build service containers
         run: SERVICE=sinker make build_docker
 
-      - name: Login to Docker Hub ns1labs
+      - name: Login to Docker Hub orbcommunity
         uses: docker/login-action@v1
         if: github.event_name != 'pull_request'
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Push service containers ns1labs
+      - name: Push service containers orbcommunity
         if: github.event_name != 'pull_request'
-        run: docker push -a ns1labs/orb-sinker
+        run: docker push -a orbcommunity/orb-sinker
         
       - name: Login to Docker Hub orbcommunity
         uses: docker/login-action@v2
@@ -333,16 +333,16 @@ jobs:
       - name: Build service containers
         run: SERVICE=sinks make build_docker
 
-      - name: Login to Docker Hub ns1labs
+      - name: Login to Docker Hub orbcommunity
         uses: docker/login-action@v1
         if: github.event_name != 'pull_request'
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Push service containers ns1labs
+      - name: Push service containers orbcommunity
         if: github.event_name != 'pull_request'
-        run: docker push -a ns1labs/orb-sinks
+        run: docker push -a orbcommunity/orb-sinks
         
       - name: Login to Docker Hub orbcommunity
         uses: docker/login-action@v2
@@ -370,16 +370,16 @@ jobs:
       - name: Build service containers
         run: SERVICE=maestro make build_docker
 
-      - name: Login to Docker Hub ns1labs
+      - name: Login to Docker Hub orbcommunity
         uses: docker/login-action@v2
         if: github.event_name != 'pull_request'
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Push service containers ns1labs
+      - name: Push service containers orbcommunity
         if: github.event_name != 'pull_request'
-        run: docker push -a ns1labs/orb-maestro        
+        run: docker push -a orbcommunity/orb-maestro        
 
       - name: Login to Docker Hub orbcommunity
         uses: docker/login-action@v2
@@ -404,7 +404,7 @@ jobs:
           filters: |
             yarn:
               ui/package.json
-      - name: Login to Docker Hub ns1labs
+      - name: Login to Docker Hub orbcommunity
         if: ${{ steps.filter.outputs.yarn == 'true' }}
         uses: docker/login-action@v1
         with:
@@ -414,14 +414,14 @@ jobs:
       - name: Build orb yarn image
         if: ${{ steps.filter.outputs.yarn == 'true' }}
         env:
-          IMAGE_NAME: ns1labs/orb-ui-modules
+          IMAGE_NAME: orbcommunity/orb-ui-modules
         run: |
           make ui-modules
 
-      - name: Push ui image ns1labs
+      - name: Push ui image orbcommunity
         if: ${{ steps.filter.outputs.yarn == 'true' }}
         run: |
-          docker push -a ns1labs/orb-ui-modules
+          docker push -a orbcommunity/orb-ui-modules
           
       - name: Login to Docker Hub orbcommunity
         if: ${{ steps.filter.outputs.yarn == 'true' }}
@@ -450,20 +450,20 @@ jobs:
 
       - name: Build orb-ui
         env:
-          IMAGE_NAME: ns1labs/orb-ui
+          IMAGE_NAME: orbcommunity/orb-ui
         run: make ui
 
-      - name: Login to Docker Hub ns1labs
+      - name: Login to Docker Hub orbcommunity
         uses: docker/login-action@v1
         if: github.event_name != 'pull_request'
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Push ui container ns1labs
+      - name: Push ui container orbcommunity
         if: github.event_name != 'pull_request'
         run: |
-          docker push -a ns1labs/orb-ui
+          docker push -a orbcommunity/orb-ui
         
       - name: Login to Docker Hub orbcommunity
         uses: docker/login-action@v1

@@ -1,7 +1,7 @@
 FROM ubuntu:20.04
 
 LABEL author="Everton Taques<everton.taques@encora.com>"
-LABEL maintainer="ns1labs"
+LABEL maintainer="orbcommunity"
 LABEL version="1.0.0"
 
 RUN mkdir -p /workspace

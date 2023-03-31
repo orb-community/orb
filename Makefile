@@ -15,7 +15,7 @@ DEBUG_REF_TAG ?= develop-debug
 PKTVISOR_TAG ?= latest-develop
 PKTVISOR_DEBUG_TAG ?= latest-develop-debug
 DOCKER_IMAGE_NAME_PREFIX ?= orb
-DOCKERHUB_REPO = ns1labs
+DOCKERHUB_REPO = orbcommunity
 ORB_DOCKERHUB_REPO = orbcommunity
 BUILD_DIR = build
 SERVICES = fleet policies sinks sinker migrate maestro
@@ -177,13 +177,13 @@ kind-delete-cluster:
 	kind delete cluster
 
 kind-load-images:
-	kind load docker-image ns1labs/orb-fleet:develop
-	kind load docker-image ns1labs/orb-policies:develop
-	kind load docker-image ns1labs/orb-sinks:develop
-	kind load docker-image ns1labs/orb-sinker:develop
-	kind load docker-image ns1labs/orb-migrate:develop
-	kind load docker-image ns1labs/orb-maestro:develop
-	kind load docker-image ns1labs/orb-ui:develop
+	kind load docker-image orbcommunity/orb-fleet:develop
+	kind load docker-image orbcommunity/orb-policies:develop
+	kind load docker-image orbcommunity/orb-sinks:develop
+	kind load docker-image orbcommunity/orb-sinker:develop
+	kind load docker-image orbcommunity/orb-migrate:develop
+	kind load docker-image orbcommunity/orb-maestro:develop
+	kind load docker-image orbcommunity/orb-ui:develop
 
 kind-install-orb:
 	kubectl create namespace orb
