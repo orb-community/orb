@@ -124,6 +124,39 @@ paths:
                   $ref: '#/components/schemas/SinkBackendResSchema'
         '500':
           $ref: "#/components/responses/ServiceErrorRes"
+  /features/authenticationtypes:
+    get:
+      summary: 'List supported Sink Authentication types, based on OpenTelemetry Extensions'
+      operationId: sinkAuthTypes
+      tags:
+        - sink
+      parameters:
+        - $ref: "#/components/parameters/Authorization"
+      responses:
+        '200':
+          description: "Sink Authentication types listed"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SinkAuthTypeResSchema'
+  /features/authenticationtypes:{id}:
+    parameters:
+      - $ref: "#/components/parameters/Authorization"
+      - $ref: "#/components/parameters/AuthenticationTypeId"
+    get:
+      summary: "Get a specific AuthenticationType based on the simple name from OpenTelemetry extension"
+      operationId: getSinkAuthType
+      tags:
+        - sink
+      responses:
+        '200':
+          $ref: "#/components/responses/SinkAuthTypeObjRes"
+        '404':
+          description: A non-existent entity request.
+        '500':
+          $ref: "#/components/responses/ServiceErrorRes"
   /features/sinks/{id}:
     parameters:
       - $ref: "#/components/parameters/Authorization"
@@ -553,12 +586,14 @@ components:
           readOnly: true
           example: prometheus
           description: The sink backend to use. Must match a backend from /features/sinks. Cannot change once created.
-        config:
+        config_data:
           type: string
           example:
-            remote_host: my.prometheus-host.com
-            username: dbuser
-            opentelemetry: enabled
+            exporter:
+              remote_host: my.prometheus-host.com
+            authentication:
+              username: dbuser
+              opentelemetry: enabled
           description: YAML representing backend specific configuration information
         ts_created:
           type: string
@@ -592,6 +627,23 @@ components:
         description:
           type: string
           example: Prometheus time series database sink
+        config:
+          type: array
+          description: Backend configuration field details
+          items:
+            items:
+              $ref: '#/components/schemas/ConfigEntrySchema'
+    SinkAuthTypeResSchema:
+      required:
+        - id
+      properties:
+        backend:
+          type: string
+          example: basicauth
+          description: Name and identifier of the sink authentication type, used when creating new sinks
+        description:
+          type: string
+          example: Basic Authentication over HTTPS
         config:
           type: array
           description: Backend configuration field details
