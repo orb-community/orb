@@ -14,16 +14,6 @@ type Backend interface {
 	ConfigToFormat(format string, metadata types.Metadata) (string, error)
 }
 
-type AuthenticationType interface {
-	Metadata() interface{}
-	GetFeatureConfig() []ConfigFeature
-	ValidateConfiguration(inputFormat string, input interface{}) error
-	ConfigToFormat(outputFormat string, input interface{}) (interface{}, error)
-	OmitInformation(outputFormat string, input interface{}) (interface{}, error)
-	EncodeInformation(outputFormat string, input interface{}) (interface{}, error)
-	DecodeInformation(outputFormat string, input interface{}) (interface{}, error)
-}
-
 const ConfigFeatureTypePassword = "password"
 const ConfigFeatureTypeText = "text"
 

@@ -46,21 +46,18 @@ type tlsConfig struct {
 }
 
 // CreateFeatureConfig Not available since this is only supported in YAML configuration
-func (b Backend) CreateFeatureConfig() []backend.ConfigFeature {
+func (b parserHelper) CreateFeatureConfig() []backend.ConfigFeature {
 	return nil
 }
 
-func (b Backend) ValidateConfiguration(config types.Metadata) error {
+func (b parserHelper) ValidateConfiguration(config types.Metadata) error {
 	if _, ok := config["endpoint"]; !ok {
 		return errors.New("endpoint is required")
 	}
-	if _, ok := config["auth"]; !ok {
-		return errors.New("auth config is required")
-	}
 	return nil
 }
 
-func (b Backend) ParseConfig(format string, config string) (retConfig types.Metadata, err error) {
+func (b parserHelper) ParseConfig(format string, config string) (retConfig types.Metadata, err error) {
 	if format == "yaml" {
 		var parsedConfig parserHelper
 		err = yaml.Unmarshal([]byte(config), &parsedConfig)
@@ -76,7 +73,7 @@ func (b Backend) ParseConfig(format string, config string) (retConfig types.Meta
 	return
 }
 
-func (b Backend) ConfigToFormat(format string, metadata types.Metadata) (string, error) {
+func (b parserHelper) ConfigToFormat(format string, metadata types.Metadata) (string, error) {
 	if format == "yaml" {
 		value, err := yaml.Marshal(metadata)
 		return string(value), err

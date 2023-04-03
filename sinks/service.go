@@ -61,9 +61,11 @@ func (svc sinkService) GetLogger() *zap.Logger {
 }
 
 func NewSinkService(logger *zap.Logger, auth mainflux.AuthServiceClient, sinkRepo SinkRepository, mfsdk mfsdk.SDK, services PasswordService) SinkService {
-
+	// otlpexporter.Register
 	prometheus.Register()
-
+	// TODO Add authentication types registration here
+	// basicauth.Register()
+	// bearerauth.Register()
 	return &sinkService{
 		logger:          logger,
 		auth:            auth,
