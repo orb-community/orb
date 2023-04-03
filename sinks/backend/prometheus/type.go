@@ -40,14 +40,8 @@ type configParseUtility struct {
 	APIToken   *string `yaml:"api_token,omitempty"`
 }
 
-type SinkFeature struct {
-	Backend     string                  `json:"backend"`
-	Description string                  `json:"description"`
-	Config      []backend.ConfigFeature `json:"config"`
-}
-
 func (p *Backend) Metadata() interface{} {
-	return SinkFeature{
+	return backend.SinkFeature{
 		Backend:     "prometheus",
 		Description: "Prometheus time series database sink",
 		Config:      p.CreateFeatureConfig(),

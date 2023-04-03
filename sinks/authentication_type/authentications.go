@@ -18,6 +18,12 @@ type ConfigFeature struct {
 	Required bool   `json:"required"`
 }
 
+type AuthenticationTypeConfig struct {
+	Type        string          `json:"type"`
+	Description string          `json:"description"`
+	Config      []ConfigFeature `json:"config"`
+}
+
 var authTypes = make(map[string]AuthenticationType)
 
 func Register(name string, b AuthenticationType) {
