@@ -240,7 +240,7 @@ func TestPartialUpdateSink(t *testing.T) {
 		token       string
 	}{
 		// TODO this will fail locally because of password encryption,
-		// TODO we will revisit this whenever there is a update on password encryption
+		// TODO we will revisit this whenever there is an update on password encryption
 		//"update only name": {
 		//	requestSink: sinks.Sink{
 		//		ID:   jsonCreatedSink.ID,
