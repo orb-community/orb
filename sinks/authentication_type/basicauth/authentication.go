@@ -98,3 +98,10 @@ func (a *AuthConfig) DecodeInformation(outputFormat string, input interface{}) (
 	//TODO implement me
 	panic("implement me")
 }
+
+func Register(encryptionService authentication_type.PasswordService) {
+	basicAuth := AuthConfig{
+		encryptionService: encryptionService,
+	}
+	authentication_type.Register("basicauth", &basicAuth)
+}

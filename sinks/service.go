@@ -15,6 +15,7 @@ import (
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks/authentication_type"
+	"github.com/orb-community/orb/sinks/authentication_type/basicauth"
 	"github.com/orb-community/orb/sinks/backend/prometheus"
 	"go.uber.org/zap"
 	"time"
@@ -61,17 +62,16 @@ func (svc sinkService) GetLogger() *zap.Logger {
 	return svc.logger
 }
 
-func NewSinkService(logger *zap.Logger, auth mainflux.AuthServiceClient, sinkRepo SinkRepository, mfsdk mfsdk.SDK, services authentication_type.PasswordService) SinkService {
+func NewSinkService(logger *zap.Logger, auth mainflux.AuthServiceClient, sinkRepo SinkRepository, mfsdk mfsdk.SDK, passwordService authentication_type.PasswordService) SinkService {
 	// otlpexporter.Register
 	prometheus.Register()
-	// TODO Add authentication types registration here
-	// basicauth.Register()
-	// bearerauth.Register()
+	basicauth.Register(passwordService)
+	// bearerauth.Register(passwordService)
 	return &sinkService{
 		logger:          logger,
 		auth:            auth,
 		sinkRepo:        sinkRepo,
 		mfsdk:           mfsdk,
-		passwordService: services,
+		passwordService: passwordService,
 	}
 }
