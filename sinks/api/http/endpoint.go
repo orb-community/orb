@@ -224,6 +224,45 @@ func listSinksEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 	}
 }
 
+func listAuthenticationTypes(svc sinks.SinkService) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(listAuthTypesReq)
+
+		if err = req.validate(); err != nil {
+			return nil, err
+		}
+
+		_, err = svc.ListAuthenticationTypes(ctx, req.token)
+		if err != nil {
+			return nil, err
+		}
+
+		response = sinkAuthTypesRes{
+			AuthenticationTypes: nil,
+		}
+
+		return
+	}
+}
+
+func viewAuthenticationType(svc sinks.SinkService) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(viewResourceReq)
+		if err = req.validate(); err != nil {
+			return nil, err
+		}
+		_, err = svc.ViewAuthenticationType(ctx, req.token, req.id)
+		if err != nil {
+			return nil, err
+		}
+
+		response = sinkAuthTypeRes{
+			AuthenticationTypes: nil,
+		}
+		return
+	}
+}
+
 func listBackendsEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(listBackendsReq)

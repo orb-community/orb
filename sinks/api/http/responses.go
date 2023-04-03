@@ -66,6 +66,38 @@ type pageRes struct {
 	Dir    string `json:"direction"`
 }
 
+type sinkAuthTypeRes struct {
+	AuthenticationTypes interface{} `json:"authentication_types,omitempty"`
+}
+
+func (s sinkAuthTypeRes) Code() int {
+	return http.StatusOK
+}
+
+func (s sinkAuthTypeRes) Headers() map[string]string {
+	return map[string]string{}
+}
+
+func (s sinkAuthTypeRes) Empty() bool {
+	return false
+}
+
+type sinkAuthTypesRes struct {
+	AuthenticationTypes []interface{} `json:"authentication_types,omitempty"`
+}
+
+func (s sinkAuthTypesRes) Code() int {
+	return http.StatusOK
+}
+
+func (s sinkAuthTypesRes) Headers() map[string]string {
+	return map[string]string{}
+}
+
+func (s sinkAuthTypesRes) Empty() bool {
+	return false
+}
+
 type sinksBackendsRes struct {
 	Backends []interface{} `json:"backends,omitempty"`
 }

@@ -32,7 +32,6 @@ type parserHelper struct {
 	Endpoint string `yaml:"endpoint"`
 	//TODO will keep TLS until we confirm there is no need for those
 	//Tls      *tlsConfig `yaml:"tls,omitempty,flow"`
-	Auth authConfig `yaml:"auth,flow"`
 }
 
 // TODO will keep TLS until we confirm there is no need for those
@@ -44,10 +43,6 @@ type tlsConfig struct {
 	MinVersion         *string `yaml:"min_version,omitempty"`
 	MaxVersion         *string `yaml:"max_version,omitempty"`
 	InsecureSkipVerify *bool   `yaml:"insecure_skip_verify,omitempty"`
-}
-type authConfig struct {
-	Username *string `yaml:"username,omitempty"`
-	Password *string `yaml:"password,omitempty"`
 }
 
 // CreateFeatureConfig Not available since this is only supported in YAML configuration
@@ -74,14 +69,6 @@ func (b Backend) ParseConfig(format string, config string) (retConfig types.Meta
 		}
 		retConfig = make(types.Metadata)
 		retConfig["endpoint"] = parsedConfig.Endpoint
-		authMap := make(types.Metadata)
-		if parsedConfig.Auth.Username != nil {
-			authMap["username"] = *parsedConfig.Auth.Username
-		}
-		if parsedConfig.Auth.Password != nil {
-			authMap["password"] = *parsedConfig.Auth.Password
-		}
-		retConfig["auth"] = authMap
 
 	} else {
 		return nil, errors.New("format not supported")

@@ -76,6 +76,18 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc sinks.SinkServic
 		types.EncodeResponse,
 		opts...,
 	))
+	r.Get("/features/authenticationtypes", kithttp.NewServer(
+		kitot.TraceServer(tracer, "list_authentication_types")(listAuthenticationTypes(svc)),
+		decodeListBackends,
+		types.EncodeResponse,
+		opts...,
+	))
+	r.Get("/features/authenticationtypes/:id", kithttp.NewServer(
+		kitot.TraceServer(tracer, "view_authentication_type")(viewAuthenticationType(svc)),
+		decodeView,
+		types.EncodeResponse,
+		opts...,
+	))
 	r.Get("/sinks/:id", kithttp.NewServer(
 		kitot.TraceServer(tracer, "view_sink")(viewSinkEndpoint(svc)),
 		decodeView,
