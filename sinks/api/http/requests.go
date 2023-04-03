@@ -182,6 +182,17 @@ func (req *listBackendsReq) validate() error {
 	return nil
 }
 
+type listAuthTypesReq struct {
+	token string
+}
+
+func (req *listAuthTypesReq) validate() error {
+	if req.token == "" {
+		return errors.ErrUnauthorizedAccess
+	}
+	return nil
+}
+
 type deleteSinkReq struct {
 	token string
 	id    string

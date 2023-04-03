@@ -101,6 +101,14 @@ func (svc sinkService) encryptMetadata(sink Sink) (Sink, error) {
 	return sink, err
 }
 
+func (svc sinkService) ViewAuthenticationType(ctx context.Context, token string, key string) (backend.AuthenticationType, error) {
+	panic("TODO")
+}
+
+func (svc sinkService) ListAuthenticationTypes(ctx context.Context, token string) ([]string, error) {
+	panic("TODO")
+}
+
 func (svc sinkService) decryptMetadata(sink Sink) (Sink, error) {
 	var err error
 	sink.Config.FilterMap(func(key string) bool {
