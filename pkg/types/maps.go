@@ -35,6 +35,14 @@ func (s *Metadata) Scan(src interface{}) error {
 	return errors.New("type assertion failed")
 }
 
+// GetSubMetadata gets the first substructure with the keyname or nil
+func (s *Metadata) GetSubMetadata(key string) *Metadata {
+	v := (*s)[key]
+	vm := v.(Metadata)
+	return &vm
+
+}
+
 func (s *Metadata) RestrictKeys(predicate func(string) bool) {
 	for key, _ := range *s {
 		if predicate(key) {

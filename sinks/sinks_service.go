@@ -15,7 +15,7 @@ import (
 	"github.com/orb-community/orb/sinks/authentication_type"
 	"github.com/orb-community/orb/sinks/backend"
 	"go.uber.org/zap"
-	"net/url"
+	"gopkg.in/yaml.v3"
 )
 
 var (
@@ -38,11 +38,9 @@ func (svc sinkService) CreateSink(ctx context.Context, token string, sink Sink) 
 	if err != nil {
 		return Sink{}, err
 	}
-
-	// Validate remote_host
-	_, err = url.ParseRequestURI(sink.Config["remote_host"].(string))
+	err = validateAuthType(&sink)
 	if err != nil {
-		return Sink{}, errors.Wrap(errors.New("invalid remote url"), err)
+		return Sink{}, err
 	}
 
 	// encrypt data for the password
@@ -66,6 +64,35 @@ func (svc sinkService) CreateSink(ctx context.Context, token string, sink Sink) 
 	sink, err = svc.decryptMetadata(sink)
 
 	return sink, nil
+}
+
+func validateAuthType(s *Sink) error {
+	var authMetadata types.Metadata
+	if len(s.ConfigData) != 0 {
+		var helper types.Metadata
+		if s.Format == "yaml" {
+			err := yaml.Unmarshal([]byte(s.ConfigData), &helper)
+			if err != nil {
+				return err
+			}
+			authMetadata = *helper.GetSubMetadata("authentication")
+		} else {
+			return errors.New("config format not supported")
+		}
+	} else {
+		authMetadata = *s.Config.GetSubMetadata("authentication")
+	}
+	authType, ok := authentication_type.GetAuthType(authMetadata["type"].(string))
+	if !ok {
+		return errors.New("authentication type not found")
+	}
+
+	err := authType.ValidateConfiguration("object", authMetadata)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (svc sinkService) encryptMetadata(sink Sink) (Sink, error) {
@@ -312,11 +339,18 @@ func (svc sinkService) ChangeSinkStateInternal(ctx context.Context, sinkID strin
 	return svc.sinkRepo.UpdateSinkState(ctx, sinkID, msg, ownerID, state)
 }
 
-func validateBackend(sink *Sink) error {
+func validateBackend(sink *Sink) (err error) {
 	if backend.HaveBackend(sink.Backend) {
 		sink.State = Unknown
 	} else {
 		return ErrInvalidBackend
 	}
-	return nil
+	sinkBe := backend.GetBackend(sink.Backend)
+	if len(sink.ConfigData) != 0 {
+		config := sink.Config.GetSubMetadata("exporter")
+		return sinkBe.ValidateConfiguration(*config)
+	} else {
+		sink.Config, err = sinkBe.ParseConfig("yaml", sink.ConfigData)
+		return sinkBe.ValidateConfiguration(sink.Config)
+	}
 }
