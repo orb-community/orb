@@ -12,6 +12,7 @@ import (
 	"context"
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
+	"github.com/orb-community/orb/sinks/authentication_type"
 	"github.com/orb-community/orb/sinks/backend"
 	"go.uber.org/zap"
 	"net/url"
@@ -101,11 +102,11 @@ func (svc sinkService) encryptMetadata(sink Sink) (Sink, error) {
 	return sink, err
 }
 
-func (svc sinkService) ViewAuthenticationType(ctx context.Context, token string, key string) (backend.AuthenticationType, error) {
+func (svc sinkService) ViewAuthenticationType(ctx context.Context, token string, key string) (authentication_type.AuthenticationType, error) {
 	panic("TODO")
 }
 
-func (svc sinkService) ListAuthenticationTypes(ctx context.Context, token string) ([]string, error) {
+func (svc sinkService) ListAuthenticationTypes(ctx context.Context, token string) ([]authentication_type.AuthenticationType, error) {
 	panic("TODO")
 }
 

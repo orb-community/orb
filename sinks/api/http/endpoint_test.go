@@ -17,6 +17,7 @@ import (
 	"github.com/opentracing/opentracing-go/mocktracer"
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks"
+	"github.com/orb-community/orb/sinks/authentication_type"
 	"github.com/orb-community/orb/sinks/backend"
 	prometheusbackend "github.com/orb-community/orb/sinks/backend/prometheus"
 	skmocks "github.com/orb-community/orb/sinks/mocks"
@@ -85,7 +86,7 @@ func (tr testRequest) make() (*http.Response, error) {
 func newService(tokens map[string]string) sinks.SinkService {
 	logger := zap.NewNop()
 	auth := skmocks.NewAuthService(tokens)
-	pwdSvc := sinks.NewPasswordService(logger, "_testing_string_")
+	pwdSvc := authentication_type.NewPasswordService(logger, "_testing_string_")
 	sinkRepo := skmocks.NewSinkRepository(pwdSvc)
 
 	config := mfsdk.Config{

@@ -10,6 +10,7 @@ package producer
 
 import (
 	"context"
+	"github.com/orb-community/orb/sinks/authentication_type"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/orb-community/orb/sinks"
@@ -103,6 +104,14 @@ func (es eventStore) UpdateSink(ctx context.Context, token string, s sinks.Sink)
 
 func (es eventStore) ListSinks(ctx context.Context, token string, pm sinks.PageMetadata) (sinks.Page, error) {
 	return es.svc.ListSinks(ctx, token, pm)
+}
+
+func (es eventStore) ListAuthenticationTypes(ctx context.Context, token string) ([]authentication_type.AuthenticationType, error) {
+	return es.svc.ListAuthenticationTypes(ctx, token)
+}
+
+func (es eventStore) ViewAuthenticationType(ctx context.Context, token string, key string) (authentication_type.AuthenticationType, error) {
+	return es.svc.ViewAuthenticationType(ctx, token, key)
 }
 
 func (es eventStore) ListBackends(ctx context.Context, token string) (_ []string, err error) {

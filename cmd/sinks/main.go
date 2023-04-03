@@ -18,6 +18,7 @@ import (
 	"github.com/orb-community/orb/sinks"
 	sinksgrpc "github.com/orb-community/orb/sinks/api/grpc"
 	sinkshttp "github.com/orb-community/orb/sinks/api/http"
+	"github.com/orb-community/orb/sinks/authentication_type"
 	"github.com/orb-community/orb/sinks/pb"
 	"github.com/orb-community/orb/sinks/postgres"
 	rediscons "github.com/orb-community/orb/sinks/redis/consumer"
@@ -182,7 +183,7 @@ func newSinkService(auth mainflux.AuthServiceClient, logger *zap.Logger, esClien
 	}
 
 	mfsdk := mfsdk.NewSDK(config)
-	pwdSvc := sinks.NewPasswordService(logger, encriptionKey.Key)
+	pwdSvc := authentication_type.NewPasswordService(logger, encriptionKey.Key)
 	svc := sinks.NewSinkService(logger, auth, repoSink, mfsdk, pwdSvc)
 	svc = redisprod.NewEventStoreMiddleware(svc, esClient)
 	svc = sinkshttp.NewLoggingMiddleware(svc, logger)

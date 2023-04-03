@@ -7,6 +7,7 @@ package http
 import (
 	"context"
 	"github.com/orb-community/orb/sinks"
+	"github.com/orb-community/orb/sinks/authentication_type"
 	"github.com/orb-community/orb/sinks/backend"
 	"go.uber.org/zap"
 	"time"
@@ -171,6 +172,14 @@ func (l loggingMiddleware) ValidateSink(ctx context.Context, token string, s sin
 		}
 	}(time.Now())
 	return l.svc.ValidateSink(ctx, token, s)
+}
+
+func (l loggingMiddleware) ListAuthenticationTypes(ctx context.Context, token string) ([]authentication_type.AuthenticationType, error) {
+	return l.svc.ListAuthenticationTypes(ctx, token)
+}
+
+func (l loggingMiddleware) ViewAuthenticationType(ctx context.Context, token string, key string) (authentication_type.AuthenticationType, error) {
+	return l.svc.ViewAuthenticationType(ctx, token, key)
 }
 
 func (l loggingMiddleware) GetLogger() *zap.Logger {

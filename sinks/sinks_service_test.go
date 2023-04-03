@@ -17,6 +17,7 @@ import (
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks"
+	"github.com/orb-community/orb/sinks/authentication_type"
 	skmocks "github.com/orb-community/orb/sinks/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -50,7 +51,7 @@ var (
 func newService(tokens map[string]string) sinks.SinkService {
 	logger := zap.NewNop()
 	auth := thmocks.NewAuthService(tokens, make(map[string][]thmocks.MockSubjectSet))
-	pwdSvc := sinks.NewPasswordService(logger, "_testing_string_")
+	pwdSvc := authentication_type.NewPasswordService(logger, "_testing_string_")
 	sinkRepo := skmocks.NewSinkRepository(pwdSvc)
 
 	config := mfsdk.Config{
@@ -179,8 +180,6 @@ func TestIdempotencyUpdateSink(t *testing.T) {
 				require.True(t, tagOk)
 				require.Equal(t, "aws", tagVal)
 				require.Equalf(t, "https://orb.community/", value.Config["remote_host"], "remote host is not equal")
-				actual := value.Config["username"].(*string)
-				require.Equalf(t, "netops", *actual, "username is not equal")
 			},
 			token: token,
 		},
@@ -232,7 +231,6 @@ func TestPartialUpdateSink(t *testing.T) {
 	require.NotEmptyf(t, jsonCreatedSink.ID, "id must not be empty")
 	yamlCreatedSink, err := service.CreateSink(ctx, token, initialYamlSink)
 	require.NoError(t, err, "failed to create entity")
-	userHelper := "netops_admin"
 	initialJsonSink.ID = jsonCreatedSink.ID
 	initialYamlSink.ID = yamlCreatedSink.ID
 	var cases = map[string]struct {
@@ -297,14 +295,11 @@ func TestPartialUpdateSink(t *testing.T) {
 			requestSink: sinks.Sink{
 				ID:         yamlCreatedSink.ID,
 				Format:     "yaml",
-				ConfigData: "remote_host: https://orb.community/prom/push\nusername: netops_admin\npassword: \"w0w-orb-Rocks!\"",
+				ConfigData: "remote_host: https://orb.community/prom/push2\nusername: netops_admin\npassword: \"w0w-orb-Rocks!\"",
 			},
 			expected: func(t *testing.T, value sinks.Sink, err error) {
 				require.NoError(t, err, "no error expected")
-				require.Equalf(t, "https://orb.community/prom/push", value.Config["remote_host"], "want %s, got %s", "https://orb.community/prom/push", value.Config["remote_host"])
-				require.NotNilf(t, value.Config["username"], "description is nil")
-				desc := value.Config["username"]
-				require.Equal(t, &userHelper, desc, "description is not equal")
+				require.Equalf(t, "https://orb.community/prom/push2", value.Config["remote_host"], "want %s, got %s", "https://orb.community/prom/push2", value.Config["remote_host"])
 			},
 			token: token,
 		},

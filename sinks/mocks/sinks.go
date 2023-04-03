@@ -13,6 +13,7 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/sinks"
+	"github.com/orb-community/orb/sinks/authentication_type"
 	"reflect"
 	"sync"
 )
@@ -24,7 +25,7 @@ type sinkRepositoryMock struct {
 	mu              sync.Mutex
 	counter         uint64
 	sinksMock       map[string]sinks.Sink
-	passwordService sinks.PasswordService
+	passwordService authentication_type.PasswordService
 }
 
 func (s *sinkRepositoryMock) SearchAllSinks(ctx context.Context, filter sinks.Filter) ([]sinks.Sink, error) {
@@ -50,7 +51,7 @@ func (s *sinkRepositoryMock) RetrieveByOwnerAndId(ctx context.Context, ownerID s
 	return sinks.Sink{}, sinks.ErrNotFound
 }
 
-func NewSinkRepository(service sinks.PasswordService) sinks.SinkRepository {
+func NewSinkRepository(service authentication_type.PasswordService) sinks.SinkRepository {
 	return &sinkRepositoryMock{
 		sinksMock:       make(map[string]sinks.Sink),
 		passwordService: service,

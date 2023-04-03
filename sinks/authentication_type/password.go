@@ -1,4 +1,4 @@
-package sinks
+package authentication_type
 
 import (
 	"crypto/aes"

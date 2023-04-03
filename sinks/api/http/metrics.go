@@ -10,6 +10,7 @@ import (
 	"github.com/mainflux/mainflux"
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/sinks"
+	"github.com/orb-community/orb/sinks/authentication_type"
 	"github.com/orb-community/orb/sinks/backend"
 	"go.uber.org/zap"
 	"time"
@@ -43,6 +44,14 @@ func (m metricsMiddleware) ChangeSinkStateInternal(ctx context.Context, sinkID s
 	}(time.Now())
 
 	return m.svc.ChangeSinkStateInternal(ctx, sinkID, msg, ownerID, state)
+}
+
+func (m metricsMiddleware) ListAuthenticationTypes(ctx context.Context, token string) ([]authentication_type.AuthenticationType, error) {
+	return m.svc.ListAuthenticationTypes(ctx, token)
+}
+
+func (m metricsMiddleware) ViewAuthenticationType(ctx context.Context, token string, key string) (authentication_type.AuthenticationType, error) {
+	return m.svc.ViewAuthenticationType(ctx, token, key)
 }
 
 func (m metricsMiddleware) CreateSink(ctx context.Context, token string, s sinks.Sink) (sink sinks.Sink, _ error) {
