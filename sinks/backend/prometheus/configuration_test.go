@@ -7,8 +7,8 @@ import (
 )
 
 var (
-	validConfiguration = map[string]interface{}{RemoteHostURLConfigFeature: "https://acme.com/prom/push", UsernameConfigFeature: "wile.e.coyote", PasswordConfigFeature: "@secr3t-passw0rd"}
-	validYaml          = "remote_host: https://acme.com/prom/push\nusername: wile.e.coyote\npassword: \"@secr3t-passw0rd\""
+	validConfiguration = map[string]interface{}{RemoteHostURLConfigFeature: "https://acme.com/prom/push"}
+	validYaml          = "remote_host: https://acme.com/prom/push"
 )
 
 func TestBackend_ValidateConfiguration(t *testing.T) {
@@ -31,28 +31,14 @@ func TestBackend_ValidateConfiguration(t *testing.T) {
 		{
 			name: "invalid host configuration",
 			args: args{
-				config: map[string]interface{}{RemoteHostURLConfigFeature: "acme.com/prom/push", UsernameConfigFeature: "wile.e.coyote", PasswordConfigFeature: "@secr3t-passw0rd"},
+				config: map[string]interface{}{RemoteHostURLConfigFeature: "acme.com/prom/push"},
 			},
 			wantErr: true,
 		},
 		{
 			name: "missing host configuration",
 			args: args{
-				config: map[string]interface{}{UsernameConfigFeature: "wile.e.coyote", PasswordConfigFeature: "@secr3t-passw0rd"},
-			},
-			wantErr: true,
-		},
-		{
-			name: "missing username configuration",
-			args: args{
-				config: map[string]interface{}{RemoteHostURLConfigFeature: "acme.com/prom/push", PasswordConfigFeature: "@secr3t-passw0rd"},
-			},
-			wantErr: true,
-		},
-		{
-			name: "missing password configuration",
-			args: args{
-				config: map[string]interface{}{RemoteHostURLConfigFeature: "acme.com/prom/push", UsernameConfigFeature: "wile.e.coyote"},
+				config: map[string]interface{}{},
 			},
 			wantErr: true,
 		},
@@ -72,8 +58,6 @@ func TestBackend_ParseConfig(t *testing.T) {
 		format string
 		config string
 	}
-	pass := "@secr3t-passw0rd"
-	user := "wile.e.coyote"
 	tests := []struct {
 		name             string
 		args             args
@@ -86,16 +70,16 @@ func TestBackend_ParseConfig(t *testing.T) {
 				format: "yaml",
 				config: validYaml,
 			},
-			wantConfigReturn: map[string]interface{}{RemoteHostURLConfigFeature: "https://acme.com/prom/push", UsernameConfigFeature: &user, PasswordConfigFeature: &pass},
+			wantConfigReturn: map[string]interface{}{RemoteHostURLConfigFeature: "https://acme.com/prom/push"},
 			wantErr:          false,
 		},
 		{
 			name: "invalid parse",
 			args: args{
 				format: "yaml",
-				config: "remote_host: https://acme.com/prom/push\nusername: wile.e.coyote\npassword \"@secr3t-passw0rd\"",
+				config: "remote_host: \nhttps://acme.com/prom/push\n\n",
 			},
-			wantConfigReturn: map[string]interface{}{RemoteHostURLConfigFeature: "https://acme.com/prom/push", UsernameConfigFeature: &user, PasswordConfigFeature: &pass},
+			wantConfigReturn: map[string]interface{}{RemoteHostURLConfigFeature: "https://acme.com/prom/push"},
 			wantErr:          true,
 		},
 	}
@@ -124,23 +108,13 @@ func TestBackend_CreateFeatureConfig(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			p := &Backend{}
 			got := p.CreateFeatureConfig()
-			usernameOk := false
-			passwordOk := false
 			remoteHostOk := false
 			for _, feature := range got {
-				if feature.Name == UsernameConfigFeature {
-					usernameOk = true
-					continue
-				}
-				if feature.Name == PasswordConfigFeature {
-					passwordOk = true
-					continue
-				}
 				if feature.Name == RemoteHostURLConfigFeature {
 					remoteHostOk = true
 				}
 			}
-			if usernameOk && passwordOk && remoteHostOk {
+			if remoteHostOk {
 				return
 			} else {
 				t.Fail()

@@ -2,6 +2,12 @@ package basicauth
 
 import (
 	"github.com/orb-community/orb/sinks/authentication_type"
+	"github.com/orb-community/orb/sinks/backend"
+)
+
+const (
+	UsernameConfigFeature = "username"
+	PasswordConfigFeature = "password"
 )
 
 type AuthConfig struct {
@@ -10,8 +16,26 @@ type AuthConfig struct {
 }
 
 func (a *AuthConfig) Metadata() interface{} {
-	//TODO implement me
-	panic("implement me")
+	return authentication_type.AuthenticationTypeConfig{
+		Type:        "basicauth",
+		Description: "Basic username and password authentication",
+		Config: []authentication_type.ConfigFeature{
+			{
+				Type:     backend.ConfigFeatureTypeText,
+				Input:    "text",
+				Title:    "Username",
+				Name:     UsernameConfigFeature,
+				Required: true,
+			},
+			{
+				Type:     backend.ConfigFeatureTypePassword,
+				Input:    "text",
+				Title:    "Password",
+				Name:     PasswordConfigFeature,
+				Required: true,
+			},
+		},
+	}
 }
 
 func (a *AuthConfig) GetFeatureConfig() []authentication_type.ConfigFeature {

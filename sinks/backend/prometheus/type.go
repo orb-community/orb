@@ -12,8 +12,6 @@ var _ backend.Backend = (*Backend)(nil)
 
 const (
 	RemoteHostURLConfigFeature = "remote_host"
-	UsernameConfigFeature      = "username"
-	PasswordConfigFeature      = "password"
 	ApiTokenConfigFeature      = "api_token"
 )
 
