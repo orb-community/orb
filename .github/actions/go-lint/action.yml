@@ -1,6 +1,6 @@
 name: 'go-lint'
-author: 'Rodrigo Pavan<rpoliveira@daitan.com>'
-description: 'Daitan Digital Solutions Docker Actions'
+author: 'Rodrigo Pavan<rpoliveira@encora.com>'
+description: 'netboxlabs'
 
 runs:
   using: 'docker'
