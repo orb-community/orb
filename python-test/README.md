@@ -73,7 +73,7 @@ Then fill in the correct values:
   - Default value: `True`
 - **agent_docker_image**:
   - Docker image of the orb agent.
-  - Default value: `ns1labs/orb-agent`
+  - Default value: `orbcommunity/orb-agent`
 - **agent_docker_tag**:
   - Tag of the Orb agent docker image.
   - Default value: `latest`
