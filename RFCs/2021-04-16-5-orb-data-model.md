@@ -1,7 +1,7 @@
 ## Orb Data Model
 
 Orb manages pktvisor configuration in a central control plane. The only configuration that remains at the edge with the
-agent are the Tap configuration (ns1labs/pktvisor#75) and edge Tags configuration (below) because they are host
+agent are the [Tap configuration](https://github.com/orb-community/pktvisor/blob/develop/RFCs/2021-04-16-75-taps.md) and edge Tags configuration (below) because they are host
 specific.
 
 ### Tags and Group Configurations

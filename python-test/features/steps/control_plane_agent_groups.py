@@ -49,7 +49,7 @@ def create_agent_group_matching_agent(context, amount_of_agent_groups, amount_of
 
 
 @step("{amount_of_agent_groups} Agent Group(s) is created with {orb_tags} orb tag(s) (lower case)")
-# this step is temporary because of issue https://github.com/ns1labs/orb/issues/1053
+# this step is temporary because of issue https://github.com/orb-community/orb/issues/1053
 def create_group_with_tags_lower_case(context, amount_of_agent_groups, orb_tags):
     create_new_agent_group(context, amount_of_agent_groups, orb_tags, tags_lower_case=True)
 
