@@ -33,13 +33,47 @@ import (
 )
 
 const (
-	contentType       = "application/json"
-	token             = "token"
-	invalidToken      = "invalid"
-	email             = "user@example.com"
-	validJson         = "{    \"name\": \"my-prom-sink\",    \"backend\": \"prometheus\",    \"config\": {        \"remote_host\": \"https://orb.community/\",        \"username\": \"dbuser\",        \"password\": \"dbpassword\"   },    \"description\": \"An example prometheus sink\",    \"tags\": {        \"cloud\": \"aws\"    },    \"validate_only\": false}"
-	conflictValidJson = "{\n    \"name\": \"conflict\",\n    \"backend\": \"prometheus\",\n    \"config\": {\n        \"remote_host\": \"https://orb.community/\",\n        \"username\": \"dbuser\"\n, \"password\": \"dbpass\"\n    },\n    \"description\": \"An example prometheus sink\",\n    \"tags\": {\n        \"cloud\": \"aws\"\n    },\n    \"validate_only\": false\n}"
-	invalidJson       = "{"
+	contentType  = "application/json"
+	token        = "token"
+	invalidToken = "invalid"
+	email        = "user@example.com"
+	validJson    = `{
+  "name": "my-prom-sink",
+  "backend": "prometheus",
+  "config": {
+    "exporter": {
+      "remote_host": "https://orb.community/"
+    },
+    "authentication": {
+     "type": "basicauth",
+      "username": "dbuser",
+      "password": "dbpassword"
+    }
+  },
+  "description": "An example prometheus sink",
+  "tags": { "cloud": "aws" },
+  "validate_only": false
+}`
+	conflictValidJson = `{
+  "name": "conflict",
+  "backend": "prometheus",
+  "config": {
+    "exporter" : {
+      "remote_host": "https://orb.community/",
+    },
+    "authentication" : {
+      "type": "basicauth",
+      "username": "dbuser",
+      "password": "dbpass"
+    }
+  },
+  "description": "An example prometheus sink",
+  "tags": {
+    "cloud": "aws"
+  },
+  "validate_only": false
+}`
+	invalidJson = "{"
 )
 
 var (
@@ -49,8 +83,11 @@ var (
 		Name:        nameID,
 		Description: &description,
 		Backend:     "prometheus",
-		Config:      map[string]interface{}{"remote_host": "https://orb.community/", "username": "dbuser", "password": "dbpass"},
-		Tags:        map[string]string{"cloud": "aws"},
+		Config: map[string]interface{}{
+			"exporter":       map[string]interface{}{"remote_host": "https://orb.community/"},
+			"authentication": map[string]interface{}{"type": "basicauth", "username": "dbuser", "password": "dbpass"},
+		},
+		Tags: map[string]string{"cloud": "aws"},
 	}
 	invalidName        = strings.Repeat("m", maxNameSize+1)
 	notFoundRes        = toJSON(errorRes{sinks.ErrNotFound.Error()})
@@ -93,9 +130,9 @@ func newService(tokens map[string]string) sinks.SinkService {
 		ThingsURL: "localhost",
 	}
 
-	mfsdk := mfsdk.NewSDK(config)
+	sdk := mfsdk.NewSDK(config)
 
-	return sinks.NewSinkService(logger, auth, sinkRepo, mfsdk, pwdSvc)
+	return sinks.NewSinkService(logger, auth, sinkRepo, sdk, pwdSvc)
 }
 
 func newServer(svc sinks.SinkService) *httptest.Server {
@@ -123,12 +160,16 @@ func TestCreateSinks(t *testing.T) {
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
 	invalidNameJson := toJSON(addReq{
-		Name:    "s",
-		Backend: "prometheus",
+		Name:        "s",
+		Description: "An example prometheus sink",
+		Backend:     "prometheus",
 		Config: types.Metadata{
-			"username":    "test",
-			"remote_host": "https://orb.community/",
-			"description": "An example prometheus sink",
+			"exporter": types.Metadata{
+				"remote_host": "https://orb.community/",
+			},
+			"authentication": types.Metadata{
+				"username": "test",
+			},
 		},
 		Tags: map[string]string{
 			"cloud": "aws",
@@ -136,12 +177,18 @@ func TestCreateSinks(t *testing.T) {
 	})
 
 	emptyNameJson := toJSON(addReq{
-		Name:    "",
-		Backend: "prometheus",
+		Name:        "",
+		Description: "An example prometheus sink",
+		Backend:     "prometheus",
 		Config: types.Metadata{
-			"username":    "test",
-			"remote_host": "https://orb.community/",
-			"description": "An example prometheus sink",
+			"exporter": types.Metadata{
+				"remote_host": "https://orb.community/",
+			},
+			"authentication": types.Metadata{
+				"type":     "basicauth",
+				"username": "test",
+				"password": "test",
+			},
 		},
 		Tags: map[string]string{
 			"cloud": "aws",
@@ -157,7 +204,20 @@ func TestCreateSinks(t *testing.T) {
 		Name:    "sinkConfig",
 		Backend: "prometheus",
 		Config: types.Metadata{
-			"user": "test",
+			"authentication": types.Metadata{
+				"type":     "basicauth",
+				"username": "test",
+				"password": "test",
+			},
+		},
+	})
+	jsonSinkTestConfig2 := toJSON(addReq{
+		Name:    "sinkConfig",
+		Backend: "prometheus",
+		Config: types.Metadata{
+			"exporter": types.Metadata{
+				"remote_host": "https://orb.community/",
+			},
 		},
 	})
 
@@ -224,8 +284,15 @@ func TestCreateSinks(t *testing.T) {
 			status:      http.StatusBadRequest,
 			location:    "/sinks",
 		},
-		"add sink with only 1 key on config": {
+		"add sink with only authentication object on config": {
 			req:         string(jsonSinkTestConfig),
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/sinks",
+		},
+		"add sink with only exporter object on config": {
+			req:         string(jsonSinkTestConfig2),
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusBadRequest,

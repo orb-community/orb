@@ -2,6 +2,7 @@ package basicauth
 
 import (
 	"github.com/orb-community/orb/pkg/errors"
+	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks/authentication_type"
 	"github.com/orb-community/orb/sinks/backend"
 	"gopkg.in/yaml.v3"
@@ -53,14 +54,15 @@ func (a *AuthConfig) GetFeatureConfig() []authentication_type.ConfigFeature {
 func (a *AuthConfig) ValidateConfiguration(inputFormat string, input interface{}) error {
 	switch inputFormat {
 	case "object":
-		for key, value := range input.(map[string]string) {
+		for key, value := range input.(types.Metadata) {
+			vs := value.(string)
 			if key == UsernameConfigFeature {
-				if len(value) == 0 {
+				if len(vs) == 0 {
 					return errors.New("username cannot be empty")
 				}
 			}
 			if key == PasswordConfigFeature {
-				if len(value) == 0 {
+				if len(vs) == 0 {
 					return errors.New("password cannot be empty")
 				}
 			}

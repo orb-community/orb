@@ -75,12 +75,12 @@ func validateAuthType(s *Sink) error {
 			if err != nil {
 				return err
 			}
-			authMetadata = *helper.GetSubMetadata("authentication")
+			authMetadata = helper.GetSubMetadata("authentication")
 		} else {
 			return errors.New("config format not supported")
 		}
 	} else {
-		authMetadata = *s.Config.GetSubMetadata("authentication")
+		authMetadata = s.Config.GetSubMetadata("authentication")
 	}
 	authType, ok := authentication_type.GetAuthType(authMetadata["type"].(string))
 	if !ok {
@@ -97,7 +97,9 @@ func validateAuthType(s *Sink) error {
 
 func (svc sinkService) encryptMetadata(sink Sink) (Sink, error) {
 	var err error
-	sink.Config.FilterMap(func(key string) bool {
+	authenticationConfig := sink.Config.GetSubMetadata("authentication")
+	metadata := types.Metadata(authenticationConfig)
+	metadata.FilterMap(func(key string) bool {
 		return key == backend.ConfigFeatureTypePassword
 	}, func(key string, value interface{}) (string, interface{}) {
 		var stringVal string
@@ -139,7 +141,9 @@ func (svc sinkService) ListAuthenticationTypes(ctx context.Context, token string
 
 func (svc sinkService) decryptMetadata(sink Sink) (Sink, error) {
 	var err error
-	sink.Config.FilterMap(func(key string) bool {
+	authenticationConfig := sink.Config.GetSubMetadata("authentication")
+	metadata := types.Metadata(authenticationConfig)
+	metadata.FilterMap(func(key string) bool {
 		return key == backend.ConfigFeatureTypePassword
 	}, func(key string, value interface{}) (string, interface{}) {
 		newValue, err2 := svc.passwordService.DecodePassword(value.(string))
@@ -346,11 +350,12 @@ func validateBackend(sink *Sink) (err error) {
 		return ErrInvalidBackend
 	}
 	sinkBe := backend.GetBackend(sink.Backend)
-	if len(sink.ConfigData) != 0 {
+	if len(sink.ConfigData) == 0 {
 		config := sink.Config.GetSubMetadata("exporter")
-		return sinkBe.ValidateConfiguration(*config)
+		return sinkBe.ValidateConfiguration(config)
 	} else {
 		sink.Config, err = sinkBe.ParseConfig("yaml", sink.ConfigData)
-		return sinkBe.ValidateConfiguration(sink.Config)
+		config2 := sink.Config.GetSubMetadata("exporter")
+		return sinkBe.ValidateConfiguration(config2)
 	}
 }

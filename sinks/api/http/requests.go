@@ -12,6 +12,7 @@ import (
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks"
+	"github.com/orb-community/orb/sinks/authentication_type"
 	"github.com/orb-community/orb/sinks/backend"
 )
 
@@ -58,8 +59,21 @@ func (req addReq) validate() (err error) {
 	} else {
 		config = req.Config
 	}
+	backendCfg := types.Metadata(config.GetSubMetadata("exporter"))
+	err = reqBackend.ValidateConfiguration(backendCfg)
+	if err != nil {
+		return errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
+	}
 
-	err = reqBackend.ValidateConfiguration(config)
+	authenticationCfg := types.Metadata(config.GetSubMetadata("authentication"))
+	if authenticationCfg == nil {
+		return errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
+	}
+	authType, ok := authentication_type.GetAuthType(authenticationCfg["type"].(string))
+	if !ok {
+		return errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
+	}
+	err = authType.ValidateConfiguration("object", authenticationCfg)
 	if err != nil {
 		return errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
 	}

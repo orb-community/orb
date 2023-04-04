@@ -36,10 +36,13 @@ func (s *Metadata) Scan(src interface{}) error {
 }
 
 // GetSubMetadata gets the first substructure with the keyname or nil
-func (s *Metadata) GetSubMetadata(key string) *Metadata {
+func (s *Metadata) GetSubMetadata(key string) map[string]interface{} {
 	v := (*s)[key]
-	vm := v.(Metadata)
-	return &vm
+	if v == nil {
+		return nil
+	}
+	vm := v.(map[string]interface{})
+	return vm
 
 }
 
