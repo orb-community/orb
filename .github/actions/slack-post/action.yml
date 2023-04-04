@@ -1,6 +1,6 @@
 name: 'slack-post'
 author: 'Everton Taques<everton.taques@encora.com>'
-description: 'orbcommunity'
+description: 'netboxlabs'
 
 inputs:
   branch:

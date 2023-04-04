@@ -378,8 +378,6 @@ jobs:
 
       - name: Build orb-agent
         shell: bash
-        env:
-          IMAGE_NAME: orbcommunity/orb-agent
         run: |
           if [ "${{ github.event.inputs.pktvisor_tag }}" == "" ]; then
             make agent
@@ -388,18 +386,7 @@ jobs:
             PKTVISOR_TAG=${{ github.event.inputs.pktvisor_tag }} make agent
             PKTVISOR_TAG=${{ github.event.inputs.pktvisor_tag }} make agent_debug
           fi
-
-      - name: Login to Docker Hub orbcommunity
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Push agent container orbcommunity
-        if: github.event_name != 'pull_request'
-        run: docker push -a orbcommunity/orb-agent
-        
+       
       - name: Login to Docker Hub orbcommunity
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v2
@@ -431,17 +418,6 @@ jobs:
         uses: docker/login-action@v2
         if: github.event_name != 'pull_request'
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Push service containers orbcommunity
-        if: github.event_name != 'pull_request'
-        run: docker push -a orbcommunity/orb-fleet
-        
-      - name: Login to Docker Hub orbcommunity
-        uses: docker/login-action@v2
-        if: github.event_name != 'pull_request'
-        with:
           username: ${{ secrets.ORB_DOCKERHUB_USERNAME }}
           password: ${{ secrets.ORB_DOCKERHUB_TOKEN }}
 
@@ -464,17 +440,6 @@ jobs:
 
       - name: Build service containers
         run: SERVICE=policies make build_docker
-
-      - name: Login to Docker Hub orbcommunity
-        uses: docker/login-action@v2
-        if: github.event_name != 'pull_request'
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Push service containers orbcommunity
-        if: github.event_name != 'pull_request'
-        run: docker push -a orbcommunity/orb-policies
         
       - name: Login to Docker Hub orbcommunity
         uses: docker/login-action@v2
@@ -502,18 +467,7 @@ jobs:
 
       - name: Build service containers
         run: SERVICE=sinker make build_docker
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        if: github.event_name != 'pull_request'
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Push service containers
-        if: github.event_name != 'pull_request'
-        run: docker push -a orbcommunity/orb-sinker
-        
+       
       - name: Login to Docker Hub orbcommunity
         uses: docker/login-action@v2
         if: github.event_name != 'pull_request'
@@ -540,17 +494,6 @@ jobs:
 
       - name: Build service containers
         run: SERVICE=sinks make build_docker
-
-      - name: Login to Docker Hub orbcommunity
-        uses: docker/login-action@v2
-        if: github.event_name != 'pull_request'
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Push service containers orbcommunity
-        if: github.event_name != 'pull_request'
-        run: docker push -a orbcommunity/orb-sinks
         
       - name: Login to Docker Hub orbcommunity
         uses: docker/login-action@v2
@@ -577,18 +520,7 @@ jobs:
           echo ${{ needs.prebuild.outputs.VERSION }} > VERSION
 
       - name: Build service containers
-        run: SERVICE=maestro make build_docker
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        if: github.event_name != 'pull_request'
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Push service containers
-        if: github.event_name != 'pull_request'
-        run: docker push -a orbcommunity/orb-maestro        
+        run: SERVICE=maestro make build_docker      
 
       - name: Login to Docker Hub orbcommunity
         uses: docker/login-action@v2
@@ -616,22 +548,8 @@ jobs:
 
       - name: Build orb yarn image
         if: ${{ steps.filter.outputs.yarn == 'true' }}
-        env:
-          IMAGE_NAME: orbcommunity/orb-ui-modules
         run: |
           make ui-modules
-
-      - name: Login to Docker Hub
-        if: ${{ steps.filter.outputs.yarn == 'true' }}
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Push ui image orbcommunity
-        if: ${{ steps.filter.outputs.yarn == 'true' }}
-        run: |
-          docker push -a orbcommunity/orb-ui-modules
           
       - name: Login to Docker Hub orbcommunity
         if: ${{ steps.filter.outputs.yarn == 'true' }}
@@ -659,8 +577,6 @@ jobs:
           echo ${{ needs.prebuild.outputs.VERSION }} > VERSION
 
       - name: Build orb-ui
-        env:
-          IMAGE_NAME: orbcommunity/orb-ui
         run: |
           make ui
 
@@ -681,18 +597,6 @@ jobs:
           git add .
           git commit -m "[NS1 Orb Bot] Update Orb Live UI for develop"
           git push origin develop
-
-      - name: Login to Docker Hub orbcommunity
-        uses: docker/login-action@v1
-        if: github.event_name != 'pull_request'
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Push ui container orbcommunity
-        if: github.event_name != 'pull_request'
-        run: |
-          docker push -a orbcommunity/orb-ui
           
       - name: Login to Docker Hub orbcommunity
         uses: docker/login-action@v1
@@ -716,22 +620,8 @@ jobs:
 
       - name: Build orb migrate service image
         if: ${{ needs.prebuild.outputs.migrate == 'true' }}
-        env:
-          IMAGE_NAME: orbcommunity/orb-migrate
         run: |
-          SERVICE=migrate make build_docker          
-
-      - name: Login to Docker Hub orbcommunity
-        if: ${{ needs.prebuild.outputs.migrate == 'true' }}
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Push orb migrate service image orbcommunity
-        if: ${{ needs.prebuild.outputs.migrate == 'true' }}
-        run: |
-          docker push -a orbcommunity/orb-migrate          
+          SERVICE=migrate make build_docker     
 
       - name: Login to Docker Hub orbcommunity
         if: ${{ needs.prebuild.outputs.migrate == 'true' }}

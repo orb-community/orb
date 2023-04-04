@@ -52,9 +52,6 @@ define make_docker
 		--build-arg SVC=$(SERVICE) \
 		--build-arg GOARCH=$(GOARCH) \
 		--build-arg GOARM=$(GOARM) \
-		--tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-$(SERVICE):$(REF_TAG) \
-		--tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-$(SERVICE):$(ORB_VERSION) \
-		--tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-$(SERVICE):$(ORB_VERSION)-$(COMMIT_HASH) \
 		--tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-$(SERVICE):$(REF_TAG) \
 		--tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-$(SERVICE):$(ORB_VERSION) \
 		--tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-$(SERVICE):$(ORB_VERSION)-$(COMMIT_HASH) \
@@ -66,9 +63,6 @@ define make_docker_dev
 	docker build \
 		--no-cache \
 		--build-arg SVC=$(svc) \
-		--tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-$(svc):$(REF_TAG) \
-		--tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-$(svc):$(ORB_VERSION) \
-		--tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-$(svc):$(ORB_VERSION)-$(COMMIT_HASH) \
 		--tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-$(svc):$(REF_TAG) \
 		--tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-$(svc):$(ORB_VERSION) \
 		--tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-$(svc):$(ORB_VERSION)-$(COMMIT_HASH) \
@@ -218,9 +212,6 @@ agent_bin:
 agent:
 	docker build --no-cache \
 	  --build-arg PKTVISOR_TAG=$(PKTVISOR_TAG) \
-	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(REF_TAG) \
-	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(ORB_VERSION) \
-	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(ORB_VERSION)-$(COMMIT_HASH) \
 	  --tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(REF_TAG) \
 	  --tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(ORB_VERSION) \
 	  --tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(ORB_VERSION)-$(COMMIT_HASH) \
@@ -236,9 +227,6 @@ agent_debug:
 agent_production:
 	docker build \
 	  --build-arg PKTVISOR_TAG=$(PKTVISOR_TAG) \
-	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(PRODUCTION_AGENT_REF_TAG) \
-	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(ORB_VERSION) \
-	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(ORB_VERSION)-$(COMMIT_HASH) \
 	  --tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(PRODUCTION_AGENT_REF_TAG) \
 	  --tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(ORB_VERSION) \
 	  --tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(ORB_VERSION)-$(COMMIT_HASH) \
@@ -247,7 +235,6 @@ agent_production:
 agent_debug_production:
 	docker build \
 	  --build-arg PKTVISOR_TAG=$(PKTVISOR_DEBUG_TAG) \
-	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(PRODUCTION_AGENT_DEBUG_REF_TAG) \
 	  --tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(PRODUCTION_AGENT_DEBUG_REF_TAG) \
 	  -f agent/docker/Dockerfile .
 
@@ -256,9 +243,6 @@ test_ui:
 
 ui-modules:
 	cd ui/ && docker build \
-		--tag=$(DOCKERHUB_REPO)/orb-ui-modules:latest \
-		--tag=$(DOCKERHUB_REPO)/orb-ui-modules:$(REF_TAG) \
-		--tag=$(DOCKERHUB_REPO)/orb-ui-modules:$(ORB_VERSION)-$(COMMIT_HASH) \
 		--tag=$(ORB_DOCKERHUB_REPO)/orb-ui-modules:latest \
 		--tag=$(ORB_DOCKERHUB_REPO)/orb-ui-modules:$(REF_TAG) \
 		--tag=$(ORB_DOCKERHUB_REPO)/orb-ui-modules:$(ORB_VERSION)-$(COMMIT_HASH) \
@@ -269,9 +253,6 @@ ui:
 		--build-arg ENV_PS_SID=${PS_SID} \
 		--build-arg ENV_PS_GROUP_KEY=${PS_GROUP_KEY} \
 		--build-arg ENV=${ENVIRONMENT} \
-		--tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-ui:$(REF_TAG) \
-		--tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-ui:$(ORB_VERSION) \
-		--tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-ui:$(ORB_VERSION)-$(COMMIT_HASH) \
 		--tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-ui:$(REF_TAG) \
 		--tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-ui:$(ORB_VERSION) \
 		--tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-ui:$(ORB_VERSION)-$(COMMIT_HASH) \
