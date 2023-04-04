@@ -1,7 +1,7 @@
 FROM golang:1.15.1-buster
 
-LABEL author="Rodrigo Pavan<rpoliveira@daitan.com>"
-LABEL maintainer="Daitan Digital Solutions"
+LABEL author="Rodrigo Pavan<rpoliveira@encora.com>"
+LABEL maintainer="orbcommunity"
 LABEL version="1.0.0"
 
 RUN mkdir -p /workspace
