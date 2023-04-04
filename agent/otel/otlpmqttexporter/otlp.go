@@ -363,13 +363,13 @@ func (e *exporter) pushAllMetrics(ctx context.Context, md pmetric.Metrics) error
 	return err
 }
 
-func (e *exporter) pushLogs(_ context.Context, ld plog.Logs) error {
+func (e *exporter) pushLogs(ctx context.Context, ld plog.Logs) error {
 	tr := plogotlp.NewRequest()
-	ref := tr.Logs().ResourceMetrics().AppendEmpty()
-	scopes := pmetricotlp.NewRequestFromMetrics(md).Metrics().ResourceMetrics().At(0).ScopeMetrics()
+	ref := tr.Logs().ResourceLogs().AppendEmpty()
+	scopes := plogotlp.NewRequestFromLogs(ld).Logs().ResourceLogs().At(0).ScopeLogs()
 	for i := 0; i < scopes.Len(); i++ {
 		scope := scopes.At(i)
-		policyName := e.extractScopeAttribute(scope, "policy")
+		policyName := e.extractScopeAttribute(scope, "policy") //change it to work with plogotlp
 		agentData, err := e.config.OrbAgentService.RetrieveAgentInfoByPolicyName(policyName)
 		if err != nil {
 			e.logger.Warn("Policy is not managed by orb", zap.String("policyName", policyName))
@@ -382,13 +382,13 @@ func (e *exporter) pushLogs(_ context.Context, ld plog.Logs) error {
 		datasets := strings.Join(datasetIDs, ",")
 
 		// injecting policy ID attribute on metrics
-		scope = e.injectScopeAttribute(scope, "policy_id", agentData.PolicyID)
-		scope = e.injectScopeAttribute(scope, "dataset_ids", datasets)
+		scope = e.injectScopeAttribute(scope, "policy_id", agentData.PolicyID) //change it to work with plogotlp
+		scope = e.injectScopeAttribute(scope, "dataset_ids", datasets)         //change it to work with plogotlp
 		// Insert pivoted agentTags
 		for key, value := range agentData.AgentTags {
-			scope = e.injectScopeAttribute(scope, key, value)
+			scope = e.injectScopeAttribute(scope, key, value) //change it to work with plogotlp
 		}
-		scope.CopyTo(ref.ScopeMetrics().AppendEmpty())
+		scope.CopyTo(ref.ScopeLogs().AppendEmpty())
 	}
 
 	request, err := tr.MarshalProto()
@@ -397,7 +397,7 @@ func (e *exporter) pushLogs(_ context.Context, ld plog.Logs) error {
 		return consumererror.NewPermanent(err)
 	}
 
-	err = e.export(ctx, e.config.MetricsTopic, request)
+	err = e.export(ctx, e.config.LogsTopic, request) // add topic for logs
 	if err != nil {
 		ctx.Done()
 		return err
