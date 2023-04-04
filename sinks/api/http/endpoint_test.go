@@ -168,7 +168,9 @@ func TestCreateSinks(t *testing.T) {
 				"remote_host": "https://orb.community/",
 			},
 			"authentication": types.Metadata{
+				"type":     "basicauth",
 				"username": "test",
+				"password": "test",
 			},
 		},
 		Tags: map[string]string{

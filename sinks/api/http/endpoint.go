@@ -65,12 +65,12 @@ func addEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			}
 		} else {
 			if req.Config != nil {
-				subAuthConfig := config.GetSubMetadata("authentication")
+				subAuthConfig := req.Config.GetSubMetadata("authentication")
 				if subAuthConfig == nil {
 					svc.GetLogger().Error("configuration is invalid, authentication object missing")
 					return nil, errors.ErrMalformedEntity
 				}
-				subExporterConfig := config.GetSubMetadata("exporter")
+				subExporterConfig := req.Config.GetSubMetadata("exporter")
 				if subExporterConfig == nil {
 					svc.GetLogger().Error("configuration is invalid, exporter object missing")
 					return nil, errors.ErrMalformedEntity

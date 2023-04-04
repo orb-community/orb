@@ -66,7 +66,7 @@ func (req addReq) validate() (err error) {
 	}
 
 	authenticationCfg := types.Metadata(config.GetSubMetadata("authentication"))
-	if authenticationCfg == nil {
+	if authenticationCfg == nil || len(authenticationCfg) == 0 {
 		return errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
 	}
 	authType, ok := authentication_type.GetAuthType(authenticationCfg["type"].(string))
