@@ -335,7 +335,7 @@ def check_logs_contain_log(logs, expected_log, event, start_time=0):
 
 
 def run_local_agent_from_terminal(command, verify_ssl, pktvisor_port,
-                                  include_otel_env_var="false", enable_otel="false"):
+                                  include_otel_env_var="false", enable_otel="true"):
     """
     :param (str) command: docker command to provision an agent
     :param (bool) verify_ssl: False if orb address doesn't have a valid certificate.

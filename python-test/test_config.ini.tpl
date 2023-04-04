@@ -19,7 +19,7 @@ remote_prometheus_endpoint= <base URL to send Prometheus metrics to Grafana Clou
 # headless=True
 # use_orb_live_address_pattern=True
 # include_otel_env_var=False
-# enable_otel=False
+# enable_otel=True
 
 # Required if use_orb_live_address_pattern is False:
 # orb_cloud_api_address=<orb api address>

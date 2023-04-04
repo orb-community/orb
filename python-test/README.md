@@ -91,7 +91,7 @@ Then fill in the correct values:
 - **enable_otel**:
   - Bool
   - Value to be used in variable "ORB_OTEL_ENABLE". Note that `include_otel_env_var` parameter must be `true` if this variable is true.
-  - Default value: `false`
+  - Default value: `true`
 - **use_orb_live_address_pattern**:
   - Bool
   - If true, uses orb_address as base to api and mqtt address using orb.live pattern. If false, requires you to add the corresponding addresses.
