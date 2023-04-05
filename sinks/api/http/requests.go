@@ -69,7 +69,17 @@ func (req addReq) validate() (err error) {
 	if authenticationCfg == nil || len(authenticationCfg) == 0 {
 		return errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
 	}
-	authType, ok := authentication_type.GetAuthType(authenticationCfg["type"].(string))
+	aType, ok := authenticationCfg["type"]
+	if !ok {
+		return errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
+	}
+	switch aType.(type) {
+	case string:
+		break
+	default:
+		return errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
+	}
+	authType, ok := authentication_type.GetAuthType(aType.(string))
 	if !ok {
 		return errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
 	}

@@ -222,6 +222,40 @@ func TestCreateSinks(t *testing.T) {
 			},
 		},
 	})
+	jsonWithoutAuthType := toJSON(addReq{
+		Description: "An example prometheus sink",
+		Backend:     "prometheus",
+		Config: types.Metadata{
+			"exporter": types.Metadata{
+				"remote_host": "https://orb.community/",
+			},
+			"authentication": types.Metadata{
+				"username": "test",
+				"password": "test",
+			},
+		},
+		Tags: map[string]string{
+			"cloud": "aws",
+		},
+	})
+
+	jsonInvalidAuthType := toJSON(addReq{
+		Description: "An example prometheus sink",
+		Backend:     "prometheus",
+		Config: types.Metadata{
+			"exporter": types.Metadata{
+				"remote_host": "https://orb.community/",
+			},
+			"authentication": types.Metadata{
+				"type":     "anonymous",
+				"username": "test",
+				"password": "test",
+			},
+		},
+		Tags: map[string]string{
+			"cloud": "aws",
+		},
+	})
 
 	cases := map[string]struct {
 		req         string
@@ -295,6 +329,20 @@ func TestCreateSinks(t *testing.T) {
 		},
 		"add sink with only exporter object on config": {
 			req:         jsonSinkTestConfig2,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/sinks",
+		},
+		"add sink with no authentication type within config": {
+			req:         jsonWithoutAuthType,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+			location:    "/sinks",
+		},
+		"add sink with invalid authentication type within config": {
+			req:         jsonInvalidAuthType,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusBadRequest,
