@@ -132,9 +132,32 @@ func (req updateSinkReq) validate(sinkBackend backend.Backend) error {
 		} else {
 			config = req.Config
 		}
-		err = sinkBackend.ValidateConfiguration(config)
+		backendCfg := types.Metadata(config.GetSubMetadata("exporter"))
+		err = sinkBackend.ValidateConfiguration(backendCfg)
 		if err != nil {
-			return errors.Wrap(errors.ErrMalformedEntity, err)
+			return errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
+		}
+		authenticationCfg := types.Metadata(config.GetSubMetadata("authentication"))
+		if authenticationCfg == nil || len(authenticationCfg) == 0 {
+			return errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
+		}
+		aType, ok := authenticationCfg["type"]
+		if !ok {
+			return errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
+		}
+		switch aType.(type) {
+		case string:
+			break
+		default:
+			return errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
+		}
+		authType, ok := authentication_type.GetAuthType(aType.(string))
+		if !ok {
+			return errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
+		}
+		err = authType.ValidateConfiguration("object", authenticationCfg)
+		if err != nil {
+			return errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
 		}
 	}
 

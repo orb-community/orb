@@ -392,6 +392,30 @@ func TestUpdateSink(t *testing.T) {
 		Tags:        sk.Tags,
 	})
 
+	dataNoAuthConfig := toJSON(updateSinkReq{
+		Name:        "invalid-sink-no-auth",
+		Backend:     "prometheus",
+		Description: sk.Description,
+		Config: map[string]interface{}{
+			"exporter": map[string]interface{}{"remote_host": "https://orb.community/"},
+		},
+		Tags: sk.Tags,
+	})
+
+	dataNoExporterConfig := toJSON(updateSinkReq{
+		Name:        "invalid-sink-no-exporter",
+		Backend:     "prometheus",
+		Description: sk.Description,
+		Config: types.Metadata{
+			"authentication": types.Metadata{
+				"type":     "basicauth",
+				"username": "test",
+				"password": "test",
+			},
+		},
+		Tags: sk.Tags,
+	})
+
 	cases := map[string]struct {
 		req         string
 		id          string
@@ -527,6 +551,27 @@ func TestUpdateSink(t *testing.T) {
 		},
 		"update existing sink with a invalid regex name": {
 			req:         dataInvalidRgxName,
+			id:          sk.ID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+		},
+		"update existing sink with a config without authentication": {
+			req:         dataInvalidRgxName,
+			id:          sk.ID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+		},
+		"update existing sink with a config without exporter": {
+			req:         dataNoExporterConfig,
+			id:          sk.ID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusBadRequest,
+		},
+		"update existing sink with a config without auth type": {
+			req:         dataNoAuthConfig,
 			id:          sk.ID,
 			contentType: contentType,
 			auth:        token,
