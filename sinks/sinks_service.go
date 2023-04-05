@@ -352,10 +352,20 @@ func validateBackend(sink *Sink) (err error) {
 	sinkBe := backend.GetBackend(sink.Backend)
 	if len(sink.ConfigData) == 0 {
 		config := sink.Config.GetSubMetadata("exporter")
+		if config == nil {
+			return errors.Wrap(ErrInvalidBackend, errors.New("missing exporter configuration"))
+		}
 		return sinkBe.ValidateConfiguration(config)
 	} else {
-		sink.Config, err = sinkBe.ParseConfig("yaml", sink.ConfigData)
+		exporterCfg, err := sinkBe.ParseConfig("yaml", sink.ConfigData)
+		if err != nil {
+			return errors.Wrap(ErrInvalidBackend, err)
+		}
+		sink.Config = types.Metadata{"exporter": exporterCfg}
 		config2 := sink.Config.GetSubMetadata("exporter")
+		if config2 == nil {
+			return errors.Wrap(ErrInvalidBackend, errors.New("missing exporter configuration"))
+		}
 		return sinkBe.ValidateConfiguration(config2)
 	}
 }

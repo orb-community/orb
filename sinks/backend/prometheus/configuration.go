@@ -33,9 +33,10 @@ func (p *Backend) ParseConfig(format string, config string) (configReturn types.
 		if err != nil {
 			return nil, errors.Wrap(errors.New("failed to parse config YAML"), err)
 		}
-		configReturn = make(types.Metadata)
+		prometheusCfg := make(map[string]interface{})
 		// Check for Token Auth
 		configReturn[RemoteHostURLConfigFeature] = configUtil.RemoteHost
+		configReturn["exporter"] = prometheusCfg
 		return
 	} else {
 		return nil, errors.New("unsupported format")

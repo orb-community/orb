@@ -607,8 +607,11 @@ func TestListSinks(t *testing.T) {
 		snk := sinks.Sink{
 			Name:    skName,
 			Backend: "prometheus",
-			Config:  map[string]interface{}{"remote_host": "https://orb.community/", "username": "dbuser"},
-			Tags:    map[string]string{"cloud": "aws"},
+			Config: map[string]interface{}{
+				"exporter":       map[string]interface{}{"remote_host": "https://orb.community/"},
+				"authentication": map[string]interface{}{"type": "basicauth", "username": "dbuser", "password": "dbpass"},
+			},
+			Tags: map[string]string{"cloud": "aws"},
 		}
 
 		sk, err := svc.CreateSink(context.Background(), token, snk)

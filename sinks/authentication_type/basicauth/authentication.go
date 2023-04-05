@@ -82,8 +82,13 @@ func (a *AuthConfig) ValidateConfiguration(inputFormat string, input interface{}
 }
 
 func (a *AuthConfig) ConfigToFormat(outputFormat string, input interface{}) (interface{}, error) {
-	//TODO implement me
-	panic("implement me")
+	switch input.(type) {
+	case types.Metadata:
+		// do stuff
+	case string:
+		// do stuff
+	}
+	return nil, nil
 }
 
 func (a *AuthConfig) OmitInformation(outputFormat string, input interface{}) (interface{}, error) {
