@@ -59,7 +59,7 @@ const (
   "backend": "prometheus",
   "config": {
     "exporter" : {
-      "remote_host": "https://orb.community/",
+      "remote_host": "https://orb.community/"
     },
     "authentication" : {
       "type": "basicauth",
@@ -280,21 +280,21 @@ func TestCreateSinks(t *testing.T) {
 			location:    "/sinks",
 		},
 		"add sink with missing config": {
-			req:         string(jsonSinkTestConfigNoConfig),
+			req:         jsonSinkTestConfigNoConfig,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusBadRequest,
 			location:    "/sinks",
 		},
 		"add sink with only authentication object on config": {
-			req:         string(jsonSinkTestConfig),
+			req:         jsonSinkTestConfig,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusBadRequest,
 			location:    "/sinks",
 		},
 		"add sink with only exporter object on config": {
-			req:         string(jsonSinkTestConfig2),
+			req:         jsonSinkTestConfig2,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusBadRequest,
