@@ -36,56 +36,55 @@ type addReq struct {
 	token       string
 }
 
-func (req addReq) validate() (err error) {
-	if req.token == "" {
-		return errors.ErrUnauthorizedAccess
+func GetConfigurationAndMetadataFromMeta(backendName string, config types.Metadata) (configSvc *sinks.Configuration, exporter types.Metadata, authentication types.Metadata, err error) {
+	if backendName == "" || !backend.HaveBackend(backendName) {
+		return nil, nil, nil, errors.Wrap(errors.ErrMalformedEntity, errors.New("backend not found"))
 	}
 
-	if req.Backend == "" || !backend.HaveBackend(req.Backend) {
-		return errors.Wrap(errors.ErrMalformedEntity, errors.New("backend not found"))
+	configSvc = &sinks.Configuration{
+		Exporter: backend.GetBackend(backendName),
 	}
-
-	reqBackend := backend.GetBackend(req.Backend)
-	if req.ConfigData == "" && req.Config == nil {
-		return errors.Wrap(errors.ErrMalformedEntity, errors.New("config not found"))
-	}
-
-	var config types.Metadata
-	if req.Format != "" {
-		config, err = reqBackend.ParseConfig(req.Format, req.ConfigData)
-		if err != nil {
-			return errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
-		}
-	} else {
-		config = req.Config
-	}
-	backendCfg := types.Metadata(config.GetSubMetadata("exporter"))
-	err = reqBackend.ValidateConfiguration(backendCfg)
+	exporter = config.GetSubMetadata("exporter")
+	err = configSvc.Exporter.ValidateConfiguration(exporter)
 	if err != nil {
-		return errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
+		return
 	}
 
-	authenticationCfg := types.Metadata(config.GetSubMetadata("authentication"))
-	if authenticationCfg == nil || len(authenticationCfg) == 0 {
-		return errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
-	}
-	aType, ok := authenticationCfg["type"]
+	authentication = config.GetSubMetadata("authentication")
+	authtype, ok := authentication["type"]
 	if !ok {
-		return errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
+		err = errors.Wrap(errors.ErrMalformedEntity, errors.New("missing required field authentication type"))
+		return
 	}
-	switch aType.(type) {
+	switch authtype.(type) {
 	case string:
 		break
 	default:
-		return errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
+		err = errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
+		return
 	}
-	authType, ok := authentication_type.GetAuthType(aType.(string))
+	authTypeSvc, ok := authentication_type.GetAuthType(authtype.(string))
 	if !ok {
-		return errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
+		err = errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid required field authentication type"))
+		return
 	}
-	err = authType.ValidateConfiguration("object", authenticationCfg)
-	if err != nil {
-		return errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
+	configSvc.Authentication = authTypeSvc
+	err = configSvc.Authentication.ValidateConfiguration("object", authentication)
+	return
+}
+
+func GetConfigurationAndMetadataFromYaml(backendName string, config string) (configSvc *sinks.Configuration, exporter types.Metadata, authentication types.Metadata, err error) {
+	if backendName == "" || !backend.HaveBackend(backendName) {
+		return nil, nil, nil, errors.Wrap(errors.ErrMalformedEntity, errors.New("backend not found"))
+	}
+
+	_ = backend.GetBackend(backendName)
+	return
+}
+
+func (req addReq) validate() (err error) {
+	if req.token == "" {
+		return errors.ErrUnauthorizedAccess
 	}
 
 	if req.Name == "" {
@@ -112,53 +111,13 @@ type updateSinkReq struct {
 	token       string
 }
 
-func (req updateSinkReq) validate(sinkBackend backend.Backend) error {
+func (req updateSinkReq) validate() error {
 	if req.token == "" {
 		return errors.ErrUnauthorizedAccess
 	}
 
 	if req.id == "" {
 		return errors.ErrMalformedEntity
-	}
-
-	if req.ConfigData != "" || req.Config != nil {
-		var config types.Metadata
-		var err error
-		if req.Format != "" {
-			config, err = sinkBackend.ParseConfig(req.Format, req.ConfigData)
-			if err != nil {
-				return errors.Wrap(errors.ErrMalformedEntity, err)
-			}
-		} else {
-			config = req.Config
-		}
-		backendCfg := types.Metadata(config.GetSubMetadata("exporter"))
-		err = sinkBackend.ValidateConfiguration(backendCfg)
-		if err != nil {
-			return errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
-		}
-		authenticationCfg := types.Metadata(config.GetSubMetadata("authentication"))
-		if authenticationCfg == nil || len(authenticationCfg) == 0 {
-			return errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
-		}
-		aType, ok := authenticationCfg["type"]
-		if !ok {
-			return errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
-		}
-		switch aType.(type) {
-		case string:
-			break
-		default:
-			return errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
-		}
-		authType, ok := authentication_type.GetAuthType(aType.(string))
-		if !ok {
-			return errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
-		}
-		err = authType.ValidateConfiguration("object", authenticationCfg)
-		if err != nil {
-			return errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
-		}
 	}
 
 	if req.Description == nil && req.Name == "" && req.ConfigData == "" && len(req.Config) == 0 && req.Tags == nil {

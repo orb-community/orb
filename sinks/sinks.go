@@ -93,6 +93,18 @@ func (s *State) Scan(value interface{}) error {
 }
 func (s State) Value() (driver.Value, error) { return s.String(), nil }
 
+func NewConfigBackends(e backend.Backend, a authentication_type.AuthenticationType) Configuration {
+	return Configuration{
+		Exporter:       e,
+		Authentication: a,
+	}
+}
+
+type Configuration struct {
+	Exporter       backend.Backend
+	Authentication authentication_type.AuthenticationType
+}
+
 type Sink struct {
 	ID          string
 	Name        types.Identifier

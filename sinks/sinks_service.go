@@ -34,17 +34,21 @@ func (svc sinkService) CreateSink(ctx context.Context, token string, sink Sink) 
 
 	sink.MFOwnerID = mfOwnerID
 
-	err = validateBackend(&sink)
+	be, err := validateBackend(&sink)
 	if err != nil {
 		return Sink{}, err
 	}
-	err = validateAuthType(&sink)
+	at, err := validateAuthType(&sink)
 	if err != nil {
 		return Sink{}, err
+	}
+	cfg := Configuration{
+		Authentication: at,
+		Exporter:       be,
 	}
 
 	// encrypt data for the password
-	sink, err = svc.encryptMetadata(sink)
+	sink, err = svc.encryptMetadata(cfg, sink)
 	if err != nil {
 		return Sink{}, errors.Wrap(ErrCreateSink, err)
 	}
@@ -61,61 +65,50 @@ func (svc sinkService) CreateSink(ctx context.Context, token string, sink Sink) 
 	sink.ID = id
 
 	// After creating, decrypt Metadata to send correct information to Redis
-	sink, err = svc.decryptMetadata(sink)
+	sink, err = svc.decryptMetadata(cfg, sink)
 
 	return sink, nil
 }
 
-func validateAuthType(s *Sink) error {
+func validateAuthType(s *Sink) (authentication_type.AuthenticationType, error) {
 	var authMetadata types.Metadata
 	if len(s.ConfigData) != 0 {
 		var helper types.Metadata
 		if s.Format == "yaml" {
 			err := yaml.Unmarshal([]byte(s.ConfigData), &helper)
 			if err != nil {
-				return err
+				return nil, err
 			}
 			authMetadata = helper.GetSubMetadata("authentication")
 		} else {
-			return errors.New("config format not supported")
+			return nil, errors.New("config format not supported")
 		}
 	} else {
 		authMetadata = s.Config.GetSubMetadata("authentication")
 	}
 	authType, ok := authentication_type.GetAuthType(authMetadata["type"].(string))
 	if !ok {
-		return errors.New("authentication type not found")
+		return nil, errors.New("authentication type not found")
 	}
 
 	err := authType.ValidateConfiguration("object", authMetadata)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return authType, nil
 }
 
-func (svc sinkService) encryptMetadata(sink Sink) (Sink, error) {
+func (svc sinkService) encryptMetadata(configSvc Configuration, sink Sink) (Sink, error) {
 	var err error
 	authenticationConfig := sink.Config.GetSubMetadata("authentication")
-	metadata := types.Metadata(authenticationConfig)
-	metadata.FilterMap(func(key string) bool {
-		return key == backend.ConfigFeatureTypePassword
-	}, func(key string, value interface{}) (string, interface{}) {
-		var stringVal string
-		switch v := value.(type) {
-		case *string:
-			stringVal = *v
-		case string:
-			stringVal = v
-		}
-		newValue, err2 := svc.passwordService.EncodePassword(stringVal)
-		if err2 != nil {
-			err = err2
-			return key, value
-		}
-		return key, newValue
-	})
+	encodeInformation, err := configSvc.Authentication.EncodeInformation("object", authenticationConfig)
+	if err != nil {
+		return Sink{}, err
+	}
+	config := make(types.Metadata)
+	config["authentication"] = encodeInformation.(types.Metadata)
+	sink.Config.Merge(config)
 	if sink.ConfigData != "" {
 		sinkBE := backend.GetBackend(sink.Backend)
 		if sinkBE == nil {
@@ -139,11 +132,10 @@ func (svc sinkService) ListAuthenticationTypes(ctx context.Context, token string
 	panic("TODO")
 }
 
-func (svc sinkService) decryptMetadata(sink Sink) (Sink, error) {
+func (svc sinkService) decryptMetadata(configSvc Configuration, sink Sink) (Sink, error) {
 	var err error
 	authenticationConfig := sink.Config.GetSubMetadata("authentication")
-	metadata := types.Metadata(authenticationConfig)
-	metadata.FilterMap(func(key string) bool {
+	authenticationConfig.FilterMap(func(key string) bool {
 		return key == backend.ConfigFeatureTypePassword
 	}, func(key string, value interface{}) (string, interface{}) {
 		newValue, err2 := svc.passwordService.DecodePassword(value.(string))
@@ -331,7 +323,12 @@ func (svc sinkService) ValidateSink(ctx context.Context, token string, sink Sink
 
 	sink.MFOwnerID = mfOwnerID
 
-	err = validateBackend(&sink)
+	_, err = validateBackend(&sink)
+	if err != nil {
+		return Sink{}, errors.Wrap(ErrValidateSink, err)
+	}
+
+	_, err = validateAuthType(&sink)
 	if err != nil {
 		return Sink{}, errors.Wrap(ErrValidateSink, err)
 	}
@@ -343,29 +340,29 @@ func (svc sinkService) ChangeSinkStateInternal(ctx context.Context, sinkID strin
 	return svc.sinkRepo.UpdateSinkState(ctx, sinkID, msg, ownerID, state)
 }
 
-func validateBackend(sink *Sink) (err error) {
+func validateBackend(sink *Sink) (be backend.Backend, err error) {
 	if backend.HaveBackend(sink.Backend) {
 		sink.State = Unknown
 	} else {
-		return ErrInvalidBackend
+		return nil, ErrInvalidBackend
 	}
 	sinkBe := backend.GetBackend(sink.Backend)
 	if len(sink.ConfigData) == 0 {
 		config := sink.Config.GetSubMetadata("exporter")
 		if config == nil {
-			return errors.Wrap(ErrInvalidBackend, errors.New("missing exporter configuration"))
+			return nil, errors.Wrap(ErrInvalidBackend, errors.New("missing exporter configuration"))
 		}
-		return sinkBe.ValidateConfiguration(config)
+		return sinkBe, sinkBe.ValidateConfiguration(config)
 	} else {
 		exporterCfg, err := sinkBe.ParseConfig("yaml", sink.ConfigData)
 		if err != nil {
-			return errors.Wrap(ErrInvalidBackend, err)
+			return nil, errors.Wrap(ErrInvalidBackend, err)
 		}
 		sink.Config = types.Metadata{"exporter": exporterCfg}
 		config2 := sink.Config.GetSubMetadata("exporter")
 		if config2 == nil {
-			return errors.Wrap(ErrInvalidBackend, errors.New("missing exporter configuration"))
+			return nil, errors.Wrap(ErrInvalidBackend, errors.New("missing exporter configuration"))
 		}
-		return sinkBe.ValidateConfiguration(config2)
+		return sinkBe, sinkBe.ValidateConfiguration(config2)
 	}
 }
