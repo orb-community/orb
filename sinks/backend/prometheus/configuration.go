@@ -28,6 +28,7 @@ func (p *Backend) ParseConfig(format string, config string) (configReturn types.
 	if format == "yaml" {
 		configAsByte := []byte(config)
 		// Parse the YAML data into a Config struct
+		configReturn = make(types.Metadata)
 		var configUtil configParseUtility
 		err = yaml.Unmarshal(configAsByte, &configUtil)
 		if err != nil {
@@ -35,7 +36,7 @@ func (p *Backend) ParseConfig(format string, config string) (configReturn types.
 		}
 		prometheusCfg := make(map[string]interface{})
 		// Check for Token Auth
-		configReturn[RemoteHostURLConfigFeature] = configUtil.RemoteHost
+		prometheusCfg[RemoteHostURLConfigFeature] = configUtil.RemoteHost
 		configReturn["exporter"] = prometheusCfg
 		return
 	} else {

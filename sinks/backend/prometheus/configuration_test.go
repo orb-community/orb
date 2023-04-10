@@ -70,7 +70,7 @@ func TestBackend_ParseConfig(t *testing.T) {
 				format: "yaml",
 				config: validYaml,
 			},
-			wantConfigReturn: map[string]interface{}{RemoteHostURLConfigFeature: "https://acme.com/prom/push"},
+			wantConfigReturn: map[string]interface{}{"exporter": map[string]interface{}{RemoteHostURLConfigFeature: "https://acme.com/prom/push"}},
 			wantErr:          false,
 		},
 		{

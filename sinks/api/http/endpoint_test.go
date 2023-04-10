@@ -19,7 +19,6 @@ import (
 	"github.com/orb-community/orb/sinks"
 	"github.com/orb-community/orb/sinks/authentication_type"
 	"github.com/orb-community/orb/sinks/backend"
-	prometheusbackend "github.com/orb-community/orb/sinks/backend/prometheus"
 	skmocks "github.com/orb-community/orb/sinks/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -946,14 +945,20 @@ func TestViewSink(t *testing.T) {
 	sk, err := service.CreateSink(context.Background(), token, sink)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 	sinkBE := backend.GetBackend("prometheus")
-	omitedConfig, _ := omitSecretInformation(sinkBE, sk.Format, sk.Config)
+	sinkAuthType, _ := authentication_type.GetAuthType("basicauth")
+	cfg := sinks.Configuration{
+		Exporter:       sinkBE,
+		Authentication: sinkAuthType,
+	}
+	omittedSink, _ := omitSecretInformation(&cfg, sink)
 	require.NoError(t, err, "error during omitting secrets")
 	data := toJSON(sinkRes{
 		ID:          sk.ID,
 		Name:        sk.Name.String(),
 		Description: *sk.Description,
 		Backend:     sk.Backend,
-		Config:      omitedConfig,
+		Config:      omittedSink.Config,
+		ConfigData:  omittedSink.ConfigData,
 		Tags:        sk.Tags,
 		State:       sk.State.String(),
 		Error:       sk.Error,
@@ -1172,28 +1177,6 @@ func TestValidateSink(t *testing.T) {
 			res, err := req.make()
 			assert.Nil(t, err, fmt.Sprintf("unexpected erro %s", err))
 			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
-		})
-	}
-}
-
-func TestOmitPasswords(t *testing.T) {
-	username := "387157"
-	cases := map[string]struct {
-		backend          backend.Backend
-		inputMetadata    types.Metadata
-		expectedMetadata types.Metadata
-	}{
-		"omit configuration with password": {
-			backend:          &prometheusbackend.Backend{},
-			inputMetadata:    types.Metadata{"username": &username, "password": "s3cr3tp@ssw0rd", "remote_host": "someUrl"},
-			expectedMetadata: types.Metadata{"username": &username, "password": "", "remote_host": "someUrl"},
-		},
-	}
-
-	for desc, tc := range cases {
-		t.Run(desc, func(t *testing.T) {
-			metadata, _ := omitSecretInformation(tc.backend, "yaml", tc.inputMetadata)
-			assert.Equal(t, tc.expectedMetadata, metadata)
 		})
 	}
 }

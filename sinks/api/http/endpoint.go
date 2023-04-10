@@ -30,8 +30,9 @@ func omitSecretInformation(configSvc *sinks.Configuration, inputSink sinks.Sink)
 	exporterMeta := inputSink.Config.GetSubMetadata("exporter")
 	returnSink.Config = types.Metadata{"authentication": authMeta, "exporter": exporterMeta}
 	if inputSink.Format != "" {
-		configData, err := configSvc.Authentication.ConfigToFormat(inputSink.Format, authMeta)
-		if err != nil {
+		configData, newErr := configSvc.Authentication.ConfigToFormat(inputSink.Format, authMeta)
+		if newErr != nil {
+			err = newErr
 			return
 		}
 		returnSink.ConfigData = configData.(string)
