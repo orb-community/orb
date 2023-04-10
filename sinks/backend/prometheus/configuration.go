@@ -4,7 +4,6 @@ import (
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks/backend"
-	"golang.org/x/exp/maps"
 	"gopkg.in/yaml.v3"
 	"net/url"
 )
@@ -29,15 +28,10 @@ func (p *Backend) ParseConfig(format string, config string) (configReturn types.
 		configAsByte := []byte(config)
 		// Parse the YAML data into a Config struct
 		configReturn = make(types.Metadata)
-		var configUtil configParseUtility
-		err = yaml.Unmarshal(configAsByte, &configUtil)
+		err = yaml.Unmarshal(configAsByte, &configReturn)
 		if err != nil {
 			return nil, errors.Wrap(errors.New("failed to parse config YAML"), err)
 		}
-		prometheusCfg := make(map[string]interface{})
-		// Check for Token Auth
-		prometheusCfg[RemoteHostURLConfigFeature] = configUtil.RemoteHost
-		configReturn["exporter"] = prometheusCfg
 		return
 	} else {
 		return nil, errors.New("unsupported format")
@@ -45,17 +39,6 @@ func (p *Backend) ParseConfig(format string, config string) (configReturn types.
 }
 
 func (p *Backend) ValidateConfiguration(config types.Metadata) error {
-	authType := BasicAuth
-	for _, key := range maps.Keys(config) {
-		if key == ApiTokenConfigFeature {
-			authType = TokenAuth
-			break
-		}
-	}
-	switch authType {
-	case TokenAuth:
-		return errors.New("not implemented yet")
-	}
 	remoteUrl, remoteHostOk := config[RemoteHostURLConfigFeature]
 	if !remoteHostOk {
 		return errors.New("must send valid URL for Remote Write")

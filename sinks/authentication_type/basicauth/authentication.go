@@ -85,7 +85,8 @@ func (a *AuthConfig) ConfigToFormat(outputFormat string, input interface{}) (int
 	switch input.(type) {
 	case types.Metadata:
 		if outputFormat == "yaml" {
-			return yaml.Marshal(input)
+			retVal, err := yaml.Marshal(input)
+			return string(retVal), err
 		} else {
 			return nil, errors.New("unsupported format")
 		}

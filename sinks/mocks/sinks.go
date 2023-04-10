@@ -22,10 +22,9 @@ var _ sinks.SinkRepository = (*sinkRepositoryMock)(nil)
 
 // Mock Repository
 type sinkRepositoryMock struct {
-	mu              sync.Mutex
-	counter         uint64
-	sinksMock       map[string]sinks.Sink
-	passwordService authentication_type.PasswordService
+	mu        sync.Mutex
+	counter   uint64
+	sinksMock map[string]*sinks.Sink
 }
 
 func (s *sinkRepositoryMock) SearchAllSinks(ctx context.Context, filter sinks.Filter) ([]sinks.Sink, error) {
@@ -42,7 +41,7 @@ func (s *sinkRepositoryMock) RetrieveByOwnerAndId(ctx context.Context, ownerID s
 
 	if c, ok := s.sinksMock[key]; ok {
 		if s.sinksMock[key].MFOwnerID == ownerID {
-			return c, nil
+			return *c, nil
 		} else {
 			return sinks.Sink{}, sinks.ErrNotFound
 		}
@@ -53,8 +52,7 @@ func (s *sinkRepositoryMock) RetrieveByOwnerAndId(ctx context.Context, ownerID s
 
 func NewSinkRepository(service authentication_type.PasswordService) sinks.SinkRepository {
 	return &sinkRepositoryMock{
-		sinksMock:       make(map[string]sinks.Sink),
-		passwordService: service,
+		sinksMock: make(map[string]*sinks.Sink),
 	}
 }
 
@@ -71,7 +69,7 @@ func (s *sinkRepositoryMock) Save(ctx context.Context, sink sinks.Sink) (string,
 	s.counter++
 	ID, _ := uuid.NewV4()
 	sink.ID = ID.String()
-	s.sinksMock[sink.ID] = sink
+	s.sinksMock[sink.ID] = &sink
 	return sink.ID, nil
 }
 
@@ -82,7 +80,7 @@ func (s *sinkRepositoryMock) Update(ctx context.Context, sink sinks.Sink) (err e
 		if s.sinksMock[sink.ID].MFOwnerID != sink.MFOwnerID {
 			return errors.ErrUpdateEntity
 		}
-		s.sinksMock[sink.ID] = sink
+		s.sinksMock[sink.ID] = &sink
 		return nil
 	}
 	return sinks.ErrNotFound
@@ -102,7 +100,7 @@ func (s *sinkRepositoryMock) RetrieveAllByOwnerID(ctx context.Context, owner str
 		id++
 		if v.MFOwnerID == owner && id >= first && id < last {
 			if reflect.DeepEqual(pm.Tags, v.Tags) || pm.Tags == nil {
-				sks = append(sks, v)
+				sks = append(sks, *v)
 			}
 		}
 	}
@@ -125,7 +123,7 @@ func (s *sinkRepositoryMock) RetrieveById(ctx context.Context, key string) (sink
 	defer s.mu.Unlock()
 
 	if c, ok := s.sinksMock[key]; ok {
-		return c, nil
+		return *c, nil
 	}
 
 	return sinks.Sink{}, sinks.ErrNotFound

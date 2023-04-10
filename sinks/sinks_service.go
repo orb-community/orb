@@ -195,6 +195,7 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 			return Sink{}, err
 		}
 	} else {
+		sink.Backend = currentSink.Backend
 		be, err := validateBackend(&sink)
 		if err != nil {
 			return Sink{}, err
@@ -380,11 +381,11 @@ func validateBackend(sink *Sink) (be backend.Backend, err error) {
 		}
 		return sinkBe, sinkBe.ValidateConfiguration(config)
 	} else {
-		exporterCfg, err := sinkBe.ParseConfig("yaml", sink.ConfigData)
+		parseConfig, err := sinkBe.ParseConfig("yaml", sink.ConfigData)
 		if err != nil {
 			return nil, errors.Wrap(ErrInvalidBackend, err)
 		}
-		sink.Config = types.Metadata{"exporter": exporterCfg}
+		sink.Config = parseConfig
 		config2 := sink.Config.GetSubMetadata("exporter")
 		if config2 == nil {
 			return nil, errors.Wrap(ErrInvalidBackend, errors.New("missing exporter configuration"))

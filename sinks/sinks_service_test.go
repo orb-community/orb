@@ -130,7 +130,7 @@ func TestIdempotencyUpdateSink(t *testing.T) {
 		Error:       "",
 		Config: map[string]interface{}{
 			"exporter":       map[string]interface{}{"remote_host": "https://orb.community/"},
-			"authentication": map[string]interface{}{"type": "basicauth", "username": "dbuser", "password": "dbpass"},
+			"authentication": map[string]interface{}{"type": "basicauth", "username": "netops", "password": "dbpass"},
 		},
 		Tags: map[string]string{"cloud": "aws"},
 	}
@@ -140,11 +140,11 @@ func TestIdempotencyUpdateSink(t *testing.T) {
 		Backend:     "prometheus",
 		State:       sinks.Unknown,
 		Error:       "",
-		ConfigData:  "exporter: \n    remote_host: https://orb.community/\nauthentication:\n    type: basicauth\n    username: dbuser\n    password: dbpass\n",
+		ConfigData:  "exporter: \n    remote_host: https://orb.community/\nauthentication:\n    type: basicauth\n    username: netops\n    password: dbpass\n",
 		Format:      "yaml",
 		Config: map[string]interface{}{
 			"exporter":       map[string]interface{}{"remote_host": "https://orb.community/"},
-			"authentication": map[string]interface{}{"type": "basicauth", "username": "dbuser", "password": "dbpass"},
+			"authentication": map[string]interface{}{"type": "basicauth", "username": "netops", "password": "dbpass"},
 		},
 		MFOwnerID: "OrbCommunity",
 		Tags:      map[string]string{"cloud": "aws"},
@@ -173,8 +173,8 @@ func TestIdempotencyUpdateSink(t *testing.T) {
 				tagVal, tagOk := value.Tags["cloud"]
 				require.True(t, tagOk)
 				require.Equal(t, "aws", tagVal)
-				require.Equalf(t, "https://orb.community/", value.Config["remote_host"], "remote host is not equal")
-				require.Equalf(t, "netops", value.Config["username"], "username is not equal")
+				require.Equalf(t, "https://orb.community/", value.Config.GetSubMetadata("exporter")["remote_host"], "remote host is not equal")
+				require.Equalf(t, "netops", value.Config.GetSubMetadata("authentication")["username"], "username is not equal")
 			},
 			token: token,
 		},
@@ -189,7 +189,8 @@ func TestIdempotencyUpdateSink(t *testing.T) {
 				tagVal, tagOk := value.Tags["cloud"]
 				require.True(t, tagOk)
 				require.Equal(t, "aws", tagVal)
-				require.Equalf(t, "https://orb.community/", value.Config["remote_host"], "remote host is not equal")
+				require.Equalf(t, "https://orb.community/", value.Config.GetSubMetadata("exporter")["remote_host"], "remote host is not equal")
+				require.Equalf(t, "netops", value.Config.GetSubMetadata("authentication")["username"], "username is not equal")
 			},
 			token: token,
 		},
@@ -247,67 +248,30 @@ func TestPartialUpdateSink(t *testing.T) {
 		expected    func(t *testing.T, value sinks.Sink, err error)
 		token       string
 	}{
-		// TODO this will fail locally because of password encryption,
-		// TODO we will revisit this whenever there is an update on password encryption
-		//"update only name": {
-		//	requestSink: sinks.Sink{
-		//		ID:   jsonCreatedSink.ID,
-		//		Name: newSinkName,
-		//	},
-		//	expected: func(t *testing.T, value sinks.Sink, err error) {
-		//		require.NoError(t, err, "no error expected")
-		//		require.Equal(t, value.Name, newSinkName, "sink name is not equal")
-		//	},
-		//	token: token,
-		//},
-		//"update only description": {
-		//	requestSink: sinks.Sink{
-		//		ID:          jsonCreatedSink.ID,
-		//		Description: &aNewDescription,
-		//	},
-		//	expected: func(t *testing.T, value sinks.Sink, err error) {
-		//		require.NoError(t, err, "no error expected")
-		//		require.NotNilf(t, value.Description, "description is nil")
-		//		desc := *value.Description
-		//		require.Equal(t, desc, aNewDescription, "description is not equal")
-		//	},
-		//	token: token,
-		//}, "update only tags": {
-		//	requestSink: sinks.Sink{
-		//		ID:   jsonCreatedSink.ID,
-		//		Tags: map[string]string{"cloud": "gcp", "from_aws": "true"},
-		//	},
-		//	expected: func(t *testing.T, value sinks.Sink, err error) {
-		//		require.NoError(t, err, "no error expected")
-		//		tagVal, tagOk := value.Tags["cloud"]
-		//		tag2Val, tag2Ok := value.Tags["from_aws"]
-		//		require.True(t, tagOk)
-		//		require.Equal(t, "gcp", tagVal)
-		//		require.True(t, tag2Ok)
-		//		require.Equal(t, "true", tag2Val)
-		//	},
-		//	token: token,
-		//},
 		"update config json": {
 			requestSink: sinks.Sink{
-				ID:     jsonCreatedSink.ID,
-				Config: map[string]interface{}{"remote_host": "https://orb.community/prom/push", "username": "netops_admin", "password": "w0w-orb-Rocks!"},
+				ID: jsonCreatedSink.ID,
+				Config: map[string]interface{}{
+					"exporter":       map[string]interface{}{"remote_host": "https://orb.community/prom/push"},
+					"authentication": map[string]interface{}{"type": "basicauth", "username": "netops_admin", "password": "newpass"},
+				},
 			},
 			expected: func(t *testing.T, value sinks.Sink, err error) {
 				require.NoError(t, err, "no error expected")
-				require.Equalf(t, "https://orb.community/prom/push", value.Config["remote_host"], "want %s, got %s", "https://orb.community/prom/push", value.Config["remote_host"])
-				require.Equalf(t, "netops_admin", value.Config["username"], "want %s, got %s", "netops_admin", value.Config["username"])
+				require.Equalf(t, "https://orb.community/prom/push", value.Config.GetSubMetadata("exporter")["remote_host"], "want %s, got %s", "https://orb.community/prom/push", value.Config.GetSubMetadata("exporter")["remote_host"])
+				require.Equalf(t, "netops_admin", value.Config.GetSubMetadata("authentication")["username"], "want %s, got %s", "netops_admin", value.Config.GetSubMetadata("authentication")["username"])
+				require.Equalf(t, "newpass", value.Config.GetSubMetadata("authentication")["password"], "want %s, got %s", "newpass", value.Config.GetSubMetadata("authentication")["password"])
 			},
 			token: token,
 		}, "update config yaml": {
 			requestSink: sinks.Sink{
 				ID:         yamlCreatedSink.ID,
 				Format:     "yaml",
-				ConfigData: "remote_host: https://orb.community/prom/push2\nusername: netops_admin\npassword: \"w0w-orb-Rocks!\"",
+				ConfigData: "exporter:\n    remote_host: https://orb.community/\nauthentication:\n    type: basicauth\n    username: netops\n    password: w0w-orb-Rocks!",
 			},
 			expected: func(t *testing.T, value sinks.Sink, err error) {
 				require.NoError(t, err, "no error expected")
-				require.Equalf(t, "https://orb.community/prom/push2", value.Config["remote_host"], "want %s, got %s", "https://orb.community/prom/push2", value.Config["remote_host"])
+				require.Equalf(t, "https://orb.community/", value.Config.GetSubMetadata("exporter")["remote_host"], "want %s, got %s", "https://orb.community/", value.Config.GetSubMetadata("exporter")["remote_host"])
 			},
 			token: token,
 		},
@@ -423,14 +387,25 @@ func TestUpdateSink(t *testing.T) {
 			incomingSink: sinks.Sink{
 				ID: sinkTestConfigAttribute.ID,
 				Config: types.Metadata{
-					"remote_host": "https://orb.community/",
+					"exporter": types.Metadata{
+						"remote_host": "https://orb.community/",
+					},
+					"authentication": types.Metadata{"type": "basicauth", "username": "dbuser", "password": "dbpass"},
 				},
 				Error: "",
 			},
 			expectedSink: sinks.Sink{
 				Name: sinkTestConfigAttribute.Name,
 				Config: types.Metadata{
-					"opentelemetry": "enabled", "remote_host": "https://orb.community/",
+					"opentelemetry": "enabled",
+					"exporter": types.Metadata{
+						"remote_host": "https://orb.community/",
+					},
+					"authentication": types.Metadata{
+						"type":     "basicauth",
+						"username": "dbuser",
+						"password": "dbpass",
+					},
 				},
 				Description: sinkTestConfigAttribute.Description,
 				Tags:        sinkTestConfigAttribute.Tags,

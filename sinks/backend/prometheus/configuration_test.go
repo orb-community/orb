@@ -2,13 +2,13 @@ package prometheus
 
 import (
 	"github.com/orb-community/orb/pkg/types"
-	"reflect"
+	"github.com/stretchr/testify/require"
 	"testing"
 )
 
 var (
 	validConfiguration = map[string]interface{}{RemoteHostURLConfigFeature: "https://acme.com/prom/push"}
-	validYaml          = "remote_host: https://acme.com/prom/push"
+	validYaml          = "exporter:\n  remote_host: https://acme.com/prom/push"
 )
 
 func TestBackend_ValidateConfiguration(t *testing.T) {
@@ -77,9 +77,9 @@ func TestBackend_ParseConfig(t *testing.T) {
 			name: "invalid parse",
 			args: args{
 				format: "yaml",
-				config: "remote_host: \nhttps://acme.com/prom/push\n\n",
+				config: "exporter:\n  remote_host: \n  https://acme.com/prom/push\n\n",
 			},
-			wantConfigReturn: map[string]interface{}{RemoteHostURLConfigFeature: "https://acme.com/prom/push"},
+			wantConfigReturn: map[string]interface{}{"exporter": map[string]interface{}{RemoteHostURLConfigFeature: "https://acme.com/prom/push"}},
 			wantErr:          true,
 		},
 	}
@@ -91,8 +91,8 @@ func TestBackend_ParseConfig(t *testing.T) {
 				t.Errorf("ParseConfig() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !tt.wantErr && !reflect.DeepEqual(gotConfigReturn, tt.wantConfigReturn) {
-				t.Errorf("ParseConfig() gotConfigReturn = %v, want %v", gotConfigReturn, tt.wantConfigReturn)
+			if !tt.wantErr {
+				require.Equal(t, tt.wantConfigReturn.GetSubMetadata("exporter")["remote_host"], gotConfigReturn.GetSubMetadata("exporter")["remote_host"])
 			}
 		})
 	}
