@@ -241,7 +241,6 @@ func (e *exporter) injectScopeAttribute(metricsScope pmetric.ScopeMetrics, attri
 			metrics.RemoveIf(func(m pmetric.Metric) bool {
 				return m.Name() == metricItem.Name()
 			})
-			continue
 		}
 	}
 	return metricsScope
