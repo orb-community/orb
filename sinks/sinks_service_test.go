@@ -217,26 +217,21 @@ func TestPartialUpdateSink(t *testing.T) {
 		Name:        jsonSinkName,
 		Description: &aInitialDescription,
 		Backend:     "prometheus",
-		State:       sinks.Unknown,
-		Error:       "",
 		Config: map[string]interface{}{
 			"exporter":       map[string]interface{}{"remote_host": "https://orb.community/"},
 			"authentication": map[string]interface{}{"type": "basicauth", "username": "dbuser", "password": "dbpass"},
 		},
 		Tags: map[string]string{"cloud": "aws"},
 	}
-	initialUsername := "netops"
-	initialPassword := "w0w-orb-Rocks!"
 	initialYamlSink := sinks.Sink{
 		Name:        yamlSinkName,
 		Description: &aInitialDescription,
 		Backend:     "prometheus",
 		State:       sinks.Unknown,
 		Error:       "",
-		ConfigData:  "exporter:\n    remote_host:https://orb.community/\nauthentication:\n    type: basicauth\n    username: netops\n    password: w0w-orb-Rocks!",
+		ConfigData:  "exporter:\n    remote_host: https://orb.community/\nauthentication:\n    type: basicauth\n    username: netops\n    password: w0w-orb-Rocks!",
 		Format:      "yaml",
 		MFOwnerID:   "OrbCommunity",
-		Config:      map[string]interface{}{"remote_host": "https://orb.community/", "username": &initialUsername, "password": &initialPassword},
 		Tags:        map[string]string{"cloud": "aws"},
 	}
 	jsonCreatedSink, err := service.CreateSink(ctx, token, initialJsonSink)

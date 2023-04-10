@@ -108,7 +108,7 @@ func (a *AuthConfig) OmitInformation(outputFormat string, input interface{}) (in
 		inputMeta := input.(types.Metadata)
 		authMeta := inputMeta.GetSubMetadata("authentication")
 		authMeta[PasswordConfigFeature] = ""
-		inputMeta.Merge(authMeta)
+		inputMeta["authentication"] = authMeta
 		if outputFormat == "yaml" {
 			return a.ConfigToFormat("yaml", inputMeta)
 		} else if outputFormat == "object" {
@@ -124,7 +124,7 @@ func (a *AuthConfig) OmitInformation(outputFormat string, input interface{}) (in
 		inputMeta := iia.(types.Metadata)
 		authMeta := inputMeta.GetSubMetadata("authentication")
 		authMeta[PasswordConfigFeature] = ""
-		inputMeta.Merge(authMeta)
+		inputMeta["authentication"] = authMeta
 		if outputFormat == "yaml" {
 			return a.ConfigToFormat("yaml", inputMeta)
 		} else if outputFormat == "object" {
@@ -146,7 +146,7 @@ func (a *AuthConfig) EncodeInformation(outputFormat string, input interface{}) (
 			return nil, err
 		}
 		authMeta[PasswordConfigFeature] = encoded
-		inputMeta.Merge(authMeta)
+		inputMeta["authentication"] = authMeta
 		if outputFormat == "yaml" {
 			return a.ConfigToFormat("yaml", inputMeta)
 		} else if outputFormat == "object" {
@@ -166,7 +166,7 @@ func (a *AuthConfig) EncodeInformation(outputFormat string, input interface{}) (
 			return nil, err
 		}
 		authMeta[PasswordConfigFeature] = encoded
-		inputMeta.Merge(authMeta)
+		inputMeta["authentication"] = authMeta
 		if outputFormat == "yaml" {
 			return a.ConfigToFormat("yaml", inputMeta)
 		} else if outputFormat == "object" {
@@ -188,7 +188,7 @@ func (a *AuthConfig) DecodeInformation(outputFormat string, input interface{}) (
 			return nil, err
 		}
 		authMeta[PasswordConfigFeature] = decoded
-		inputMeta.Merge(authMeta)
+		inputMeta["authentication"] = authMeta
 		if outputFormat == "yaml" {
 			return a.ConfigToFormat("yaml", inputMeta)
 		} else if outputFormat == "object" {
@@ -208,7 +208,7 @@ func (a *AuthConfig) DecodeInformation(outputFormat string, input interface{}) (
 			return nil, err
 		}
 		authMeta[PasswordConfigFeature] = decoded
-		inputMeta.Merge(authMeta)
+		inputMeta["authentication"] = authMeta
 		if outputFormat == "yaml" {
 			return a.ConfigToFormat("yaml", inputMeta)
 		} else if outputFormat == "object" {
