@@ -236,6 +236,11 @@ func (e *exporter) injectScopeAttribute(metricsScope pmetric.ScopeMetrics, attri
 				metricItem.Summary().DataPoints().At(i).Attributes().PutStr(attribute, value)
 			}
 		default:
+			e.logger.Warn("not supported metric type", zap.String("name", metricItem.Name()),
+				zap.String("type", metricItem.Type().String()))
+			metrics.RemoveIf(func(m pmetric.Metric) bool {
+				return m.Name() == metricItem.Name()
+			})
 			continue
 		}
 	}
@@ -344,6 +349,7 @@ func (e *exporter) pushAllMetrics(ctx context.Context, md pmetric.Metrics) error
 		for key, value := range agentData.AgentTags {
 			scope = e.injectScopeAttribute(scope, key, value)
 		}
+		e.logger.Info("Scrapping policy via OTLP", zap.String("policyName", policyName))
 		scope.CopyTo(ref.ScopeMetrics().AppendEmpty())
 	}
 
