@@ -21,14 +21,12 @@ import (
 )
 
 func omitSecretInformation(configSvc *sinks.Configuration, inputSink sinks.Sink) (returnSink sinks.Sink, err error) {
-	authMeta := inputSink.Config.GetSubMetadata("authentication")
-	a, err := configSvc.Authentication.OmitInformation("object", authMeta)
+	a, err := configSvc.Authentication.OmitInformation("object", inputSink.Config)
 	if err != nil {
 		return sinks.Sink{}, err
 	}
-	authMeta = a.(types.Metadata)
-	exporterMeta := inputSink.Config.GetSubMetadata("exporter")
-	returnSink.Config = types.Metadata{"authentication": authMeta, "exporter": exporterMeta}
+	authMeta := a.(types.Metadata)
+	returnSink.Config = authMeta
 	if inputSink.Format != "" {
 		configData, newErr := configSvc.Authentication.ConfigToFormat(inputSink.Format, authMeta)
 		if newErr != nil {
