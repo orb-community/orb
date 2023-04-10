@@ -1,7 +1,7 @@
 package authentication_type
 
 type AuthenticationType interface {
-	Metadata() interface{}
+	Metadata() AuthenticationTypeConfig
 	GetFeatureConfig() []ConfigFeature
 	ValidateConfiguration(inputFormat string, input interface{}) error
 	ConfigToFormat(outputFormat string, input interface{}) (interface{}, error)
@@ -30,10 +30,10 @@ func Register(name string, b AuthenticationType) {
 	authTypes[name] = b
 }
 
-func GetList() []string {
-	keys := make([]string, 0, len(authTypes))
-	for k := range authTypes {
-		keys = append(keys, k)
+func GetList() []AuthenticationTypeConfig {
+	keys := make([]AuthenticationTypeConfig, 0, len(authTypes))
+	for _, v := range authTypes {
+		keys = append(keys, v.Metadata())
 	}
 	return keys
 }

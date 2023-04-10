@@ -38,7 +38,7 @@ type AuthConfig struct {
 	encryptionService authentication_type.PasswordService
 }
 
-func (a *AuthConfig) Metadata() interface{} {
+func (a *AuthConfig) Metadata() authentication_type.AuthenticationTypeConfig {
 
 	return authentication_type.AuthenticationTypeConfig{
 		Type:        "basicauth",

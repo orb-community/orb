@@ -124,12 +124,28 @@ func (svc sinkService) encryptMetadata(configSvc Configuration, sink Sink) (Sink
 	return sink, err
 }
 
-func (svc sinkService) ViewAuthenticationType(ctx context.Context, token string, key string) (authentication_type.AuthenticationType, error) {
-	panic("TODO")
+func (svc sinkService) ViewAuthenticationType(ctx context.Context, token string, key string) (authentication_type.AuthenticationTypeConfig, error) {
+	_, err := svc.identify(token)
+	if err != nil {
+		return authentication_type.AuthenticationTypeConfig{}, err
+	}
+
+	value, ok := authentication_type.GetAuthType(key)
+	if !ok {
+		return authentication_type.AuthenticationTypeConfig{}, errors.New("invalid authentication type given name")
+	}
+	return value.Metadata(), nil
 }
 
-func (svc sinkService) ListAuthenticationTypes(ctx context.Context, token string) ([]authentication_type.AuthenticationType, error) {
-	panic("TODO")
+func (svc sinkService) ListAuthenticationTypes(ctx context.Context, token string) ([]authentication_type.AuthenticationTypeConfig, error) {
+	_, err := svc.identify(token)
+	if err != nil {
+		return nil, err
+	}
+
+	value := authentication_type.GetList()
+
+	return value, nil
 }
 
 func (svc sinkService) decryptMetadata(configSvc Configuration, sink Sink) (Sink, error) {
