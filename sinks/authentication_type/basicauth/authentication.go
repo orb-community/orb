@@ -99,22 +99,113 @@ func (a *AuthConfig) ConfigToFormat(outputFormat string, input interface{}) (int
 			return nil, errors.New("unsupported format")
 		}
 	}
-	return nil, nil
+	return nil, errors.New("unsupported format")
 }
 
 func (a *AuthConfig) OmitInformation(outputFormat string, input interface{}) (interface{}, error) {
-	//TODO implement me
-	panic("implement me")
+	switch input.(type) {
+	case types.Metadata:
+		inputMeta := input.(types.Metadata)
+		inputMeta["password"] = ""
+		if outputFormat == "yaml" {
+			return a.ConfigToFormat("yaml", inputMeta)
+		} else if outputFormat == "object" {
+			return inputMeta, nil
+		} else {
+			return nil, errors.New("unsupported format")
+		}
+	case string:
+		iia, err := a.ConfigToFormat("object", input)
+		if err != nil {
+			return nil, err
+		}
+		inputMeta := iia.(types.Metadata)
+		inputMeta["password"] = ""
+		if outputFormat == "yaml" {
+			return a.ConfigToFormat("yaml", inputMeta)
+		} else if outputFormat == "object" {
+			return inputMeta, nil
+		} else {
+			return nil, errors.New("unsupported format")
+		}
+	}
+	return nil, errors.New("unsupported format")
 }
 
 func (a *AuthConfig) EncodeInformation(outputFormat string, input interface{}) (interface{}, error) {
-	//TODO implement me
-	panic("implement me")
+	switch input.(type) {
+	case types.Metadata:
+		inputMeta := input.(types.Metadata)
+		encoded, err := a.encryptionService.EncodePassword(inputMeta["password"].(string))
+		if err != nil {
+			return nil, err
+		}
+		inputMeta["password"] = encoded
+		if outputFormat == "yaml" {
+			return a.ConfigToFormat("yaml", inputMeta)
+		} else if outputFormat == "object" {
+			return inputMeta, nil
+		} else {
+			return nil, errors.New("unsupported format")
+		}
+	case string:
+		iia, err := a.ConfigToFormat("object", input)
+		if err != nil {
+			return nil, err
+		}
+		inputMeta := iia.(types.Metadata)
+		encoded, err := a.encryptionService.EncodePassword(inputMeta["password"].(string))
+		if err != nil {
+			return nil, err
+		}
+		inputMeta["password"] = encoded
+		if outputFormat == "yaml" {
+			return a.ConfigToFormat("yaml", inputMeta)
+		} else if outputFormat == "object" {
+			return inputMeta, nil
+		} else {
+			return nil, errors.New("unsupported format")
+		}
+	}
+	return nil, errors.New("unsupported format")
 }
 
 func (a *AuthConfig) DecodeInformation(outputFormat string, input interface{}) (interface{}, error) {
-	//TODO implement me
-	panic("implement me")
+	switch input.(type) {
+	case types.Metadata:
+		inputMeta := input.(types.Metadata)
+		decoded, err := a.encryptionService.DecodePassword(inputMeta["password"].(string))
+		if err != nil {
+			return nil, err
+		}
+		inputMeta["password"] = decoded
+		if outputFormat == "yaml" {
+			return a.ConfigToFormat("yaml", inputMeta)
+		} else if outputFormat == "object" {
+			return inputMeta, nil
+		} else {
+			return nil, errors.New("unsupported format")
+		}
+	case string:
+		iia, err := a.ConfigToFormat("object", input)
+		if err != nil {
+			return nil, err
+		}
+		inputMeta := iia.(types.Metadata)
+		decoded, err := a.encryptionService.DecodePassword(inputMeta["password"].(string))
+		if err != nil {
+			return nil, err
+		}
+		inputMeta["password"] = decoded
+		if outputFormat == "yaml" {
+			return a.ConfigToFormat("yaml", inputMeta)
+		} else if outputFormat == "object" {
+			return inputMeta, nil
+		} else {
+			return nil, errors.New("unsupported format")
+		}
+	}
+	return nil, errors.New("unsupported format")
 }
 
 func Register(encryptionService authentication_type.PasswordService) {
