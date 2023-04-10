@@ -84,9 +84,20 @@ func (a *AuthConfig) ValidateConfiguration(inputFormat string, input interface{}
 func (a *AuthConfig) ConfigToFormat(outputFormat string, input interface{}) (interface{}, error) {
 	switch input.(type) {
 	case types.Metadata:
-		// do stuff
+		if outputFormat == "yaml" {
+			return yaml.Marshal(input)
+		} else {
+			return nil, errors.New("unsupported format")
+		}
 	case string:
-		// do stuff
+		if outputFormat == "object" {
+			retVal := make(types.Metadata)
+			val := input.(string)
+			err := yaml.Unmarshal([]byte(val), &retVal)
+			return retVal, err
+		} else {
+			return nil, errors.New("unsupported format")
+		}
 	}
 	return nil, nil
 }
