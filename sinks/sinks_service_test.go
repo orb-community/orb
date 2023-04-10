@@ -233,7 +233,7 @@ func TestPartialUpdateSink(t *testing.T) {
 		Backend:     "prometheus",
 		State:       sinks.Unknown,
 		Error:       "",
-		ConfigData:  "remote_host:https://orb.community/\nusername: netops\npassword: w0w-orb-Rocks!",
+		ConfigData:  "exporter:\n    remote_host:https://orb.community/\nauthentication:\n    type: basicauth\n    username: netops\n    password: w0w-orb-Rocks!",
 		Format:      "yaml",
 		MFOwnerID:   "OrbCommunity",
 		Config:      map[string]interface{}{"remote_host": "https://orb.community/", "username": &initialUsername, "password": &initialPassword},
@@ -379,8 +379,11 @@ func TestUpdateSink(t *testing.T) {
 		Backend:     "prometheus",
 		State:       sinks.Unknown,
 		Error:       "",
-		Config:      map[string]interface{}{"remote_host": "https://orb.community/", "username": "dbuser"},
-		Tags:        map[string]string{"cloud": "aws"},
+		Config: map[string]interface{}{
+			"exporter":       map[string]interface{}{"remote_host": "https://orb.community/"},
+			"authentication": map[string]interface{}{"type": "basicauth", "username": "dbuser", "password": "dbpass"},
+		},
+		Tags: map[string]string{"cloud": "aws"},
 	})
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
@@ -391,8 +394,11 @@ func TestUpdateSink(t *testing.T) {
 		Backend:     "prometheus",
 		State:       sinks.Unknown,
 		Error:       "",
-		Config:      map[string]interface{}{"remote_host": "https://orb.community/", "username": "dbuser"},
-		Tags:        map[string]string{"cloud": "aws"},
+		Config: map[string]interface{}{
+			"exporter":       map[string]interface{}{"remote_host": "https://orb.community/"},
+			"authentication": map[string]interface{}{"type": "basicauth", "username": "dbuser", "password": "dbpass"},
+		},
+		Tags: map[string]string{"cloud": "aws"},
 	})
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 

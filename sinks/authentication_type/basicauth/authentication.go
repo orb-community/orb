@@ -106,7 +106,9 @@ func (a *AuthConfig) OmitInformation(outputFormat string, input interface{}) (in
 	switch input.(type) {
 	case types.Metadata:
 		inputMeta := input.(types.Metadata)
-		inputMeta["password"] = ""
+		authMeta := inputMeta.GetSubMetadata("authentication")
+		authMeta[PasswordConfigFeature] = ""
+		inputMeta.Merge(authMeta)
 		if outputFormat == "yaml" {
 			return a.ConfigToFormat("yaml", inputMeta)
 		} else if outputFormat == "object" {
@@ -120,7 +122,9 @@ func (a *AuthConfig) OmitInformation(outputFormat string, input interface{}) (in
 			return nil, err
 		}
 		inputMeta := iia.(types.Metadata)
-		inputMeta["password"] = ""
+		authMeta := inputMeta.GetSubMetadata("authentication")
+		authMeta[PasswordConfigFeature] = ""
+		inputMeta.Merge(authMeta)
 		if outputFormat == "yaml" {
 			return a.ConfigToFormat("yaml", inputMeta)
 		} else if outputFormat == "object" {
@@ -136,11 +140,13 @@ func (a *AuthConfig) EncodeInformation(outputFormat string, input interface{}) (
 	switch input.(type) {
 	case types.Metadata:
 		inputMeta := input.(types.Metadata)
-		encoded, err := a.encryptionService.EncodePassword(inputMeta["password"].(string))
+		authMeta := inputMeta.GetSubMetadata("authentication")
+		encoded, err := a.encryptionService.EncodePassword(authMeta[PasswordConfigFeature].(string))
 		if err != nil {
 			return nil, err
 		}
-		inputMeta["password"] = encoded
+		authMeta[PasswordConfigFeature] = encoded
+		inputMeta.Merge(authMeta)
 		if outputFormat == "yaml" {
 			return a.ConfigToFormat("yaml", inputMeta)
 		} else if outputFormat == "object" {
@@ -154,11 +160,13 @@ func (a *AuthConfig) EncodeInformation(outputFormat string, input interface{}) (
 			return nil, err
 		}
 		inputMeta := iia.(types.Metadata)
-		encoded, err := a.encryptionService.EncodePassword(inputMeta["password"].(string))
+		authMeta := inputMeta.GetSubMetadata("authentication")
+		encoded, err := a.encryptionService.EncodePassword(authMeta[PasswordConfigFeature].(string))
 		if err != nil {
 			return nil, err
 		}
-		inputMeta["password"] = encoded
+		authMeta[PasswordConfigFeature] = encoded
+		inputMeta.Merge(authMeta)
 		if outputFormat == "yaml" {
 			return a.ConfigToFormat("yaml", inputMeta)
 		} else if outputFormat == "object" {
@@ -174,11 +182,13 @@ func (a *AuthConfig) DecodeInformation(outputFormat string, input interface{}) (
 	switch input.(type) {
 	case types.Metadata:
 		inputMeta := input.(types.Metadata)
-		decoded, err := a.encryptionService.DecodePassword(inputMeta["password"].(string))
+		authMeta := inputMeta.GetSubMetadata("authentication")
+		decoded, err := a.encryptionService.DecodePassword(authMeta[PasswordConfigFeature].(string))
 		if err != nil {
 			return nil, err
 		}
-		inputMeta["password"] = decoded
+		authMeta[PasswordConfigFeature] = decoded
+		inputMeta.Merge(authMeta)
 		if outputFormat == "yaml" {
 			return a.ConfigToFormat("yaml", inputMeta)
 		} else if outputFormat == "object" {
@@ -192,11 +202,13 @@ func (a *AuthConfig) DecodeInformation(outputFormat string, input interface{}) (
 			return nil, err
 		}
 		inputMeta := iia.(types.Metadata)
-		decoded, err := a.encryptionService.DecodePassword(inputMeta["password"].(string))
+		authMeta := inputMeta.GetSubMetadata("authentication")
+		decoded, err := a.encryptionService.DecodePassword(authMeta[PasswordConfigFeature].(string))
 		if err != nil {
 			return nil, err
 		}
-		inputMeta["password"] = decoded
+		authMeta[PasswordConfigFeature] = decoded
+		inputMeta.Merge(authMeta)
 		if outputFormat == "yaml" {
 			return a.ConfigToFormat("yaml", inputMeta)
 		} else if outputFormat == "object" {

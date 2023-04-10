@@ -49,9 +49,13 @@ func (s *Metadata) GetSubMetadata(key string) Metadata {
 	if v == nil {
 		return nil
 	}
-	vm := FromMap(v.(map[string]interface{}))
-	return vm
-
+	switch v.(type) {
+	case map[string]interface{}:
+		return FromMap(v.(map[string]interface{}))
+	case Metadata:
+		return v.(Metadata)
+	}
+	return nil
 }
 
 func (s *Metadata) RestrictKeys(predicate func(string) bool) {

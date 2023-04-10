@@ -101,26 +101,22 @@ func validateAuthType(s *Sink) (authentication_type.AuthenticationType, error) {
 
 func (svc sinkService) encryptMetadata(configSvc Configuration, sink Sink) (Sink, error) {
 	var err error
-	authenticationConfig := sink.Config.GetSubMetadata("authentication")
-	encodeInformation, err := configSvc.Authentication.EncodeInformation("object", authenticationConfig)
-	if err != nil {
-		return Sink{}, err
-	}
-	config := make(types.Metadata)
-	config["authentication"] = encodeInformation.(types.Metadata)
-	sink.Config.Merge(config)
-	if sink.ConfigData != "" {
-		sinkBE := backend.GetBackend(sink.Backend)
-		if sinkBE == nil {
-			return sink, errors.New("backend cannot be nil")
-		}
-		sink.ConfigData, err = sinkBE.ConfigToFormat(sink.Format, sink.Config)
+	if sink.Config != nil {
+		encodeMetadata, err := configSvc.Authentication.EncodeInformation("object", sink.Config)
 		if err != nil {
 			svc.logger.Error("error on parsing encrypted config in data")
 			return sink, err
 		}
+		sink.Config = encodeMetadata.(types.Metadata)
 	}
-
+	if sink.ConfigData != "" {
+		encodeMetadata, err := configSvc.Authentication.EncodeInformation("yaml", sink.ConfigData)
+		if err != nil {
+			svc.logger.Error("error on parsing encrypted config in data")
+			return sink, err
+		}
+		sink.ConfigData = encodeMetadata.(string)
+	}
 	return sink, err
 }
 
@@ -150,27 +146,21 @@ func (svc sinkService) ListAuthenticationTypes(ctx context.Context, token string
 
 func (svc sinkService) decryptMetadata(configSvc Configuration, sink Sink) (Sink, error) {
 	var err error
-	authenticationConfig := sink.Config.GetSubMetadata("authentication")
-	authenticationConfig.FilterMap(func(key string) bool {
-		return key == backend.ConfigFeatureTypePassword
-	}, func(key string, value interface{}) (string, interface{}) {
-		newValue, err2 := svc.passwordService.DecodePassword(value.(string))
-		if err2 != nil {
-			err = err2
-			return key, value
-		}
-		return key, newValue
-	})
-	if sink.ConfigData != "" {
-		sinkBE := backend.GetBackend(sink.Backend)
-		if sinkBE == nil {
-			return sink, errors.New("backend cannot be nil")
-		}
-		sink.ConfigData, err = sinkBE.ConfigToFormat(sink.Format, sink.Config)
+	if sink.Config != nil {
+		decodeMetadata, err := configSvc.Authentication.DecodeInformation("object", sink.Config)
 		if err != nil {
 			svc.logger.Error("error on parsing encrypted config in data")
 			return sink, err
 		}
+		sink.Config = decodeMetadata.(types.Metadata)
+	}
+	if sink.ConfigData != "" {
+		decodeMetadata, err := configSvc.Authentication.DecodeInformation("yaml", sink.ConfigData)
+		if err != nil {
+			svc.logger.Error("error on parsing encrypted config in data")
+			return sink, err
+		}
+		sink.ConfigData = decodeMetadata.(string)
 	}
 	return sink, err
 }
