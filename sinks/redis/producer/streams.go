@@ -106,11 +106,11 @@ func (es eventStore) ListSinks(ctx context.Context, token string, pm sinks.PageM
 	return es.svc.ListSinks(ctx, token, pm)
 }
 
-func (es eventStore) ListAuthenticationTypes(ctx context.Context, token string) ([]authentication_type.AuthenticationType, error) {
+func (es eventStore) ListAuthenticationTypes(ctx context.Context, token string) ([]authentication_type.AuthenticationTypeConfig, error) {
 	return es.svc.ListAuthenticationTypes(ctx, token)
 }
 
-func (es eventStore) ViewAuthenticationType(ctx context.Context, token string, key string) (authentication_type.AuthenticationType, error) {
+func (es eventStore) ViewAuthenticationType(ctx context.Context, token string, key string) (authentication_type.AuthenticationTypeConfig, error) {
 	return es.svc.ViewAuthenticationType(ctx, token, key)
 }
 

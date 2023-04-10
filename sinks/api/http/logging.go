@@ -174,11 +174,11 @@ func (l loggingMiddleware) ValidateSink(ctx context.Context, token string, s sin
 	return l.svc.ValidateSink(ctx, token, s)
 }
 
-func (l loggingMiddleware) ListAuthenticationTypes(ctx context.Context, token string) ([]authentication_type.AuthenticationType, error) {
+func (l loggingMiddleware) ListAuthenticationTypes(ctx context.Context, token string) ([]authentication_type.AuthenticationTypeConfig, error) {
 	return l.svc.ListAuthenticationTypes(ctx, token)
 }
 
-func (l loggingMiddleware) ViewAuthenticationType(ctx context.Context, token string, key string) (authentication_type.AuthenticationType, error) {
+func (l loggingMiddleware) ViewAuthenticationType(ctx context.Context, token string, key string) (authentication_type.AuthenticationTypeConfig, error) {
 	return l.svc.ViewAuthenticationType(ctx, token, key)
 }
 

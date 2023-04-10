@@ -120,6 +120,11 @@ type Sink struct {
 	Created     time.Time
 }
 
+func (s *Sink) GetAuthenticationTypeName() string {
+	authMeta := s.Config.GetSubMetadata("authentication")
+	return authMeta["type"].(string)
+}
+
 // Page contains page related metadata as well as list of sinks that
 // belong to this page
 type Page struct {

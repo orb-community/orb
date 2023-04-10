@@ -14,6 +14,7 @@ import (
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks"
+	"github.com/orb-community/orb/sinks/authentication_type"
 	"github.com/orb-community/orb/sinks/backend"
 	"go.uber.org/zap"
 	"time"
@@ -234,7 +235,15 @@ func listSinksEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 		}
 		for _, sink := range page.Sinks {
 			reqBackend := backend.GetBackend(sink.Backend)
-			omittedConfig, omittedConfigData := omitSecretInformation(reqBackend, sink.Format, sink.Config)
+			reqAuthType, _ := authentication_type.GetAuthType(sink.GetAuthenticationTypeName())
+			cfg := sinks.Configuration{
+				Exporter:       reqBackend,
+				Authentication: reqAuthType,
+			}
+			responseSink, err := omitSecretInformation(&cfg, sink)
+			if err != nil {
+				return nil, err
+			}
 			view := sinkRes{
 				ID:         sink.ID,
 				Name:       sink.Name.String(),
@@ -242,8 +251,8 @@ func listSinksEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 				State:      sink.State.String(),
 				Error:      sink.Error,
 				Backend:    sink.Backend,
-				Config:     omittedConfig,
-				ConfigData: omittedConfigData,
+				Config:     responseSink.Config,
+				ConfigData: responseSink.ConfigData,
 				Format:     sink.Format,
 				TsCreated:  sink.Created,
 			}
@@ -354,7 +363,12 @@ func viewSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			return sink, err
 		}
 		reqBackend := backend.GetBackend(sink.Backend)
-		omittedConfig, omittedConfigData := omitSecretInformation(reqBackend, sink.Format, sink.Config)
+		reqAuthType, _ := authentication_type.GetAuthType(sink.GetAuthenticationTypeName())
+		cfg := sinks.Configuration{
+			Exporter:       reqBackend,
+			Authentication: reqAuthType,
+		}
+		responseSink, err := omitSecretInformation(&cfg, sink)
 		res := sinkRes{
 			ID:          sink.ID,
 			Name:        sink.Name.String(),
@@ -363,8 +377,8 @@ func viewSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			State:       sink.State.String(),
 			Error:       sink.Error,
 			Backend:     sink.Backend,
-			Config:      omittedConfig,
-			ConfigData:  omittedConfigData,
+			Config:      responseSink.Config,
+			ConfigData:  responseSink.ConfigData,
 			Format:      sink.Format,
 			TsCreated:   sink.Created,
 		}

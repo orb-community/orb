@@ -46,11 +46,11 @@ func (m metricsMiddleware) ChangeSinkStateInternal(ctx context.Context, sinkID s
 	return m.svc.ChangeSinkStateInternal(ctx, sinkID, msg, ownerID, state)
 }
 
-func (m metricsMiddleware) ListAuthenticationTypes(ctx context.Context, token string) ([]authentication_type.AuthenticationType, error) {
+func (m metricsMiddleware) ListAuthenticationTypes(ctx context.Context, token string) ([]authentication_type.AuthenticationTypeConfig, error) {
 	return m.svc.ListAuthenticationTypes(ctx, token)
 }
 
-func (m metricsMiddleware) ViewAuthenticationType(ctx context.Context, token string, key string) (authentication_type.AuthenticationType, error) {
+func (m metricsMiddleware) ViewAuthenticationType(ctx context.Context, token string, key string) (authentication_type.AuthenticationTypeConfig, error) {
 	return m.svc.ViewAuthenticationType(ctx, token, key)
 }
 
