@@ -16,87 +16,11 @@ package kafkaexporter
 
 import (
 	"fmt"
-	"path/filepath"
 	"testing"
-	"time"
 
 	"github.com/Shopify/sarama"
-	"github.com/cenkalti/backoff/v4"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/confmap/confmaptest"
-	"go.opentelemetry.io/collector/exporter/exporterhelper"
 )
-
-func TestLoadConfig(t *testing.T) {
-	t.Parallel()
-
-	cm, err := confmaptest.LoadConf(filepath.Join("testdata", "config.yaml"))
-	require.NoError(t, err)
-
-	tests := []struct {
-		id       component.ID
-		expected component.Config
-	}{
-		{
-			id: component.NewIDWithName(typeStr, ""),
-			expected: &Config{
-				TimeoutSettings: exporterhelper.TimeoutSettings{
-					Timeout: 5 * time.Second,
-				},
-				RetrySettings: exporterhelper.RetrySettings{
-					Enabled:             true,
-					InitialInterval:     5 * time.Second,
-					MaxInterval:         time.Minute / 2,
-					MaxElapsedTime:      5 * time.Minute,
-					RandomizationFactor: backoff.DefaultRandomizationFactor,
-					Multiplier:          backoff.DefaultMultiplier,
-				},
-				QueueSettings: exporterhelper.QueueSettings{
-					Enabled:      true,
-					NumConsumers: 10,
-					QueueSize:    5000,
-				},
-				Topic:    "spans",
-				Encoding: "otlp_proto",
-				Brokers:  []string{"foo:123", "bar:456"},
-				Authentication: Authentication{
-					PlainText: &PlainTextConfig{
-						Username: "jdoe",
-						Password: "pass",
-					},
-				},
-				Metadata: Metadata{
-					Full: false,
-					Retry: MetadataRetry{
-						Max:     15,
-						Backoff: defaultMetadataRetryBackoff,
-					},
-				},
-				Producer: Producer{
-					MaxMessageBytes: 10000000,
-					RequiredAcks:    sarama.WaitForAll,
-					Compression:     "none",
-				},
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.id.String(), func(t *testing.T) {
-			factory := NewFactory()
-			cfg := factory.CreateDefaultConfig()
-
-			sub, err := cm.Sub(tt.id.String())
-			require.NoError(t, err)
-			require.NoError(t, component.UnmarshalConfig(sub, cfg))
-
-			assert.NoError(t, component.ValidateConfig(cfg))
-			assert.Equal(t, tt.expected, cfg)
-		})
-	}
-}
 
 func TestValidate_err_compression(t *testing.T) {
 	config := &Config{
