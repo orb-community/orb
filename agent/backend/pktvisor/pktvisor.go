@@ -21,7 +21,8 @@ import (
 	"github.com/orb-community/orb/agent/backend"
 	"github.com/orb-community/orb/agent/config"
 	"github.com/orb-community/orb/agent/policies"
-	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/exporter"
+	"go.opentelemetry.io/collector/receiver"
 	"go.uber.org/zap"
 )
 
@@ -83,8 +84,8 @@ type pktvisorBackend struct {
 	otelReceiverType string
 	otelReceiverHost string
 	otelReceiverPort int
-	receiver         map[string]component.MetricsReceiver
-	exporter         map[string]component.MetricsExporter
+	receiver         map[string]receiver.Metrics
+	exporter         map[string]exporter.Metrics
 	routineMap       map[string]context.CancelFunc
 }
 
@@ -166,11 +167,11 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 	}
 
 	if p.receiver == nil {
-		p.receiver = make(map[string]component.MetricsReceiver)
+		p.receiver = make(map[string]receiver.Metrics)
 	}
 
 	if p.exporter == nil {
-		p.exporter = make(map[string]component.MetricsExporter)
+		p.exporter = make(map[string]exporter.Metrics)
 	}
 
 	_, err := exec.LookPath(p.binary)

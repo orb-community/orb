@@ -1,16 +1,15 @@
 package pktvisorreceiver
 
 import (
-	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/confignet"
 	"net/url"
 	"time"
+
+	"go.opentelemetry.io/collector/config/confignet"
 )
 
 type Config struct {
-	config.ReceiverSettings `mapstructure:",squash"`
-	confignet.TCPAddr       `mapstructure:",squash"`
-	CollectionInterval      time.Duration `mapstructure:"collection_interval"`
+	confignet.TCPAddr  `mapstructure:",squash"`
+	CollectionInterval time.Duration `mapstructure:"collection_interval"`
 
 	// MetricsPath the path to the metrics endpoint.
 	MetricsPath string `mapstructure:"metrics_path"`

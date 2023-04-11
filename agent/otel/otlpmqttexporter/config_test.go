@@ -8,46 +8,42 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"go.opentelemetry.io/collector/component/componenttest"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/confmap"
+	"go.opentelemetry.io/collector/confmap/confmaptest"
 	"go.opentelemetry.io/collector/exporter/exporterhelper"
-	"go.opentelemetry.io/collector/service/servicetest"
 )
 
-func TestLoadConfig(t *testing.T) {
-	t.Skip("this ")
-	factories, err := componenttest.NopFactories()
-	assert.NoError(t, err)
-
+func TestUnmarshalDefaultConfig(t *testing.T) {
 	factory := NewFactory()
-	factories.Exporters[typeStr] = factory
+	cfg := factory.CreateDefaultConfig()
+	assert.NoError(t, component.UnmarshalConfig(confmap.New(), cfg))
+	assert.Equal(t, factory.CreateDefaultConfig(), cfg)
+}
 
-	// Bad config
-	cfg, err := servicetest.LoadConfigAndValidate(filepath.Join("testdata", "bad_empty_config.yaml"), factories)
-
-	require.Error(t, err, "should expect Error in the bad_empty_config.yaml loading")
-	require.Nil(t, cfg, "should expect LoadConfigAndValidate should return nil cfg")
-
-	// Good config
-	cfg, err = servicetest.LoadConfigAndValidate(filepath.Join("testdata", "config.yaml"), factories)
-
+func TestUnmarshalConfig(t *testing.T) {
+	cm, err := confmaptest.LoadConf(filepath.Join("testdata", "config.yaml"))
 	require.NoError(t, err)
-	require.NotNil(t, cfg)
-
-	e1 := cfg.Exporters[config.NewComponentIDWithName(typeStr, "2")]
-	assert.Equal(t, e1,
+	factory := NewFactory()
+	cfg := factory.CreateDefaultConfig()
+	assert.NoError(t, component.UnmarshalConfig(cm, cfg))
+	assert.Equal(t,
 		&Config{
-			ExporterSettings: config.NewExporterSettings(config.NewComponentIDWithName(typeStr, "2")),
+			TimeoutSettings: exporterhelper.TimeoutSettings{
+				Timeout: 10 * time.Second,
+			},
 			RetrySettings: exporterhelper.RetrySettings{
-				Enabled:         true,
-				InitialInterval: 10 * time.Second,
-				MaxInterval:     1 * time.Minute,
-				MaxElapsedTime:  10 * time.Minute,
+				Enabled:             true,
+				InitialInterval:     10 * time.Second,
+				RandomizationFactor: 0.7,
+				Multiplier:          1.3,
+				MaxInterval:         1 * time.Minute,
+				MaxElapsedTime:      10 * time.Minute,
 			},
 			QueueSettings: exporterhelper.QueueSettings{
 				Enabled:      true,
 				NumConsumers: 2,
 				QueueSize:    10,
 			},
-		})
+		}, cfg)
 }
