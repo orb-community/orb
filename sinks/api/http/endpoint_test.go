@@ -123,7 +123,7 @@ func newService(tokens map[string]string) sinks.SinkService {
 	logger := zap.NewNop()
 	auth := skmocks.NewAuthService(tokens)
 	pwdSvc := authentication_type.NewPasswordService(logger, "_testing_string_")
-	sinkRepo := skmocks.NewSinkRepository(pwdSvc)
+	sinkRepo := skmocks.NewSinkRepository()
 
 	config := mfsdk.Config{
 		ThingsURL: "localhost",
