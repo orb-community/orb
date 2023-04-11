@@ -76,18 +76,6 @@ const (
 )
 
 var (
-	nameID, _   = types.NewIdentifier("my-sink")
-	description = "An example prometheus sink"
-	sink        = sinks.Sink{
-		Name:        nameID,
-		Description: &description,
-		Backend:     "prometheus",
-		Config: map[string]interface{}{
-			"exporter":       map[string]interface{}{"remote_host": "https://orb.community/"},
-			"authentication": map[string]interface{}{"type": "basicauth", "username": "dbuser", "password": "dbpass"},
-		},
-		Tags: map[string]string{"cloud": "aws"},
-	}
 	invalidName        = strings.Repeat("m", maxNameSize+1)
 	notFoundRes        = toJSON(errorRes{sinks.ErrNotFound.Error()})
 	unauthRes          = toJSON(errorRes{sinks.ErrUnauthorizedAccess.Error()})
@@ -149,6 +137,18 @@ func TestCreateSinks(t *testing.T) {
 	server := newServer(service)
 	defer server.Close()
 
+	nameID, _ := types.NewIdentifier("my-sink")
+	description := "An example prometheus sink"
+	sink := sinks.Sink{
+		Name:        nameID,
+		Description: &description,
+		Backend:     "prometheus",
+		Config: map[string]interface{}{
+			"exporter":       map[string]interface{}{"remote_host": "https://orb.community/"},
+			"authentication": map[string]interface{}{"type": "basicauth", "username": "dbuser", "password": "dbpass"},
+		},
+		Tags: map[string]string{"cloud": "aws"},
+	}
 	// Conflict creation scenario
 	sinkConflict := sink
 	conflictNameID, err := types.NewIdentifier("conflict")
@@ -371,7 +371,18 @@ func TestUpdateSink(t *testing.T) {
 	service := newService(map[string]string{token: email})
 	server := newServer(service)
 	defer server.Close()
-
+	nameID, _ := types.NewIdentifier("my-sink")
+	description := "An example prometheus sink"
+	sink := sinks.Sink{
+		Name:        nameID,
+		Description: &description,
+		Backend:     "prometheus",
+		Config: map[string]interface{}{
+			"exporter":       map[string]interface{}{"remote_host": "https://orb.community/"},
+			"authentication": map[string]interface{}{"type": "basicauth", "username": "dbuser", "password": "dbpass"},
+		},
+		Tags: map[string]string{"cloud": "aws"},
+	}
 	sk, err := service.CreateSink(context.Background(), token, sink)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
@@ -941,7 +952,18 @@ func TestViewSink(t *testing.T) {
 	service := newService(map[string]string{token: email})
 	server := newServer(service)
 	defer server.Close()
-
+	nameID, _ := types.NewIdentifier("my-sink")
+	description := "An example prometheus sink"
+	sink := sinks.Sink{
+		Name:        nameID,
+		Description: &description,
+		Backend:     "prometheus",
+		Config: map[string]interface{}{
+			"exporter":       map[string]interface{}{"remote_host": "https://orb.community/"},
+			"authentication": map[string]interface{}{"type": "basicauth", "username": "dbuser", "password": "dbpass"},
+		},
+		Tags: map[string]string{"cloud": "aws"},
+	}
 	sk, err := service.CreateSink(context.Background(), token, sink)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 	sinkBE := backend.GetBackend("prometheus")
@@ -1031,6 +1053,30 @@ func TestViewSink(t *testing.T) {
 }
 
 func TestDeleteSink(t *testing.T) {
+	nameID, _ := types.NewIdentifier("my-sink")
+	description := "An example prometheus sink"
+	sink := sinks.Sink{
+		Name:        nameID,
+		Description: &description,
+		Backend:     "prometheus",
+		Config: map[string]interface{}{
+			"exporter":       map[string]interface{}{"remote_host": "https://orb.community/"},
+			"authentication": map[string]interface{}{"type": "basicauth", "username": "dbuser", "password": "dbpass"},
+		},
+		Tags: map[string]string{"cloud": "aws"},
+	}
+	nameID, _ = types.NewIdentifier("my-sink")
+	description = "An example prometheus sink"
+	sink = sinks.Sink{
+		Name:        nameID,
+		Description: &description,
+		Backend:     "prometheus",
+		Config: map[string]interface{}{
+			"exporter":       map[string]interface{}{"remote_host": "https://orb.community/"},
+			"authentication": map[string]interface{}{"type": "basicauth", "username": "dbuser", "password": "dbpass"},
+		},
+		Tags: map[string]string{"cloud": "aws"},
+	}
 	svc := newService(map[string]string{token: email})
 	server := newServer(svc)
 	defer server.Close()

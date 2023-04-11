@@ -33,24 +33,6 @@ const (
 	n            = uint64(10)
 )
 
-var (
-	nameID, _   = types.NewIdentifier("my-sink")
-	description = "An example prometheus sink"
-	sink        = sinks.Sink{
-		Name:        nameID,
-		Description: &description,
-		Backend:     "prometheus",
-		State:       sinks.Unknown,
-		Error:       "",
-		Config: map[string]interface{}{
-			"exporter":       map[string]interface{}{"remote_host": "https://orb.community/"},
-			"authentication": map[string]interface{}{"type": "basicauth", "username": "dbuser", "password": "dbpass"},
-		},
-		Tags: map[string]string{"cloud": "aws"},
-	}
-	wrongID, _ = uuid.NewV4()
-)
-
 func newService(tokens map[string]string) sinks.SinkService {
 	logger := zap.NewNop()
 	auth := thmocks.NewAuthService(tokens, make(map[string][]thmocks.MockSubjectSet))
@@ -67,8 +49,20 @@ func newService(tokens map[string]string) sinks.SinkService {
 
 func TestCreateSink(t *testing.T) {
 	service := newService(map[string]string{token: email})
-
+	nameID, _ := types.NewIdentifier("my-sink")
 	description := "An example prometheus sink"
+	sink := sinks.Sink{
+		Name:        nameID,
+		Description: &description,
+		Backend:     "prometheus",
+		State:       sinks.Unknown,
+		Error:       "",
+		Config: types.Metadata{
+			"exporter":       map[string]interface{}{"remote_host": "https://orb.community/"},
+			"authentication": map[string]interface{}{"type": "basicauth", "username": "dbuser", "password": "dbpass"},
+		},
+		Tags: map[string]string{"cloud": "aws"},
+	}
 	var invalidBackendSink = sinks.Sink{
 		Name:        nameID,
 		Description: &description,
@@ -286,6 +280,21 @@ func TestPartialUpdateSink(t *testing.T) {
 
 func TestUpdateSink(t *testing.T) {
 	service := newService(map[string]string{token: email})
+	nameID, _ := types.NewIdentifier("my-sink")
+	description := "An example prometheus sink"
+	sink := sinks.Sink{
+		Name:        nameID,
+		Description: &description,
+		Backend:     "prometheus",
+		State:       sinks.Unknown,
+		Error:       "",
+		Config: types.Metadata{
+			"exporter":       map[string]interface{}{"remote_host": "https://orb.community/"},
+			"authentication": map[string]interface{}{"type": "basicauth", "username": "dbuser", "password": "dbpass"},
+		},
+		Tags: map[string]string{"cloud": "aws"},
+	}
+	wrongID, _ := uuid.NewV4()
 	sk, err := service.CreateSink(context.Background(), token, sink)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
@@ -297,10 +306,7 @@ func TestUpdateSink(t *testing.T) {
 
 	noConfig := sk
 	noConfig.Config = make(map[string]interface{})
-
-	description := "An example prometheus sink"
 	newDescription := "new description"
-
 	nameTestConfigAttribute, _ := types.NewIdentifier("configSink")
 	sinkTestConfigAttribute, err := service.CreateSink(context.Background(), token, sinks.Sink{
 		Name:        nameTestConfigAttribute,
@@ -515,7 +521,21 @@ func TestUpdateSink(t *testing.T) {
 
 func TestViewSink(t *testing.T) {
 	service := newService(map[string]string{token: email})
-
+	nameID, _ := types.NewIdentifier("my-sink")
+	description := "An example prometheus sink"
+	sink := sinks.Sink{
+		Name:        nameID,
+		Description: &description,
+		Backend:     "prometheus",
+		State:       sinks.Unknown,
+		Error:       "",
+		Config: types.Metadata{
+			"exporter":       map[string]interface{}{"remote_host": "https://orb.community/"},
+			"authentication": map[string]interface{}{"type": "basicauth", "username": "dbuser", "password": "dbpass"},
+		},
+		Tags: map[string]string{"cloud": "aws"},
+	}
+	wrongID, _ := uuid.NewV4()
 	sk, err := service.CreateSink(context.Background(), token, sink)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
@@ -551,6 +571,20 @@ func TestViewSink(t *testing.T) {
 
 func TestListSinks(t *testing.T) {
 	service := newService(map[string]string{token: email})
+	nameID, _ := types.NewIdentifier("my-sink")
+	description := "An example prometheus sink"
+	sink := sinks.Sink{
+		Name:        nameID,
+		Description: &description,
+		Backend:     "prometheus",
+		State:       sinks.Unknown,
+		Error:       "",
+		Config: types.Metadata{
+			"exporter":       map[string]interface{}{"remote_host": "https://orb.community/"},
+			"authentication": map[string]interface{}{"type": "basicauth", "username": "dbuser", "password": "dbpass"},
+		},
+		Tags: map[string]string{"cloud": "aws"},
+	}
 	metadata := make(map[string]interface{})
 	metadata["serial"] = "12345"
 	var sks []sinks.Sink
@@ -730,7 +764,21 @@ func TestListBackends(t *testing.T) {
 
 func TestDeleteSink(t *testing.T) {
 	svc := newService(map[string]string{token: email})
-
+	nameID, _ := types.NewIdentifier("my-sink")
+	description := "An example prometheus sink"
+	sink := sinks.Sink{
+		Name:        nameID,
+		Description: &description,
+		Backend:     "prometheus",
+		State:       sinks.Unknown,
+		Error:       "",
+		Config: types.Metadata{
+			"exporter":       map[string]interface{}{"remote_host": "https://orb.community/"},
+			"authentication": map[string]interface{}{"type": "basicauth", "username": "dbuser", "password": "dbpass"},
+		},
+		Tags: map[string]string{"cloud": "aws"},
+	}
+	wrongID, _ := uuid.NewV4()
 	sk, err := svc.CreateSink(context.Background(), token, sink)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
 
@@ -766,8 +814,20 @@ func TestDeleteSink(t *testing.T) {
 
 func TestValidateSink(t *testing.T) {
 	service := newService(map[string]string{token: email})
-
+	nameID, _ := types.NewIdentifier("my-sink")
 	description := "An example prometheus sink"
+	sink := sinks.Sink{
+		Name:        nameID,
+		Description: &description,
+		Backend:     "prometheus",
+		State:       sinks.Unknown,
+		Error:       "",
+		Config: types.Metadata{
+			"exporter":       map[string]interface{}{"remote_host": "https://orb.community/"},
+			"authentication": map[string]interface{}{"type": "basicauth", "username": "dbuser", "password": "dbpass"},
+		},
+		Tags: map[string]string{"cloud": "aws"},
+	}
 
 	cases := map[string]struct {
 		sink  sinks.Sink
@@ -811,7 +871,21 @@ func TestValidateSink(t *testing.T) {
 
 func TestViewSinkInternal(t *testing.T) {
 	service := newService(map[string]string{token: email})
-
+	nameID, _ := types.NewIdentifier("my-sink")
+	description := "An example prometheus sink"
+	sink := sinks.Sink{
+		Name:        nameID,
+		Description: &description,
+		Backend:     "prometheus",
+		State:       sinks.Unknown,
+		Error:       "",
+		Config: types.Metadata{
+			"exporter":       map[string]interface{}{"remote_host": "https://orb.community/"},
+			"authentication": map[string]interface{}{"type": "basicauth", "username": "dbuser", "password": "dbpass"},
+		},
+		Tags: map[string]string{"cloud": "aws"},
+	}
+	wrongID, _ := uuid.NewV4()
 	sk, err := service.CreateSink(context.Background(), token, sink)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
