@@ -871,7 +871,6 @@ func TestViewBackend(t *testing.T) {
 			assert.Equal(t, tc.res, data, fmt.Sprintf("%s: expected body %s got %s", desc, tc.res, data))
 		})
 	}
-
 }
 
 func TestViewBackends(t *testing.T) {
