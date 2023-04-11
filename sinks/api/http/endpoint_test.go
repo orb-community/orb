@@ -785,7 +785,8 @@ func TestListSinks(t *testing.T) {
 			res, err := req.make()
 			require.Nil(t, err, fmt.Sprintf("%s: unexpected error: %s", desc, err))
 			var body sinksPagesRes
-			json.NewDecoder(res.Body).Decode(&body)
+			err = json.NewDecoder(res.Body).Decode(&body)
+			require.NoError(t, err)
 			total := uint64(len(body.Sinks))
 
 			assert.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))

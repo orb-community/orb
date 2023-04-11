@@ -499,8 +499,9 @@ func TestUpdateSink(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
+		ctx := context.WithValue(context.Background(), "tc", desc)
 		t.Run(desc, func(t *testing.T) {
-			res, err := service.UpdateSink(context.Background(), tc.token, tc.incomingSink)
+			res, err := service.UpdateSink(ctx, tc.token, tc.incomingSink)
 			if err == nil {
 				assert.Equal(t, tc.expectedSink.Name.String(), res.Name.String(), "sink name not as expected")
 				assert.Equal(t, *tc.expectedSink.Description, *res.Description, "sink description not as expected")

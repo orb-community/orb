@@ -13,6 +13,7 @@ import (
 	"github.com/benbjohnson/immutable"
 	"github.com/gofrs/uuid"
 	"github.com/orb-community/orb/pkg/errors"
+	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks"
 	"reflect"
 	"sync"
@@ -72,7 +73,17 @@ func (s *sinkRepositoryMock) Save(ctx context.Context, sink sinks.Sink) (string,
 	s.counter++
 	ID, _ := uuid.NewV4()
 	sink.ID = ID.String()
+	// create a full copy of the Config, because somehow it changes after adding to map
+	configCopy := make(types.Metadata)
+	bkpConfig := sink.Config
+	exporterMeta := sink.Config.GetSubMetadata("exporter")
+	authMeta := sink.Config.GetSubMetadata("authentication")
+	configCopy["exporter"] = types.FromMap(exporterMeta)
+	configCopy["authentication"] = types.FromMap(authMeta)
+	configCopy["opentelemetry"] = "enabled"
+	sink.Config = configCopy
 	s.sinksMock = *s.sinksMock.Set(ID.String(), sink)
+	sink.Config = bkpConfig
 	return sink.ID, nil
 }
 
@@ -83,7 +94,17 @@ func (s *sinkRepositoryMock) Update(ctx context.Context, sink sinks.Sink) (err e
 		if sink.MFOwnerID != c.MFOwnerID {
 			return errors.ErrUpdateEntity
 		}
+		// create a full copy of the Config, because somehow it changes after adding to map
+		configCopy := make(types.Metadata)
+		bkpConfig := sink.Config
+		exporterMeta := sink.Config.GetSubMetadata("exporter")
+		authMeta := sink.Config.GetSubMetadata("authentication")
+		configCopy["exporter"] = types.FromMap(exporterMeta)
+		configCopy["authentication"] = types.FromMap(authMeta)
+		configCopy["opentelemetry"] = "enabled"
+		sink.Config = configCopy
 		s.sinksMock = *s.sinksMock.Set(sink.ID, sink)
+		sink.Config = bkpConfig
 		return nil
 	}
 	return sinks.ErrNotFound
@@ -102,6 +123,7 @@ func (s *sinkRepositoryMock) RetrieveAllByOwnerID(ctx context.Context, owner str
 	itr := s.sinksMock.Iterator()
 	for !itr.Done() {
 		_, v, _ := itr.Next()
+		id++
 		if v.MFOwnerID == owner && id >= first && id < last {
 			if reflect.DeepEqual(pm.Tags, v.Tags) || pm.Tags == nil {
 				sks = append(sks, v)
