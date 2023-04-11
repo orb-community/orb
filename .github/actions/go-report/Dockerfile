@@ -1,15 +1,16 @@
 FROM golang:1.20-alpine
 
-LABEL author="Everton Taques<everton.taques@encora.com>"
-LABEL maintainer="ns1labs"
+LABEL author="Everton Haise Taques<everton.taques@encora.com>"
+LABEL maintainer="netboxlabs"
 LABEL version="1.0.0"
 
 RUN mkdir -p /workspace
 
 COPY ./entrypoint.sh /entrypoint.sh
+COPY ./github-commenter_linux_amd64 /github-commenter_linux_amd64
 
 RUN apk add git make curl jq && \
-wget https://github.com/cloudposse/github-commenter/releases/download/0.7.0/github-commenter_linux_amd64 -O /github-commenter && \
+mv /github-commenter_linux_amd64 /github-commenter && \
 chmod +x /github-commenter /entrypoint.sh
 
 RUN git clone https://github.com/gojp/goreportcard.git && \

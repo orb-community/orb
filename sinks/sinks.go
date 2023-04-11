@@ -10,6 +10,7 @@ import (
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks/backend"
+	"go.uber.org/zap"
 	"time"
 )
 
@@ -86,7 +87,7 @@ func (s *State) Scan(value interface{}) error {
 		}
 		asString = string(asBytes)
 	}
-	*s = stateRevMap[string(asString)]
+	*s = stateRevMap[asString]
 	return nil
 }
 func (s State) Value() (driver.Value, error) { return s.String(), nil }
@@ -98,6 +99,8 @@ type Sink struct {
 	Description *string
 	Backend     string
 	Config      types.Metadata
+	Format      string
+	ConfigData  string
 	Tags        types.Tags
 	State       State
 	Error       string
@@ -135,6 +138,8 @@ type SinkService interface {
 	ValidateSink(ctx context.Context, token string, sink Sink) (Sink, error)
 	// ChangeSinkStateInternal change the sink internal state from new/idle/active
 	ChangeSinkStateInternal(ctx context.Context, sinkID string, msg string, ownerID string, state State) error
+	// GetLogger gets service logger to log within gokit's packages
+	GetLogger() *zap.Logger
 }
 
 type SinkRepository interface {

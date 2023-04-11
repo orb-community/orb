@@ -13,6 +13,7 @@ import (
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks/backend"
+	"go.uber.org/zap"
 	"net/url"
 )
 
@@ -71,13 +72,32 @@ func (svc sinkService) encryptMetadata(sink Sink) (Sink, error) {
 	sink.Config.FilterMap(func(key string) bool {
 		return key == backend.ConfigFeatureTypePassword
 	}, func(key string, value interface{}) (string, interface{}) {
-		newValue, err2 := svc.passwordService.EncodePassword(value.(string))
+		var stringVal string
+		switch v := value.(type) {
+		case *string:
+			stringVal = *v
+		case string:
+			stringVal = v
+		}
+		newValue, err2 := svc.passwordService.EncodePassword(stringVal)
 		if err2 != nil {
 			err = err2
 			return key, value
 		}
 		return key, newValue
 	})
+	if sink.ConfigData != "" {
+		sinkBE := backend.GetBackend(sink.Backend)
+		if sinkBE == nil {
+			return sink, errors.New("backend cannot be nil")
+		}
+		sink.ConfigData, err = sinkBE.ConfigToFormat(sink.Format, sink.Config)
+		if err != nil {
+			svc.logger.Error("error on parsing encrypted config in data")
+			return sink, err
+		}
+	}
+
 	return sink, err
 }
 
@@ -93,6 +113,17 @@ func (svc sinkService) decryptMetadata(sink Sink) (Sink, error) {
 		}
 		return key, newValue
 	})
+	if sink.ConfigData != "" {
+		sinkBE := backend.GetBackend(sink.Backend)
+		if sinkBE == nil {
+			return sink, errors.New("backend cannot be nil")
+		}
+		sink.ConfigData, err = sinkBE.ConfigToFormat(sink.Format, sink.Config)
+		if err != nil {
+			svc.logger.Error("error on parsing encrypted config in data")
+			return sink, err
+		}
+	}
 	return sink, err
 }
 
@@ -108,17 +139,33 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 		return Sink{}, err
 	}
 
-	if sink.Config == nil {
+	if sink.Config == nil && sink.ConfigData == "" {
+		// No config sent
 		sink.Config = currentSink.Config
-	} else {
-		// Validate remote_host
-		_, err := url.ParseRequestURI(sink.Config["remote_host"].(string))
+		// get the decrypted config, otherwise the password would be encrypted again
+		sink, err = svc.decryptMetadata(sink)
 		if err != nil {
-			return Sink{}, errors.Wrap(ErrUpdateEntity, err)
+			return Sink{}, err
 		}
-		// This will keep the previous tags
-		currentSink.Config.Merge(sink.Config)
-		sink.Config = currentSink.Config
+	} else {
+		if sink.ConfigData != "" {
+			sinkBE := backend.GetBackend(currentSink.Backend)
+			if sinkBE == nil {
+				return sink, errors.New("backend cannot be nil")
+			}
+			sink.Config, err = sinkBE.ParseConfig(sink.Format, sink.ConfigData)
+			if err != nil {
+				return Sink{}, err
+			}
+			if err := sinkBE.ValidateConfiguration(sink.Config); err != nil {
+				return Sink{}, err
+			}
+		}
+		//// add default values
+		defaultMetadata := make(types.Metadata, 1)
+		defaultMetadata["opentelemetry"] = "enabled"
+		sink.Config.Merge(defaultMetadata)
+		currentSink.Error = ""
 	}
 
 	if sink.Tags == nil {
@@ -133,10 +180,10 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 		sink.Name = currentSink.Name
 	}
 
-	if sink.Backend != "" || sink.Error != "" {
-		return Sink{}, errors.ErrUpdateEntity
-	}
 	sink.MFOwnerID = skOwnerID
+	if sink.Backend == "" && currentSink.Backend != "" {
+		sink.Backend = currentSink.Backend
+	}
 	sink, err = svc.encryptMetadata(sink)
 	if err != nil {
 		return Sink{}, errors.Wrap(ErrUpdateEntity, err)
@@ -219,6 +266,7 @@ func (svc sinkService) ListSinksInternal(ctx context.Context, filter Filter) (si
 func (svc sinkService) ListSinks(ctx context.Context, token string, pm PageMetadata) (Page, error) {
 	res, err := svc.identify(token)
 	if err != nil {
+		svc.GetLogger().Error("got error on identifying token", zap.Error(err))
 		return Page{}, err
 	}
 

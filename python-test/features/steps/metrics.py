@@ -36,7 +36,7 @@ def default_enabled_metric_groups_by_handler(handler):
     assert_that(handler, any_of("dns", "dns-v2", "net", "net-v2", "dhcp", "bgp", "pcap", "flow", "netprobe"),
                 "Invalid handler")
     groups_default_enabled = {
-        "dns": ["cardinality", "counters", "dns_transaction", "top_qnames", "top_ports"],
+        "dns": ["cardinality", "counters", "dns_transaction", "top_qnames", "top_ports", "quantiles"],
         "dns-v2": ["cardinality", "counters", "top_qnames", "quantiles", "top_qtypes", "top_rcodes"],
         "net": ["cardinality", "counters", "top_geo", "top_ips"],
         "net-v2": ["cardinality", "counters", "top_geo", "top_ips", "quantiles"],
@@ -60,7 +60,7 @@ def expected_metrics_by_handlers_and_groups(handler, groups_enabled, groups_disa
 
     default_enabled_metric_groups = default_enabled_metric_groups_by_handler(handler)
     groups_enabled = groups_enabled.split(", ")
-    groups_enabled = groups_enabled + default_enabled_metric_groups
+    groups_enabled = list(set(groups_enabled + default_enabled_metric_groups))
     groups_disabled = groups_disabled.split(", ")
     if all(metric_group in groups_disabled for metric_group in groups_enabled) or "all" in groups_disabled:
         if len(default_enabled_metric_groups) > 0:
@@ -119,20 +119,30 @@ def expected_metrics_by_handlers_and_groups(handler, groups_enabled, groups_disa
                 ("all" in groups_enabled and "dns_transaction" not in groups_disabled):
             metric_groups.add("dns_xact_counts_timed_out")
             metric_groups.add("dns_xact_counts_total")
-            metric_groups.add("dns_xact_in_quantiles_us")
-            metric_groups.add("dns_xact_in_quantiles_us_sum")
-            metric_groups.add("dns_xact_in_quantiles_us_count")
             metric_groups.add("dns_xact_in_total")
-            metric_groups.add("dns_xact_out_quantiles_us")
-            metric_groups.add("dns_xact_out_quantiles_us_sum")
-            metric_groups.add("dns_xact_out_quantiles_us_count")
+            metric_groups.add("dns_xact_out_total")
             # todo find a way to test slow metrics
             # metric_groups.add("dns_xact_out_top_slow")
             # metric_groups.add("dns_xact_in_top_slow")
-            metric_groups.add("dns_xact_out_total")
-            metric_groups.add("dns_xact_ratio_quantiles")
-            metric_groups.add("dns_xact_ratio_quantiles_sum")
-            metric_groups.add("dns_xact_ratio_quantiles_count")
+
+            if ("quantiles" in groups_enabled and "quantiles" not in groups_disabled) or \
+                    ("all" in groups_enabled and "quantiles" not in groups_disabled):
+                metric_groups.add("dns_xact_ratio_quantiles")
+                metric_groups.add("dns_xact_ratio_quantiles_sum")
+                metric_groups.add("dns_xact_ratio_quantiles_count")
+                metric_groups.add("dns_xact_out_quantiles_us")
+                metric_groups.add("dns_xact_out_quantiles_us_sum")
+                metric_groups.add("dns_xact_out_quantiles_us_count")
+                metric_groups.add("dns_xact_in_quantiles_us")
+                metric_groups.add("dns_xact_in_quantiles_us_sum")
+                metric_groups.add("dns_xact_in_quantiles_us_count")
+
+            if ("histograms" in groups_enabled and "histograms" not in groups_disabled) or \
+                ("all" in groups_enabled and "histograms" not in groups_disabled):
+                metric_groups.add("dns_xact_in_histogram_us_bucket")
+                metric_groups.add("dns_xact_in_histogram_us_count")
+                metric_groups.add("dns_xact_out_histogram_us_bucket")
+                metric_groups.add("dns_xact_out_histogram_us_count")
 
         if ("top_qnames" in groups_enabled and "top_qnames" not in groups_disabled) or \
                 ("all" in groups_enabled and "top_qnames" not in groups_disabled):
@@ -155,9 +165,9 @@ def expected_metrics_by_handlers_and_groups(handler, groups_enabled, groups_disa
         metric_groups = {
             "dns_observed_packets",
             "dns_deep_sampled_packets",
-            "dns_rates_events_sum",
-            "dns_rates_events_count",
-            "dns_rates_events"
+            "dns_rates_observed_pps_sum",
+            "dns_rates_observed_pps_count",
+            "dns_rates_observed_pps"
         }
         if ("cardinality" in groups_enabled and "cardinality" not in groups_disabled) or \
                 ("all" in groups_enabled and "cardinality" not in groups_disabled):
@@ -225,6 +235,8 @@ def expected_metrics_by_handlers_and_groups(handler, groups_enabled, groups_disa
             metric_groups.add("dns_xact_time_us_sum")
             metric_groups.add("dns_xact_time_us_count")
             metric_groups.add("dns_xact_time_us")
+            metric_groups.add("dns_xact_histogram_us_bucket")
+            metric_groups.add("dns_xact_histogram_us_count")
             # todo find a way to test slow metrics
             # metric_groups.add("dns_top_slow_xacts")
     elif isinstance(handler, str) and handler.lower() == "net":
@@ -389,7 +401,20 @@ def expected_metrics_by_handlers_and_groups(handler, groups_enabled, groups_disa
             if ("conversations" in groups_enabled and "conversations" not in groups_disabled) or \
                     ("all" in groups_enabled and "conversations" not in groups_disabled):
                 metric_groups.add("flow_cardinality_conversations")
-
+        if ("top_tos" in groups_enabled and "top_tos" not in groups_disabled) or \
+                ("all" in groups_enabled and "top_tos" not in groups_disabled):
+            if ("by_bytes" in groups_enabled and "by_bytes" not in groups_disabled) or \
+                    ("all" in groups_enabled and "by_bytes" not in groups_disabled):
+                metric_groups.add("flow_top_in_dscp_bytes")
+                metric_groups.add("flow_top_out_dscp_bytes")
+                metric_groups.add("flow_top_in_ecn_bytes")
+                metric_groups.add("flow_top_out_ecn_bytes")
+            if ("by_packets" in groups_enabled and "by_packets" not in groups_disabled) or \
+                    ("all" in groups_enabled and "by_packets" not in groups_disabled):
+                metric_groups.add("flow_top_in_dscp_packets")
+                metric_groups.add("flow_top_out_dscp_packets")
+                metric_groups.add("flow_top_in_ecn_packets")
+                metric_groups.add("flow_top_out_ecn_packets")
         if ("counters" in groups_enabled and "counters" not in groups_disabled) or \
                 ("all" in groups_enabled and "counters" not in groups_disabled):
             metric_groups.add("flow_records_filtered")
@@ -489,7 +514,11 @@ def expected_metrics_by_handlers_and_groups(handler, groups_enabled, groups_disa
             if ("cardinality" in groups_enabled and "cardinality" not in groups_disabled) or \
                     ("all" in groups_enabled and "cardinality" not in groups_disabled):
                 metric_groups.add("flow_cardinality_conversations")
+            if ("by_bytes" in groups_enabled and "by_bytes" not in groups_disabled) or \
+                    ("all" in groups_enabled and "by_bytes" not in groups_disabled):
                 metric_groups.add("flow_top_conversations_bytes")
+            if ("by_packets" in groups_enabled and "by_packets" not in groups_disabled) or \
+                    ("all" in groups_enabled and "by_packets" not in groups_disabled):
                 metric_groups.add("flow_top_conversations_packets")
 
     elif isinstance(handler, str) and handler.lower() == "netprobe":
@@ -526,5 +555,4 @@ def expected_metrics_by_handlers_and_groups(handler, groups_enabled, groups_disa
                 metric_groups.add("netprobe_response_min_us")
     else:
         raise f"{handler} is not a valid handler"
-
     return metric_groups

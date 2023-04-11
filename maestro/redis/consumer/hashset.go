@@ -20,6 +20,7 @@ import (
 const (
 	deploymentKey  = "orb.sinks.deployment"
 	activityPrefix = "sinker_activity"
+	streamLen      = 1000
 )
 
 func (es eventStore) GetDeploymentEntryFromSinkId(ctx context.Context, sinkId string) (string, error) {
@@ -61,8 +62,15 @@ func (es eventStore) handleSinksCreateCollector(ctx context.Context, event redis
 		return err
 	}
 	sinkUrl := data.Url
-	sinkUsername := data.User
-	sinkPassword := data.Password
+	var sinkUsername string
+	var sinkPassword string
+	if data.User != "" {
+		sinkUsername = data.User
+		sinkPassword = data.Password
+	} else {
+		sinkPassword = data.Token
+	}
+
 	err2 := es.CreateDeploymentEntry(ctx, event.SinkID, sinkUrl, sinkUsername, sinkPassword)
 	if err2 != nil {
 		return err2
@@ -187,6 +195,8 @@ func (es eventStore) PublishSinkStateChange(sink *sinkspb.SinkRes, status string
 	record := &redis2.XAddArgs{
 		Stream: streamID,
 		Values: event.Encode(),
+		MaxLen: streamLen,
+		Approx: true,
 	}
 	err = es.streamRedisClient.XAdd(context.Background(), record).Err()
 	if err != nil {

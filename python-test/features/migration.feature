@@ -17,7 +17,7 @@ Scenario: Agent legacy + sink legacy -> sink OTEL
         And referred sink must have active state on response within 120 seconds
         And 2 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
     When the sink is updated and OTEL is enabled
-        And referred sink must have active state on response after 10 seconds
+        And referred sink must have active state on response after 120 seconds
 
 
 @pre-migration

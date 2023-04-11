@@ -15,7 +15,8 @@ DEBUG_REF_TAG ?= develop-debug
 PKTVISOR_TAG ?= latest-develop
 PKTVISOR_DEBUG_TAG ?= latest-develop-debug
 DOCKER_IMAGE_NAME_PREFIX ?= orb
-DOCKERHUB_REPO = ns1labs
+DOCKERHUB_REPO = orbcommunity
+ORB_DOCKERHUB_REPO = orbcommunity
 BUILD_DIR = build
 SERVICES = fleet policies sinks sinker migrate maestro
 DOCKERS = $(addprefix docker_,$(SERVICES))
@@ -51,9 +52,9 @@ define make_docker
 		--build-arg SVC=$(SERVICE) \
 		--build-arg GOARCH=$(GOARCH) \
 		--build-arg GOARM=$(GOARM) \
-		--tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-$(SERVICE):$(REF_TAG) \
-		--tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-$(SERVICE):$(ORB_VERSION) \
-		--tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-$(SERVICE):$(ORB_VERSION)-$(COMMIT_HASH) \
+		--tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-$(SERVICE):$(REF_TAG) \
+		--tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-$(SERVICE):$(ORB_VERSION) \
+		--tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-$(SERVICE):$(ORB_VERSION)-$(COMMIT_HASH) \
 		-f docker/Dockerfile .
 	$(eval SERVICE="")
 endef
@@ -62,9 +63,9 @@ define make_docker_dev
 	docker build \
 		--no-cache \
 		--build-arg SVC=$(svc) \
-		--tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-$(svc):$(REF_TAG) \
-		--tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-$(svc):$(ORB_VERSION) \
-		--tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-$(svc):$(ORB_VERSION)-$(COMMIT_HASH) \
+		--tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-$(svc):$(REF_TAG) \
+		--tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-$(svc):$(ORB_VERSION) \
+		--tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-$(svc):$(ORB_VERSION)-$(COMMIT_HASH) \
 		-f docker/Dockerfile.dev ./build
 	$(eval svc="")
 endef
@@ -170,13 +171,13 @@ kind-delete-cluster:
 	kind delete cluster
 
 kind-load-images:
-	kind load docker-image ns1labs/orb-fleet:develop
-	kind load docker-image ns1labs/orb-policies:develop
-	kind load docker-image ns1labs/orb-sinks:develop
-	kind load docker-image ns1labs/orb-sinker:develop
-	kind load docker-image ns1labs/orb-migrate:develop
-	kind load docker-image ns1labs/orb-maestro:develop
-	kind load docker-image ns1labs/orb-ui:develop
+	kind load docker-image orbcommunity/orb-fleet:develop
+	kind load docker-image orbcommunity/orb-policies:develop
+	kind load docker-image orbcommunity/orb-sinks:develop
+	kind load docker-image orbcommunity/orb-sinker:develop
+	kind load docker-image orbcommunity/orb-migrate:develop
+	kind load docker-image orbcommunity/orb-maestro:develop
+	kind load docker-image orbcommunity/orb-ui:develop
 
 kind-install-orb:
 	kubectl create namespace orb
@@ -211,29 +212,30 @@ agent_bin:
 agent:
 	docker build --no-cache \
 	  --build-arg PKTVISOR_TAG=$(PKTVISOR_TAG) \
-	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(REF_TAG) \
-	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(ORB_VERSION) \
-	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(ORB_VERSION)-$(COMMIT_HASH) \
+	  --tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(REF_TAG) \
+	  --tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(ORB_VERSION) \
+	  --tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(ORB_VERSION)-$(COMMIT_HASH) \
 	  -f agent/docker/Dockerfile .
 
 agent_debug:
 	docker build \
 	  --build-arg PKTVISOR_TAG=$(PKTVISOR_DEBUG_TAG) \
 	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(DEBUG_REF_TAG) \
+	  --tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(DEBUG_REF_TAG) \
 	  -f agent/docker/Dockerfile .
 
 agent_production:
 	docker build \
 	  --build-arg PKTVISOR_TAG=$(PKTVISOR_TAG) \
-	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(PRODUCTION_AGENT_REF_TAG) \
-	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(ORB_VERSION) \
-	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(ORB_VERSION)-$(COMMIT_HASH) \
+	  --tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(PRODUCTION_AGENT_REF_TAG) \
+	  --tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(ORB_VERSION) \
+	  --tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(ORB_VERSION)-$(COMMIT_HASH) \
 	  -f agent/docker/Dockerfile .
 
 agent_debug_production:
 	docker build \
 	  --build-arg PKTVISOR_TAG=$(PKTVISOR_DEBUG_TAG) \
-	  --tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(PRODUCTION_AGENT_DEBUG_REF_TAG) \
+	  --tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(PRODUCTION_AGENT_DEBUG_REF_TAG) \
 	  -f agent/docker/Dockerfile .
 
 test_ui:
@@ -241,9 +243,9 @@ test_ui:
 
 ui-modules:
 	cd ui/ && docker build \
-		--tag=$(DOCKERHUB_REPO)/orb-ui-modules:latest \
-		--tag=$(DOCKERHUB_REPO)/orb-ui-modules:$(REF_TAG) \
-		--tag=$(DOCKERHUB_REPO)/orb-ui-modules:$(ORB_VERSION)-$(COMMIT_HASH) \
+		--tag=$(ORB_DOCKERHUB_REPO)/orb-ui-modules:latest \
+		--tag=$(ORB_DOCKERHUB_REPO)/orb-ui-modules:$(REF_TAG) \
+		--tag=$(ORB_DOCKERHUB_REPO)/orb-ui-modules:$(ORB_VERSION)-$(COMMIT_HASH) \
 		-f docker/Dockerfile.buildyarn .
 
 ui:
@@ -251,9 +253,9 @@ ui:
 		--build-arg ENV_PS_SID=${PS_SID} \
 		--build-arg ENV_PS_GROUP_KEY=${PS_GROUP_KEY} \
 		--build-arg ENV=${ENVIRONMENT} \
-		--tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-ui:$(REF_TAG) \
-		--tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-ui:$(ORB_VERSION) \
-		--tag=$(DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-ui:$(ORB_VERSION)-$(COMMIT_HASH) \
+		--tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-ui:$(REF_TAG) \
+		--tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-ui:$(ORB_VERSION) \
+		--tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-ui:$(ORB_VERSION)-$(COMMIT_HASH) \
 		-f docker/Dockerfile .
 
 platform: dockers_dev agent ui

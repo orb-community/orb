@@ -49,7 +49,7 @@ def create_agent_group_matching_agent(context, amount_of_agent_groups, amount_of
 
 
 @step("{amount_of_agent_groups} Agent Group(s) is created with {orb_tags} orb tag(s) (lower case)")
-# this step is temporary because of issue https://github.com/ns1labs/orb/issues/1053
+# this step is temporary because of issue https://github.com/orb-community/orb/issues/1053
 def create_group_with_tags_lower_case(context, amount_of_agent_groups, orb_tags):
     create_new_agent_group(context, amount_of_agent_groups, orb_tags, tags_lower_case=True)
 
@@ -325,7 +325,7 @@ def create_agent_group(token, name, description, tags, expected_status_code=201)
     try:
         response_json = response.json()
     except ValueError:
-        response_json = ValueError
+        response_json = response.text
     assert_that(response.status_code, equal_to(expected_status_code),
                 f"Request to create agent group failed with status= {str(response.status_code)}. Response="
                 f" {str(response_json)}. Json used: {json_request}")
@@ -469,15 +469,15 @@ def edit_agent_group(token, agent_group_id, name, description, tags, expected_st
 
     if tags == {} or name == {}:
         expected_status_code = 400
-    assert_that(group_edited_response.status_code, equal_to(expected_status_code),
-                'Request to edit agent group failed with status=' + "status code =" +
-                str(group_edited_response.status_code) + "response =" + str(group_edited_response.json()) +
-                " json used: " + str(json_request))
-
     try:
         response_json = group_edited_response.json()
     except ValueError:
-        response_json = ValueError
+        response_json = group_edited_response.text
+        
+    assert_that(group_edited_response.status_code, equal_to(expected_status_code),
+                'Request to edit agent group failed with status=' + "status code =" +
+                str(group_edited_response.status_code) + "response =" + str(response_json) +
+                " json used: " + str(json_request))
 
     return response_json, group_edited_response.status_code
 

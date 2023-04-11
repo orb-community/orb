@@ -103,9 +103,10 @@ func (es eventStore) RemoveAgentGroup(ctx context.Context, token string, groupID
 		token:   token,
 	}
 	record := &redis.XAddArgs{
-		Stream:       streamID,
-		MaxLenApprox: streamLen,
-		Values:       event.encode(),
+		Stream: streamID,
+		MaxLen: streamLen,
+		Approx: true,
+		Values: event.encode(),
 	}
 	err = es.client.XAdd(ctx, record).Err()
 	if err != nil {

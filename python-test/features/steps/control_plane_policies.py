@@ -488,12 +488,16 @@ def create_duplicated_policy(token, policy_id, new_policy_name=None, status_code
                        'Authorization': f'Bearer {token}'}
     post_url = f"{orb_url}/api/v1/policies/agent/{policy_id}/duplicate"
     response = requests.post(post_url, json=json_request, headers=headers_request, verify=verify_ssl_bool)
+    try:
+        response_json = response.json()
+    except ValueError:
+        response_json = response.text
     assert_that(response.status_code, equal_to(status_code),
                 'Request to create duplicated policy failed with status=' + str(response.status_code) + ': '
-                + str(response.json()))
+                + str(response_json))
     if status_code == 201:
         compare_two_policies(token, policy_id, response.json()['id'])
-    return response.json()
+    return response_json
 
 
 def compare_two_policies(token, id_policy_one, id_policy_two):
@@ -531,7 +535,7 @@ def create_policy(token, json_request, expected_status_code=201):
     try:
         response_json = response.json()
     except ValueError:
-        response_json = ValueError
+        response_json = response.text
     assert_that(response.status_code, equal_to(expected_status_code),
                 'Request to create policy failed with status=' + str(response.status_code) + ': '
                 + str(response_json))
@@ -556,7 +560,7 @@ def edit_policy(token, policy_id, json_request, expected_status_code=200):
     try:
         response_json = response.json()
     except ValueError:
-        response_json = ValueError
+        response_json = response.text
     assert_that(response.status_code, equal_to(expected_status_code),
                 'Request to editing policy failed with status=' + str(response.status_code) + ': '
                 + str(response_json))
@@ -758,7 +762,7 @@ def get_policy(token, policy_id, expected_status_code=200):
     try:
         response_json = get_policy_response.json()
     except ValueError:
-        response_json = ValueError
+        response_json = get_policy_response.text
     assert_that(get_policy_response.status_code, equal_to(expected_status_code),
                 'Request to get policy id=' + policy_id + ' failed with status= ' + str(get_policy_response.status_code)
                 + " response= " + str(response_json))
@@ -800,12 +804,16 @@ def list_up_to_limit_policies(token, limit=100, offset=0):
 
     response = requests.get(orb_url + '/api/v1/policies/agent', headers={'Authorization': f'Bearer {token}'},
                             params={'limit': limit, 'offset': offset}, verify=verify_ssl_bool)
+    try:
+        response_json = response.json()
+    except ValueError:
+        response_json = response.text
 
     assert_that(response.status_code, equal_to(200),
                 'Request to list policies failed with status=' + str(response.status_code) + ': '
-                + str(response.json()))
+                + str(response_json))
 
-    policies_as_json = response.json()
+    policies_as_json = response_json
     return policies_as_json['data'], policies_as_json['total'], policies_as_json['offset']
 
 

@@ -59,6 +59,7 @@ func (es eventStore) CreateSink(ctx context.Context, token string, s sinks.Sink)
 		record := &redis.XAddArgs{
 			Stream: streamID,
 			MaxLen: streamLen,
+			Approx: true,
 			Values: encode,
 		}
 
@@ -88,6 +89,7 @@ func (es eventStore) UpdateSink(ctx context.Context, token string, s sinks.Sink)
 		record := &redis.XAddArgs{
 			Stream: streamID,
 			MaxLen: streamLen,
+			Approx: true,
 			Values: encode,
 		}
 
@@ -115,6 +117,10 @@ func (es eventStore) ViewSink(ctx context.Context, token string, key string) (_ 
 	return es.svc.ViewSink(ctx, token, key)
 }
 
+func (es eventStore) GetLogger() *zap.Logger {
+	return es.logger
+}
+
 func (es eventStore) DeleteSink(ctx context.Context, token, id string) (err error) {
 	sink, err := es.svc.ViewSink(ctx, token, id)
 	if err != nil {
@@ -138,6 +144,7 @@ func (es eventStore) DeleteSink(ctx context.Context, token, id string) (err erro
 	record := &redis.XAddArgs{
 		Stream: streamID,
 		MaxLen: streamLen,
+		Approx: true,
 		Values: encode,
 	}
 
