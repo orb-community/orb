@@ -43,20 +43,20 @@ func TestLoadConfig(t *testing.T) {
 			id: component.NewIDWithName(typeStr, ""),
 			expected: &Config{
 				TimeoutSettings: exporterhelper.TimeoutSettings{
-					Timeout: 10 * time.Second,
+					Timeout: 5 * time.Second,
 				},
 				RetrySettings: exporterhelper.RetrySettings{
 					Enabled:             true,
-					InitialInterval:     10 * time.Second,
-					MaxInterval:         1 * time.Minute,
-					MaxElapsedTime:      10 * time.Minute,
+					InitialInterval:     5 * time.Second,
+					MaxInterval:         time.Minute / 2,
+					MaxElapsedTime:      5 * time.Minute,
 					RandomizationFactor: backoff.DefaultRandomizationFactor,
 					Multiplier:          backoff.DefaultMultiplier,
 				},
 				QueueSettings: exporterhelper.QueueSettings{
 					Enabled:      true,
-					NumConsumers: 2,
-					QueueSize:    10,
+					NumConsumers: 10,
+					QueueSize:    5000,
 				},
 				Topic:    "spans",
 				Encoding: "otlp_proto",

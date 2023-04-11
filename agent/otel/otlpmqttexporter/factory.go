@@ -33,7 +33,7 @@ func NewFactory() exporter.Factory {
 	return exporter.NewFactory(
 		typeStr,
 		CreateDefaultConfig,
-		exporter.WithMetrics(CreateMetricsExporter, component.StabilityLevelAlpha))
+		exporter.WithMetrics(CreateMetricsExporter, component.StabilityLevelStable))
 }
 
 func CreateConfig(addr, id, key, channel, pktvisor, metricsTopic string, bridgeService otel.AgentBridgeService) component.Config {
