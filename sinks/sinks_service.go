@@ -192,17 +192,17 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 		// get the decrypted config, otherwise the password would be encrypted again
 		sink, err = svc.decryptMetadata(cfg, sink)
 		if err != nil {
-			return Sink{}, err
+			return Sink{}, errors.Wrap(ErrUpdateEntity, err)
 		}
 	} else {
 		sink.Backend = currentSink.Backend
 		be, err := validateBackend(&sink)
 		if err != nil {
-			return Sink{}, err
+			return Sink{}, errors.Wrap(ErrMalformedEntity, err)
 		}
 		at, err := validateAuthType(&sink)
 		if err != nil {
-			return Sink{}, err
+			return Sink{}, errors.Wrap(ErrMalformedEntity, err)
 		}
 		cfg = Configuration{
 			Authentication: at,
@@ -237,7 +237,7 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 	}
 	err = svc.sinkRepo.Update(ctx, sink)
 	if err != nil {
-		return Sink{}, err
+		return Sink{}, errors.Wrap(ErrUpdateEntity, err)
 	}
 	sinkEdited, err := svc.sinkRepo.RetrieveById(ctx, sink.ID)
 	if err != nil {

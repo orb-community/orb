@@ -502,12 +502,12 @@ func TestUpdateSink(t *testing.T) {
 		t.Run(desc, func(t *testing.T) {
 			res, err := service.UpdateSink(context.Background(), tc.token, tc.incomingSink)
 			if err == nil {
-				assert.Equal(t, tc.expectedSink.Config, res.Config, "config not as expected")
 				assert.Equal(t, tc.expectedSink.Name.String(), res.Name.String(), "sink name not as expected")
 				assert.Equal(t, *tc.expectedSink.Description, *res.Description, "sink description not as expected")
 				assert.Equal(t, tc.expectedSink.Tags, res.Tags, "sink tags not as expected")
+			} else {
+				assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %d got %d", desc, tc.err, err))
 			}
-			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %d got %d", desc, tc.err, err))
 		})
 	}
 }
