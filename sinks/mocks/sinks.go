@@ -72,7 +72,7 @@ func (s *sinkRepositoryMock) Save(ctx context.Context, sink sinks.Sink) (string,
 	s.counter++
 	ID, _ := uuid.NewV4()
 	sink.ID = ID.String()
-	s.sinksMock.Set(ID.String(), sink)
+	s.sinksMock = *s.sinksMock.Set(ID.String(), sink)
 	return sink.ID, nil
 }
 
@@ -83,7 +83,7 @@ func (s *sinkRepositoryMock) Update(ctx context.Context, sink sinks.Sink) (err e
 		if sink.MFOwnerID != c.MFOwnerID {
 			return errors.ErrUpdateEntity
 		}
-		s.sinksMock.Set(sink.ID, sink)
+		s.sinksMock = *s.sinksMock.Set(sink.ID, sink)
 		return nil
 	}
 	return sinks.ErrNotFound
@@ -136,7 +136,7 @@ func (s *sinkRepositoryMock) RetrieveById(ctx context.Context, key string) (sink
 func (s *sinkRepositoryMock) Remove(ctx context.Context, owner string, key string) error {
 	if c, ok := s.sinksMock.Get(key); ok {
 		if c.MFOwnerID == owner {
-			s.sinksMock.Delete(key)
+			s.sinksMock = *s.sinksMock.Delete(key)
 			return nil
 		} else {
 			return sinks.ErrNotFound
