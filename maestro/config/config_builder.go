@@ -295,7 +295,7 @@ var JsonDeployment = `
             "containers": [
               {
                 "name": "otel-collector",
-                "image": "otel/opentelemetry-collector-contrib:0.68.0",
+                "image": "otel/opentelemetry-collector-contrib:0.75.0",
                 "ports": [
                   {
                     "containerPort": 13133,
@@ -362,90 +362,59 @@ var JsonDeployment = `
     }
 `
 
-func GetDeploymentJson(kafkaUrl, sinkId, sinkUrl, sinkUsername, sinkPassword string) (string, error) {
+func GetDeploymentJson(kafkaUrl string, sink SinkData) (string, error) {
 	// prepare manifest
-	manifest := strings.Replace(k8sOtelCollector, "SINK_ID", sinkId, -1)
-	config, err := ReturnConfigYamlFromSink(context.Background(), kafkaUrl, sinkId, sinkUrl, sinkUsername, sinkPassword)
+	manifest := strings.Replace(k8sOtelCollector, "SINK_ID", sink.SinkID, -1)
+	config, err := ReturnConfigYamlFromSink(context.Background(), kafkaUrl, sink)
 	if err != nil {
 		return "", errors.Wrap(errors.New("failed to build YAML"), err)
 	}
 	manifest = strings.Replace(manifest, "SINK_CONFIG", config, -1)
 	return manifest, nil
-}
-
-func GetDeploymentApplyConfig(sinkId string) string {
-	manifest := strings.Replace(JsonDeployment, "SINK_ID", sinkId, -1)
-	return manifest
-}
-
-func GetConfigMapApplyConfig(kafkaUrl, sinkId, sinkUrl, sinkUsername, sinkPassword string) (string, error) {
-	manifest := strings.Replace(JsonConfigMap, "SINK_ID", sinkId, -1)
-	config, err := ReturnConfigYamlFromSink(context.Background(), kafkaUrl, sinkId, sinkUrl, sinkUsername, sinkPassword)
-	if err != nil {
-		return "", errors.Wrap(errors.New("failed to build YAML"), err)
-	}
-	manifest = strings.Replace(manifest, "SINK_CONFIG", config, -1)
-	return manifest, nil
-}
-
-func GetServiceApplyConfig(sinkId string) string {
-	manifest := strings.Replace(JsonService, "SINK_ID", sinkId, -1)
-	return manifest
 }
 
 // ReturnConfigYamlFromSink this is the main method, which will generate the YAML file from the
-func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig, sinkId, sinkUrl, sinkUsername, sinkPassword string) (string, error) {
+func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig string, sink SinkData) (string, error) {
+	authType := sink.Config.GetSubMetadata("authentication")["type"].(string)
+	authBuilder := GetAuthService(authType)
+	exporterBuilder := FromStrategy(sink.Backend)
+	extensions, extensionName := authBuilder.GetExtensionsFromMetadata(sink.Config)
+	exporters, exporterName := exporterBuilder.GetExportersFromMetadata(sink.Config, extensionName)
+
+	// Add prometheus extension for metrics
+	extensions.PProf = &PProfExtension{
+		Endpoint: "0.0.0.0:1888", // Leaving default for now, will need to change with more processes
+	}
+	serviceConfig := ServiceConfig{
+		Extensions: []string{"pprof", extensionName},
+		Pipelines: struct {
+			Metrics struct {
+				Receivers  []string `json:"receivers" yaml:"receivers"`
+				Processors []string `json:"processors,omitempty" yaml:"processors,omitempty"`
+				Exporters  []string `json:"exporters" yaml:"exporters"`
+			} `json:"metrics" yaml:"metrics"`
+		}{
+			Metrics: struct {
+				Receivers  []string `json:"receivers" yaml:"receivers"`
+				Processors []string `json:"processors,omitempty" yaml:"processors,omitempty"`
+				Exporters  []string `json:"exporters" yaml:"exporters"`
+			}{
+				Receivers: []string{"kafka"},
+				Exporters: []string{exporterName},
+			},
+		},
+	}
 	config := OtelConfigFile{
 		Receivers: Receivers{
 			Kafka: KafkaReceiver{
 				Brokers:         []string{kafkaUrlConfig},
-				Topic:           fmt.Sprintf("otlp_metrics-%s", sinkId),
+				Topic:           fmt.Sprintf("otlp_metrics-%s", sink.SinkID),
 				ProtocolVersion: "2.0.0", // Leaving default of over 2.0.0
 			},
 		},
-		Extensions: &Extensions{
-			PProf: &PProfExtension{
-				Endpoint: "0.0.0.0:1888", // Leaving default for now, will need to change with more processes
-			},
-			BasicAuth: &BasicAuthenticationExtension{
-				ClientAuth: &struct {
-					Username string `json:"username" yaml:"username"`
-					Password string `json:"password" yaml:"password"`
-				}{Username: sinkUsername, Password: sinkPassword},
-			},
-		},
-		Exporters: Exporters{
-			PrometheusRemoteWrite: &PrometheusRemoteWriteExporterConfig{
-				Endpoint: sinkUrl,
-				Auth: struct {
-					Authenticator string `json:"authenticator" yaml:"authenticator"`
-				}{Authenticator: "basicauth/exporter"},
-			},
-			LoggingExporter: &LoggingExporterConfig{
-				Verbosity:          "detailed",
-				SamplingInitial:    5,
-				SamplingThereAfter: 50,
-			},
-		},
-		Service: ServiceConfig{
-			Extensions: []string{"pprof", "basicauth/exporter"},
-			Pipelines: struct {
-				Metrics struct {
-					Receivers  []string `json:"receivers" yaml:"receivers"`
-					Processors []string `json:"processors,omitempty" yaml:"processors,omitempty"`
-					Exporters  []string `json:"exporters" yaml:"exporters"`
-				} `json:"metrics" yaml:"metrics"`
-			}{
-				Metrics: struct {
-					Receivers  []string `json:"receivers" yaml:"receivers"`
-					Processors []string `json:"processors,omitempty" yaml:"processors,omitempty"`
-					Exporters  []string `json:"exporters" yaml:"exporters"`
-				}{
-					Receivers: []string{"kafka"},
-					Exporters: []string{"prometheusremotewrite"},
-				},
-			},
-		},
+		Extensions: &extensions,
+		Exporters:  exporters,
+		Service:    serviceConfig,
 	}
 	marshal, err := yaml.Marshal(&config)
 	if err != nil {

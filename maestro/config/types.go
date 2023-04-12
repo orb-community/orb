@@ -2,17 +2,16 @@ package config
 
 import (
 	"database/sql/driver"
+	"github.com/orb-community/orb/pkg/types"
 	"time"
 )
 
 type SinkData struct {
 	SinkID          string          `json:"sink_id"`
 	OwnerID         string          `json:"owner_id"`
-	Url             string          `json:"remote_host"`
-	User            string          `json:"username"`
-	Password        string          `json:"password"`
+	Backend         string          `json:"backend"`
+	Config          types.Metadata  `json:"config"`
 	Token           string          `json:"token"`
-	OpenTelemetry   string          `json:"opentelemetry"`
 	State           PrometheusState `json:"state,omitempty"`
 	Migrate         string          `json:"migrate,omitempty"`
 	Msg             string          `json:"msg,omitempty"`
@@ -109,11 +108,13 @@ type ZPagesExtension struct {
 	Endpoint string `json:"endpoint" yaml:"endpoint"`
 }
 
+type ClientAuth struct {
+	Username string `json:"username" yaml:"username"`
+	Password string `json:"password" yaml:"password"`
+}
+
 type BasicAuthenticationExtension struct {
-	ClientAuth *struct {
-		Username string `json:"username" yaml:"username"`
-		Password string `json:"password" yaml:"password"`
-	} `json:"client_auth" yaml:"client_auth"`
+	ClientAuth *ClientAuth `json:"client_auth" yaml:"client_auth"`
 }
 
 type BearerAuthExtension struct {
@@ -139,6 +140,10 @@ type OTLPExporterConfig struct {
 	Auth     struct {
 		Authenticator string `json:"authenticator" yaml:"authenticator"`
 	}
+}
+
+type Auth struct {
+	Authenticator string `json:"authenticator" yaml:"authenticator"`
 }
 
 type PrometheusRemoteWriteExporterConfig struct {

@@ -61,17 +61,8 @@ func (es eventStore) handleSinksCreateCollector(ctx context.Context, event redis
 	if err := json.Unmarshal(sinkData.Config, &data); err != nil {
 		return err
 	}
-	sinkUrl := data.Url
-	var sinkUsername string
-	var sinkPassword string
-	if data.User != "" {
-		sinkUsername = data.User
-		sinkPassword = data.Password
-	} else {
-		sinkPassword = data.Token
-	}
 
-	err2 := es.CreateDeploymentEntry(ctx, event.SinkID, sinkUrl, sinkUsername, sinkPassword)
+	err2 := es.CreateDeploymentEntry(ctx, data)
 	if err2 != nil {
 		return err2
 	}
@@ -79,14 +70,14 @@ func (es eventStore) handleSinksCreateCollector(ctx context.Context, event redis
 	return nil
 }
 
-func (es eventStore) CreateDeploymentEntry(ctx context.Context, sinkId, sinkUrl, sinkUsername, sinkPassword string) error {
-	deploy, err := config.GetDeploymentJson(es.kafkaUrl, sinkId, sinkUrl, sinkUsername, sinkPassword)
+func (es eventStore) CreateDeploymentEntry(ctx context.Context, sink config.SinkData) error {
+	deploy, err := config.GetDeploymentJson(es.kafkaUrl, sink)
 	if err != nil {
-		es.logger.Error("error trying to get deployment json for sink ID", zap.String("sinkId", sinkId))
+		es.logger.Error("error trying to get deployment json for sink ID", zap.String("sinkId", sink.SinkID))
 		return err
 	}
 
-	es.sinkerKeyRedisClient.HSet(ctx, deploymentKey, sinkId, deploy)
+	es.sinkerKeyRedisClient.HSet(ctx, deploymentKey, sink.SinkID, deploy)
 	return nil
 }
 
@@ -104,10 +95,8 @@ func (es eventStore) handleSinksUpdateCollector(ctx context.Context, event redis
 	if err := json.Unmarshal(sinkData.Config, &data); err != nil {
 		return err
 	}
-	sinkUrl := data.Url
-	sinkUsername := data.User
-	sinkPassword := data.Password
-	deploy, err := config.GetDeploymentJson(es.kafkaUrl, event.SinkID, sinkUrl, sinkUsername, sinkPassword)
+
+	deploy, err := config.GetDeploymentJson(es.kafkaUrl, data)
 	if err != nil {
 		es.logger.Error("error trying to get deployment json for sink ID", zap.String("sinkId", event.SinkID))
 		return err
@@ -122,8 +111,8 @@ func (es eventStore) handleSinksUpdateCollector(ctx context.Context, event redis
 	es.PublishSinkStateChange(sinkData, "unknown", err, err)
 	data.SinkID = sinkData.Id
 	data.OwnerID = sinkData.OwnerID
-	data.State.SetFromString("unknown")
-	es.UpdateSinkStateCache(ctx, data)
+	_ = data.State.SetFromString("unknown")
+	_ = es.UpdateSinkStateCache(ctx, data)
 	return nil
 }
 
