@@ -18,7 +18,7 @@ import (
 	"go.opentelemetry.io/collector/consumer/consumererror"
 
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
@@ -26,7 +26,7 @@ import (
 	"go.uber.org/zap"
 )
 
-type exporter struct {
+type baseExporter struct {
 	// Input configuration.
 	config     *Config
 	client     *http.Client
@@ -42,7 +42,7 @@ type exporter struct {
 	policyName string
 }
 
-func (e *exporter) compressBrotli(data []byte) []byte {
+func (e *baseExporter) compressBrotli(data []byte) []byte {
 	var b bytes.Buffer
 	w := brotli.NewWriterLevel(&b, brotli.BestCompression)
 	_, err := w.Write(data)
@@ -57,7 +57,7 @@ func (e *exporter) compressBrotli(data []byte) []byte {
 }
 
 // Crete new exporter.
-func newExporter(cfg config.Exporter, set component.ExporterCreateSettings, ctx context.Context) (*exporter, error) {
+func newExporter(cfg component.Config, set exporter.CreateSettings, ctx context.Context) (*baseExporter, error) {
 	oCfg := cfg.(*Config)
 	policyID := ctx.Value("policy_id").(string)
 	policyName := ctx.Value("policy_name").(string)
@@ -72,7 +72,7 @@ func newExporter(cfg config.Exporter, set component.ExporterCreateSettings, ctx 
 		set.BuildInfo.Description, set.BuildInfo.Version, runtime.GOOS, runtime.GOARCH)
 
 	// Client construction is deferred to start
-	return &exporter{
+	return &baseExporter{
 		config:     oCfg,
 		logger:     set.Logger,
 		userAgent:  userAgent,
@@ -83,7 +83,7 @@ func newExporter(cfg config.Exporter, set component.ExporterCreateSettings, ctx 
 }
 
 // start actually creates the MQTT client.
-func (e *exporter) start(_ context.Context, _ component.Host) error {
+func (e *baseExporter) start(_ context.Context, _ component.Host) error {
 	token := e.config.Client
 	if token == nil {
 		opts := mqtt.NewClientOptions().AddBroker(e.config.Address).SetClientID(e.config.Id)
@@ -111,7 +111,7 @@ func (e *exporter) start(_ context.Context, _ component.Host) error {
 }
 
 // extractAttribute extract attribute from metricsScope metrics
-func (e *exporter) extractScopeAttribute(metricsScope pmetric.ScopeMetrics, attribute string) string {
+func (e *baseExporter) extractScopeAttribute(metricsScope pmetric.ScopeMetrics, attribute string) string {
 	metrics := metricsScope.Metrics()
 	if metrics.Len() > 0 {
 		for i := 0; i < metrics.Len(); i++ {
@@ -159,7 +159,7 @@ func (e *exporter) extractScopeAttribute(metricsScope pmetric.ScopeMetrics, attr
 }
 
 // extractAttribute extract attribute from metricsRequest metrics
-func (e *exporter) extractAttribute(metricsRequest pmetricotlp.Request, attribute string) string {
+func (e *baseExporter) extractAttribute(metricsRequest pmetricotlp.ExportRequest, attribute string) string {
 	if metricsRequest.Metrics().ResourceMetrics().Len() > 0 {
 		if metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().Len() > 0 {
 			metrics := metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
@@ -209,7 +209,7 @@ func (e *exporter) extractAttribute(metricsRequest pmetricotlp.Request, attribut
 }
 
 // inject attribute on all ScopeMetrics metrics
-func (e *exporter) injectScopeAttribute(metricsScope pmetric.ScopeMetrics, attribute string, value string) pmetric.ScopeMetrics {
+func (e *baseExporter) injectScopeAttribute(metricsScope pmetric.ScopeMetrics, attribute string, value string) pmetric.ScopeMetrics {
 	metrics := metricsScope.Metrics()
 	for i := 0; i < metrics.Len(); i++ {
 		metricItem := metrics.At(i)
@@ -247,7 +247,7 @@ func (e *exporter) injectScopeAttribute(metricsScope pmetric.ScopeMetrics, attri
 }
 
 // inject attribute on all metricsRequest metrics
-func (e *exporter) injectAttribute(metricsRequest pmetricotlp.Request, attribute string, value string) pmetricotlp.Request {
+func (e *baseExporter) injectAttribute(metricsRequest pmetricotlp.ExportRequest, attribute string, value string) pmetricotlp.ExportRequest {
 	metrics := metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
 	for i := 0; i < metrics.Len(); i++ {
 		metricItem := metrics.At(i)
@@ -280,13 +280,13 @@ func (e *exporter) injectAttribute(metricsRequest pmetricotlp.Request, attribute
 	return metricsRequest
 }
 
-func (e *exporter) pushTraces(_ context.Context, _ ptrace.Traces) error {
+func (e *baseExporter) pushTraces(_ context.Context, _ ptrace.Traces) error {
 	return fmt.Errorf("not implemented")
 }
 
 // pushMetrics Exports metrics
-func (e *exporter) pushMetrics(ctx context.Context, md pmetric.Metrics) error {
-	tr := pmetricotlp.NewRequestFromMetrics(md)
+func (e *baseExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) error {
+	tr := pmetricotlp.NewExportRequestFromMetrics(md)
 
 	agentData, err := e.config.OrbAgentService.RetrieveAgentInfoByPolicyName(e.policyName)
 	if err != nil {
@@ -323,10 +323,10 @@ func (e *exporter) pushMetrics(ctx context.Context, md pmetric.Metrics) error {
 }
 
 // pushMetrics Exports metrics
-func (e *exporter) pushAllMetrics(ctx context.Context, md pmetric.Metrics) error {
-	tr := pmetricotlp.NewRequest()
+func (e *baseExporter) pushAllMetrics(ctx context.Context, md pmetric.Metrics) error {
+	tr := pmetricotlp.NewExportRequest()
 	ref := tr.Metrics().ResourceMetrics().AppendEmpty()
-	scopes := pmetricotlp.NewRequestFromMetrics(md).Metrics().ResourceMetrics().At(0).ScopeMetrics()
+	scopes := pmetricotlp.NewExportRequestFromMetrics(md).Metrics().ResourceMetrics().At(0).ScopeMetrics()
 	for i := 0; i < scopes.Len(); i++ {
 		scope := scopes.At(i)
 		policyName := e.extractScopeAttribute(scope, "policy")
@@ -367,11 +367,11 @@ func (e *exporter) pushAllMetrics(ctx context.Context, md pmetric.Metrics) error
 	return err
 }
 
-func (e *exporter) pushLogs(_ context.Context, _ plog.Logs) error {
+func (e *baseExporter) pushLogs(_ context.Context, _ plog.Logs) error {
 	return fmt.Errorf("not implemented")
 }
 
-func (e *exporter) export(ctx context.Context, metricsTopic string, request []byte) error {
+func (e *baseExporter) export(ctx context.Context, metricsTopic string, request []byte) error {
 	compressedPayload := e.compressBrotli(request)
 	c := *e.config.Client
 	if token := c.Publish(metricsTopic, 1, false, compressedPayload); token.Wait() && token.Error() != nil {

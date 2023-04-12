@@ -1,22 +1,22 @@
-package pktvisorreceiver_test
+package pktvisorreceiver
 
 import (
 	"context"
-	"github.com/orb-community/orb/agent/otel/pktvisorreceiver"
-	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/component/componenttest"
-	"go.opentelemetry.io/collector/consumer/consumertest"
 	"testing"
+
+	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/consumer/consumertest"
+	"go.opentelemetry.io/collector/receiver/receivertest"
 )
 
 func TestFactory(t *testing.T) {
-	f := pktvisorreceiver.NewFactory()
+	f := NewFactory()
 	cfg := f.CreateDefaultConfig()
 	require.NotNil(t, cfg)
 
 	receiver, err := f.CreateMetricsReceiver(
 		context.Background(),
-		componenttest.NewNopReceiverCreateSettings(),
+		receivertest.NewNopCreateSettings(),
 		cfg,
 		consumertest.NewNop(),
 	)

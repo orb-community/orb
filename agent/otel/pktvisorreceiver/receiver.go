@@ -11,6 +11,7 @@ import (
 	"github.com/prometheus/prometheus/discovery"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
+	"go.opentelemetry.io/collector/receiver"
 	"go.uber.org/zap"
 	"k8s.io/client-go/rest"
 
@@ -19,14 +20,14 @@ import (
 
 type prometheusReceiverWrapper struct {
 	logger             *zap.Logger
-	params             component.ReceiverCreateSettings
+	params             receiver.CreateSettings
 	config             *Config
 	consumer           consumer.Metrics
-	prometheusReceiver component.MetricsReceiver
+	prometheusReceiver receiver.Metrics
 }
 
 // New returns a prometheusReceiverWrapper
-func New(params component.ReceiverCreateSettings, cfg *Config, consumer consumer.Metrics) *prometheusReceiverWrapper {
+func New(params receiver.CreateSettings, cfg *Config, consumer consumer.Metrics) *prometheusReceiverWrapper {
 	var logger *zap.Logger
 	var err error
 	logger, err = zap.NewProduction()
