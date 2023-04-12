@@ -11,7 +11,6 @@ import (
 	"github.com/orb-community/orb/sinker/otel/orbreceiver"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configtelemetry"
-	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/processor"
 	"go.opentelemetry.io/collector/receiver"
@@ -57,23 +56,6 @@ func StartOtelComponents(ctx context.Context, bridgeService *bridgeservice.Sinke
 	transformCtx := context.WithValue(otelContext, "component", "transformprocessor")
 	log.Info("start to create component", zap.Any("component", transformCtx.Value("component")))
 	transformCfg := transformFactory.CreateDefaultConfig().(*transformprocessor.Config)
-	cmap := map[string]interface{}{
-		"metric_statements": map[string]interface{}{
-			"context": "resource",
-			"statements": []string{
-				`set(attributes["agent-name"], resource.attributes["agent_name"])`,
-				`set(attributes["agent-tags"], resource.attributes["agent_tags"])`,
-				`set(attributes["orb-tags"], resource.attributes["orb_tags"])`,
-				`set(attributes["agent-groups"], resource.attributes["agent_groups"])`,
-				`set(attributes["agent-ownerID"], resource.attributes["agent_ownerID"])`,
-				`set(attributes["policy-id"], resource.attributes["policy_id"])`,
-				`set(attributes["policy-name"], resource.attributes["policy_name"])`,
-				`set(attributes["sink-id"], resource.attributes["sink_id"])`,
-			},
-		},
-	}
-	cconf := confmap.NewFromStringMap(cmap)
-	component.UnmarshalConfig(cconf, transformCfg)
 	transformSet := processor.CreateSettings{
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         logger,
