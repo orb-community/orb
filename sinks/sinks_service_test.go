@@ -37,7 +37,7 @@ func newService(tokens map[string]string) sinks.SinkService {
 	logger := zap.NewNop()
 	auth := thmocks.NewAuthService(tokens, make(map[string][]thmocks.MockSubjectSet))
 	pwdSvc := authentication_type.NewPasswordService(logger, "_testing_string_")
-	sinkRepo := skmocks.NewSinkRepository()
+	sinkRepo := skmocks.NewSinkRepository(pwdSvc)
 
 	config := mfsdk.Config{
 		ThingsURL: "localhost",
