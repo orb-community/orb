@@ -125,7 +125,7 @@ type BearerAuthExtension struct {
 
 type Exporters struct {
 	PrometheusRemoteWrite *PrometheusRemoteWriteExporterConfig `json:"prometheusremotewrite,omitempty" yaml:"prometheusremotewrite,omitempty"`
-	OTLPExporter          *OTLPExporterConfig                  `json:"otlpexporter,omitempty" yaml:"otlpexporter,omitempty"`
+	OTLPExporter          *OTLPExporterConfig                  `json:"otlphttp,omitempty" yaml:"otlphttp,omitempty"`
 	LoggingExporter       *LoggingExporterConfig               `json:"logging,omitempty" yaml:"logging,omitempty"`
 }
 

@@ -10,7 +10,7 @@ type AuthBuilderService interface {
 
 func GetAuthService(authType string) AuthBuilderService {
 	switch authType {
-	case "baseauth":
+	case "basicauth":
 		return &BasicAuthBuilder{}
 	}
 	return nil

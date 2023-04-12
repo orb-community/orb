@@ -21,7 +21,7 @@ type PrometheusExporterConfig struct {
 }
 
 func (p *PrometheusExporterConfig) GetExportersFromMetadata(config types.Metadata, authenticationExtensionName string) (Exporters, string) {
-	endpointCfg := config.GetSubMetadata("exporter")["endpoint"].(string)
+	endpointCfg := config.GetSubMetadata("exporter")["remote_host"].(string)
 	return Exporters{
 		PrometheusRemoteWrite: &PrometheusRemoteWriteExporterConfig{
 			Endpoint: endpointCfg,

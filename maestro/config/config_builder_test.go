@@ -3,6 +3,7 @@ package config
 import (
 	"context"
 	"fmt"
+	"github.com/orb-community/orb/pkg/types"
 	"testing"
 	"time"
 )
@@ -19,22 +20,64 @@ func TestReturnConfigYamlFromSink(t *testing.T) {
 		want    string
 		wantErr bool
 	}{
-		{name: "simple test", args: args{
-			in0:            context.Background(),
-			kafkaUrlConfig: "kafka:9092",
-			sink: SinkData{
-				SinkID:          "",
-				OwnerID:         "",
-				Backend:         "",
-				Config:          nil,
-				Token:           "",
-				State:           0,
-				Migrate:         "",
-				Msg:             "",
-				LastRemoteWrite: time.Time{},
+		{
+			name: "prometheus, basicauth",
+			args: args{
+				in0:            context.Background(),
+				kafkaUrlConfig: "kafka:9092",
+				sink: SinkData{
+					SinkID:  "sink-id-11",
+					OwnerID: "11",
+					Backend: "prometheus",
+					Config: types.Metadata{
+						"exporter": types.Metadata{
+							"remote_host": "https://acme.com/prom/push",
+						},
+						"authentication": types.Metadata{
+							"type":     "basicauth",
+							"username": "prom-user",
+							"password": "dbpass",
+						},
+					},
+					Token:           "",
+					State:           0,
+					Migrate:         "",
+					Msg:             "",
+					LastRemoteWrite: time.Time{},
+				},
 			},
-		}, want: `---\nreceivers:\n  kafka:\n    brokers:\n    - kafka:9092\n    topic: otlp_metrics-sink-id-222\n    protocol_version: 2.0.0\nextensions:\n  pprof:\n    endpoint: 0.0.0.0:1888\n  basicauth/exporter:\n    client_auth:\n      username: 1234123\n      password: CarnivorousVulgaris\nexporters:\n  prometheusremotewrite:\n    endpoint: https://mysinkurl:9922\n    auth:\n      authenticator: basicauth/exporter\n  logging:\n    verbosity: detailed\n    sampling_initial: 5\n    sampling_thereafter: 50\nservice:\n  extensions:\n  - pprof\n  - basicauth/exporter\n  pipelines:\n    metrics:\n      receivers:\n      - kafka\n      exporters:\n      - prometheusremotewrite\n`,
-			wantErr: false},
+			want:    `---\nreceivers:\n  kafka:\n    brokers:\n    - kafka:9092\n    topic: otlp_metrics-sink-id-11\n    protocol_version: 2.0.0\nextensions:\n  pprof:\n    endpoint: 0.0.0.0:1888\n  basicauth/exporter:\n    client_auth:\n      username: prom-user\n      password: dbpass\nexporters:\n  prometheusremotewrite:\n    endpoint: https://acme.com/prom/push\n    auth:\n      authenticator: basicauth/exporter\nservice:\n  extensions:\n  - pprof\n  - basicauth/exporter\n  pipelines:\n    metrics:\n      receivers:\n      - kafka\n      exporters:\n      - prometheusremotewrite\n`,
+			wantErr: false,
+		},
+		{
+			name: "otlp, basicauth",
+			args: args{
+				in0:            context.Background(),
+				kafkaUrlConfig: "kafka:9092",
+				sink: SinkData{
+					SinkID:  "sink-id-22",
+					OwnerID: "22",
+					Backend: "otlpexporter",
+					Config: types.Metadata{
+						"exporter": types.Metadata{
+							"endpoint": "https://acme.com/otlphttp/push",
+						},
+						"authentication": types.Metadata{
+							"type":     "basicauth",
+							"username": "otlp-user",
+							"password": "dbpass",
+						},
+					},
+					Token:           "",
+					State:           0,
+					Migrate:         "",
+					Msg:             "",
+					LastRemoteWrite: time.Time{},
+				},
+			},
+			want:    `---\nreceivers:\n  kafka:\n    brokers:\n    - kafka:9092\n    topic: otlp_metrics-sink-id-22\n    protocol_version: 2.0.0\nextensions:\n  pprof:\n    endpoint: 0.0.0.0:1888\n  basicauth/exporter:\n    client_auth:\n      username: otlp-user\n      password: dbpass\nexporters:\n  otlphttp:\n    endpoint: https://acme.com/otlphttp/push\n    auth:\n      authenticator: basicauth/exporter\nservice:\n  extensions:\n  - pprof\n  - basicauth/exporter\n  pipelines:\n    metrics:\n      receivers:\n      - kafka\n      exporters:\n      - otlphttp\n`,
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
