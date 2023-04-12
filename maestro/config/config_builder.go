@@ -3,9 +3,10 @@ package config
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/orb-community/orb/pkg/errors"
 	"gopkg.in/yaml.v2"
-	"strings"
 )
 
 var k8sOtelCollector = `
@@ -80,7 +81,7 @@ var k8sOtelCollector = `
             "containers": [
               {
                 "name": "otel-collector",
-                "image": "otel/opentelemetry-collector-contrib:0.68.0",
+                "image": "otel/opentelemetry-collector-contrib:0.75.0",
                 "ports": [
                   {
                     "containerPort": 13133,
