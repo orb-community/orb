@@ -14,7 +14,7 @@ class FleetAgent:
     def config_file_of_orb_agent(cls, name, token, iface, orb_url, base_orb_mqtt, tap_name, tls_verify=True,
                                  auto_provision=True, orb_cloud_mqtt_id=None, orb_cloud_mqtt_key=None,
                                  orb_cloud_mqtt_channel_id=None, input_type="pcap", input_tags='3', settings=None,
-                                 include_otel_env_var=False, enable_otel=False, overwrite_default=False):
+                                 include_otel_env_var=False, enable_otel=True, overwrite_default=False):
         if isinstance(include_otel_env_var, str):
             assert_that(include_otel_env_var.lower(), any_of("true", "false"), "Unexpected value for "
                                                                                "'include_otel_env_var'.")
