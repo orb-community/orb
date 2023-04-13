@@ -48,6 +48,11 @@ var k8sOtelCollector = `
         },
         "template": {
           "metadata": {
+            "annotations": {
+              "prometheus.io/path": "/metrics",
+              "prometheus.io/port": "8888",
+              "prometheus.io/scrape": "true"
+            },
             "creationTimestamp": null,
             "labels": {
               "app": "opentelemetry",
@@ -263,6 +268,11 @@ var JsonDeployment = `
         },
         "template": {
           "metadata": {
+            "annotations": {
+              "prometheus.io/path": "/metrics",
+              "prometheus.io/port": "8888",
+              "prometheus.io/scrape": "true"
+            },
             "creationTimestamp": null,
             "labels": {
               "app": "opentelemetry",
