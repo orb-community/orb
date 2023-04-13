@@ -25,6 +25,7 @@ func omitSecretInformation(configSvc *sinks.Configuration, inputSink sinks.Sink)
 	if err != nil {
 		return sinks.Sink{}, err
 	}
+	returnSink = inputSink
 	authMeta := a.(types.Metadata)
 	returnSink.Config = authMeta
 	if inputSink.Format != "" {
@@ -35,7 +36,6 @@ func omitSecretInformation(configSvc *sinks.Configuration, inputSink sinks.Sink)
 		}
 		returnSink.ConfigData = configData.(string)
 	}
-
 	return
 }
 
