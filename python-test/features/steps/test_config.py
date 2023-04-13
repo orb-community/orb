@@ -3,6 +3,7 @@ from hamcrest import *
 import os
 
 LOCAL_AGENT_CONTAINER_NAME = "orb-agent-int-test"
+LOCAL_COLLECTOR_CONTAINER_NAME = "orb-collector-"
 
 
 class TestConfig:

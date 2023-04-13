@@ -1,9 +1,9 @@
-@metrics @AUTORETRY
+@metrics
 Feature: Integration tests validating metric groups
 
 #### netprobe
 
-@sanity @metric_groups @metrics_netprobe @auto_provision
+@sanity @metric_groups @metrics_netprobe @auto_provision @bla
 Scenario: netprobe handler with default metric groups configuration
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -18,7 +18,7 @@ Scenario: netprobe handler with default metric groups configuration
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for netprobe handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_netprobe @auto_provision @all_enabled
@@ -36,7 +36,7 @@ Scenario: netprobe handler with all metric groups enabled
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for netprobe handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_netprobe @auto_provision
@@ -53,7 +53,7 @@ Scenario: netprobe handler with all metric groups disabled
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
     Then metrics must be correctly generated for netprobe handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_netprobe @auto_provision
@@ -71,7 +71,7 @@ Scenario: netprobe handler with only counters metric groups enabled
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for netprobe handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_netprobe @auto_provision
@@ -89,7 +89,7 @@ Scenario: netprobe handler with only quantiles metric groups enabled
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for netprobe handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_netprobe @auto_provision
@@ -107,7 +107,7 @@ Scenario: netprobe handler with only histograms metric groups enabled
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for netprobe handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_netprobe @auto_provision
@@ -125,7 +125,7 @@ Scenario: netprobe handler with counters and histograms metric groups enabled an
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for netprobe handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_netprobe @auto_provision
@@ -143,7 +143,7 @@ Scenario: netprobe handler with counters and quantiles metric groups enabled and
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for netprobe handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_netprobe @auto_provision
@@ -161,7 +161,7 @@ Scenario: netprobe handler with histograms and quantiles metric groups enabled a
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for netprobe handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 #### flow netflow
 
@@ -183,7 +183,7 @@ Scenario: flow handler type netflow with default metric groups configuration
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision @all_enabled
@@ -204,7 +204,7 @@ Scenario: flow handler type netflow with all metric groups enabled
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -224,7 +224,7 @@ Scenario: flow handler type netflow with all metric groups disabled
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -245,7 +245,7 @@ Scenario: flow handler type netflow with only cardinality metric groups enabled
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -266,7 +266,7 @@ Scenario: flow handler type netflow with only counters metric groups enabled
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -287,7 +287,7 @@ Scenario: flow handler type netflow with only counters and by_bytes metric group
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -308,7 +308,7 @@ Scenario: flow handler type netflow with only counters and by_packets metric gro
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -328,7 +328,7 @@ Scenario: flow handler type netflow with only by_packets metric groups enabled
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -348,7 +348,7 @@ Scenario: flow handler type netflow with only by_bytes metric groups enabled
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -368,7 +368,7 @@ Scenario: flow handler type netflow with only top_geo metric groups enabled
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -389,7 +389,7 @@ Scenario: flow handler type netflow with only top_geo and by_bytes metric groups
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
 Scenario: flow handler type netflow with only top_geo and by_packets metric groups enabled
@@ -409,7 +409,7 @@ Scenario: flow handler type netflow with only top_geo and by_packets metric grou
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -429,7 +429,7 @@ Scenario: flow handler type netflow with only conversations metric groups enable
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -450,7 +450,7 @@ Scenario: flow handler type netflow with only conversations and cardinality metr
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
 Scenario: flow handler type netflow with only conversations and by_bytes metric groups enabled
@@ -470,7 +470,7 @@ Scenario: flow handler type netflow with only conversations and by_bytes metric 
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -491,7 +491,7 @@ Scenario: flow handler type netflow with only conversations and by_packets metri
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -511,7 +511,7 @@ Scenario: flow handler type netflow with only top_ports metric groups enabled
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -532,7 +532,7 @@ Scenario: flow handler type netflow with only top_ports and by_packets metric gr
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -553,7 +553,7 @@ Scenario: flow handler type netflow with only top_ports and by_bytes metric grou
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -573,7 +573,7 @@ Scenario: flow handler type netflow with only top_ips_ports metric groups enable
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
     @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -594,7 +594,7 @@ Scenario: flow handler type netflow with only top_ips_ports and by_bytes metric 
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -615,7 +615,7 @@ Scenario: flow handler type netflow with only top_ips_ports and by_packets metri
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -635,7 +635,7 @@ Scenario: flow handler type netflow with only top_interfaces metric groups enabl
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -656,7 +656,7 @@ Scenario: flow handler type netflow with only top_interfaces and by_bytes metric
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -677,7 +677,7 @@ Scenario: flow handler type netflow with only top_interfaces and by_packets metr
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
 Scenario: flow handler type netflow with only top_ips metric groups enabled
@@ -696,7 +696,7 @@ Scenario: flow handler type netflow with only top_ips metric groups enabled
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -717,7 +717,7 @@ Scenario: flow handler type netflow with only top_ips and by_packets metric grou
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -738,7 +738,7 @@ Scenario: flow handler type netflow with only top_ips and by_bytes metric groups
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -758,7 +758,7 @@ Scenario: flow handler type netflow with only top_tos metric groups enabled
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -779,7 +779,7 @@ Scenario: flow handler type netflow with only top_tos and by_bytes metric groups
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -800,7 +800,7 @@ Scenario: flow handler type netflow with only top_tos and by_packets metric grou
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 #### flow sflow
@@ -823,7 +823,7 @@ Scenario: flow handler type sflow with default metric groups configuration
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision @all_enabled
@@ -844,7 +844,7 @@ Scenario: flow handler type sflow with all metric groups enabled
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -864,7 +864,7 @@ Scenario: flow handler type sflow with all metric groups disabled
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -885,7 +885,7 @@ Scenario: flow handler type sflow with only cardinality metric groups enabled
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -905,7 +905,7 @@ Scenario: flow handler type sflow with only counters metric groups enabled
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -925,7 +925,7 @@ Scenario: flow handler type sflow with only counters and by_bytes metric groups 
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -945,7 +945,7 @@ Scenario: flow handler type sflow with only counters and by_packets metric group
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -965,7 +965,7 @@ Scenario: flow handler type sflow with only by_packets metric groups enabled
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -985,7 +985,7 @@ Scenario: flow handler type sflow with only by_bytes metric groups enabled
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -1005,7 +1005,7 @@ Scenario: flow handler type sflow with only top_geo metric groups enabled
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -1026,7 +1026,7 @@ Scenario: flow handler type sflow with only top_geo and by_bytes metric groups e
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -1047,7 +1047,7 @@ Scenario: flow handler type sflow with only top_geo and by_packets metric groups
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -1067,7 +1067,7 @@ Scenario: flow handler type sflow with only conversations metric groups enabled
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -1087,7 +1087,7 @@ Scenario: flow handler type sflow with only conversations and cardinality metric
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -1108,7 +1108,7 @@ Scenario: flow handler type sflow with only conversations and by_bytes metric gr
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -1129,7 +1129,7 @@ Scenario: flow handler type sflow with only conversations and by_packets metric 
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -1149,7 +1149,7 @@ Scenario: flow handler type sflow with only top_ports metric groups enabled
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -1170,7 +1170,7 @@ Scenario: flow handler type sflow with only top_ports and by_bytes metric groups
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -1191,7 +1191,7 @@ Scenario: flow handler type sflow with only top_ports and by_packets metric grou
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -1211,7 +1211,7 @@ Scenario: flow handler type sflow with only top_ips_ports metric groups enabled
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -1231,7 +1231,7 @@ Scenario: flow handler type sflow with only top_ips_ports and by_bytes metric gr
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -1251,7 +1251,7 @@ Scenario: flow handler type sflow with only top_ips_ports and by_packets metric 
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -1271,7 +1271,7 @@ Scenario: flow handler type sflow with only top_interfaces metric groups enabled
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -1292,7 +1292,7 @@ Scenario: flow handler type sflow with only top_interfaces and by_bytes metric g
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -1312,7 +1312,7 @@ Scenario: flow handler type sflow with only top_interfaces and by_packets metric
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -1332,7 +1332,7 @@ Scenario: flow handler type sflow with only top_ips metric groups enabled
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
 Scenario: flow handler type sflow with only top_ips and by_bytes metric groups enabled
@@ -1352,7 +1352,7 @@ Scenario: flow handler type sflow with only top_ips and by_bytes metric groups e
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -1373,7 +1373,7 @@ Scenario: flow handler type sflow with only top_ips and by_packets metric groups
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -1393,7 +1393,7 @@ Scenario: flow handler type sflow with only top_tos metric groups enabled
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -1414,7 +1414,7 @@ Scenario: flow handler type sflow with only top_tos and by_bytes metric groups e
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_flow @root @mocked_interface @auto_provision
@@ -1434,7 +1434,7 @@ Scenario: flow handler type sflow with only top_tos and by_packets metric groups
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual switch
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
     Then metrics must be correctly generated for flow handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 #### pcap
@@ -1456,7 +1456,7 @@ Scenario: pcap handler with default metric groups configuration
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for pcap handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_pcap @root @mocked_interface @auto_provision @all_enabled
@@ -1476,7 +1476,7 @@ Scenario: pcap handler with all metric groups enabled
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for pcap handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_pcap @root @mocked_interface @auto_provision
@@ -1496,7 +1496,7 @@ Scenario: pcap handler with all metric groups disabled
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for pcap handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 #### bgp
@@ -1518,7 +1518,7 @@ Scenario: bgp handler with default metric groups configuration
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for bgp handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_bgp @root @mocked_interface @auto_provision @all_enabled
@@ -1538,7 +1538,7 @@ Scenario: bgp handler with all metric groups enabled
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for bgp handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_bgp @root @mocked_interface @auto_provision
@@ -1558,7 +1558,7 @@ Scenario: bgp handler with all metric groups disabled
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for bgp handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 #### dhcp
@@ -1580,7 +1580,7 @@ Scenario: dhcp handler with default metric groups configuration
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for dhcp handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_dhcp @root @mocked_interface @auto_provision @all_enabled
@@ -1600,7 +1600,7 @@ Scenario: dhcp handler with all metric groups enabled
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for dhcp handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_dhcp @root @mocked_interface @auto_provision
@@ -1620,7 +1620,7 @@ Scenario: dhcp handler with all metric groups disabled
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for dhcp handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 #### net v1.0
@@ -1642,7 +1642,7 @@ Scenario: net handler with default metric groups configuration
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for net handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_net @root @mocked_interface @auto_provision @all_enabled
@@ -1662,7 +1662,7 @@ Scenario: net handler with all metric groups enabled
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for net handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_net @root @mocked_interface @auto_provision
@@ -1681,7 +1681,7 @@ Scenario: net handler with all metric groups disabled
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, ipfix.pcap, ecmp.pcap, ipfix.pcap, nf9.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
     Then metrics must be correctly generated for net handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_net @root @mocked_interface @auto_provision
@@ -1701,7 +1701,7 @@ Scenario: net handler with only cardinality metric groups enabled
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for net handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_net @root @mocked_interface @auto_provision
@@ -1721,7 +1721,7 @@ Scenario: net handler with only counters metric groups enabled
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for net handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_net @root @mocked_interface @auto_provision
@@ -1741,7 +1741,7 @@ Scenario: net handler with only top_geo metric groups enabled
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for net handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_net @root @mocked_interface @auto_provision
@@ -1761,7 +1761,7 @@ Scenario: net handler with only top_ips metric groups enabled
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for net handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 #### dns v1.0
@@ -1783,7 +1783,7 @@ Scenario: dns handler with default metric groups configuration
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for dns handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_dns @root @mocked_interface @auto_provision @all_enabled
@@ -1803,7 +1803,7 @@ Scenario: dns handler with all metric groups enabled
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for dns handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_dns @root @mocked_interface @auto_provision
@@ -1822,7 +1822,7 @@ Scenario: dns handler with all metric groups disabled
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
     Then metrics must be correctly generated for dns handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_dns @root @mocked_interface @auto_provision
@@ -1842,7 +1842,7 @@ Scenario: dns handler with only top_ecs metric groups enabled
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for dns handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_dns @root @mocked_interface @auto_provision
@@ -1862,7 +1862,7 @@ Scenario: dns handler with only top_qnames_details metric groups enabled
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for dns handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_dns @root @mocked_interface @auto_provision
@@ -1882,7 +1882,7 @@ Scenario: dns handler with only cardinality metric groups enabled
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for dns handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_dns @root @mocked_interface @auto_provision
@@ -1902,7 +1902,7 @@ Scenario: dns handler with only counters metric groups enabled
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for dns handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_dns @root @mocked_interface @auto_provision
@@ -1922,7 +1922,7 @@ Scenario: dns handler with only dns_transaction metric groups enabled
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for dns handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_dns @root @mocked_interface @auto_provision
@@ -1942,7 +1942,7 @@ Scenario: dns handler with only top_qnames metric groups enabled
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for dns handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_dns @root @mocked_interface @auto_provision
@@ -1962,7 +1962,7 @@ Scenario: dns handler with only top_ports metric groups enabled
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for dns handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_dns @root @mocked_interface @auto_provision
@@ -1981,7 +1981,7 @@ Scenario: dns handler with only histograms metric groups enabled
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
     Then metrics must be correctly generated for dns handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_dns @root @mocked_interface @auto_provision
@@ -2001,7 +2001,7 @@ Scenario: dns handler with only histograms and dns_transaction metric groups ena
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for dns handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_dns @root @mocked_interface @auto_provision
@@ -2020,7 +2020,7 @@ Scenario: dns handler with only quantiles metric groups enabled
         And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
     Then metrics must be correctly generated for dns handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 #### dns v2.0
@@ -2062,7 +2062,7 @@ Scenario: dns handler with all metric groups enabled (v2)
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for dns-v2 handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_dns_v2 @root @mocked_interface @auto_provision
@@ -2323,7 +2323,7 @@ Scenario: net handler with all metric groups enabled (v2)
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for net-v2 handler
-        And remove the agent .yaml generated on each scenario
+#        And remove the agent .yaml generated on each scenario
 
 
 @sanity @metric_groups @metrics_net_v2 @root @mocked_interface
