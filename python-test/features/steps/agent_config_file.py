@@ -15,7 +15,7 @@ class FleetAgent:
                                  auto_provision=True, orb_cloud_mqtt_id=None, orb_cloud_mqtt_key=None,
                                  orb_cloud_mqtt_channel_id=None, input_type="pcap", input_tags='3', settings=None,
                                  include_otel_env_var=False, enable_otel=False, include_receiver_env_var=False,
-                                 receiver_type="prometheus", overwrite_default=False, collector_port=4318):
+                                 receiver_type="prometheus", overwrite_default=False):
         if isinstance(include_otel_env_var, str):
             assert_that(include_otel_env_var.lower(), any_of("true", "false"), "Unexpected value for "
                                                                                "'include_otel_env_var'.")
@@ -69,8 +69,6 @@ class FleetAgent:
             agent = {
                 "version": "1.0",
                 "visor": {
-                    "config": {"otel": True,
-                               "otel_port": collector_port},
                     "taps": tap.taps
                 },
                 "orb": {
@@ -109,8 +107,6 @@ class FleetAgent:
             agent = {
                 "version": "1.0",
                 "visor": {
-                    "config": {"otel": True,
-                               "otel_port": collector_port},
                     "taps": tap.taps
                 },
                 "orb": {

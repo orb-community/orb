@@ -12,28 +12,9 @@ from datetime import datetime
 import ciso8601
 from metrics import expected_metrics_by_handlers_and_groups, wait_until_metrics_scraped
 
+
 configs = TestConfig.configs()
 verify_ssl_bool = eval(configs.get('verify_ssl').title())
-
-
-def get_metrics_present_otlp(log_path):
-    with open(log_path) as file_data:
-        data = file_data.readlines()
-    data = [json.loads(d) for d in data]
-
-    all_policies = list()
-    all_metrics = list()
-
-    for resource in data:
-        scope_metrics = resource['resourceMetrics'][0]['scopeMetrics']
-        for policy in scope_metrics:
-            if "resources" not in policy['scope']['name']:
-                all_policies.append(policy['scope']['name'])
-            for metric in policy['metrics']:
-                if "resources" not in metric['name']:
-                    all_metrics.append(metric['name'])
-
-    return set(all_metrics)
 
 
 @step("metrics must be correctly generated for {handler_type} handler")
@@ -45,12 +26,7 @@ def check_metrics_by_handler(context, handler_type):
     correct_metrics, metrics_dif, metrics_present = wait_until_metrics_scraped(local_prometheus_endpoint,
                                                                                expected_metrics, timeout=60,
                                                                                wait_time=5)
-    file = f"/home/amanda-silva/Downloads/otel-collector/{context.collector_name}.txt"
-
-    metrics_present = get_metrics_present_otlp(file)
-
     expected_metrics_not_present = expected_metrics.difference(metrics_present)
-
     if expected_metrics_not_present == set():
         expected_metrics_not_present = None
     else:
@@ -60,20 +36,20 @@ def check_metrics_by_handler(context, handler_type):
         extra_metrics_present = None
     else:
         extra_metrics_present = sorted(extra_metrics_present)
-    assert_that(False, equal_to(True), f"Metrics are not the expected. "
-                                                 f"Metrics expected that are not present: {expected_metrics_not_present}."
-                                                 f"Extra metrics present: {extra_metrics_present}")
+    assert_that(correct_metrics, equal_to(True), f"Metrics are not the expected. "
+                                           f"Metrics expected that are not present: {expected_metrics_not_present}."
+                                           f"Extra metrics present: {extra_metrics_present}")
 
 
 @step('the agent container is started on an {status_port} port')
 def run_local_agent_container(context, status_port, **kwargs):
     use_orb_live_address_pattern = configs.get("use_orb_live_address_pattern")
     verify_ssl = configs.get('verify_ssl')
-    if "include_otel_env_var" in kwargs:  # this if/else logic can be removed after otel migration (only else is needed)
+    if "include_otel_env_var" in kwargs: # this if/else logic can be removed after otel migration (only else is needed)
         include_otel_env_var = kwargs["include_otel_env_var"]
     else:
         include_otel_env_var = configs.get("include_otel_env_var")
-    if "enable_otel" in kwargs:  # this if/else logic can be removed after otel migration (only else is needed)
+    if "enable_otel" in kwargs: # this if/else logic can be removed after otel migration (only else is needed)
         enable_otel = kwargs["enable_otel"]
     else:
         enable_otel = configs.get("enable_otel")
@@ -247,8 +223,7 @@ def remove_all_orb_agent_test_containers(context):
 
 
 def create_agent_env_vars_set(agent_id, agent_channel_id, agent_mqtt_key, verify_ssl,
-                              use_orb_live_address_pattern, include_otel_env_var, enable_otel, include_receiver_env_var,
-                              receiver_type):
+                              use_orb_live_address_pattern, include_otel_env_var, enable_otel, include_receiver_env_var, receiver_type):
     """
     Create the set of environmental variables to be passed to the agent
     :param agent_id: id of the agent

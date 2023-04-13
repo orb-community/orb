@@ -413,8 +413,7 @@ def provision_agent_using_config_file(context, input_type, settings, provision, 
                                  context.port,
                                  context.agent_groups, tap_name, input_type, input_tags, auto_provision,
                                  orb_cloud_mqtt_id, orb_cloud_mqtt_key, orb_cloud_mqtt_channel_id, settings,
-                                 overwrite_default, paste_only_file, pkt_configs['binary'], pkt_configs['config_file'],
-                                 context.port_collector)
+                                 overwrite_default, paste_only_file, pkt_configs['binary'], pkt_configs['config_file'])
     for key, value in context.tap.items():
         if 'tags' in value.keys():
             context.tap_tags.update({key: value['tags']})
@@ -849,7 +848,7 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
                              existing_agent_groups, tap_name, input_type="pcap", input_tags='3', auto_provision="true",
                              orb_cloud_mqtt_id=None, orb_cloud_mqtt_key=None, orb_cloud_mqtt_channel_id=None,
                              settings=None, overwrite_default=False, only_file=False, pktvisor_binary=None,
-                             pktvisor_config_file=None, collector_port=4318):
+                             pktvisor_config_file=None):
     """
     Create a file .yaml with configs of the agent that will be provisioned
 
@@ -905,8 +904,7 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
                                                                      enable_otel=enable_otel,
                                                                      include_receiver_env_var=include_receiver_env_var,
                                                                      receiver_type=receiver_type,
-                                                                     overwrite_default=overwrite_default,
-                                                                     collector_port=collector_port)
+                                                                     overwrite_default=overwrite_default)
     else:
         agent_config_file, tap = FleetAgent.config_file_of_orb_agent(agent_name, token, iface, orb_url, mqtt_url,
                                                                      tap_name,
@@ -920,8 +918,7 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
                                                                      enable_otel=enable_otel,
                                                                      include_receiver_env_var=include_receiver_env_var,
                                                                      receiver_type=receiver_type,
-                                                                     overwrite_default=overwrite_default,
-                                                                     collector_port=collector_port)
+                                                                     overwrite_default=overwrite_default)
     agent_config_file = yaml.load(agent_config_file, Loader=SafeLoader)
     if pktvisor_config_file is None or pktvisor_config_file == "None":
         agent_config_file['orb']['backends']['pktvisor'].pop("config_file", None)

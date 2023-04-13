@@ -10,10 +10,6 @@ def before_scenario(context, scenario):
     user = os.getuid()
     if 'root' in scenario.tags and user != 0:
         scenario.skip('Root privileges are required')
-    if 'metric_groups' in scenario.tags:
-        context.execute_steps('''
-        Then run local collector
-        ''')
 
 
 def after_scenario(context, scenario):
