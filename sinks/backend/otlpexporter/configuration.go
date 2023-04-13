@@ -28,13 +28,13 @@ import (
 //      insecure: false
 //      insecure_skip_verify: true
 
-type ParserHelper struct {
+type OTLPBackend struct {
 	Endpoint string `yaml:"endpoint"`
 	//TODO will keep TLS until we confirm there is no need for those
 	//Tls      *tlsConfig `yaml:"tls,omitempty,flow"`
 }
 
-func (b *ParserHelper) Metadata() interface{} {
+func (b *OTLPBackend) Metadata() interface{} {
 	return backend.SinkFeature{
 		Backend:     "otlpexporter",
 		Description: "OTLP Exporter over HTTP",
@@ -54,25 +54,25 @@ type tlsConfig struct {
 }
 
 func Register() bool {
-	backend.Register("otlpexporter", &ParserHelper{})
+	backend.Register("otlpexporter", &OTLPBackend{})
 	return true
 }
 
 // CreateFeatureConfig Not available since this is only supported in YAML configuration
-func (b *ParserHelper) CreateFeatureConfig() []backend.ConfigFeature {
+func (b *OTLPBackend) CreateFeatureConfig() []backend.ConfigFeature {
 	return nil
 }
 
-func (b *ParserHelper) ValidateConfiguration(config types.Metadata) error {
+func (b *OTLPBackend) ValidateConfiguration(config types.Metadata) error {
 	if _, ok := config["endpoint"]; !ok {
 		return errors.New("endpoint is required")
 	}
 	return nil
 }
 
-func (b *ParserHelper) ParseConfig(format string, config string) (retConfig types.Metadata, err error) {
+func (b *OTLPBackend) ParseConfig(format string, config string) (retConfig types.Metadata, err error) {
 	if format == "yaml" {
-		var parsedConfig ParserHelper
+		var parsedConfig OTLPBackend
 		err = yaml.Unmarshal([]byte(config), &parsedConfig)
 		if err != nil {
 			return nil, errors.Wrap(errors.New("failed to unmarshal config"), err)
@@ -86,7 +86,7 @@ func (b *ParserHelper) ParseConfig(format string, config string) (retConfig type
 	return
 }
 
-func (b *ParserHelper) ConfigToFormat(format string, metadata types.Metadata) (string, error) {
+func (b *OTLPBackend) ConfigToFormat(format string, metadata types.Metadata) (string, error) {
 	if format == "yaml" {
 		value, err := yaml.Marshal(metadata)
 		return string(value), err
