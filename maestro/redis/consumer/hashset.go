@@ -57,11 +57,18 @@ func (es eventStore) handleSinksCreateCollector(ctx context.Context, event redis
 	if err != nil {
 		es.logger.Error("could not fetch info for sink", zap.String("sink-id", event.SinkID), zap.Error(err))
 	}
-	var data config.SinkData
-	if err := json.Unmarshal(sinkData.Config, &data); err != nil {
+
+	var metadata types.Metadata
+	if err := json.Unmarshal(sinkData.Config, &metadata); err != nil {
 		return err
 	}
-
+	data := config.SinkData{
+		SinkID:          sinkData.Id,
+		OwnerID:         sinkData.OwnerID,
+		Backend:         sinkData.Backend,
+		Config:          metadata,
+		LastRemoteWrite: time.Time{},
+	}
 	err2 := es.CreateDeploymentEntry(ctx, data)
 	if err2 != nil {
 		return err2
@@ -72,6 +79,7 @@ func (es eventStore) handleSinksCreateCollector(ctx context.Context, event redis
 
 func (es eventStore) CreateDeploymentEntry(ctx context.Context, sink config.SinkData) error {
 	deploy, err := config.GetDeploymentJson(es.kafkaUrl, sink)
+	es.logger.Info("DEBUG", zap.Any("sink", sink))
 	if err != nil {
 		es.logger.Error("error trying to get deployment json for sink ID", zap.String("sinkId", sink.SinkID))
 		return err

@@ -386,8 +386,15 @@ func GetDeploymentJson(kafkaUrl string, sink SinkData) (string, error) {
 
 // ReturnConfigYamlFromSink this is the main method, which will generate the YAML file from the
 func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig string, sink SinkData) (string, error) {
-	authType := sink.Config.GetSubMetadata("authentication")["type"].(string)
-	authBuilder := GetAuthService(authType)
+	authType := sink.Config.GetSubMetadata("authentication")["type"]
+	var authTypeStr string
+	switch authType.(type) {
+	case string:
+		authTypeStr = authType.(string)
+	default:
+		return "", errors.New("failed to create config invalid authentication type")
+	}
+	authBuilder := GetAuthService(authTypeStr)
 	exporterBuilder := FromStrategy(sink.Backend)
 	extensions, extensionName := authBuilder.GetExtensionsFromMetadata(sink.Config)
 	exporters, exporterName := exporterBuilder.GetExportersFromMetadata(sink.Config, extensionName)

@@ -59,17 +59,17 @@ func addEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			if len(req.ConfigData) > 0 {
 				configSvc, exporterConfig, authConfig, err = GetConfigurationAndMetadataFromYaml(req.Backend, req.ConfigData)
 				if err != nil {
-					svc.GetLogger().Error("got error in parse and validate configuration")
+					svc.GetLogger().Error("got error in parse and validate configuration", zap.Error(err))
 					return nil, errors.Wrap(errors.ErrMalformedEntity, err)
 				}
 			} else {
-				svc.GetLogger().Error("got error in parse and validate configuration")
+				svc.GetLogger().Error("got error in parse and validate configuration", zap.Error(err))
 				return nil, errors.Wrap(errors.ErrMalformedEntity, errors.New("missing required field when format is sent, config_data must be sent also"))
 			}
 		} else {
 			configSvc, exporterConfig, authConfig, err = GetConfigurationAndMetadataFromMeta(req.Backend, req.Config)
 			if err != nil {
-				svc.GetLogger().Error("got error in parse and validate configuration")
+				svc.GetLogger().Error("got error in parse and validate configuration", zap.Error(err))
 				return nil, errors.Wrap(errors.ErrMalformedEntity, err)
 			}
 		}
@@ -89,13 +89,13 @@ func addEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 		}
 		saved, err := svc.CreateSink(ctx, req.token, sink)
 		if err != nil {
-			svc.GetLogger().Error("received error on creating sink")
+			svc.GetLogger().Error("received error on creating sink", zap.Error(err))
 			return nil, err
 		}
 
 		omittedSink, err := omitSecretInformation(configSvc, saved)
 		if err != nil {
-			svc.GetLogger().Error("sink was created, but got error in the response build")
+			svc.GetLogger().Error("sink was created, but got error in the response build", zap.Error(err))
 			return nil, err
 		}
 		res := sinkRes{
@@ -142,17 +142,17 @@ func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 				if len(req.ConfigData) > 0 {
 					configSvc, exporterConfig, authConfig, err = GetConfigurationAndMetadataFromYaml(currentSink.Backend, req.ConfigData)
 					if err != nil {
-						svc.GetLogger().Error("got error in parse and validate configuration")
+						svc.GetLogger().Error("got error in parse and validate configuration", zap.Error(err))
 						return nil, errors.Wrap(errors.ErrMalformedEntity, err)
 					}
 				} else {
-					svc.GetLogger().Error("got error in parse and validate configuration")
+					svc.GetLogger().Error("got error in parse and validate configuration", zap.Error(err))
 					return nil, errors.Wrap(errors.ErrMalformedEntity, errors.New("missing required field when format is sent, config_data must be sent also"))
 				}
 			} else if req.Config != nil {
 				configSvc, exporterConfig, authConfig, err = GetConfigurationAndMetadataFromMeta(req.Backend, req.Config)
 				if err != nil {
-					svc.GetLogger().Error("got error in parse and validate configuration")
+					svc.GetLogger().Error("got error in parse and validate configuration", zap.Error(err))
 					return nil, errors.Wrap(errors.ErrMalformedEntity, err)
 				}
 			}
@@ -189,7 +189,7 @@ func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 		}
 		omittedSink, err := omitSecretInformation(configSvc, sinkEdited)
 		if err != nil {
-			svc.GetLogger().Error("sink was created, but got error in the response build")
+			svc.GetLogger().Error("sink was created, but got error in the response build", zap.Error(err))
 			return nil, err
 		}
 		res := sinkRes{

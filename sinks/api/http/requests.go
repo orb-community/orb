@@ -38,7 +38,7 @@ type addReq struct {
 
 func GetConfigurationAndMetadataFromMeta(backendName string, config types.Metadata) (configSvc *sinks.Configuration, exporter types.Metadata, authentication types.Metadata, err error) {
 	if backendName == "" || !backend.HaveBackend(backendName) {
-		return nil, nil, nil, errors.Wrap(errors.ErrMalformedEntity, errors.New("backend not found"))
+		return nil, nil, nil, errors.Wrap(errors.ErrMalformedEntity, errors.New("backend not found: "+backendName))
 	}
 
 	configSvc = &sinks.Configuration{
