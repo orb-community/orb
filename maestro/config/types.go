@@ -11,9 +11,7 @@ type SinkData struct {
 	OwnerID         string          `json:"owner_id"`
 	Backend         string          `json:"backend"`
 	Config          types.Metadata  `json:"config"`
-	Token           string          `json:"token"`
 	State           PrometheusState `json:"state,omitempty"`
-	Migrate         string          `json:"migrate,omitempty"`
 	Msg             string          `json:"msg,omitempty"`
 	LastRemoteWrite time.Time       `json:"last_remote_write,omitempty"`
 }

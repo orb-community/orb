@@ -63,11 +63,10 @@ func (es eventStore) handleSinksCreateCollector(ctx context.Context, event redis
 		return err
 	}
 	data := config.SinkData{
-		SinkID:          sinkData.Id,
-		OwnerID:         sinkData.OwnerID,
-		Backend:         sinkData.Backend,
-		Config:          metadata,
-		LastRemoteWrite: time.Time{},
+		SinkID:  sinkData.Id,
+		OwnerID: sinkData.OwnerID,
+		Backend: sinkData.Backend,
+		Config:  metadata,
 	}
 	err2 := es.CreateDeploymentEntry(ctx, data)
 	if err2 != nil {
