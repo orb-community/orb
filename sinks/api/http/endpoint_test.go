@@ -149,6 +149,7 @@ func TestCreateSinks(t *testing.T) {
 		},
 		Tags: map[string]string{"cloud": "aws"},
 	}
+
 	// Conflict creation scenario
 	sinkConflict := sink
 	conflictNameID, err := types.NewIdentifier("conflict")
@@ -172,6 +173,25 @@ func TestCreateSinks(t *testing.T) {
 				"password": "test",
 			},
 		},
+		Tags: map[string]string{
+			"cloud": "aws",
+		},
+	})
+
+	otlpSink := toJSON(addReq{
+		Name:    "otlp-s-1",
+		Backend: "otlpexporter",
+		Config: types.Metadata{
+			"exporter": types.Metadata{
+				"endpoint": "localhost:4318",
+			},
+			"authentication": types.Metadata{
+				"type":     "basicauth",
+				"username": "test",
+				"password": "test",
+			},
+		},
+		Description: "the first otlp sink ever",
 		Tags: map[string]string{
 			"cloud": "aws",
 		},
@@ -265,6 +285,13 @@ func TestCreateSinks(t *testing.T) {
 	}{
 		"add a valid sink": {
 			req:         validJson,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusCreated,
+			location:    "/sinks",
+		},
+		"add a otlp sink": {
+			req:         otlpSink,
 			contentType: contentType,
 			auth:        token,
 			status:      http.StatusCreated,
