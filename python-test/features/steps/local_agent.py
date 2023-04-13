@@ -62,7 +62,7 @@ def run_local_agent_container(context, status_port, **kwargs):
     env_vars.update(kwargs)
     assert_that(status_port, any_of(equal_to("available"), equal_to("unavailable")), "Unexpected value for port")
     availability = {"available": True, "unavailable": False}
-    agent_docker_image = configs.get('agent_docker_image', 'ns1labs/orb-agent')
+    agent_docker_image = configs.get('agent_docker_image', 'orbcommunity/orb-agent')
     image_tag = ':' + configs.get('agent_docker_tag', 'latest')
     agent_image = agent_docker_image + image_tag
 
@@ -344,8 +344,8 @@ def check_logs_contain_log(logs, expected_log, event, start_time=0):
     return event.is_set()
 
 
-def run_local_agent_from_terminal(command, verify_ssl, pktvisor_port,
-                                  include_otel_env_var="false", enable_otel="false", include_receiver_env_var="false", receiver_type="false"):
+def run_local_agent_from_terminal(command, verify_ssl, pktvisor_port, include_otel_env_var="false", enable_otel="false",
+                                  include_receiver_env_var="false", receiver_type="false"):
     """
     :param (str) command: docker command to provision an agent
     :param (bool) verify_ssl: False if orb address doesn't have a valid certificate.
@@ -446,7 +446,7 @@ def run_agent_config_file(agent_name, overwrite_default=False, only_file=False, 
     :param time_to_wait: seconds that threading must wait after run the agent
     :return: agent container id
     """
-    agent_docker_image = configs.get('agent_docker_image', 'ns1labs/orb-agent')
+    agent_docker_image = configs.get('agent_docker_image', 'orbcommunity/orb-agent')
     agent_image = f"{agent_docker_image}:{configs.get('agent_docker_tag', 'latest')}"
     local_orb_path = configs.get("local_orb_path")
     if only_file is True:

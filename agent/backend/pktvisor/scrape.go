@@ -17,8 +17,9 @@ import (
 	"github.com/orb-community/orb/agent/otel/otlpmqttexporter"
 	"github.com/orb-community/orb/agent/otel/pktvisorreceiver"
 	"github.com/orb-community/orb/fleet"
-	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/confighttp"
+	"go.opentelemetry.io/collector/exporter"
+	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.uber.org/zap"
 )
@@ -37,7 +38,7 @@ func (p *pktvisorBackend) scrapeMetrics(period uint) (map[string]interface{}, er
 	return metrics, nil
 }
 
-func (p *pktvisorBackend) createOtlpMqttExporter(ctx context.Context, cancelFunc context.CancelFunc) (component.MetricsExporter, error) {
+func (p *pktvisorBackend) createOtlpMqttExporter(ctx context.Context, cancelFunc context.CancelFunc) (exporter.Metrics, error) {
 
 	bridgeService := otel.NewBridgeService(ctx, &p.policyRepo, p.agentTags)
 	if p.mqttClient != nil {
@@ -63,7 +64,7 @@ func (p *pktvisorBackend) createOtlpMqttExporter(ctx context.Context, cancelFunc
 
 }
 
-func (p *pktvisorBackend) createReceiver(ctx context.Context, exporter component.MetricsExporter, logger *zap.Logger) (component.MetricsReceiver, error) {
+func (p *pktvisorBackend) createReceiver(ctx context.Context, expo exporter.Metrics, logger *zap.Logger) (receiver.Metrics, error) {
 	set := pktvisorreceiver.CreateDefaultSettings(logger)
 	var pktvisorEndpoint string
 	if p.adminAPIHost == "" || p.adminAPIPort == "" {
@@ -76,7 +77,7 @@ func (p *pktvisorBackend) createReceiver(ctx context.Context, exporter component
 	p.logger.Info("starting receiver with pktvisorEndpoint", zap.String("endpoint", pktvisorEndpoint), zap.String("metrics_url", metricsPath))
 	cfg := pktvisorreceiver.CreateReceiverConfig(pktvisorEndpoint, metricsPath)
 	// Create the Prometheus receiver and pass in the previously created Prometheus exporter.
-	receiver, err := pktvisorreceiver.CreateMetricsReceiver(ctx, set, cfg, exporter)
+	receiver, err := pktvisorreceiver.CreateMetricsReceiver(ctx, set, cfg, expo)
 	if err != nil {
 		return nil, err
 	}

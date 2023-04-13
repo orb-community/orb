@@ -2,11 +2,13 @@ package pktvisorreceiver_test
 
 import (
 	"context"
+	"testing"
+
 	"github.com/orb-community/orb/agent/otel/pktvisorreceiver"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/consumer/consumertest"
-	"testing"
+	"go.opentelemetry.io/collector/receiver/receivertest"
 )
 
 func TestReceiver(t *testing.T) {
@@ -28,7 +30,7 @@ func TestReceiver(t *testing.T) {
 
 			r, err := f.CreateMetricsReceiver(
 				context.Background(),
-				componenttest.NewNopReceiverCreateSettings(),
+				receivertest.NewNopCreateSettings(),
 				cfg,
 				consumertest.NewNop(),
 			)

@@ -171,7 +171,7 @@ make kind-load-images
 
 Load just one image to the kind cluster
 ```shell
-kind load docker-image ns1labs/orb-maestro:0.22.0-088bee14
+kind load docker-image orbcommunity/orb-maestro:0.22.0-088bee14
 ```
 
 > **💡 Note:** Do not forget to change **kind/values.yaml** manifest to use your image tag

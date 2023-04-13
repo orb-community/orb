@@ -19,23 +19,21 @@ import (
 	"github.com/orb-community/orb/sinker/otel/bridgeservice"
 	"go.uber.org/zap"
 
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap"
 )
 
 // Config defines configuration for OTLP receiver.
 type Config struct {
-	config.ReceiverSettings `mapstructure:",squash"` // squash ensures fields are correctly decoded in embedded struct
-	// Protocols is the configuration for the supported protocols, currently gRPC and HTTP (Proto and JSON).
 	Logger *zap.Logger
-
 	// Entry from Metrics
 	PubSub mfnats.PubSub
 	// Entry for Accessing DataSets, AgentGroup and Sinks
 	SinkerService *bridgeservice.SinkerOtelBridgeService
 }
 
-var _ config.Receiver = (*Config)(nil)
+var _ component.Config = (*Config)(nil)
+var _ confmap.Unmarshaler = (*Config)(nil)
 
 // Validate checks the receiver configuration is valid
 func (cfg *Config) Validate() error {

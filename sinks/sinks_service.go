@@ -165,6 +165,7 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 		defaultMetadata := make(types.Metadata, 1)
 		defaultMetadata["opentelemetry"] = "enabled"
 		sink.Config.Merge(defaultMetadata)
+		currentSink.Error = ""
 	}
 
 	if sink.Tags == nil {

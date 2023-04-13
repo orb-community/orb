@@ -40,7 +40,7 @@
 
 <ng-template #groupTemplateCell let-i="index" let-row="row" let-value="value">
     <button (click)="onOpenGroupDetails(row?.agent_group)"
-            class="edit-dataset-button" nbTooltip="{{ row?.agent_group?.id }}">
+            class="edit-dataset-button" matTooltip="{{ row?.agent_group?.name }}">
         {{ row?.agent_group?.name }}
     </button>
 </ng-template>
