@@ -28,6 +28,8 @@ import (
 //      insecure: false
 //      insecure_skip_verify: true
 
+const EndpointFieldName = "endpoint"
+
 type OTLPBackend struct {
 	Endpoint string `yaml:"endpoint"`
 	//TODO will keep TLS until we confirm there is no need for those
@@ -60,11 +62,23 @@ func Register() bool {
 
 // CreateFeatureConfig Not available since this is only supported in YAML configuration
 func (b *OTLPBackend) CreateFeatureConfig() []backend.ConfigFeature {
-	return nil
+	var configs []backend.ConfigFeature
+
+	remoteHost := backend.ConfigFeature{
+		Type:     backend.ConfigFeatureTypeText,
+		Input:    "text",
+		Title:    "Remote Write URL",
+		Name:     EndpointFieldName,
+		Required: true,
+	}
+
+	configs = append(configs, remoteHost)
+	return configs
 }
 
 func (b *OTLPBackend) ValidateConfiguration(config types.Metadata) error {
-	if _, ok := config["endpoint"]; !ok {
+
+	if _, ok := config[EndpointFieldName]; !ok {
 		return errors.New("endpoint is required")
 	}
 	return nil
@@ -78,7 +92,7 @@ func (b *OTLPBackend) ParseConfig(format string, config string) (retConfig types
 			return nil, errors.Wrap(errors.New("failed to unmarshal config"), err)
 		}
 		retConfig = make(types.Metadata)
-		retConfig["endpoint"] = parsedConfig.Endpoint
+		retConfig[EndpointFieldName] = parsedConfig.Endpoint
 
 	} else {
 		return nil, errors.New("format not supported")
