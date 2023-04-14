@@ -78,7 +78,6 @@ func (es eventStore) handleSinksCreateCollector(ctx context.Context, event redis
 
 func (es eventStore) CreateDeploymentEntry(ctx context.Context, sink config.SinkData) error {
 	deploy, err := config.GetDeploymentJson(es.kafkaUrl, sink)
-	es.logger.Info("DEBUG", zap.Any("sink", sink))
 	if err != nil {
 		es.logger.Error("error trying to get deployment json for sink ID", zap.String("sinkId", sink.SinkID))
 		return err
