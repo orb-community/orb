@@ -35,7 +35,6 @@
                             [readonly]="fetchedData && !(availableAgentGroups.length > 0)"
                             [nbAutocomplete]="autoControl"
                             formControlName="agent_group_name"
-                            [status]="form?.controls.agent_group_name.touched ? (!form.controls.agent_group_name.valid  ? 'danger' : 'success') : 'basic'"
                             nbInput
                             fullWidth="true"
                             placeholder="Agent Group"
