@@ -267,7 +267,7 @@ func listSinksEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 func listAuthenticationTypes(svc sinks.SinkService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(listAuthTypesReq)
-
+		svc.GetLogger().Info("DEBUG", zap.Any("req", req))
 		if err = req.validate(); err != nil {
 			return nil, err
 		}
@@ -288,6 +288,7 @@ func listAuthenticationTypes(svc sinks.SinkService) endpoint.Endpoint {
 func viewAuthenticationType(svc sinks.SinkService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(viewResourceReq)
+		svc.GetLogger().Info("DEBUG", zap.Any("req", req))
 		if err = req.validate(); err != nil {
 			return nil, err
 		}
