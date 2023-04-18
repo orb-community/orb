@@ -31,12 +31,11 @@
 
                     <input
                             (input)="onChangeGroupName($event)"
-                            class="dataset-agent-group-input"
+                            class="dataset-agent-group-input input-agent-group"
                             [readonly]="fetchedData && !(availableAgentGroups.length > 0)"
                             [nbAutocomplete]="autoControl"
                             formControlName="agent_group_name"
                             nbInput
-                            fullWidth="true"
                             placeholder="Agent Group"
                             type="text"
                     />
@@ -54,7 +53,7 @@
 
                     </nb-autocomplete>
                     <div *ngIf="form.controls?.agent_group_id.invalid
-          && (form.controls?.agent_group_name.dirty)"
+                    && (form.controls?.agent_group_name.dirty)"
                          class="required">
                         <div *ngIf="form.controls?.agent_group_id.errors?.required">
                             You must select a valid Agent Group.
@@ -80,7 +79,6 @@
                             data-orb-qa-id="agent_policy_id"
                             formControlName="agent_policy_id"
                             [status]="form?.controls.agent_policy_id.touched ? (!form.controls.agent_policy_id.valid  ? 'danger' : 'success') : 'basic'"
-                            fullWidth="true"
                             placeholder="Policy"
                             size="medium"
                     >
