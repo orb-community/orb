@@ -47,7 +47,7 @@ func (svc SinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, owner
 	headers["Authorization"] = svc.encodeBase64(cfgRepo.User, cfgRepo.Password)
 	result, writeErr := promClient.WriteTimeSeries(ctx, tsList, prometheus.WriteOptions{Headers: headers})
 	if err := error(writeErr); err != nil {
-		if cfgRepo.State != config.Error || cfgRepo.Msg != fmt.Sprint(err) {
+		if cfgRepo.Msg != fmt.Sprint(err) {
 			cfgRepo.State = config.Error
 			cfgRepo.Msg = fmt.Sprint(err)
 			cfgRepo.LastRemoteWrite = time.Now()

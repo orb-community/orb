@@ -2,18 +2,19 @@ package otlpmqttexporter
 
 import (
 	"context"
+	"testing"
+
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/exporter/exportertest"
 	"go.opentelemetry.io/collector/pdata/pmetric"
-	"testing"
 )
 
 func TestInvalidConfig(t *testing.T) {
 	t.Skip("TODO Not sure how to solve this")
 	c := &Config{}
 	f := NewFactory()
-	set := componenttest.NewNopExporterCreateSettings()
+	set := exportertest.NewNopCreateSettings()
 	_, err := f.CreateTracesExporter(context.Background(), set, c)
 	require.Error(t, err)
 	_, err = f.CreateMetricsExporter(context.Background(), set, c)
@@ -26,7 +27,7 @@ func TestUserAgent(t *testing.T) {
 	// This test also requires you to use a local mqtt broker, for this I will use mosquitto on port 1887
 	t.Skip("This test requires a local mqtt broker, unskip it locally")
 	mqttAddr := "localhost:1887"
-	set := componenttest.NewNopExporterCreateSettings()
+	set := exportertest.NewNopCreateSettings()
 	set.BuildInfo.Description = "Collector"
 	set.BuildInfo.Version = "1.2.3test"
 
@@ -49,12 +50,11 @@ func TestUserAgent(t *testing.T) {
 			t.Run(test.name, func(t *testing.T) {
 				metricsTopic := "channels/uuid1/messages/be/test"
 				cfg := &Config{
-					ExporterSettings: config.NewExporterSettings(config.NewComponentID(typeStr)),
-					Address:          mqttAddr,
-					Id:               "uuid1",
-					Key:              "uuid2",
-					TLS:              false,
-					MetricsTopic:     metricsTopic,
+					Address:      mqttAddr,
+					Id:           "uuid1",
+					Key:          "uuid2",
+					TLS:          false,
+					MetricsTopic: metricsTopic,
 				}
 				exp, err := CreateMetricsExporter(context.Background(), set, cfg)
 				require.NoError(t, err)

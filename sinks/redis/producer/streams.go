@@ -59,6 +59,7 @@ func (es eventStore) CreateSink(ctx context.Context, token string, s sinks.Sink)
 		record := &redis.XAddArgs{
 			Stream: streamID,
 			MaxLen: streamLen,
+			Approx: true,
 			Values: encode,
 		}
 
@@ -88,6 +89,7 @@ func (es eventStore) UpdateSink(ctx context.Context, token string, s sinks.Sink)
 		record := &redis.XAddArgs{
 			Stream: streamID,
 			MaxLen: streamLen,
+			Approx: true,
 			Values: encode,
 		}
 
@@ -142,6 +144,7 @@ func (es eventStore) DeleteSink(ctx context.Context, token, id string) (err erro
 	record := &redis.XAddArgs{
 		Stream: streamID,
 		MaxLen: streamLen,
+		Approx: true,
 		Values: encode,
 	}
 

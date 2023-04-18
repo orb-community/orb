@@ -5,7 +5,7 @@ const {orbApi: {apiUrl, version, urlKeys, servicesUrls}} = defaultEnvironment;
 
 export const environment = {
   production: true,
-  GTAGID: 'G-T0RBPQ9HSJ',
+  GTAGID: '',
   ...defaultEnvironment,
   ...envVars,
   // ORB api --prod

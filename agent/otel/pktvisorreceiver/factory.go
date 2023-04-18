@@ -4,14 +4,13 @@ import (
 	"context"
 	"time"
 
+	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/config/confignet"
+	"go.opentelemetry.io/collector/consumer"
+	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/otel/metric/global"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
-
-	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/confignet"
-	"go.opentelemetry.io/collector/consumer"
 )
 
 // This file implements factory for prometheus_simple receiver
@@ -26,15 +25,15 @@ const (
 var defaultCollectionInterval = 60 * time.Second
 
 // NewFactory creates a factory for "Simple" Prometheus receiver.
-func NewFactory() component.ReceiverFactory {
-	return component.NewReceiverFactory(
+func NewFactory() receiver.Factory {
+	return receiver.NewFactory(
 		typeStr,
 		CreateDefaultConfig,
-		component.WithMetricsReceiver(CreateMetricsReceiver, component.StabilityLevelAlpha))
+		receiver.WithMetrics(CreateMetricsReceiver, component.StabilityLevelAlpha))
 }
 
-func CreateDefaultSettings(logger *zap.Logger) component.ReceiverCreateSettings {
-	return component.ReceiverCreateSettings{
+func CreateDefaultSettings(logger *zap.Logger) receiver.CreateSettings {
+	return receiver.CreateSettings{
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         logger,
 			TracerProvider: trace.NewNoopTracerProvider(),
@@ -44,9 +43,8 @@ func CreateDefaultSettings(logger *zap.Logger) component.ReceiverCreateSettings 
 	}
 }
 
-func CreateReceiverConfig(endpoint, metricsPath string) config.Receiver {
+func CreateReceiverConfig(endpoint, metricsPath string) component.Config {
 	return &Config{
-		ReceiverSettings: config.NewReceiverSettings(config.NewComponentID(typeStr)),
 		TCPAddr: confignet.TCPAddr{
 			Endpoint: endpoint,
 		},
@@ -55,9 +53,8 @@ func CreateReceiverConfig(endpoint, metricsPath string) config.Receiver {
 	}
 }
 
-func CreateDefaultConfig() config.Receiver {
+func CreateDefaultConfig() component.Config {
 	return &Config{
-		ReceiverSettings: config.NewReceiverSettings(config.NewComponentID(typeStr)),
 		TCPAddr: confignet.TCPAddr{
 			Endpoint: defaultEndpoint,
 		},
@@ -68,10 +65,10 @@ func CreateDefaultConfig() config.Receiver {
 
 func CreateMetricsReceiver(
 	_ context.Context,
-	params component.ReceiverCreateSettings,
-	cfg config.Receiver,
-	nextConsumer consumer.Metrics,
-) (component.MetricsReceiver, error) {
-	rCfg := cfg.(*Config)
-	return New(params, rCfg, nextConsumer), nil
+	params receiver.CreateSettings,
+	config component.Config,
+	consumer consumer.Metrics,
+) (receiver.Metrics, error) {
+	rCfg := config.(*Config)
+	return New(params, rCfg, consumer), nil
 }

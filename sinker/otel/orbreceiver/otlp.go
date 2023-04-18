@@ -20,18 +20,17 @@ import (
 	"fmt"
 	"io"
 	"strings"
-
 	"sync"
 
 	"github.com/andybalholm/brotli"
 	"github.com/mainflux/mainflux/pkg/messaging"
 	"github.com/orb-community/orb/sinker/otel/bridgeservice"
-	"github.com/orb-community/orb/sinker/otel/orbreceiver/internal/metrics"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
+	"go.opentelemetry.io/collector/obsreport"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
+	"go.opentelemetry.io/collector/receiver"
 	"go.uber.org/zap"
 )
 
@@ -42,19 +41,21 @@ type OrbReceiver struct {
 	cfg             *Config
 	ctx             context.Context
 	cancelFunc      context.CancelFunc
-	metricsReceiver *metrics.Receiver
+	metricsReceiver *internalReceiver
 	encoder         encoder
+	metricsConsumer consumer.Metrics
 	sinkerService   *bridgeservice.SinkerOtelBridgeService
+	obsrepGRPC      *obsreport.Receiver
 
 	shutdownWG sync.WaitGroup
 
-	settings component.ReceiverCreateSettings
+	settings receiver.CreateSettings
 }
 
 // NewOrbReceiver just creates the OpenTelemetry receiver services. It is the caller's
 // responsibility to invoke the respective Start*Reception methods as well
 // as the various Stop*Reception methods to end it.
-func NewOrbReceiver(ctx context.Context, cfg *Config, settings component.ReceiverCreateSettings) *OrbReceiver {
+func NewOrbReceiver(ctx context.Context, cfg *Config, settings receiver.CreateSettings) *OrbReceiver {
 	r := &OrbReceiver{
 		ctx:           ctx,
 		cfg:           cfg,
@@ -92,9 +93,18 @@ func (r *OrbReceiver) registerMetricsConsumer(mc consumer.Metrics) error {
 		r.cfg.Logger.Warn("error context is nil, using background")
 		r.ctx = context.Background()
 	}
-	r.metricsReceiver = metrics.New(config.NewComponentIDWithName("otlp", "metrics"), mc, r.settings)
+	var err error
+	r.obsrepGRPC, err = obsreport.NewReceiver(obsreport.ReceiverSettings{
+		ReceiverID:             component.NewIDWithName("otlp", "metrics"),
+		Transport:              "grpc",
+		ReceiverCreateSettings: r.settings,
+	})
+	if err != nil {
+		return err
+	}
+	r.metricsReceiver = InternalReceiverNew(mc, r.obsrepGRPC)
 	otelTopic := fmt.Sprintf("channels.*.%s", OtelMetricsTopic)
-	if err := r.cfg.PubSub.Subscribe(otelTopic, r.MessageInbound); err != nil {
+	if err = r.cfg.PubSub.Subscribe(otelTopic, r.MessageInbound); err != nil {
 		return err
 	}
 	r.cfg.Logger.Info("started otel metrics consumer", zap.String("otel-topic", otelTopic))
@@ -110,7 +120,7 @@ func (r *OrbReceiver) decompressBrotli(data []byte) []byte {
 }
 
 // extractAttribute extract attribute from metricsRequest metrics
-func (r *OrbReceiver) extractAttribute(metricsRequest pmetricotlp.Request, attribute string) string {
+func (r *OrbReceiver) extractAttribute(metricsRequest pmetricotlp.ExportRequest, attribute string) string {
 	if metricsRequest.Metrics().ResourceMetrics().Len() > 0 {
 		if metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().Len() > 0 {
 			metricsList := metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
@@ -208,7 +218,7 @@ func (r *OrbReceiver) extractScopeAttribute(metricsScope pmetric.ScopeMetrics, a
 }
 
 // inject attribute on all metricsRequest metrics
-func (r *OrbReceiver) injectAttribute(metricsRequest pmetricotlp.Request, attribute string, value string) pmetricotlp.Request {
+func (r *OrbReceiver) injectAttribute(metricsRequest pmetricotlp.ExportRequest, attribute string, value string) pmetricotlp.ExportRequest {
 	for i1 := 0; i1 < metricsRequest.Metrics().ResourceMetrics().Len(); i1++ {
 		resourceMetrics := metricsRequest.Metrics().ResourceMetrics().At(i1)
 		for i2 := 0; i2 < resourceMetrics.ScopeMetrics().Len(); i2++ {
@@ -281,7 +291,7 @@ func (r *OrbReceiver) injectScopeAttribute(metricsScope pmetric.ScopeMetrics, at
 }
 
 // delete attribute on all metricsRequest metrics
-func (r *OrbReceiver) deleteAttribute(metricsRequest pmetricotlp.Request, attribute string) pmetricotlp.Request {
+func (r *OrbReceiver) deleteAttribute(metricsRequest pmetricotlp.ExportRequest, attribute string) pmetricotlp.ExportRequest {
 	for i1 := 0; i1 < metricsRequest.Metrics().ResourceMetrics().Len(); i1++ {
 		resourceMetrics := metricsRequest.Metrics().ResourceMetrics().At(i1)
 		for i2 := 0; i2 < resourceMetrics.ScopeMetrics().Len(); i2++ {
@@ -384,7 +394,7 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 	return nil
 }
 
-func (r *OrbReceiver) ProccessPolicyContext(mr pmetricotlp.Request, channel string) {
+func (r *OrbReceiver) ProccessPolicyContext(mr pmetricotlp.ExportRequest, channel string) {
 	// Extract Datasets
 	datasets := r.extractAttribute(mr, "dataset_ids")
 	if datasets == "" {
@@ -487,7 +497,7 @@ func (r *OrbReceiver) ProccessScopePolicyContext(scope pmetric.ScopeMetrics, cha
 		attributeCtx = context.WithValue(attributeCtx, "sink_id", sinkId)
 		mr := pmetric.NewMetrics()
 		scope.CopyTo(mr.ResourceMetrics().AppendEmpty().ScopeMetrics().AppendEmpty())
-		request := pmetricotlp.NewRequestFromMetrics(mr)
+		request := pmetricotlp.NewExportRequestFromMetrics(mr)
 		_, err = r.metricsReceiver.Export(attributeCtx, request)
 		if err != nil {
 			r.cfg.Logger.Error("error during export, skipping sink", zap.Error(err))
