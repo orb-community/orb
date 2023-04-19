@@ -21,6 +21,7 @@ import (
 	"io"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/andybalholm/brotli"
 	"github.com/mainflux/mainflux/pkg/messaging"
@@ -28,6 +29,7 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/obsreport"
+	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
 	"go.opentelemetry.io/collector/receiver"
@@ -359,6 +361,37 @@ func (r *OrbReceiver) deleteScopeAttribute(metricsScope pmetric.ScopeMetrics, at
 	return metricsScope
 }
 
+// replace ScopeMetrics metrics timestamp
+func (r *OrbReceiver) replaceScopeTimestamp(metricsScope pmetric.ScopeMetrics, ts pcommon.Timestamp) pmetric.ScopeMetrics {
+	metricsList := metricsScope.Metrics()
+	for i3 := 0; i3 < metricsList.Len(); i3++ {
+		metricItem := metricsList.At(i3)
+		switch metricItem.Type() {
+		case pmetric.MetricTypeExponentialHistogram:
+			for i := 0; i < metricItem.ExponentialHistogram().DataPoints().Len(); i++ {
+				metricItem.ExponentialHistogram().DataPoints().At(i).SetTimestamp(ts)
+			}
+		case pmetric.MetricTypeGauge:
+			for i := 0; i < metricItem.Gauge().DataPoints().Len(); i++ {
+				metricItem.Gauge().DataPoints().At(i).SetTimestamp(ts)
+			}
+		case pmetric.MetricTypeHistogram:
+			for i := 0; i < metricItem.Histogram().DataPoints().Len(); i++ {
+				metricItem.Histogram().DataPoints().At(i).SetTimestamp(ts)
+			}
+		case pmetric.MetricTypeSum:
+			for i := 0; i < metricItem.Sum().DataPoints().Len(); i++ {
+				metricItem.Sum().DataPoints().At(i).SetTimestamp(ts)
+			}
+		case pmetric.MetricTypeSummary:
+			for i := 0; i < metricItem.Summary().DataPoints().Len(); i++ {
+				metricItem.Summary().DataPoints().At(i).SetTimestamp(ts)
+			}
+		}
+	}
+	return metricsScope
+}
+
 func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 	go func() {
 		r.cfg.Logger.Debug("received agent message",
@@ -477,6 +510,7 @@ func (r *OrbReceiver) ProccessScopePolicyContext(scope pmetric.ScopeMetrics, cha
 	for k, v := range agentPb.OrbTags {
 		scope = r.injectScopeAttribute(scope, k, v)
 	}
+	scope = r.replaceScopeTimestamp(scope, pcommon.NewTimestampFromTime(time.Now()))
 	sinkIds, err := r.sinkerService.GetSinkIdsFromDatasetIDs(execCtx, agentPb.OwnerID, datasetIDs)
 	if err != nil {
 		execCancelF()
