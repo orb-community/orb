@@ -140,7 +140,7 @@ jobs:
 
 
   package-agent-full:
-    needs: build
+    needs: package
     runs-on: ubuntu-latest
 
     steps:
