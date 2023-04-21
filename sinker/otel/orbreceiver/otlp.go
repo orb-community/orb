@@ -485,6 +485,7 @@ func (r *OrbReceiver) ProccessPolicyContext(mr pmetricotlp.ExportRequest, channe
 func (r *OrbReceiver) ProccessScopePolicyContext(scope pmetric.ScopeMetrics, channel string) {
 	// Extract Datasets
 	datasets := r.extractScopeAttribute(scope, "dataset_ids")
+	polID := r.extractScopeAttribute(scope, "policy_id")
 	if datasets == "" {
 		r.cfg.Logger.Info("No data extracting datasetIDs information from metrics request")
 		return
@@ -494,8 +495,6 @@ func (r *OrbReceiver) ProccessScopePolicyContext(scope pmetric.ScopeMetrics, cha
 	// Delete datasets_ids and policy_ids from metricsRequest
 	scope = r.deleteScopeAttribute(scope, "dataset_ids")
 	scope = r.deleteScopeAttribute(scope, "policy_id")
-	scope = r.deleteScopeAttribute(scope, "instance")
-	scope = r.deleteScopeAttribute(scope, "job")
 
 	// Add tags in Context
 	execCtx, execCancelF := context.WithCancel(r.ctx)
@@ -506,10 +505,13 @@ func (r *OrbReceiver) ProccessScopePolicyContext(scope pmetric.ScopeMetrics, cha
 		r.cfg.Logger.Info("No data extracting agent information from fleet")
 		return
 	}
-	scope = r.injectScopeAttribute(scope, "agent", agentPb.AgentName)
 	for k, v := range agentPb.OrbTags {
 		scope = r.injectScopeAttribute(scope, k, v)
 	}
+	//add instance and job - prometheus required
+	scope = r.injectScopeAttribute(scope, "instance", agentPb.AgentName)
+	scope = r.injectScopeAttribute(scope, "job", polID)
+
 	scope = r.replaceScopeTimestamp(scope, pcommon.NewTimestampFromTime(time.Now()))
 	sinkIds, err := r.sinkerService.GetSinkIdsFromDatasetIDs(execCtx, agentPb.OwnerID, datasetIDs)
 	if err != nil {
