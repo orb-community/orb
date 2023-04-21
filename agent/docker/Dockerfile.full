@@ -8,7 +8,7 @@ COPY . .
 RUN apk update && apk add make build-base git
 RUN mkdir /tmp/build && CGO_ENABLED=1 make agent_bin && mv build/orb-agent /tmp/build/orb-agent
 
-FROM orbcommunity/diode-agent:${DIODE_TAG} as diode
+FROM orbcommunity/diode-agent:${DIODE_TAG} AS diode
 RUN SQPATH=$(pip show suzieq |  sed -n 's/Location: \(.*\)/\1/p') \
 && cp -r "$SQPATH/suzieq" "/tmp/suzieq-mod"
 
