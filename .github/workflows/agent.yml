@@ -5,10 +5,10 @@ on:
     inputs:
       pktvisor_tag:
         description: 'pktvisor agent docker tag to package'
-        required: true
+        default: "develop"
       diode_tag:
         description: 'diode agent docker tag to package'
-        required: true
+        default: "develop"
 
   repository_dispatch:
       types: [build-agent]
