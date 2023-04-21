@@ -6,6 +6,9 @@ on:
       pktvisor_tag:
         description: 'pktvisor agent docker tag to package'
         required: true
+      diode_tag:
+        description: 'diode agent docker tag to package'
+        required: true
 
   repository_dispatch:
       types: [build-agent]
