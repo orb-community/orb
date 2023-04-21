@@ -20,6 +20,7 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/pdata/plog"
+	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
 	"go.opentelemetry.io/collector/pdata/ptrace"
@@ -187,8 +188,48 @@ func (e *baseExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) erro
 	return err
 }
 
-func (e *baseExporter) pushLogs(_ context.Context, _ plog.Logs) error {
-	return fmt.Errorf("not implemented")
+func (e *baseExporter) pushLogs(ctx context.Context, ld plog.Logs) error {
+	tr := plogotlp.NewExportRequest()
+	ref := tr.Logs().ResourceLogs().AppendEmpty()
+	scopes := plogotlp.NewExportRequestFromLogs(ld).Logs().ResourceLogs().At(0).ScopeLogs()
+	for i := 0; i < scopes.Len(); i++ {
+		scope := scopes.At(i)
+		policyName := e.extractScopeAttribute(scope, "policy")
+		agentData, err := e.config.OrbAgentService.RetrieveAgentInfoByPolicyName(policyName)
+		if err != nil {
+			e.logger.Warn("Policy is not managed by orb", zap.String("policyName", policyName))
+			continue
+		}
+
+		// sort datasetIDs to send always on same order
+		datasetIDs := strings.Split(agentData.Datasets, ",")
+		sort.Strings(datasetIDs)
+		datasets := strings.Join(datasetIDs, ",")
+
+		// injecting policy ID attribute on metrics
+		scope = e.injectScopeAttribute(scope, "policy_id", agentData.PolicyID)
+		scope = e.injectScopeAttribute(scope, "dataset_ids", datasets)
+		// Insert pivoted agentTags
+		for key, value := range agentData.AgentTags {
+			scope = e.injectScopeAttribute(scope, key, value)
+		}
+		e.logger.Info("Scrapping policy via OTLP", zap.String("policyName", policyName))
+		scope.CopyTo(ref.ScopeMetrics().AppendEmpty())
+	}
+
+	request, err := tr.MarshalProto()
+	if err != nil {
+		defer ctx.Done()
+		return consumererror.NewPermanent(err)
+	}
+
+	err = e.export(ctx, e.config.MetricsTopic, request)
+	if err != nil {
+		ctx.Done()
+		return err
+	}
+
+	return err
 }
 
 func (e *baseExporter) export(ctx context.Context, metricsTopic string, request []byte) error {

@@ -5,11 +5,10 @@ go 1.19
 require (
 	github.com/andybalholm/brotli v1.0.4
 	github.com/aws/aws-sdk-go v1.44.232
-	github.com/cenkalti/backoff/v4 v4.2.0
 	github.com/eclipse/paho.mqtt.golang v1.4.2
 	github.com/fatih/structs v1.1.0
 	github.com/ghodss/yaml v1.0.0
-	github.com/go-cmd/cmd v1.3.0
+	github.com/go-cmd/cmd v1.4.1
 	github.com/go-co-op/gocron v1.9.0
 	github.com/go-kit/kit v0.12.0
 	github.com/go-redis/redis/v8 v8.11.4
@@ -21,7 +20,7 @@ require (
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/lib/pq v1.10.4
 	github.com/mainflux/mainflux v0.0.0-20220415135135-92d8fb99bf82
-	github.com/mattn/go-sqlite3 v1.14.6
+	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.75.0
 	github.com/opentracing/opentracing-go v1.2.0
@@ -41,7 +40,7 @@ require (
 	go.opentelemetry.io/collector/receiver v0.75.0
 	go.uber.org/multierr v1.10.0
 	go.uber.org/zap v1.24.0
-	golang.org/x/exp v0.0.0-20230307190834-24139beb5833
+	golang.org/x/exp v0.0.0-20230321023759-10a507213a29
 	google.golang.org/grpc v1.54.0
 	google.golang.org/protobuf v1.30.0
 	gopkg.in/yaml.v2 v2.4.0
@@ -82,6 +81,7 @@ require (
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137 // indirect
 	github.com/armon/go-metrics v0.4.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
+	github.com/cenkalti/backoff/v4 v4.2.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cncf/xds/go v0.0.0-20230112175826-46e39c7b9b43 // indirect
 	github.com/containerd/continuity v0.2.2 // indirect
@@ -245,6 +245,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.75.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.62.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus v0.75.0 // indirect
+	github.com/orb-community/diode v0.0.0-20230419222319-4ec19ba89e9f
 	github.com/pelletier/go-toml/v2 v2.0.6 // indirect
 	github.com/pierrec/lz4/v4 v4.1.17 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
