@@ -221,6 +221,7 @@ agent_full:
 	docker build --no-cache \
 	  --build-arg PKTVISOR_TAG=$(PKTVISOR_TAG) \
 	  --build-arg DIODE_TAG=$(DIODE_TAG) \
+          --build-arg ORB_TAG=$(ORB_TAG) \
 	  --tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent-full:$(REF_TAG) \
 	  --tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent-full:$(ORB_VERSION) \
 	  --tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent-full:$(ORB_VERSION)-$(COMMIT_HASH) \
