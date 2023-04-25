@@ -447,6 +447,8 @@ func (r *OrbReceiver) ProccessPolicyContext(mr pmetricotlp.ExportRequest, channe
 	// Delete datasets_ids and policy_ids from metricsRequest
 	mr = r.deleteAttribute(mr, "dataset_ids")
 	mr = r.deleteAttribute(mr, "policy_id")
+	mr = r.deleteAttribute(mr, "instance")
+	mr = r.deleteAttribute(mr, "job")
 
 	// Add tags in Context
 	execCtx, execCancelF := context.WithCancel(r.ctx)
