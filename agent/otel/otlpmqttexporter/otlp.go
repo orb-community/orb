@@ -348,7 +348,7 @@ func (e *baseExporter) pushAllMetrics(ctx context.Context, md pmetric.Metrics) e
 		for key, value := range agentData.AgentTags {
 			scope = e.injectScopeAttribute(scope, key, value)
 		}
-		e.logger.Info("Scrapping policy via OTLP", zap.String("policyName", policyName))
+		e.logger.Info("scraped metrics for policy", zap.String("policy", policyName), zap.String("policy_id", agentData.PolicyID))
 		scope.CopyTo(ref.ScopeMetrics().AppendEmpty())
 	}
 
