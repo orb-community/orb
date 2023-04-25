@@ -51,6 +51,10 @@ func TestDHCPConversion(t *testing.T) {
 			Value: "agent-test",
 		},
 		{
+			Name:  "job",
+			Value: policyID.String(),
+		},
+		{
 			Name:  "agent_id",
 			Value: agentID.String(),
 		},
@@ -295,6 +299,10 @@ func TestASNConversion(t *testing.T) {
 						Value: "agent-test",
 					},
 					{
+						Name:  "job",
+						Value: policyID.String(),
+					},
+					{
 						Name:  "agent_id",
 						Value: agentID.String(),
 					},
@@ -403,6 +411,10 @@ func TestGeoLocConversion(t *testing.T) {
 						Value: "agent-test",
 					},
 					{
+						Name:  "job",
+						Value: policyID.String(),
+					},
+					{
 						Name:  "agent_id",
 						Value: agentID.String(),
 					},
@@ -486,6 +498,10 @@ func TestPCAPConversion(t *testing.T) {
 		{
 			Name:  "instance",
 			Value: "agent-test",
+		},
+		{
+			Name:  "job",
+			Value: policyID.String(),
 		},
 		{
 			Name:  "agent_id",
@@ -624,6 +640,10 @@ func TestDNSConversion(t *testing.T) {
 		{
 			Name:  "instance",
 			Value: "agent-test",
+		},
+		{
+			Name:  "job",
+			Value: policyID.String(),
 		},
 		{
 			Name:  "agent_id",
@@ -843,6 +863,10 @@ func TestDNSRatesConversion(t *testing.T) {
 			Value: "agent-test",
 		},
 		{
+			Name:  "job",
+			Value: policyID.String(),
+		},
+		{
 			Name:  "agent_id",
 			Value: agentID.String(),
 		},
@@ -869,6 +893,10 @@ func TestDNSRatesConversion(t *testing.T) {
 		{
 			Name:  "instance",
 			Value: "agent-test",
+		},
+		{
+			Name:  "job",
+			Value: policyID.String(),
 		},
 		{
 			Name:  "agent_id",
@@ -899,6 +927,10 @@ func TestDNSRatesConversion(t *testing.T) {
 			Value: "agent-test",
 		},
 		{
+			Name:  "job",
+			Value: policyID.String(),
+		},
+		{
 			Name:  "agent_id",
 			Value: agentID.String(),
 		},
@@ -925,6 +957,10 @@ func TestDNSRatesConversion(t *testing.T) {
 		{
 			Name:  "instance",
 			Value: "agent-test",
+		},
+		{
+			Name:  "job",
+			Value: policyID.String(),
 		},
 		{
 			Name:  "agent_id",
@@ -1039,6 +1075,10 @@ func TestDHCPRatesConversion(t *testing.T) {
 			Value: "agent-test",
 		},
 		{
+			Name:  "job",
+			Value: policyID.String(),
+		},
+		{
 			Name:  "agent_id",
 			Value: agentID.String(),
 		},
@@ -1065,6 +1105,10 @@ func TestDHCPRatesConversion(t *testing.T) {
 		{
 			Name:  "instance",
 			Value: "agent-test",
+		},
+		{
+			Name:  "job",
+			Value: policyID.String(),
 		},
 		{
 			Name:  "agent_id",
@@ -1095,6 +1139,10 @@ func TestDHCPRatesConversion(t *testing.T) {
 			Value: "agent-test",
 		},
 		{
+			Name:  "job",
+			Value: policyID.String(),
+		},
+		{
 			Name:  "agent_id",
 			Value: agentID.String(),
 		},
@@ -1121,6 +1169,10 @@ func TestDHCPRatesConversion(t *testing.T) {
 		{
 			Name:  "instance",
 			Value: "agent-test",
+		},
+		{
+			Name:  "job",
+			Value: policyID.String(),
 		},
 		{
 			Name:  "agent_id",
@@ -1235,6 +1287,10 @@ func TestPacketsRatesConversion(t *testing.T) {
 			Value: "agent-test",
 		},
 		{
+			Name:  "job",
+			Value: policyID.String(),
+		},
+		{
 			Name:  "agent_id",
 			Value: agentID.String(),
 		},
@@ -1261,6 +1317,10 @@ func TestPacketsRatesConversion(t *testing.T) {
 		{
 			Name:  "instance",
 			Value: "agent-test",
+		},
+		{
+			Name:  "job",
+			Value: policyID.String(),
 		},
 		{
 			Name:  "agent_id",
@@ -1291,6 +1351,10 @@ func TestPacketsRatesConversion(t *testing.T) {
 			Value: "agent-test",
 		},
 		{
+			Name:  "job",
+			Value: policyID.String(),
+		},
+		{
 			Name:  "agent_id",
 			Value: agentID.String(),
 		},
@@ -1317,6 +1381,10 @@ func TestPacketsRatesConversion(t *testing.T) {
 		{
 			Name:  "instance",
 			Value: "agent-test",
+		},
+		{
+			Name:  "job",
+			Value: policyID.String(),
 		},
 		{
 			Name:  "agent_id",
@@ -1498,6 +1566,10 @@ func TestDNSTopKMetricsConversion(t *testing.T) {
 						Value: "agent-test",
 					},
 					{
+						Name:  "job",
+						Value: policyID.String(),
+					},
+					{
 						Name:  "agent_id",
 						Value: agentID.String(),
 					},
@@ -1550,6 +1622,10 @@ func TestDNSTopKMetricsConversion(t *testing.T) {
 					{
 						Name:  "instance",
 						Value: "agent-test",
+					},
+					{
+						Name:  "job",
+						Value: policyID.String(),
 					},
 					{
 						Name:  "agent_id",
@@ -1606,6 +1682,10 @@ func TestDNSTopKMetricsConversion(t *testing.T) {
 						Value: "agent-test",
 					},
 					{
+						Name:  "job",
+						Value: policyID.String(),
+					},
+					{
 						Name:  "agent_id",
 						Value: agentID.String(),
 					},
@@ -1658,6 +1738,10 @@ func TestDNSTopKMetricsConversion(t *testing.T) {
 					{
 						Name:  "instance",
 						Value: "agent-test",
+					},
+					{
+						Name:  "job",
+						Value: policyID.String(),
 					},
 					{
 						Name:  "agent_id",
@@ -1714,6 +1798,10 @@ func TestDNSTopKMetricsConversion(t *testing.T) {
 						Value: "agent-test",
 					},
 					{
+						Name:  "job",
+						Value: policyID.String(),
+					},
+					{
 						Name:  "agent_id",
 						Value: agentID.String(),
 					},
@@ -1766,6 +1854,10 @@ func TestDNSTopKMetricsConversion(t *testing.T) {
 					{
 						Name:  "instance",
 						Value: "agent-test",
+					},
+					{
+						Name:  "job",
+						Value: policyID.String(),
 					},
 					{
 						Name:  "agent_id",
@@ -1851,6 +1943,10 @@ func TestDNSWirePacketsConversion(t *testing.T) {
 		{
 			Name:  "instance",
 			Value: "agent-test",
+		},
+		{
+			Name:  "job",
+			Value: policyID.String(),
 		},
 		{
 			Name:  "agent_id",
@@ -2207,6 +2303,10 @@ func TestDNSXactConversion(t *testing.T) {
 			Value: "agent-test",
 		},
 		{
+			Name:  "job",
+			Value: policyID.String(),
+		},
+		{
 			Name:  "agent_id",
 			Value: agentID.String(),
 		},
@@ -2439,6 +2539,10 @@ func TestPacketsConversion(t *testing.T) {
 		{
 			Name:  "instance",
 			Value: "agent-test",
+		},
+		{
+			Name:  "job",
+			Value: policyID.String(),
 		},
 		{
 			Name:  "agent_id",
@@ -2829,6 +2933,10 @@ func TestPeriodConversion(t *testing.T) {
 						Value: "agent-test",
 					},
 					{
+						Name:  "job",
+						Value: policyID.String(),
+					},
+					{
 						Name:  "agent_id",
 						Value: agentID.String(),
 					},
@@ -2862,6 +2970,10 @@ func TestPeriodConversion(t *testing.T) {
 					{
 						Name:  "instance",
 						Value: "agent-test",
+					},
+					{
+						Name:  "job",
+						Value: policyID.String(),
 					},
 					{
 						Name:  "agent_id",
@@ -2912,6 +3024,10 @@ func TestPeriodConversion(t *testing.T) {
 						Value: "agent-test",
 					},
 					{
+						Name:  "job",
+						Value: policyID.String(),
+					},
+					{
 						Name:  "agent_id",
 						Value: agentID.String(),
 					},
@@ -2945,6 +3061,10 @@ func TestPeriodConversion(t *testing.T) {
 					{
 						Name:  "instance",
 						Value: "agent-test",
+					},
+					{
+						Name:  "job",
+						Value: policyID.String(),
 					},
 					{
 						Name:  "agent_id",
@@ -2995,6 +3115,10 @@ func TestPeriodConversion(t *testing.T) {
 						Value: "agent-test",
 					},
 					{
+						Name:  "job",
+						Value: policyID.String(),
+					},
+					{
 						Name:  "agent_id",
 						Value: agentID.String(),
 					},
@@ -3028,6 +3152,10 @@ func TestPeriodConversion(t *testing.T) {
 					{
 						Name:  "instance",
 						Value: "agent-test",
+					},
+					{
+						Name:  "job",
+						Value: policyID.String(),
 					},
 					{
 						Name:  "agent_id",
@@ -3078,6 +3206,10 @@ func TestPeriodConversion(t *testing.T) {
 						Value: "agent-test",
 					},
 					{
+						Name:  "job",
+						Value: policyID.String(),
+					},
+					{
 						Name:  "agent_id",
 						Value: agentID.String(),
 					},
@@ -3111,6 +3243,10 @@ func TestPeriodConversion(t *testing.T) {
 					{
 						Name:  "instance",
 						Value: "agent-test",
+					},
+					{
+						Name:  "job",
+						Value: policyID.String(),
 					},
 					{
 						Name:  "agent_id",
@@ -3199,6 +3335,10 @@ func TestFlowCardinalityConversion(t *testing.T) {
 		{
 			Name:  "instance",
 			Value: "agent-test",
+		},
+		{
+			Name:  "job",
+			Value: policyID.String(),
 		},
 		{
 			Name:  "agent_id",
@@ -3423,6 +3563,10 @@ func TestFlowConversion(t *testing.T) {
 		{
 			Name:  "instance",
 			Value: "agent-test",
+		},
+		{
+			Name:  "job",
+			Value: policyID.String(),
 		},
 		{
 			Name:  "agent_id",
@@ -3742,6 +3886,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 						Value: "agent-test",
 					},
 					{
+						Name:  "job",
+						Value: policyID.String(),
+					},
+					{
 						Name:  "agent_id",
 						Value: agentID.String(),
 					},
@@ -3810,6 +3958,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					{
 						Name:  "instance",
 						Value: "agent-test",
+					},
+					{
+						Name:  "job",
+						Value: policyID.String(),
 					},
 					{
 						Name:  "agent_id",
@@ -3882,6 +4034,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 						Value: "agent-test",
 					},
 					{
+						Name:  "job",
+						Value: policyID.String(),
+					},
+					{
 						Name:  "agent_id",
 						Value: agentID.String(),
 					},
@@ -3950,6 +4106,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					{
 						Name:  "instance",
 						Value: "agent-test",
+					},
+					{
+						Name:  "job",
+						Value: policyID.String(),
 					},
 					{
 						Name:  "agent_id",
@@ -4022,6 +4182,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 						Value: "agent-test",
 					},
 					{
+						Name:  "job",
+						Value: policyID.String(),
+					},
+					{
 						Name:  "agent_id",
 						Value: agentID.String(),
 					},
@@ -4092,6 +4256,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 						Value: "agent-test",
 					},
 					{
+						Name:  "job",
+						Value: policyID.String(),
+					},
+					{
 						Name:  "agent_id",
 						Value: agentID.String(),
 					},
@@ -4158,6 +4326,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 						Value: "agent-test",
 					},
 					{
+						Name:  "job",
+						Value: policyID.String(),
+					},
+					{
 						Name:  "agent_id",
 						Value: agentID.String(),
 					},
@@ -4218,6 +4390,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					{
 						Name:  "instance",
 						Value: "agent-test",
+					},
+					{
+						Name:  "job",
+						Value: policyID.String(),
 					},
 					{
 						Name:  "agent_id",
@@ -4286,6 +4462,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 						Value: "agent-test",
 					},
 					{
+						Name:  "job",
+						Value: policyID.String(),
+					},
+					{
 						Name:  "agent_id",
 						Value: agentID.String(),
 					},
@@ -4352,6 +4532,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 						Value: "agent-test",
 					},
 					{
+						Name:  "job",
+						Value: policyID.String(),
+					},
+					{
 						Name:  "agent_id",
 						Value: agentID.String(),
 					},
@@ -4415,6 +4599,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					{
 						Name:  "instance",
 						Value: "agent-test",
+					},
+					{
+						Name:  "job",
+						Value: policyID.String(),
 					},
 					{
 						Name:  "agent_id",
@@ -4487,6 +4675,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 						Value: "agent-test",
 					},
 					{
+						Name:  "job",
+						Value: policyID.String(),
+					},
+					{
 						Name:  "agent_id",
 						Value: agentID.String(),
 					},
@@ -4555,6 +4747,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					{
 						Name:  "instance",
 						Value: "agent-test",
+					},
+					{
+						Name:  "job",
+						Value: policyID.String(),
 					},
 					{
 						Name:  "agent_id",
@@ -4627,6 +4823,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 						Value: "agent-test",
 					},
 					{
+						Name:  "job",
+						Value: policyID.String(),
+					},
+					{
 						Name:  "agent_id",
 						Value: agentID.String(),
 					},
@@ -4697,6 +4897,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 						Value: "agent-test",
 					},
 					{
+						Name:  "job",
+						Value: policyID.String(),
+					},
+					{
 						Name:  "agent_id",
 						Value: agentID.String(),
 					},
@@ -4765,6 +4969,10 @@ func TestFlowTopKMetricsConversion(t *testing.T) {
 					{
 						Name:  "instance",
 						Value: "agent-test",
+					},
+					{
+						Name:  "job",
+						Value: policyID.String(),
 					},
 					{
 						Name:  "agent_id",
@@ -4884,6 +5092,10 @@ func TestAgentTagsConversion(t *testing.T) {
 						Value: "agent-test",
 					},
 					{
+						Name:  "job",
+						Value: policyID.String(),
+					},
+					{
 						Name:  "agent_id",
 						Value: agentID.String(),
 					},
@@ -5000,6 +5212,10 @@ func TestTagsConversion(t *testing.T) {
 		{
 			Name:  "instance",
 			Value: "agent-test",
+		},
+		{
+			Name:  "job",
+			Value: policyID.String(),
 		},
 		{
 			Name:  "agent_id",
