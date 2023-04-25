@@ -21,6 +21,7 @@ import (
 	"io"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/andybalholm/brotli"
 	"github.com/mainflux/mainflux/pkg/messaging"
@@ -28,6 +29,7 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/obsreport"
+	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
 	"go.opentelemetry.io/collector/receiver"
@@ -359,6 +361,37 @@ func (r *OrbReceiver) deleteScopeAttribute(metricsScope pmetric.ScopeMetrics, at
 	return metricsScope
 }
 
+// replace ScopeMetrics metrics timestamp
+func (r *OrbReceiver) replaceScopeTimestamp(metricsScope pmetric.ScopeMetrics, ts pcommon.Timestamp) pmetric.ScopeMetrics {
+	metricsList := metricsScope.Metrics()
+	for i3 := 0; i3 < metricsList.Len(); i3++ {
+		metricItem := metricsList.At(i3)
+		switch metricItem.Type() {
+		case pmetric.MetricTypeExponentialHistogram:
+			for i := 0; i < metricItem.ExponentialHistogram().DataPoints().Len(); i++ {
+				metricItem.ExponentialHistogram().DataPoints().At(i).SetTimestamp(ts)
+			}
+		case pmetric.MetricTypeGauge:
+			for i := 0; i < metricItem.Gauge().DataPoints().Len(); i++ {
+				metricItem.Gauge().DataPoints().At(i).SetTimestamp(ts)
+			}
+		case pmetric.MetricTypeHistogram:
+			for i := 0; i < metricItem.Histogram().DataPoints().Len(); i++ {
+				metricItem.Histogram().DataPoints().At(i).SetTimestamp(ts)
+			}
+		case pmetric.MetricTypeSum:
+			for i := 0; i < metricItem.Sum().DataPoints().Len(); i++ {
+				metricItem.Sum().DataPoints().At(i).SetTimestamp(ts)
+			}
+		case pmetric.MetricTypeSummary:
+			for i := 0; i < metricItem.Summary().DataPoints().Len(); i++ {
+				metricItem.Summary().DataPoints().At(i).SetTimestamp(ts)
+			}
+		}
+	}
+	return metricsScope
+}
+
 func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 	go func() {
 		r.cfg.Logger.Debug("received agent message",
@@ -383,9 +416,17 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 		}
 
 		scopes := mr.Metrics().ResourceMetrics().At(0).ScopeMetrics()
+		oldOtel := false
 		if scopes.Len() == 1 {
-			r.ProccessPolicyContext(mr, msg.Channel)
-		} else {
+			attr := mr.Metrics().ResourceMetrics().At(0).Resource().Attributes().AsRaw()
+			_, ok := attr["service.instance.id"]
+			if ok {
+				oldOtel = true
+				r.ProccessPolicyContext(mr, msg.Channel)
+			}
+		}
+
+		if !oldOtel {
 			for i := 0; i < scopes.Len(); i++ {
 				r.ProccessScopePolicyContext(scopes.At(i), msg.Channel)
 			}
@@ -406,8 +447,6 @@ func (r *OrbReceiver) ProccessPolicyContext(mr pmetricotlp.ExportRequest, channe
 	// Delete datasets_ids and policy_ids from metricsRequest
 	mr = r.deleteAttribute(mr, "dataset_ids")
 	mr = r.deleteAttribute(mr, "policy_id")
-	mr = r.deleteAttribute(mr, "instance")
-	mr = r.deleteAttribute(mr, "job")
 
 	// Add tags in Context
 	execCtx, execCancelF := context.WithCancel(r.ctx)
@@ -452,6 +491,7 @@ func (r *OrbReceiver) ProccessPolicyContext(mr pmetricotlp.ExportRequest, channe
 func (r *OrbReceiver) ProccessScopePolicyContext(scope pmetric.ScopeMetrics, channel string) {
 	// Extract Datasets
 	datasets := r.extractScopeAttribute(scope, "dataset_ids")
+	polID := r.extractScopeAttribute(scope, "policy_id")
 	if datasets == "" {
 		r.cfg.Logger.Info("No data extracting datasetIDs information from metrics request")
 		return
@@ -461,8 +501,6 @@ func (r *OrbReceiver) ProccessScopePolicyContext(scope pmetric.ScopeMetrics, cha
 	// Delete datasets_ids and policy_ids from metricsRequest
 	scope = r.deleteScopeAttribute(scope, "dataset_ids")
 	scope = r.deleteScopeAttribute(scope, "policy_id")
-	scope = r.deleteScopeAttribute(scope, "instance")
-	scope = r.deleteScopeAttribute(scope, "job")
 
 	// Add tags in Context
 	execCtx, execCancelF := context.WithCancel(r.ctx)
@@ -473,10 +511,14 @@ func (r *OrbReceiver) ProccessScopePolicyContext(scope pmetric.ScopeMetrics, cha
 		r.cfg.Logger.Info("No data extracting agent information from fleet")
 		return
 	}
-	scope = r.injectScopeAttribute(scope, "agent", agentPb.AgentName)
 	for k, v := range agentPb.OrbTags {
 		scope = r.injectScopeAttribute(scope, k, v)
 	}
+	//add instance and job - prometheus required
+	scope = r.injectScopeAttribute(scope, "instance", agentPb.AgentName)
+	scope = r.injectScopeAttribute(scope, "job", polID)
+
+	scope = r.replaceScopeTimestamp(scope, pcommon.NewTimestampFromTime(time.Now()))
 	sinkIds, err := r.sinkerService.GetSinkIdsFromDatasetIDs(execCtx, agentPb.OwnerID, datasetIDs)
 	if err != nil {
 		execCancelF()
