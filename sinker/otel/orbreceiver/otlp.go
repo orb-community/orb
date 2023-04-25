@@ -21,7 +21,6 @@ import (
 	"io"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/andybalholm/brotli"
 	"github.com/mainflux/mainflux/pkg/messaging"
