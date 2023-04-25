@@ -21,6 +21,7 @@ import (
 	"io"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/andybalholm/brotli"
 	"github.com/mainflux/mainflux/pkg/messaging"
@@ -415,9 +416,17 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 		}
 
 		scopes := mr.Metrics().ResourceMetrics().At(0).ScopeMetrics()
+		oldOtel := false
 		if scopes.Len() == 1 {
-			r.ProccessPolicyContext(mr, msg.Channel)
-		} else {
+			attr := mr.Metrics().ResourceMetrics().At(0).Resource().Attributes().AsRaw()
+			_, ok := attr["service.instance.id"]
+			if ok {
+				oldOtel = true
+				r.ProccessPolicyContext(mr, msg.Channel)
+			}
+		}
+
+		if !oldOtel {
 			for i := 0; i < scopes.Len(); i++ {
 				r.ProccessScopePolicyContext(scopes.At(i), msg.Channel)
 			}
@@ -438,8 +447,6 @@ func (r *OrbReceiver) ProccessPolicyContext(mr pmetricotlp.ExportRequest, channe
 	// Delete datasets_ids and policy_ids from metricsRequest
 	mr = r.deleteAttribute(mr, "dataset_ids")
 	mr = r.deleteAttribute(mr, "policy_id")
-	mr = r.deleteAttribute(mr, "instance")
-	mr = r.deleteAttribute(mr, "job")
 
 	// Add tags in Context
 	execCtx, execCancelF := context.WithCancel(r.ctx)
@@ -510,6 +517,8 @@ func (r *OrbReceiver) ProccessScopePolicyContext(scope pmetric.ScopeMetrics, cha
 	//add instance and job - prometheus required
 	scope = r.injectScopeAttribute(scope, "instance", agentPb.AgentName)
 	scope = r.injectScopeAttribute(scope, "job", polID)
+
+	scope = r.replaceScopeTimestamp(scope, pcommon.NewTimestampFromTime(time.Now()))
 	sinkIds, err := r.sinkerService.GetSinkIdsFromDatasetIDs(execCtx, agentPb.OwnerID, datasetIDs)
 	if err != nil {
 		execCancelF()
