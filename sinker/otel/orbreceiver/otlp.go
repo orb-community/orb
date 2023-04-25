@@ -21,7 +21,6 @@ import (
 	"io"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/andybalholm/brotli"
 	"github.com/mainflux/mainflux/pkg/messaging"
@@ -511,8 +510,6 @@ func (r *OrbReceiver) ProccessScopePolicyContext(scope pmetric.ScopeMetrics, cha
 	//add instance and job - prometheus required
 	scope = r.injectScopeAttribute(scope, "instance", agentPb.AgentName)
 	scope = r.injectScopeAttribute(scope, "job", polID)
-
-	scope = r.replaceScopeTimestamp(scope, pcommon.NewTimestampFromTime(time.Now()))
 	sinkIds, err := r.sinkerService.GetSinkIdsFromDatasetIDs(execCtx, agentPb.OwnerID, datasetIDs)
 	if err != nil {
 		execCancelF()
