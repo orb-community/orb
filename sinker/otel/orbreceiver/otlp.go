@@ -203,37 +203,6 @@ func (r *OrbReceiver) injectScopeAttribute(metricsScope pmetric.ScopeMetrics, at
 	return metricsScope
 }
 
-// delete attribute on all ScopeMetrics metrics
-func (r *OrbReceiver) deleteScopeAttribute(metricsScope pmetric.ScopeMetrics, attribute string) pmetric.ScopeMetrics {
-	metricsList := metricsScope.Metrics()
-	for i3 := 0; i3 < metricsList.Len(); i3++ {
-		metricItem := metricsList.At(i3)
-		switch metricItem.Type() {
-		case pmetric.MetricTypeExponentialHistogram:
-			for i := 0; i < metricItem.ExponentialHistogram().DataPoints().Len(); i++ {
-				metricItem.ExponentialHistogram().DataPoints().At(i).Attributes().Remove(attribute)
-			}
-		case pmetric.MetricTypeGauge:
-			for i := 0; i < metricItem.Gauge().DataPoints().Len(); i++ {
-				metricItem.Gauge().DataPoints().At(i).Attributes().Remove(attribute)
-			}
-		case pmetric.MetricTypeHistogram:
-			for i := 0; i < metricItem.Histogram().DataPoints().Len(); i++ {
-				metricItem.Histogram().DataPoints().At(i).Attributes().Remove(attribute)
-			}
-		case pmetric.MetricTypeSum:
-			for i := 0; i < metricItem.Sum().DataPoints().Len(); i++ {
-				metricItem.Sum().DataPoints().At(i).Attributes().Remove(attribute)
-			}
-		case pmetric.MetricTypeSummary:
-			for i := 0; i < metricItem.Summary().DataPoints().Len(); i++ {
-				metricItem.Summary().DataPoints().At(i).Attributes().Remove(attribute)
-			}
-		}
-	}
-	return metricsScope
-}
-
 // replace ScopeMetrics metrics timestamp
 func (r *OrbReceiver) replaceScopeTimestamp(metricsScope pmetric.ScopeMetrics, ts pcommon.Timestamp) pmetric.ScopeMetrics {
 	metricsList := metricsScope.Metrics()
@@ -298,17 +267,30 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 
 func (r *OrbReceiver) ProccessPolicyContext(scope pmetric.ScopeMetrics, channel string) {
 	// Extract Datasets
-	datasets := r.extractScopeAttribute(scope, "dataset_ids")
-	polID := r.extractScopeAttribute(scope, "policy_id")
+	attrDataset, ok := scope.Scope().Attributes().Get("dataset_id")
+	if !ok {
+		r.cfg.Logger.Info("No datasetIDs information on metrics scope attributes")
+		return
+	}
+	datasets := attrDataset.AsString()
 	if datasets == "" {
-		r.cfg.Logger.Info("No data extracting datasetIDs information from metrics request")
+		r.cfg.Logger.Info("datasetIDs information is empty")
 		return
 	}
 	datasetIDs := strings.Split(datasets, ",")
-
-	// Delete datasets_ids and policy_ids from metricsRequest
-	scope = r.deleteScopeAttribute(scope, "dataset_ids")
-	scope = r.deleteScopeAttribute(scope, "policy_id")
+	//Extract policyID
+	attrPolID, ok := scope.Scope().Attributes().Get("policy_id")
+	if !ok {
+		r.cfg.Logger.Info("No policyID information on metrics scope attributes")
+		return
+	}
+	polID := attrPolID.AsString()
+	if polID == "" {
+		r.cfg.Logger.Info("policyID information is empty")
+		return
+	}
+	// Delete datasets_ids and policy_ids from scope attributes
+	scope.Scope().Attributes().Clear()
 
 	// Add tags in Context
 	execCtx, execCancelF := context.WithCancel(r.ctx)
