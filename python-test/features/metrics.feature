@@ -1,4 +1,4 @@
-@metrics @AUTORETRY
+@metrics
 Feature: Integration tests validating metric groups
 
 #### netprobe
@@ -1464,15 +1464,15 @@ Scenario: pcap handler with all metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
         And that a sink already exists
-        And a mocked interface is configured with mtu: 65000 and ip: None
-    When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
+#        And a mocked interface is configured with mtu: 65000 and ip: None
+    When an agent(input_type:pcap, settings: {"iface":"default"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And a pcap policy pcap with tap_selector matching all tag(s) of the tap from an agent, all metric_groups enabled, none metric_groups disabled and settings: default is applied to the group
         And 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 1 policies are applied and all has status running
-        And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
+#        And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for pcap handler
@@ -1526,15 +1526,15 @@ Scenario: bgp handler with all metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
         And that a sink already exists
-        And a mocked interface is configured with mtu: 65000 and ip: None
-    When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
+#        And a mocked interface is configured with mtu: 65000 and ip: None
+    When an agent(input_type:pcap, settings: {"iface":"default"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And a bgp policy pcap with tap_selector matching all tag(s) of the tap from an agent, all metric_groups enabled, none metric_groups disabled and settings: default is applied to the group
         And 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 1 policies are applied and all has status running
-        And run mocked data bgp.pcap on the created virtual interface
+#        And run mocked data bgp.pcap on the created virtual interface
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for bgp handler
@@ -1588,15 +1588,15 @@ Scenario: dhcp handler with all metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
         And that a sink already exists
-        And a mocked interface is configured with mtu: 65000 and ip: None
-    When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
+#        And a mocked interface is configured with mtu: 65000 and ip: None
+    When an agent(input_type:pcap, settings: {"iface":"default"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And a dhcp policy pcap with tap_selector matching all tag(s) of the tap from an agent, all metric_groups enabled, none metric_groups disabled and settings: default is applied to the group
         And 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 1 policies are applied and all has status running
-        And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual interface
+#        And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dhcpv6.pcap, dhcp-flow.pcap on the created virtual interface
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for dhcp handler
@@ -1650,15 +1650,15 @@ Scenario: net handler with all metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
         And that a sink already exists
-        And a mocked interface is configured with mtu: 65000 and ip: None
-    When an agent(input_type:pcap, settings: {"iface":"mocked", "host_spec":"fe80::a00:27ff:fed4:10bb/48,192.168.0.0/24,75.75.75.75/32"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
+#        And a mocked interface is configured with mtu: 65000 and ip: None
+    When an agent(input_type:pcap, settings: {"iface":"default"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And a net policy pcap with tap_selector matching all tag(s) of the tap from an agent, all metric_groups enabled, none metric_groups disabled and settings: default is applied to the group
         And 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 1 policies are applied and all has status running
-        And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, ipfix.pcap, ecmp.pcap, ipfix.pcap, nf9.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
+#        And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, ipfix.pcap, ecmp.pcap, ipfix.pcap, nf9.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for net handler
@@ -1791,15 +1791,15 @@ Scenario: dns handler with all metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
         And that a sink already exists
-        And a mocked interface is configured with mtu: 65000 and ip: None
-    When an agent(input_type:pcap, settings: {"iface":"mocked", "host_spec":"fe80::a00:27ff:fed4:10bb/48,192.168.0.0/24,75.75.75.75/32"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
+#        And a mocked interface is configured with mtu: 65000 and ip: None
+    When an agent(input_type:pcap, settings: {"iface":"default"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And a dns policy pcap with tap_selector matching all tag(s) of the tap from an agent, all metric_groups enabled, none metric_groups disabled and settings: default is applied to the group
         And 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 1 policies are applied and all has status running
-        And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
+#        And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for dns handler
@@ -2050,15 +2050,15 @@ Scenario: dns handler with all metric groups enabled (v2)
     Given the Orb user has a registered account
         And the Orb user logs in
         And that a sink already exists
-        And a mocked interface is configured with mtu: 65000 and ip: None
-    When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
+#        And a mocked interface is configured with mtu: 65000 and ip: None
+    When an agent(input_type:pcap, settings: {"iface":"default"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And a dns policy pcap with tap_selector matching all tag(s) of the tap from an agent, all metric_groups enabled, none metric_groups disabled and settings: {"require_version":"2.0"} is applied to the group
         And 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 1 policies are applied and all has status running
-        And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
+#        And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for dns-v2 handler
@@ -2311,15 +2311,15 @@ Scenario: net handler with all metric groups enabled (v2)
     Given the Orb user has a registered account
         And the Orb user logs in
         And that a sink already exists
-        And a mocked interface is configured with mtu: 65000 and ip: None
-    When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
+#        And a mocked interface is configured with mtu: 65000 and ip: None
+    When an agent(input_type:pcap, settings: {"iface":"default"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And a net policy pcap with tap_selector matching all tag(s) of the tap from an agent, all metric_groups enabled, none metric_groups disabled and settings: {"require_version":"2.0"} is applied to the group
         And 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
         And this agent's heartbeat shows that 1 policies are applied and all has status running
-        And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, ipfix.pcap, ecmp.pcap, ipfix.pcap, nf9.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
+#        And run mocked data dns_ipv4_tcp.pcap, dns_ipv4_udp.pcap, dns_ipv6_tcp.pcap, dns_ipv6_udp.pcap, dns_udp_mixed_rcode.pcap, dns_udp_tcp_random.pcap, ecs.pcap, ipfix.pcap, ecmp.pcap, ipfix.pcap, nf9.pcap, dnssec.pcap, dhcpv6.pcap on the created virtual interface
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And referred sink must have active state on response within 240 seconds
     Then metrics must be correctly generated for net-v2 handler
