@@ -161,15 +161,16 @@ func (e *baseExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) erro
 		sort.Strings(datasetIDs)
 		datasets := strings.Join(datasetIDs, ",")
 
-		// injecting policy ID attribute on metrics
-		scope = e.injectScopeAttribute(scope, "policy_id", agentData.PolicyID)
-		scope = e.injectScopeAttribute(scope, "dataset_ids", datasets)
 		// Insert pivoted agentTags
 		for key, value := range agentData.AgentTags {
 			scope = e.injectScopeAttribute(scope, key, value)
 		}
 		e.logger.Info("scraped metrics for policy", zap.String("policy", policyName), zap.String("policy_id", agentData.PolicyID))
-		scope.CopyTo(ref.ScopeMetrics().AppendEmpty())
+		newScope := ref.ScopeMetrics().AppendEmpty()
+		scope.CopyTo(newScope)
+		// injecting policyID and datasetIDs attributes
+		newScope.Scope().Attributes().PutStr("policy_id", agentData.PolicyID)
+		newScope.Scope().Attributes().PutStr("dataset_ids", datasets)
 	}
 
 	request, err := tr.MarshalProto()
