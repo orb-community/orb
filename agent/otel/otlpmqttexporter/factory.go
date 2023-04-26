@@ -125,9 +125,6 @@ func CreateMetricsExporter(
 	}
 	oCfg := cfg.(*Config)
 	pFunc := oce.pushMetrics
-	if ctx.Value("all").(bool) {
-		pFunc = oce.pushAllMetrics
-	}
 	return exporterhelper.NewMetricsExporter(
 		ctx,
 		set,

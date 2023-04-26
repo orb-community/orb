@@ -28,13 +28,10 @@ import (
 
 type baseExporter struct {
 	// Input configuration.
-	config     *Config
-	client     *http.Client
-	tracesURL  string
-	metricsURL string
-	logsURL    string
-	logger     *zap.Logger
-	settings   component.TelemetrySettings
+	config   *Config
+	client   *http.Client
+	logger   *zap.Logger
+	settings component.TelemetrySettings
 	// Default user-agent header.
 	userAgent string
 	// Policy handled by this exporter
@@ -110,104 +107,6 @@ func (e *baseExporter) start(_ context.Context, _ component.Host) error {
 	return nil
 }
 
-// extractAttribute extract attribute from metricsScope metrics
-func (e *baseExporter) extractScopeAttribute(metricsScope pmetric.ScopeMetrics, attribute string) string {
-	metrics := metricsScope.Metrics()
-	if metrics.Len() > 0 {
-		for i := 0; i < metrics.Len(); i++ {
-			metricItem := metrics.At(i)
-			switch metricItem.Type() {
-			case pmetric.MetricTypeGauge:
-				if metricItem.Gauge().DataPoints().Len() > 0 {
-					p, ok := metricItem.Gauge().DataPoints().At(0).Attributes().Get(attribute)
-					if ok {
-						return p.AsString()
-					}
-				}
-			case pmetric.MetricTypeHistogram:
-				if metricItem.Histogram().DataPoints().Len() > 0 {
-					p, ok := metricItem.Histogram().DataPoints().At(0).Attributes().Get(attribute)
-					if ok {
-						return p.AsString()
-					}
-				}
-			case pmetric.MetricTypeSum:
-				if metricItem.Sum().DataPoints().Len() > 0 {
-					p, ok := metricItem.Sum().DataPoints().At(0).Attributes().Get(attribute)
-					if ok {
-						return p.AsString()
-					}
-				}
-			case pmetric.MetricTypeSummary:
-				if metricItem.Summary().DataPoints().Len() > 0 {
-					p, ok := metricItem.Summary().DataPoints().At(0).Attributes().Get(attribute)
-					if ok {
-						return p.AsString()
-					}
-				}
-			case pmetric.MetricTypeExponentialHistogram:
-				if metricItem.ExponentialHistogram().DataPoints().Len() > 0 {
-					p, ok := metricItem.ExponentialHistogram().DataPoints().At(0).Attributes().Get(attribute)
-					if ok {
-						return p.AsString()
-					}
-				}
-			}
-		}
-	}
-	return ""
-}
-
-// extractAttribute extract attribute from metricsRequest metrics
-func (e *baseExporter) extractAttribute(metricsRequest pmetricotlp.ExportRequest, attribute string) string {
-	if metricsRequest.Metrics().ResourceMetrics().Len() > 0 {
-		if metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().Len() > 0 {
-			metrics := metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
-			for i := 0; i < metrics.Len(); i++ {
-				metricItem := metrics.At(i)
-				switch metricItem.Type() {
-				case pmetric.MetricTypeGauge:
-					if metricItem.Gauge().DataPoints().Len() > 0 {
-						p, ok := metricItem.Gauge().DataPoints().At(0).Attributes().Get(attribute)
-						if ok {
-							return p.AsString()
-						}
-					}
-				case pmetric.MetricTypeHistogram:
-					if metricItem.Histogram().DataPoints().Len() > 0 {
-						p, ok := metricItem.Histogram().DataPoints().At(0).Attributes().Get(attribute)
-						if ok {
-							return p.AsString()
-						}
-					}
-				case pmetric.MetricTypeSum:
-					if metricItem.Sum().DataPoints().Len() > 0 {
-						p, ok := metricItem.Sum().DataPoints().At(0).Attributes().Get(attribute)
-						if ok {
-							return p.AsString()
-						}
-					}
-				case pmetric.MetricTypeSummary:
-					if metricItem.Summary().DataPoints().Len() > 0 {
-						p, ok := metricItem.Summary().DataPoints().At(0).Attributes().Get(attribute)
-						if ok {
-							return p.AsString()
-						}
-					}
-				case pmetric.MetricTypeExponentialHistogram:
-					if metricItem.ExponentialHistogram().DataPoints().Len() > 0 {
-						p, ok := metricItem.ExponentialHistogram().DataPoints().At(0).Attributes().Get(attribute)
-						if ok {
-							return p.AsString()
-						}
-					}
-				}
-			}
-		}
-	}
-	return ""
-}
-
 // inject attribute on all ScopeMetrics metrics
 func (e *baseExporter) injectScopeAttribute(metricsScope pmetric.ScopeMetrics, attribute string, value string) pmetric.ScopeMetrics {
 	metrics := metricsScope.Metrics()
@@ -246,84 +145,12 @@ func (e *baseExporter) injectScopeAttribute(metricsScope pmetric.ScopeMetrics, a
 	return metricsScope
 }
 
-// inject attribute on all metricsRequest metrics
-func (e *baseExporter) injectAttribute(metricsRequest pmetricotlp.ExportRequest, attribute string, value string) pmetricotlp.ExportRequest {
-	metrics := metricsRequest.Metrics().ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
-	for i := 0; i < metrics.Len(); i++ {
-		metricItem := metrics.At(i)
-
-		switch metricItem.Type() {
-		case pmetric.MetricTypeExponentialHistogram:
-			for i := 0; i < metricItem.ExponentialHistogram().DataPoints().Len(); i++ {
-				metricItem.ExponentialHistogram().DataPoints().At(i).Attributes().PutStr(attribute, value)
-			}
-		case pmetric.MetricTypeGauge:
-			for i := 0; i < metricItem.Gauge().DataPoints().Len(); i++ {
-				metricItem.Gauge().DataPoints().At(i).Attributes().PutStr(attribute, value)
-			}
-		case pmetric.MetricTypeHistogram:
-			for i := 0; i < metricItem.Histogram().DataPoints().Len(); i++ {
-				metricItem.Histogram().DataPoints().At(i).Attributes().PutStr(attribute, value)
-			}
-		case pmetric.MetricTypeSum:
-			for i := 0; i < metricItem.Sum().DataPoints().Len(); i++ {
-				metricItem.Sum().DataPoints().At(i).Attributes().PutStr(attribute, value)
-			}
-		case pmetric.MetricTypeSummary:
-			for i := 0; i < metricItem.Summary().DataPoints().Len(); i++ {
-				metricItem.Summary().DataPoints().At(i).Attributes().PutStr(attribute, value)
-			}
-		default:
-			e.logger.Error("Unknown metric type: " + metricItem.Type().String())
-		}
-	}
-	return metricsRequest
-}
-
 func (e *baseExporter) pushTraces(_ context.Context, _ ptrace.Traces) error {
 	return fmt.Errorf("not implemented")
 }
 
 // pushMetrics Exports metrics
 func (e *baseExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) error {
-	tr := pmetricotlp.NewExportRequestFromMetrics(md)
-
-	agentData, err := e.config.OrbAgentService.RetrieveAgentInfoByPolicyName(e.policyName)
-	if err != nil {
-		defer ctx.Done()
-		return consumererror.NewPermanent(err)
-	}
-	// sort datasetIDs to send always on same order
-	datasetIDs := strings.Split(agentData.Datasets, ",")
-	sort.Strings(datasetIDs)
-	datasets := strings.Join(datasetIDs, ",")
-
-	// injecting policy ID attribute on metrics
-	tr = e.injectAttribute(tr, "policy_id", e.policyID)
-	tr = e.injectAttribute(tr, "dataset_ids", datasets)
-	// Insert pivoted agentTags
-	for key, value := range agentData.AgentTags {
-		tr = e.injectAttribute(tr, key, value)
-	}
-
-	e.logger.Info("scraped metrics for policy", zap.String("policy", e.policyName), zap.String("policy_id", e.policyID))
-	request, err := tr.MarshalProto()
-	if err != nil {
-		defer ctx.Done()
-		return consumererror.NewPermanent(err)
-	}
-
-	e.logger.Info("request metrics count per policyID", zap.String("policyID", e.policyID), zap.Int("metric_count", md.MetricCount()))
-	err = e.export(ctx, e.config.MetricsTopic, request)
-	if err != nil {
-		ctx.Done()
-		return err
-	}
-	return err
-}
-
-// pushMetrics Exports metrics
-func (e *baseExporter) pushAllMetrics(ctx context.Context, md pmetric.Metrics) error {
 	tr := pmetricotlp.NewExportRequest()
 	ref := tr.Metrics().ResourceMetrics().AppendEmpty()
 	scopes := pmetricotlp.NewExportRequestFromMetrics(md).Metrics().ResourceMetrics().At(0).ScopeMetrics()
