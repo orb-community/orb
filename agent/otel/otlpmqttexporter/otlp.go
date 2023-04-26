@@ -34,9 +34,6 @@ type baseExporter struct {
 	settings component.TelemetrySettings
 	// Default user-agent header.
 	userAgent string
-	// Policy handled by this exporter
-	policyID   string
-	policyName string
 }
 
 func (e *baseExporter) compressBrotli(data []byte) []byte {
@@ -56,8 +53,6 @@ func (e *baseExporter) compressBrotli(data []byte) []byte {
 // Crete new exporter.
 func newExporter(cfg component.Config, set exporter.CreateSettings, ctx context.Context) (*baseExporter, error) {
 	oCfg := cfg.(*Config)
-	policyID := ctx.Value("policy_id").(string)
-	policyName := ctx.Value("policy_name").(string)
 	if oCfg.Address != "" {
 		_, err := url.Parse(oCfg.Address)
 		if err != nil {
@@ -70,12 +65,10 @@ func newExporter(cfg component.Config, set exporter.CreateSettings, ctx context.
 
 	// Client construction is deferred to start
 	return &baseExporter{
-		config:     oCfg,
-		logger:     set.Logger,
-		userAgent:  userAgent,
-		settings:   set.TelemetrySettings,
-		policyID:   policyID,
-		policyName: policyName,
+		config:    oCfg,
+		logger:    set.Logger,
+		userAgent: userAgent,
+		settings:  set.TelemetrySettings,
 	}, nil
 }
 
