@@ -329,7 +329,7 @@ func (e *baseExporter) pushAllMetrics(ctx context.Context, md pmetric.Metrics) e
 	scopes := pmetricotlp.NewExportRequestFromMetrics(md).Metrics().ResourceMetrics().At(0).ScopeMetrics()
 	for i := 0; i < scopes.Len(); i++ {
 		scope := scopes.At(i)
-		policyName := e.extractScopeAttribute(scope, "policy")
+		policyName := scope.Scope().Name()
 		agentData, err := e.config.OrbAgentService.RetrieveAgentInfoByPolicyName(policyName)
 		if err != nil {
 			e.logger.Warn("Policy is not managed by orb", zap.String("policyName", policyName))
