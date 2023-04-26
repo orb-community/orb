@@ -147,7 +147,7 @@ func mergeOrError(path string) {
 	v.SetDefault("orb.db.file", "./orb-agent.db")
 	v.SetDefault("orb.tls.verify", true)
 	v.SetDefault("orb.otel.enable", true)
-	v.SetDefault("orb.otel.receiver_type", "prometheus")
+	v.SetDefault("orb.otel.receiver_type", "otlp")
 	v.SetDefault("orb.otel.host", "localhost")
 	v.SetDefault("orb.otel.port", 0)
 	v.SetDefault("orb.debug.enable", false)

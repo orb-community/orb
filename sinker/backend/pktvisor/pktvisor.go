@@ -300,6 +300,10 @@ func makePromParticle(ctxt *metricAppendix, label string, k string, v interface{
 		handleParticleError(ctxt, err)
 		return tsList
 	}
+	if err := labelsListFlag.Set("job;" + ctxt.policyID); err != nil {
+		handleParticleError(ctxt, err)
+		return tsList
+	}
 	if err := labelsListFlag.Set("agent_id;" + ctxt.agentID); err != nil {
 		handleParticleError(ctxt, err)
 		return tsList
