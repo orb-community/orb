@@ -102,7 +102,7 @@ func (e *baseExporter) start(_ context.Context, _ component.Host) error {
 }
 
 // inject attribute on all ScopeMetrics metrics
-func (e *baseExporter) injectScopeAttribute(metricsScope pmetric.ScopeMetrics, attribute string, value string) pmetric.ScopeMetrics {
+func (e *baseExporter) injectScopeMetricsAttribute(metricsScope pmetric.ScopeMetrics, attribute string, value string) pmetric.ScopeMetrics {
 	metrics := metricsScope.Metrics()
 	for i := 0; i < metrics.Len(); i++ {
 		metricItem := metrics.At(i)
@@ -164,7 +164,7 @@ func (e *baseExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) erro
 
 		// Insert pivoted agentTags
 		for key, value := range agentData.AgentTags {
-			scope = e.injectScopeAttribute(scope, key, value)
+			scope = e.injectScopeMetricsAttribute(scope, key, value)
 		}
 		// injecting policyID and datasetIDs attributes
 		scope.Scope().Attributes().PutStr("policy_id", agentData.PolicyID)
@@ -188,13 +188,23 @@ func (e *baseExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) erro
 	return err
 }
 
+// inject attribute on all ScopeMetrics metrics
+func (e *baseExporter) injectScopeLogsAttribute(logsScope plog.ScopeLogs, attribute string, value string) plog.ScopeLogs {
+	logs := logsScope.LogRecords()
+	for i := 0; i < logs.Len(); i++ {
+		logItem := logs.At(i)
+		logItem.Attributes().PutStr(attribute, value)
+	}
+	return logsScope
+}
+
 func (e *baseExporter) pushLogs(ctx context.Context, ld plog.Logs) error {
 	tr := plogotlp.NewExportRequest()
 	ref := tr.Logs().ResourceLogs().AppendEmpty()
 	scopes := plogotlp.NewExportRequestFromLogs(ld).Logs().ResourceLogs().At(0).ScopeLogs()
 	for i := 0; i < scopes.Len(); i++ {
 		scope := scopes.At(i)
-		policyName := e.extractScopeAttribute(scope, "policy")
+		policyName := scope.Scope().Name()
 		agentData, err := e.config.OrbAgentService.RetrieveAgentInfoByPolicyName(policyName)
 		if err != nil {
 			e.logger.Warn("Policy is not managed by orb", zap.String("policyName", policyName))
@@ -206,15 +216,15 @@ func (e *baseExporter) pushLogs(ctx context.Context, ld plog.Logs) error {
 		sort.Strings(datasetIDs)
 		datasets := strings.Join(datasetIDs, ",")
 
-		// injecting policy ID attribute on metrics
-		scope = e.injectScopeAttribute(scope, "policy_id", agentData.PolicyID)
-		scope = e.injectScopeAttribute(scope, "dataset_ids", datasets)
 		// Insert pivoted agentTags
 		for key, value := range agentData.AgentTags {
-			scope = e.injectScopeAttribute(scope, key, value)
+			scope = e.injectScopeLogsAttribute(scope, key, value)
 		}
-		e.logger.Info("Scrapping policy via OTLP", zap.String("policyName", policyName))
-		scope.CopyTo(ref.ScopeMetrics().AppendEmpty())
+		// injecting policyID and datasetIDs attributes
+		scope.Scope().Attributes().PutStr("policy_id", agentData.PolicyID)
+		scope.Scope().Attributes().PutStr("dataset_ids", datasets)
+		scope.CopyTo(ref.ScopeLogs().AppendEmpty())
+		e.logger.Info("scraped metrics for policy", zap.String("policy", policyName), zap.String("policy_id", agentData.PolicyID))
 	}
 
 	request, err := tr.MarshalProto()

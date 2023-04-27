@@ -5,7 +5,6 @@
 package diode
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -24,7 +23,6 @@ import (
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/receiver"
 	"go.uber.org/zap"
-	"gopkg.in/yaml.v3"
 )
 
 var _ backend.Backend = (*diodeBackend)(nil)
@@ -68,7 +66,6 @@ type diodeBackend struct {
 	agentTags map[string]string
 
 	// OpenTelemetry management
-	otelReceiverType string
 	otelReceiverHost string
 	otelReceiverPort int
 	receiver         receiver.Logs
@@ -181,6 +178,10 @@ func (d *diodeBackend) Start(ctx context.Context, cancelFunc context.CancelFunc)
 	}
 
 	d.otelReceiverPort, err = d.getFreePort()
+	if err != nil {
+		d.logger.Error("diode-agent otlp startup error", zap.Error(err))
+		return err
+	}
 
 	d.logger.Info("diode-agent startup", zap.Strings("arguments", pvOptions))
 
@@ -257,6 +258,9 @@ func (d *diodeBackend) Start(ctx context.Context, cancelFunc context.CancelFunc)
 		}
 		return readinessError
 	}
+
+	d.receiveOtlp()
+
 	return nil
 }
 
@@ -284,49 +288,6 @@ func (d *diodeBackend) FullReset(ctx context.Context) error {
 	// start it
 	if err := d.Start(backendCtx, cancelFunc); err != nil {
 		d.logger.Error("failed to start backend on restart procedure", zap.Error(err))
-		return err
-	}
-	return nil
-}
-
-func (d *diodeBackend) ApplyPolicy(data policies.PolicyData, updatePolicy bool) error {
-	if updatePolicy {
-		// To update a policy it's necessary first remove it and then apply a new version
-		err := d.RemovePolicy(data)
-		if err != nil {
-			d.logger.Warn("policy failed to remove", zap.String("policy_id", data.ID), zap.String("policy_name", data.Name), zap.Error(err))
-		}
-	}
-	d.logger.Debug("diode-agent policy apply", zap.String("policy_id", data.ID), zap.Any("data", data.Data))
-	pol := map[string]interface{}{
-		data.Name: data.Data,
-	}
-	policyYaml, err := yaml.Marshal(pol)
-	if err != nil {
-		d.logger.Warn("yaml policy marshal failure", zap.String("policy_id", data.ID), zap.Any("policy", pol))
-		return err
-	}
-	var resp map[string]interface{}
-	err = d.request("policies", &resp, http.MethodPost, bytes.NewBuffer(policyYaml), "application/x-yaml", ApplyPolicyTimeout)
-	if err != nil {
-		d.logger.Warn("yaml policy application failure", zap.String("policy_id", data.ID), zap.ByteString("policy", policyYaml))
-		return err
-	}
-	return nil
-}
-
-func (d *diodeBackend) RemovePolicy(data policies.PolicyData) error {
-	d.logger.Debug("diode-agent policy remove", zap.String("policy_id", data.ID))
-	var resp interface{}
-	var name string
-	// Since we use Name for removing policies not IDs, if there is a change, we need to remove the previous name of the policy
-	if data.PreviousPolicyData != nil && data.PreviousPolicyData.Name != data.Name {
-		name = data.PreviousPolicyData.Name
-	} else {
-		name = data.Name
-	}
-	err := d.request(fmt.Sprintf("policies/%s", name), &resp, http.MethodDelete, http.NoBody, "application/json", RemovePolicyTimeout)
-	if err != nil {
 		return err
 	}
 	return nil

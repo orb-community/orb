@@ -11,10 +11,13 @@ import (
 
 	"github.com/orb-community/orb/agent/otel"
 	"github.com/orb-community/orb/agent/otel/otlpmqttexporter"
-	"github.com/orb-community/orb/agent/otel/pktvisorreceiver"
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/confighttp"
 	"go.opentelemetry.io/collector/exporter"
+	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
+	"go.opentelemetry.io/otel/metric/global"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
@@ -45,12 +48,7 @@ func (d *diodeBackend) createOtlpMqttExporter(ctx context.Context, cancelFunc co
 }
 
 func (d *diodeBackend) receiveOtlp() {
-	policyID := "__all"
-	policyName := "__all"
 	exeCtx, execCancelF := context.WithCancel(d.ctx)
-	exeCtx = context.WithValue(exeCtx, "policy_name", policyName)
-	exeCtx = context.WithValue(exeCtx, "policy_id", policyID)
-	exeCtx = context.WithValue(exeCtx, "all", true)
 	go func() {
 		defer execCancelF()
 		var err error
@@ -69,7 +67,14 @@ func (d *diodeBackend) receiveOtlp() {
 						Endpoint: d.otelReceiverHost + ":" + strconv.Itoa(d.otelReceiverPort),
 					},
 				}
-				set := pktvisorreceiver.CreateDefaultSettings(d.logger)
+				set := receiver.CreateSettings{
+					TelemetrySettings: component.TelemetrySettings{
+						Logger:         d.logger,
+						TracerProvider: trace.NewNoopTracerProvider(),
+						MeterProvider:  global.MeterProvider(),
+					},
+					BuildInfo: component.NewDefaultBuildInfo(),
+				}
 				d.receiver, err = pFactory.CreateLogsReceiver(exeCtx, set, cfg, d.exporter)
 				if err != nil {
 					d.logger.Error("failed to create a receiver", zap.Error(err))
