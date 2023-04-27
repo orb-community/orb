@@ -27,7 +27,7 @@ func (d *diodeBackend) createOtlpMqttExporter(ctx context.Context, cancelFunc co
 	if d.mqttClient != nil {
 		cfg := otlpmqttexporter.CreateConfigClient(d.mqttClient, d.logTopic, d.version, bridgeService)
 		set := otlpmqttexporter.CreateDefaultSettings(d.logger)
-		// Create the OTLP metrics exporter that'll receive and verify the metrics produced.
+		// Create the OTLP logs exporter that'll receive and verify the logs produced.
 		exporter, err := otlpmqttexporter.CreateLogsExporter(ctx, set, cfg)
 		if err != nil {
 			return nil, err
@@ -37,7 +37,7 @@ func (d *diodeBackend) createOtlpMqttExporter(ctx context.Context, cancelFunc co
 		cfg := otlpmqttexporter.CreateConfig(d.mqttConfig.Address, d.mqttConfig.Id, d.mqttConfig.Key,
 			d.mqttConfig.ChannelID, d.version, d.logTopic, bridgeService)
 		set := otlpmqttexporter.CreateDefaultSettings(d.logger)
-		// Create the OTLP metrics exporter that'll receive and verify the metrics produced.
+		// Create the OTLP logs exporter that'll receive and verify the logs produced.
 		exporter, err := otlpmqttexporter.CreateLogsExporter(ctx, set, cfg)
 		if err != nil {
 			return nil, err
