@@ -36,12 +36,12 @@ func NewFactory() exporter.Factory {
 		exporter.WithMetrics(CreateMetricsExporter, component.StabilityLevelStable))
 }
 
-func CreateConfig(addr, id, key, channel, pktvisor, metricsTopic string, bridgeService otel.AgentBridgeService) component.Config {
+func CreateConfig(addr, id, key, channel, pktvisor, topic string, bridgeService otel.AgentBridgeService) component.Config {
 	return &Config{
 		TimeoutSettings: exporterhelper.NewDefaultTimeoutSettings(),
 		QueueSettings:   exporterhelper.NewDefaultQueueSettings(),
 		RetrySettings:   exporterhelper.NewDefaultRetrySettings(),
-		MetricsTopic:    metricsTopic,
+		Topic:           topic,
 		Address:         addr,
 		Id:              id,
 		Key:             key,
@@ -64,7 +64,7 @@ func CreateDefaultSettings(logger *zap.Logger) exporter.CreateSettings {
 
 func CreateDefaultConfig() component.Config {
 	base := fmt.Sprintf("channels/%s/messages", defaultMQTTId)
-	metricsTopic := fmt.Sprintf("%s/otlp/%s", base, defaultName)
+	topic := fmt.Sprintf("%s/otlp/%s", base, defaultName)
 	return &Config{
 		TimeoutSettings: exporterhelper.NewDefaultTimeoutSettings(),
 		QueueSettings:   exporterhelper.NewDefaultQueueSettings(),
@@ -74,17 +74,17 @@ func CreateDefaultConfig() component.Config {
 		Key:             defaultMQTTKey,
 		ChannelID:       base,
 		TLS:             defaultTLS,
-		MetricsTopic:    metricsTopic,
+		Topic:           topic,
 	}
 }
 
-func CreateConfigClient(client *mqtt.Client, metricsTopic, pktvisor string, bridgeService otel.AgentBridgeService) component.Config {
+func CreateConfigClient(client *mqtt.Client, topic, pktvisor string, bridgeService otel.AgentBridgeService) component.Config {
 	return &Config{
 		TimeoutSettings: exporterhelper.NewDefaultTimeoutSettings(),
 		QueueSettings:   exporterhelper.NewDefaultQueueSettings(),
 		RetrySettings:   exporterhelper.NewDefaultRetrySettings(),
 		Client:          client,
-		MetricsTopic:    metricsTopic,
+		Topic:           topic,
 		PktVisorVersion: pktvisor,
 		OrbAgentService: bridgeService,
 	}
