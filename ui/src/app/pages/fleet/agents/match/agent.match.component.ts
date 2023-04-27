@@ -39,6 +39,8 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
 
   @ViewChild('agentStateTemplateCell') agentStateTemplateRef: TemplateRef<any>;
 
+  @ViewChild('agentEspecificPolicyStateTemplateCell') agentEspecificPolicyStateTemplateRef: TemplateRef<any>;
+
   tableFilters: DropdownFilterItem[] = [
     {
       id: '0',
@@ -98,14 +100,23 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
       },
       {
         prop: 'state',
-        name: 'Status',
+        name: 'Agent Status',
         resizeable: false,
         canAutoResize: true,
-        flexGrow: 2,
+        flexGrow: 3,
         minWidth: 90,
-        width: 90,
-        maxWidth: 90,
+        width: 344,
+        maxWidth: 344,
         cellTemplate: this.agentStateTemplateRef,
+      },
+      {
+        prop: 'policy_agg_info',
+        name: 'Policy Status',
+        resizeable: false,
+        flexGrow: 3,
+        canAutoResize: true,
+        minWidth: 150,
+        cellTemplate: this.agentEspecificPolicyStateTemplateRef,
       },
     ];
   }
@@ -122,10 +133,10 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
       resp => {
         if(!!this.policy){
           this.agents = resp.map((agent)=>{
-            const {last_hb_data} = agent;
-            const policy = last_hb_data[this.policy.id];
+            const {policy_state} = agent;
+            const policy_agg_info = !!policy_state && policy_state[this.policy.id].state || "Not Applied";
             
-            return {...agent, state: policy.state };
+            return {...agent, policy_agg_info };
           })
         } else {
           this.agents = resp;
