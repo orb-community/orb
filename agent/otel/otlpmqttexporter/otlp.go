@@ -20,9 +20,11 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/pdata/plog"
+	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
 	"go.opentelemetry.io/collector/pdata/ptrace"
+	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
 	"go.uber.org/zap"
 )
 
@@ -101,7 +103,7 @@ func (e *baseExporter) start(_ context.Context, _ component.Host) error {
 }
 
 // inject attribute on all ScopeMetrics metrics
-func (e *baseExporter) injectScopeAttribute(metricsScope pmetric.ScopeMetrics, attribute string, value string) pmetric.ScopeMetrics {
+func (e *baseExporter) injectScopeMetricsAttribute(metricsScope pmetric.ScopeMetrics, attribute string, value string) pmetric.ScopeMetrics {
 	metrics := metricsScope.Metrics()
 	for i := 0; i < metrics.Len(); i++ {
 		metricItem := metrics.At(i)
@@ -138,10 +140,6 @@ func (e *baseExporter) injectScopeAttribute(metricsScope pmetric.ScopeMetrics, a
 	return metricsScope
 }
 
-func (e *baseExporter) pushTraces(_ context.Context, _ ptrace.Traces) error {
-	return fmt.Errorf("not implemented")
-}
-
 // pushMetrics Exports metrics
 func (e *baseExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) error {
 	tr := pmetricotlp.NewExportRequest()
@@ -163,7 +161,7 @@ func (e *baseExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) erro
 
 		// Insert pivoted agentTags
 		for key, value := range agentData.AgentTags {
-			scope = e.injectScopeAttribute(scope, key, value)
+			scope = e.injectScopeMetricsAttribute(scope, key, value)
 		}
 		// injecting policyID and datasetIDs attributes
 		scope.Scope().Attributes().PutStr("policy_id", agentData.PolicyID)
@@ -178,7 +176,7 @@ func (e *baseExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) erro
 		return consumererror.NewPermanent(err)
 	}
 
-	err = e.export(ctx, e.config.MetricsTopic, request)
+	err = e.export(ctx, e.config.Topic, request)
 	if err != nil {
 		ctx.Done()
 		return err
@@ -187,19 +185,123 @@ func (e *baseExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) erro
 	return err
 }
 
-func (e *baseExporter) pushLogs(_ context.Context, _ plog.Logs) error {
-	return fmt.Errorf("not implemented")
+// inject attribute on all ScopeLogs records
+func (e *baseExporter) injectScopeLogsAttribute(logsScope plog.ScopeLogs, attribute string, value string) plog.ScopeLogs {
+	logs := logsScope.LogRecords()
+	for i := 0; i < logs.Len(); i++ {
+		logItem := logs.At(i)
+		logItem.Attributes().PutStr(attribute, value)
+	}
+	return logsScope
 }
 
-func (e *baseExporter) export(ctx context.Context, metricsTopic string, request []byte) error {
+func (e *baseExporter) pushLogs(ctx context.Context, ld plog.Logs) error {
+	tr := plogotlp.NewExportRequest()
+	ref := tr.Logs().ResourceLogs().AppendEmpty()
+	scopes := plogotlp.NewExportRequestFromLogs(ld).Logs().ResourceLogs().At(0).ScopeLogs()
+	for i := 0; i < scopes.Len(); i++ {
+		scope := scopes.At(i)
+		policyName := scope.Scope().Name()
+		agentData, err := e.config.OrbAgentService.RetrieveAgentInfoByPolicyName(policyName)
+		if err != nil {
+			e.logger.Warn("Policy is not managed by orb", zap.String("policyName", policyName))
+			continue
+		}
+
+		// sort datasetIDs to send always on same order
+		datasetIDs := strings.Split(agentData.Datasets, ",")
+		sort.Strings(datasetIDs)
+		datasets := strings.Join(datasetIDs, ",")
+
+		// Insert pivoted agentTags
+		for key, value := range agentData.AgentTags {
+			scope = e.injectScopeLogsAttribute(scope, key, value)
+		}
+		// injecting policyID and datasetIDs attributes
+		scope.Scope().Attributes().PutStr("policy_id", agentData.PolicyID)
+		scope.Scope().Attributes().PutStr("dataset_ids", datasets)
+		scope.CopyTo(ref.ScopeLogs().AppendEmpty())
+		e.logger.Info("scraped metrics for policy", zap.String("policy", policyName), zap.String("policy_id", agentData.PolicyID))
+	}
+
+	request, err := tr.MarshalProto()
+	if err != nil {
+		defer ctx.Done()
+		return consumererror.NewPermanent(err)
+	}
+
+	err = e.export(ctx, e.config.Topic, request)
+	if err != nil {
+		ctx.Done()
+		return err
+	}
+
+	return err
+}
+
+// inject attribute on all ScopeSpans spans
+func (e *baseExporter) injectScopeSpansAttribute(spanScope ptrace.ScopeSpans, attribute string, value string) ptrace.ScopeSpans {
+	spans := spanScope.Spans()
+	for i := 0; i < spans.Len(); i++ {
+		spanItem := spans.At(i)
+		spanItem.Attributes().PutStr(attribute, value)
+	}
+	return spanScope
+}
+
+func (e *baseExporter) pushTraces(ctx context.Context, td ptrace.Traces) error {
+	tr := ptraceotlp.NewExportRequest()
+	ref := tr.Traces().ResourceSpans().AppendEmpty()
+	scopes := ptraceotlp.NewExportRequestFromTraces(td).Traces().ResourceSpans().At(0).ScopeSpans()
+	for i := 0; i < scopes.Len(); i++ {
+		scope := scopes.At(i)
+		policyName := scope.Scope().Name()
+		agentData, err := e.config.OrbAgentService.RetrieveAgentInfoByPolicyName(policyName)
+		if err != nil {
+			e.logger.Warn("Policy is not managed by orb", zap.String("policyName", policyName))
+			continue
+		}
+
+		// sort datasetIDs to send always on same order
+		datasetIDs := strings.Split(agentData.Datasets, ",")
+		sort.Strings(datasetIDs)
+		datasets := strings.Join(datasetIDs, ",")
+
+		// Insert pivoted agentTags
+		for key, value := range agentData.AgentTags {
+			scope = e.injectScopeSpansAttribute(scope, key, value)
+		}
+		// injecting policyID and datasetIDs attributes
+		scope.Scope().Attributes().PutStr("policy_id", agentData.PolicyID)
+		scope.Scope().Attributes().PutStr("dataset_ids", datasets)
+		scope.CopyTo(ref.ScopeSpans().AppendEmpty())
+		e.logger.Info("scraped metrics for policy", zap.String("policy", policyName), zap.String("policy_id", agentData.PolicyID))
+	}
+
+	request, err := tr.MarshalProto()
+	if err != nil {
+		defer ctx.Done()
+		return consumererror.NewPermanent(err)
+	}
+
+	err = e.export(ctx, e.config.Topic, request)
+	if err != nil {
+		ctx.Done()
+		return err
+	}
+
+	return err
+}
+
+func (e *baseExporter) export(ctx context.Context, topic string, request []byte) error {
 	compressedPayload := e.compressBrotli(request)
 	c := *e.config.Client
-	if token := c.Publish(metricsTopic, 1, false, compressedPayload); token.Wait() && token.Error() != nil {
-		e.logger.Error("error sending metrics RPC", zap.String("topic", metricsTopic), zap.Error(token.Error()))
+	if token := c.Publish(topic, 1, false, compressedPayload); token.Wait() && token.Error() != nil {
+		e.logger.Error("error sending metrics RPC", zap.String("topic", topic), zap.Error(token.Error()))
 		e.config.OrbAgentService.NotifyAgentDisconnection(ctx, token.Error())
 		return token.Error()
 	}
-	e.logger.Info("scraped and published metrics", zap.String("topic", metricsTopic), zap.Int("payload_size_b", len(request)), zap.Int("compressed_payload_size_b", len(compressedPayload)))
+	e.logger.Info("scraped and published metrics", zap.String("topic", topic), zap.Int("payload_size_b", len(request)), zap.Int("compressed_payload_size_b", len(compressedPayload)))
 
 	return nil
 }
