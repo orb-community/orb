@@ -7,6 +7,7 @@ import { Agent } from 'app/common/interfaces/orb/agent.interface';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { AgentsService } from 'app/common/services/agents/agents.service';
 import { Router } from '@angular/router';
+import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 
 @Component({
   selector: 'ngx-agent-match-component',
@@ -19,6 +20,9 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
 
   @Input()
   agentGroup: AgentGroup;
+
+  @Input()
+  policy!: AgentPolicy;
 
   agents: Agent[];
 
@@ -116,7 +120,16 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
     const tagsList = Object.keys(tags).map(key => ({ [key]: tags[key] }));
     this.agentsService.getAllAgents(tagsList).subscribe(
       resp => {
-        this.agents = resp;
+        if(!!this.policy){
+          this.agents = resp.map((agent)=>{
+            const {last_hb_data} = agent;
+            const policy = last_hb_data[this.policy.id];
+            
+            return {...agent, state: policy.state };
+          })
+        } else {
+          this.agents = resp;
+        }
       },
     );
   }
