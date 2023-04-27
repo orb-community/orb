@@ -17,9 +17,10 @@ package orbreceiver // import "go.opentelemetry.io/collector/receiver/otlpreceiv
 import (
 	"context"
 
+	"github.com/orb-community/orb/sinker/otel/orbreceiver/internal/sharedcomponent"
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/receiver"
 )
 
 const (
@@ -27,31 +28,43 @@ const (
 )
 
 // NewFactory creates a new OTLP receiver factory.
-func NewFactory() receiver.Factory {
-	return receiver.NewFactory(
+func NewFactory() component.ReceiverFactory {
+	return component.NewReceiverFactory(
 		typeStr,
-		CreateDefaultConfig,
-		receiver.WithMetrics(createMetricsReceiver, component.StabilityLevelAlpha))
+		createDefaultConfig,
+		component.WithMetricsReceiver(createMetricsReceiver, component.StabilityLevelAlpha))
 }
 
 // createDefaultConfig creates the default configuration for receiver.
-func CreateDefaultConfig() component.Config {
-	return &Config{}
+func createDefaultConfig() config.Receiver {
+	return &Config{
+		ReceiverSettings: config.NewReceiverSettings(config.NewComponentID(typeStr)),
+	}
 }
 
 // createMetricsReceiver creates a metrics receiver based on provided config.
 func createMetricsReceiver(
 	ctx context.Context,
-	set receiver.CreateSettings,
-	cfg component.Config,
+	set component.ReceiverCreateSettings,
+	cfg config.Receiver,
 	consumer consumer.Metrics,
-) (receiver.Metrics, error) {
+) (component.MetricsReceiver, error) {
 	receiverCfg := cfg.(*Config)
-	r := NewOrbReceiver(ctx, cfg.(*Config), set)
-	err := r.registerMetricsConsumer(consumer)
+	r := receivers.GetOrAdd(cfg, func() component.Component {
+		return NewOrbReceiver(ctx, cfg.(*Config), set)
+	})
+	err := r.Unwrap().(*OrbReceiver).registerMetricsConsumer(consumer)
 	if err != nil {
 		receiverCfg.Logger.Info("error on register metrics consumer")
 		return nil, err
 	}
 	return r, nil
 }
+
+// This is the map of already created OTLP receivers for particular configurations.
+// We maintain this map because the Factory is asked trace and metric receivers separately
+// when it gets CreateTracesReceiver() and CreateMetricsReceiver() but they must not
+// create separate objects, they must use one OrbReceiver object per configuration.
+// When the receiver is shutdown it should be removed from this map so the same configuration
+// can be recreated successfully.
+var receivers = sharedcomponent.NewSharedComponents()

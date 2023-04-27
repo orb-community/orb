@@ -36,9 +36,10 @@ type Cloud struct {
 }
 
 type Opentelemetry struct {
-	Enable bool   `mapstructure:"enable"`
-	Host   string `mapstructure:"host"`
-	Port   int    `mapstructure:"port"`
+	Enable       bool   `mapstructure:"enable"`
+	ReceiverType string `mapstructure:"receiver_type"`
+	Host         string `mapstructure:"host"`
+	Port         int    `mapstructure:"port"`
 }
 
 type Debug struct {

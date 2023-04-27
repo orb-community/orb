@@ -10,9 +10,10 @@ import (
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/exporter/exportertest"
+	"go.opentelemetry.io/collector/config"
 	"go.uber.org/zap"
+
+	"go.opentelemetry.io/collector/component/componenttest"
 )
 
 func TestCreateDefaultConfig(t *testing.T) {
@@ -33,7 +34,7 @@ func TestCreateMetricsExporter(t *testing.T) {
 	factory := NewFactory()
 	cfg := factory.CreateDefaultConfig().(*Config)
 
-	set := exportertest.NewNopCreateSettings()
+	set := componenttest.NewNopExporterCreateSettings()
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, "policy_name", "test")
 	ctx = context.WithValue(ctx, "policy_id", "test")
@@ -100,7 +101,31 @@ func TestCreateConfigClient(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			c := &tt.args.client
 			got := CreateConfigClient(c, tt.args.metricsTopic, " 1.0", nil)
-			assert.Equal(t, tt.want, component.ValidateConfig(got), "expected %s but got %s", tt.want, component.ValidateConfig(got))
+			assert.Equal(t, tt.want, got.Validate(), "expected %s but got %s", tt.want, got.Validate())
+		})
+	}
+}
+
+func TestCreateDefaultSettings(t *testing.T) {
+	logger, _ := zap.NewDevelopment()
+	type args struct {
+		logger *zap.Logger
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "ok default",
+			args: args{
+				logger: logger,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := CreateDefaultSettings(tt.args.logger)
+			assert.NotNil(t, got.TelemetrySettings.Logger, "expected to not be nil")
 		})
 	}
 }
@@ -116,7 +141,7 @@ func TestCreateConfig(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want component.Config
+		want config.Exporter
 	}{
 		{
 			name: "local mqtt",

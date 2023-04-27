@@ -6,6 +6,7 @@ package pktvisor
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"net/http"
 
@@ -48,7 +49,13 @@ func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData, updatePolicy boo
 		return err
 	}
 
+	if p.scrapeOtel && p.otelReceiverType == Prometheus {
+		exeCtx, execCancelF := context.WithCancel(p.ctx)
+		p.addScraperProcess(exeCtx, execCancelF, data.ID, data.Name)
+	}
+
 	return nil
+
 }
 
 func (p *pktvisorBackend) RemovePolicy(data policies.PolicyData) error {
@@ -64,6 +71,9 @@ func (p *pktvisorBackend) RemovePolicy(data policies.PolicyData) error {
 	err := p.request(fmt.Sprintf("policies/%s", name), &resp, http.MethodDelete, http.NoBody, "application/json", RemovePolicyTimeout)
 	if err != nil {
 		return err
+	}
+	if p.scrapeOtel && p.otelReceiverType == Prometheus {
+		p.killScraperProcess(data.ID)
 	}
 	return nil
 }

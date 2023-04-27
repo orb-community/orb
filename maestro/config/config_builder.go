@@ -3,10 +3,9 @@ package config
 import (
 	"context"
 	"fmt"
-	"strings"
-
 	"github.com/orb-community/orb/pkg/errors"
 	"gopkg.in/yaml.v2"
+	"strings"
 )
 
 var k8sOtelCollector = `
@@ -48,11 +47,6 @@ var k8sOtelCollector = `
         },
         "template": {
           "metadata": {
-            "annotations": {
-              "prometheus.io/path": "/metrics",
-              "prometheus.io/port": "8888",
-              "prometheus.io/scrape": "true"
-            },
             "creationTimestamp": null,
             "labels": {
               "app": "opentelemetry",
@@ -86,7 +80,7 @@ var k8sOtelCollector = `
             "containers": [
               {
                 "name": "otel-collector",
-                "image": "otel/opentelemetry-collector-contrib:0.75.0",
+                "image": "otel/opentelemetry-collector-contrib:0.68.0",
                 "ports": [
                   {
                     "containerPort": 13133,
@@ -268,11 +262,6 @@ var JsonDeployment = `
         },
         "template": {
           "metadata": {
-            "annotations": {
-              "prometheus.io/path": "/metrics",
-              "prometheus.io/port": "8888",
-              "prometheus.io/scrape": "true"
-            },
             "creationTimestamp": null,
             "labels": {
               "app": "opentelemetry",
@@ -306,7 +295,7 @@ var JsonDeployment = `
             "containers": [
               {
                 "name": "otel-collector",
-                "image": "otel/opentelemetry-collector-contrib:0.75.0",
+                "image": "otel/opentelemetry-collector-contrib:0.68.0",
                 "ports": [
                   {
                     "containerPort": 13133,

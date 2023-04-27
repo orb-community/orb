@@ -53,7 +53,7 @@ package kubecontrol
 //	podSpec.WithVolumes(logVolume, containersVolume, configVolume)
 //	templateSpec.WithSpec(podSpec)
 //	containerPodSpec := k8sacv1core.Container()
-//	containerPodSpec.WithName("otel-collector").WithImage("otel/opentelemetry-collector-contrib:0.75.0")
+//	containerPodSpec.WithName("otel-collector").WithImage("otel/opentelemetry-collector-contrib:0.68.0")
 //	heathCheckPort := k8sacv1core.ContainerPort().WithContainerPort(13133).WithProtocol(k8scorev1.ProtocolTCP)
 //	pprofPort := k8sacv1core.ContainerPort().WithContainerPort(8888).WithProtocol(k8scorev1.ProtocolTCP)
 //	containerPodSpec.WithPorts(heathCheckPort, pprofPort)
