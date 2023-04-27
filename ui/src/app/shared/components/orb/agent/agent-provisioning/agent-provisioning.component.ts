@@ -1,11 +1,11 @@
-import { Component, Input, OnInit } from "@angular/core";
-import { AvailableOS } from "app/common/services/agents/agents.service";
-import { Agent, AgentStates } from "app/common/interfaces/orb/agent.interface";
+import { Component, Input, OnInit } from '@angular/core';
+import { AvailableOS } from 'app/common/services/agents/agents.service';
+import { Agent, AgentStates } from 'app/common/interfaces/orb/agent.interface';
 
 @Component({
-  selector: "ngx-agent-provisioning",
-  templateUrl: "./agent-provisioning.component.html",
-  styleUrls: ["./agent-provisioning.component.scss"],
+  selector: 'ngx-agent-provisioning',
+  templateUrl: './agent-provisioning.component.html',
+  styleUrls: ['./agent-provisioning.component.scss'],
 })
 export class AgentProvisioningComponent implements OnInit {
   @Input() agent: Agent;
@@ -25,9 +25,9 @@ export class AgentProvisioningComponent implements OnInit {
   hideCommand: boolean;
 
   constructor() {
-    this.command2copy = "";
-    this.command2show = "";
-    this.copyCommandIcon = "copy-outline";
+    this.command2copy = '';
+    this.command2show = '';
+    this.copyCommandIcon = 'copy-outline';
   }
 
   ngOnInit(): void {
@@ -36,8 +36,8 @@ export class AgentProvisioningComponent implements OnInit {
   }
 
   toggleIcon(target) {
-    if (target === "command") {
-      this.copyCommandIcon = "checkmark-outline";
+    if (target === 'command') {
+      this.copyCommandIcon = 'checkmark-outline';
     }
   }
 
@@ -45,19 +45,21 @@ export class AgentProvisioningComponent implements OnInit {
     // TODO: future - store this elsewhere
     if (this.selectedOS === AvailableOS.DOCKER) {
       this.command2copy = `docker run -d --restart=always --net=host \\
--e ORB_CLOUD_ADDRESS=${document.location.hostname} \\
--e ORB_CLOUD_MQTT_ID=${this.agent?.id} \\
--e ORB_CLOUD_MQTT_CHANNEL_ID=${this.agent?.channel_id} \\
+-e ORB_CLOUD_ADDRESS=${ document.location.hostname } \\
+-e ORB_CLOUD_MQTT_ID=${ this.agent?.id } \\
+-e ORB_CLOUD_MQTT_CHANNEL_ID=${ this.agent?.channel_id } \\
 -e ORB_CLOUD_MQTT_KEY="AGENT_KEY" \\
 -e PKTVISOR_PCAP_IFACE_DEFAULT=auto \\
+-e ORB_OTEL_ENABLE=true \\
 orbcommunity/orb-agent`;
 
       this.command2show = `docker run -d --restart=always --net=host \\
--e ORB_CLOUD_ADDRESS=${document.location.hostname} \\
--e ORB_CLOUD_MQTT_ID=${this.agent?.id} \\
--e ORB_CLOUD_MQTT_CHANNEL_ID=${this.agent?.channel_id} \\
+-e ORB_CLOUD_ADDRESS=${ document.location.hostname } \\
+-e ORB_CLOUD_MQTT_ID=${ this.agent?.id } \\
+-e ORB_CLOUD_MQTT_CHANNEL_ID=${ this.agent?.channel_id } \\
 -e ORB_CLOUD_MQTT_KEY=<mark>AGENT_KEY</mark> \\
 -e PKTVISOR_PCAP_IFACE_DEFAULT=<mark>auto</mark> \\
+-e ORB_OTEL_ENABLE=true \\
 orbcommunity/orb-agent`;
     }
   }

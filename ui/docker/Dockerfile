@@ -6,11 +6,10 @@ FROM orbcommunity/orb-ui-modules as built-module
 ARG ENV_PS_SID=""
 ARG ENV_PS_GROUP_KEY=""
 ARG ENV=""
-ARG ENV_GTAGID=""
 
 COPY ./ /app/
 
-RUN PS_SID=$ENV_PS_SID PS_GROUP_KEY=$ENV_PS_GROUP_KEY GTAGID=$ENV_GTAGID yarn build:prod
+RUN PS_SID=$ENV_PS_SID PS_GROUP_KEY=$ENV_PS_GROUP_KEY yarn build:prod
 
 # Stage 1, based on Nginx, to have only the compiled app, ready for production with Nginx
 FROM nginx:1.13-alpine

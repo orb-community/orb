@@ -1,0 +1,34 @@
+receivers:
+  pktvisor_prometheus:
+  pktvisor_prometheus/all_settings:
+    endpoint: "localhost:1234"
+    collection_interval: 30s
+    metrics_path: /v2/metrics
+    params:
+      columns: "name,messages"
+      key: [ "foo","bar" ]
+    use_service_account: true
+
+processors:
+  nop:
+
+exporters:
+  otlpmqtt:
+    address: "localhost:1889"
+    id: "f420a133-7651-412d-852a-6141fafeaea5"
+    key: "14ae65ae-092f-4fdc-be6a-0cfb378119dc"
+    channel_id: "9610b0a4-b05f-46e5-a32d-000d8a2ec1fd"
+    metrics_topic: "channels/9610b0a4-b05f-46e5-a32d-000d8a2ec1fd/messages/be/pktvisor"
+  nop:
+
+
+service:
+  pipelines:
+    metrics:
+      receivers:
+        - pktvisor_prometheus
+        - pktvisor_prometheus/all_settings
+      processors: [ nop ]
+      exporters:
+        - nop
+        - otlpmqtt

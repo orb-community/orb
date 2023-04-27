@@ -15,7 +15,7 @@ def set_mock_interface(context, mtu, ip):
     context.mock_iface_name = f"dummyqa{random_string(8)}"
     return_0 = send_terminal_commands(f"ip link add {context.mock_iface_name} type dummy")
     return_1 = send_terminal_commands(f"ip link set {context.mock_iface_name} up")
-    return_2 = send_terminal_commands(f"ip link set dev {context.mock_iface_name} mtu {mtu}")
+    return_2 = send_terminal_commands(f"ifconfig {context.mock_iface_name} mtu {mtu}")
     if "Operation not permitted" in return_0[1]:
         context.access_denied = True
         context.scenario.skip('Root privileges are required')
@@ -121,7 +121,7 @@ def remove_all_virtual_switches():
 
 
 def remove_all_dummys():
-    command_1 = "/sbin/ifconfig"
+    command_1 = "ifconfig"
     dummys = send_terminal_commands(command_1)
     dummys = dummys[0].split("\n")
     dummys_test = [item for item in dummys if 'dummy' in item]

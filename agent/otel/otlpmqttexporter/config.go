@@ -5,15 +5,15 @@ import (
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/orb-community/orb/agent/otel"
-	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/exporter/exporterhelper"
 )
 
 // Config defines configuration for OTLP/HTTP exporter.
 type Config struct {
-	exporterhelper.TimeoutSettings `mapstructure:",squash"` // squash ensures fields are correctly decoded in embedded struct.
-	exporterhelper.QueueSettings   `mapstructure:"sending_queue"`
-	exporterhelper.RetrySettings   `mapstructure:"retry_on_failure"`
+	config.ExporterSettings      `mapstructure:",squash"` // squash ensures fields are correctly decoded in embedded struct
+	exporterhelper.QueueSettings `mapstructure:"sending_queue"`
+	exporterhelper.RetrySettings `mapstructure:"retry_on_failure"`
 
 	// Add Client directly to only re-use an existing connection - requires "github.com/eclipse/paho.mqtt.golang"
 	Client *mqtt.Client
@@ -31,7 +31,7 @@ type Config struct {
 	OrbAgentService otel.AgentBridgeService
 }
 
-var _ component.Config = (*Config)(nil)
+var _ config.Exporter = (*Config)(nil)
 
 // Validate checks if the exporter configuration is valid
 func (cfg *Config) Validate() error {
