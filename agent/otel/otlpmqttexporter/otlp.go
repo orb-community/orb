@@ -165,12 +165,11 @@ func (e *baseExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) erro
 		for key, value := range agentData.AgentTags {
 			scope = e.injectScopeAttribute(scope, key, value)
 		}
-		e.logger.Info("scraped metrics for policy", zap.String("policy", policyName), zap.String("policy_id", agentData.PolicyID))
-		newScope := ref.ScopeMetrics().AppendEmpty()
-		scope.CopyTo(newScope)
 		// injecting policyID and datasetIDs attributes
-		newScope.Scope().Attributes().PutStr("policy_id", agentData.PolicyID)
-		newScope.Scope().Attributes().PutStr("dataset_ids", datasets)
+		scope.Scope().Attributes().PutStr("policy_id", agentData.PolicyID)
+		scope.Scope().Attributes().PutStr("dataset_ids", datasets)
+		scope.CopyTo(ref.ScopeMetrics().AppendEmpty())
+		e.logger.Info("scraped metrics for policy", zap.String("policy", policyName), zap.String("policy_id", agentData.PolicyID))
 	}
 
 	request, err := tr.MarshalProto()
