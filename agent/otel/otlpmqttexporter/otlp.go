@@ -188,7 +188,7 @@ func (e *baseExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) erro
 	return err
 }
 
-// inject attribute on all ScopeMetrics metrics
+// inject attribute on all ScopeLogs records
 func (e *baseExporter) injectScopeLogsAttribute(logsScope plog.ScopeLogs, attribute string, value string) plog.ScopeLogs {
 	logs := logsScope.LogRecords()
 	for i := 0; i < logs.Len(); i++ {

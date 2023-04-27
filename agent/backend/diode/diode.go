@@ -126,7 +126,7 @@ func (d *diodeBackend) Version() (string, error) {
 func (d *diodeBackend) SetCommsClient(agentID string, client *mqtt.Client, baseTopic string) {
 	d.mqttClient = client
 	logTopic := strings.Replace(baseTopic, "?", "otlp", 1)
-	d.logTopic = fmt.Sprintf("%s/m/%c", logTopic, agentID[0])
+	d.logTopic = fmt.Sprintf("%s/l/%c", logTopic, agentID[0])
 }
 
 func (d *diodeBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo, config map[string]string, otelConfig map[string]interface{}) error {
