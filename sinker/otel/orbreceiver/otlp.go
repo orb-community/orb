@@ -267,7 +267,7 @@ func (r *OrbReceiver) MessageInbound(msg messaging.Message) error {
 
 func (r *OrbReceiver) ProccessPolicyContext(scope pmetric.ScopeMetrics, channel string) {
 	// Extract Datasets
-	attrDataset, ok := scope.Scope().Attributes().Get("dataset_id")
+	attrDataset, ok := scope.Scope().Attributes().Get("dataset_ids")
 	if !ok {
 		r.cfg.Logger.Info("No datasetIDs information on metrics scope attributes")
 		return
