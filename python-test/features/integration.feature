@@ -291,7 +291,7 @@ Scenario: Sink idle after 5 minutes without metrics flow
     When stop the orb-agent container
     Then referred sink must have idle state on response after 660 seconds
 
-@smoke @sink_status_error
+@sanity @sink_status_error
 Scenario: Sink with invalid endpoint
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -1007,7 +1007,7 @@ Scenario: Edit sink active and use invalid password
         And 10 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
 
-@smoke @sink_status_error
+@sanity @sink_status_error
 Scenario: Edit sink with invalid username and use valid one
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -1029,7 +1029,7 @@ Scenario: Edit sink with invalid username and use valid one
         And 4 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
 
-@smoke @sink_status_error
+@sanity @sink_status_error
 Scenario: Edit sink with password and use valid one
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -1328,7 +1328,7 @@ Scenario: Partial Update: sink status after updating only sink name, description
 
 
 
-@sanity@sink_partial_update
+@sanity @sink_partial_update
 Scenario: Partial Update: sink status after updating only sink name, description and configs
     Given the Orb user has a registered account
         And the Orb user logs in
