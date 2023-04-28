@@ -187,22 +187,6 @@ export class PolicyDatasetsComponent
       });
   }
 
-  onOpenGroupDetails(agentGroup) {
-    this.dialogService
-      .open(AgentGroupDetailsComponent, {
-        autoFocus: true,
-        closeOnEsc: true,
-        context: { agentGroup },
-        hasScroll: false,
-        hasBackdrop: false,
-      })
-      .onClose.subscribe((resp) => {
-        if (resp) {
-          this.onOpenEditAgentGroup(agentGroup);
-        }
-      });
-  }
-
   onOpenEditAgentGroup(agentGroup: any) {
     this.router.navigate([`/pages/fleet/groups/edit/${agentGroup.id}`], {
       state: { agentGroup: agentGroup, edit: true },
