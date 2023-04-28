@@ -188,7 +188,7 @@ func (d *diodeBackend) Start(ctx context.Context, cancelFunc context.CancelFunc)
 		}
 	}
 
-	if len(d.otelReceiverHost) > 0 {
+	if len(d.otelReceiverHost) == 0 {
 		d.otelReceiverHost = DefaultHost
 	}
 
