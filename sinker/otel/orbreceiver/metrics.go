@@ -115,9 +115,9 @@ func (r *OrbReceiver) ProccessMetricsContext(scope pmetric.ScopeMetrics, channel
 		}
 		attributeCtx = context.WithValue(attributeCtx, "sink_id", sinkId)
 		mr := pmetric.NewMetrics()
-		scope.Scope().Attributes().PutStr("service.name", agentPb.AgentName)
-		scope.Scope().Attributes().PutStr("service.instance.id", polID)
 		scope.CopyTo(mr.ResourceMetrics().AppendEmpty().ScopeMetrics().AppendEmpty())
+		mr.ResourceMetrics().At(0).Resource().Attributes().PutStr("service.name", agentPb.AgentName)
+		mr.ResourceMetrics().At(0).Resource().Attributes().PutStr("service.instance.id", polID)
 		request := pmetricotlp.NewExportRequestFromMetrics(mr)
 		_, err = r.exportMetrics(attributeCtx, request)
 		if err != nil {

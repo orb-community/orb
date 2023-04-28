@@ -112,9 +112,9 @@ func (r *OrbReceiver) ProccessLogsContext(scope plog.ScopeLogs, channel string) 
 		}
 		attributeCtx = context.WithValue(attributeCtx, "sink_id", sinkId)
 		lr := plog.NewLogs()
-		scope.Scope().Attributes().PutStr("service.name", agentPb.AgentName)
-		scope.Scope().Attributes().PutStr("service.instance.id", polID)
 		scope.CopyTo(lr.ResourceLogs().AppendEmpty().ScopeLogs().AppendEmpty())
+		lr.ResourceLogs().At(0).Resource().Attributes().PutStr("service.name", agentPb.AgentName)
+		lr.ResourceLogs().At(0).Resource().Attributes().PutStr("service.instance.id", polID)
 		request := plogotlp.NewExportRequestFromLogs(lr)
 		_, err = r.exportLogs(attributeCtx, request)
 		if err != nil {
