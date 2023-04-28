@@ -173,7 +173,7 @@ func (d *diodeBackend) Start(ctx context.Context, cancelFunc context.CancelFunc)
 		d.adminAPIHost,
 		"-p",
 		d.adminAPIPort,
-		"--output_type",
+		"-t",
 		"otlp",
 	}
 	if len(d.configFile) > 0 {
@@ -188,11 +188,11 @@ func (d *diodeBackend) Start(ctx context.Context, cancelFunc context.CancelFunc)
 		}
 	}
 
-	if len(d.otelReceiverHost) > 0 {
+	if len(d.otelReceiverHost) == 0 {
 		d.otelReceiverHost = DefaultHost
 	}
 
-	pvOptions = append(pvOptions, "--output_path", d.otelReceiverHost+":"+strconv.Itoa(d.otelReceiverPort))
+	pvOptions = append(pvOptions, "-o", d.otelReceiverHost+":"+strconv.Itoa(d.otelReceiverPort))
 
 	d.logger.Info("diode-agent startup", zap.Strings("arguments", pvOptions))
 
