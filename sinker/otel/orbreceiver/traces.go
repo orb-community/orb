@@ -112,9 +112,9 @@ func (r *OrbReceiver) ProccessTracesContext(scope ptrace.ScopeSpans, channel str
 		}
 		attributeCtx = context.WithValue(attributeCtx, "sink_id", sinkId)
 		lr := ptrace.NewTraces()
-		scope.Scope().Attributes().PutStr("service.name", agentPb.AgentName)
-		scope.Scope().Attributes().PutStr("service.instance.id", polID)
 		scope.CopyTo(lr.ResourceSpans().AppendEmpty().ScopeSpans().AppendEmpty())
+		lr.ResourceSpans().At(0).Resource().Attributes().PutStr("service.name", agentPb.AgentName)
+		lr.ResourceSpans().At(0).Resource().Attributes().PutStr("service.instance.id", polID)
 		request := ptraceotlp.NewExportRequestFromTraces(lr)
 		_, err = r.exportTraces(attributeCtx, request)
 		if err != nil {
