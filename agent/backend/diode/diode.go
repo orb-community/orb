@@ -11,6 +11,7 @@ import (
 	"net"
 	"net/http"
 	"os/exec"
+	"strconv"
 	"strings"
 	"time"
 
@@ -177,10 +178,14 @@ func (d *diodeBackend) Start(ctx context.Context, cancelFunc context.CancelFunc)
 		pvOptions = append(pvOptions, "--config", d.configFile)
 	}
 
-	d.otelReceiverPort, err = d.getFreePort()
-	if err != nil {
-		d.logger.Error("diode-agent otlp startup error", zap.Error(err))
-		return err
+	pvOptions = append(pvOptions, "--outputh_type", "otlp")
+	pvOptions = append(pvOptions, "--outputh_path", d.otelReceiverHost+":"+strconv.Itoa(d.otelReceiverPort))
+	if d.otelReceiverPort == 0 {
+		d.otelReceiverPort, err = d.getFreePort()
+		if err != nil {
+			d.logger.Error("diode-agent otlp startup error", zap.Error(err))
+			return err
+		}
 	}
 
 	d.logger.Info("diode-agent startup", zap.Strings("arguments", pvOptions))
