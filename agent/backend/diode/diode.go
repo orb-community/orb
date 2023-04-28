@@ -178,8 +178,8 @@ func (d *diodeBackend) Start(ctx context.Context, cancelFunc context.CancelFunc)
 		pvOptions = append(pvOptions, "--config", d.configFile)
 	}
 
-	pvOptions = append(pvOptions, "--outputh_type", "otlp")
-	pvOptions = append(pvOptions, "--outputh_path", d.otelReceiverHost+":"+strconv.Itoa(d.otelReceiverPort))
+	pvOptions = append(pvOptions, "--output_type", "otlp")
+	pvOptions = append(pvOptions, "--output_path", d.otelReceiverHost+":"+strconv.Itoa(d.otelReceiverPort))
 	if d.otelReceiverPort == 0 {
 		d.otelReceiverPort, err = d.getFreePort()
 		if err != nil {
