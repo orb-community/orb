@@ -8,12 +8,13 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"github.com/eclipse/paho.mqtt.golang"
+	"time"
+
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/orb-community/orb/agent/backend"
 	"github.com/orb-community/orb/agent/config"
 	"github.com/orb-community/orb/fleet"
 	"go.uber.org/zap"
-	"time"
 )
 
 func (a *orbAgent) connect(ctx context.Context, config config.MQTTConfig) (mqtt.Client, error) {
@@ -42,17 +43,19 @@ func (a *orbAgent) connect(ctx context.Context, config config.MQTTConfig) (mqtt.
 				case <-ctx.Done():
 					return
 				default:
-					belist := backend.GetList()
-					firstBackend := belist[0]
-					if i, s, _ := a.backends[firstBackend].GetRunningStatus(); backend.Running != i {
-						a.logger.Info("waiting until a backend is in running state", zap.String("backend", firstBackend),
-							zap.String("current state", s), zap.String("wait time", (time.Duration(i)*time.Second).String()))
-						time.Sleep(time.Duration(i) * time.Second)
-						continue
-					} else {
-						ok = true
-						a.requestReconnection(ctx, client, config)
-						return
+					for name, be := range a.backends {
+						backendStatus, s, _ := be.GetRunningStatus()
+						if backend.Running != backendStatus {
+							a.logger.Info("waiting until a backend is in running state", zap.String("backend", name),
+								zap.String("current state", s), zap.String("wait time", (time.Duration(i)*time.Second).String()))
+							time.Sleep(time.Duration(i) * time.Second)
+							continue
+						} else {
+							// connection problem, should request from control place
+							ok = true
+							a.requestReconnection(ctx, client, config)
+							return
+						}
 					}
 				}
 			}

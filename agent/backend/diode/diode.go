@@ -11,6 +11,7 @@ import (
 	"net"
 	"net/http"
 	"os/exec"
+	"strconv"
 	"strings"
 	"time"
 
@@ -172,16 +173,26 @@ func (d *diodeBackend) Start(ctx context.Context, cancelFunc context.CancelFunc)
 		d.adminAPIHost,
 		"-p",
 		d.adminAPIPort,
+		"--output_type",
+		"otlp",
 	}
 	if len(d.configFile) > 0 {
 		pvOptions = append(pvOptions, "--config", d.configFile)
 	}
 
-	d.otelReceiverPort, err = d.getFreePort()
-	if err != nil {
-		d.logger.Error("diode-agent otlp startup error", zap.Error(err))
-		return err
+	if d.otelReceiverPort == 0 {
+		d.otelReceiverPort, err = d.getFreePort()
+		if err != nil {
+			d.logger.Error("diode-agent otlp startup error", zap.Error(err))
+			return err
+		}
 	}
+
+	if len(d.otelReceiverHost) > 0 {
+		d.otelReceiverHost = DefaultHost
+	}
+
+	pvOptions = append(pvOptions, "--output_path", d.otelReceiverHost+":"+strconv.Itoa(d.otelReceiverPort))
 
 	d.logger.Info("diode-agent startup", zap.Strings("arguments", pvOptions))
 
@@ -232,10 +243,10 @@ func (d *diodeBackend) Start(ctx context.Context, cancelFunc context.CancelFunc)
 		if err != nil {
 			d.logger.Error("proc.Stop error", zap.Error(err))
 		}
-		return errors.New("pktvisor startup error, check log")
+		return errors.New("diode-agent startup error, check log")
 	}
 
-	d.logger.Info("pktvisor process started", zap.Int("pid", status.PID))
+	d.logger.Info("diode-agent process started", zap.Int("pid", status.PID))
 
 	var readinessError error
 	for backoff := 0; backoff < ReadinessBackoff; backoff++ {
