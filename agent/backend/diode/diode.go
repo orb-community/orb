@@ -188,6 +188,10 @@ func (d *diodeBackend) Start(ctx context.Context, cancelFunc context.CancelFunc)
 		}
 	}
 
+	if len(d.otelReceiverHost) > 0 {
+		d.otelReceiverHost = DefaultHost
+	}
+
 	pvOptions = append(pvOptions, "--output_path", d.otelReceiverHost+":"+strconv.Itoa(d.otelReceiverPort))
 
 	d.logger.Info("diode-agent startup", zap.Strings("arguments", pvOptions))
