@@ -182,11 +182,11 @@ func (d *diodeBackend) Start(ctx context.Context, cancelFunc context.CancelFunc)
 
 	if d.otelReceiverPort == 0 {
 		d.otelReceiverPort, err = d.getFreePort()
-		pvOptions = append(pvOptions, "--output_path", d.otelReceiverHost+":"+strconv.Itoa(d.otelReceiverPort))
 		if err != nil {
 			d.logger.Error("diode-agent otlp startup error", zap.Error(err))
 			return err
 		}
+		pvOptions = append(pvOptions, "--output_path", d.otelReceiverHost+":"+strconv.Itoa(d.otelReceiverPort))
 	}
 
 	d.logger.Info("diode-agent startup", zap.Strings("arguments", pvOptions))

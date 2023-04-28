@@ -34,7 +34,6 @@ var (
 
 func init() {
 	pktvisor.Register()
-	//TODO: Improve agent logic to support more than one backend
 	diode.Register()
 }
 
