@@ -54,8 +54,6 @@ func Run(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	config.OrbAgent.Debug.Enable = Debug
-
 	// include pktvisor backend by default if binary is at default location
 	_, err = os.Stat(pktvisor.DefaultBinary)
 	if err == nil && config.OrbAgent.Backends == nil {
@@ -149,7 +147,7 @@ func mergeOrError(path string) {
 	v.SetDefault("orb.otel.enable", true)
 	v.SetDefault("orb.otel.host", "localhost")
 	v.SetDefault("orb.otel.port", 0)
-	v.SetDefault("orb.debug.enable", false)
+	v.SetDefault("orb.debug.enable", Debug)
 
 	v.SetDefault("orb.backends.pktvisor.binary", "/usr/local/sbin/pktvisord")
 	v.SetDefault("orb.backends.pktvisor.config_file", "/opt/orb/agent.yaml")
