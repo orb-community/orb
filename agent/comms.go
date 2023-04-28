@@ -43,12 +43,10 @@ func (a *orbAgent) connect(ctx context.Context, config config.MQTTConfig) (mqtt.
 				case <-ctx.Done():
 					return
 				default:
-					belist := backend.GetList()
-					for beID := 0; beID < len(belist); beID++ {
-						beName := belist[beID]
-						backendStatus, s, _ := a.backends[beName].GetRunningStatus()
+					for name, be := range a.backends {
+						backendStatus, s, _ := be.GetRunningStatus()
 						if backend.Running != backendStatus {
-							a.logger.Info("waiting until a backend is in running state", zap.String("backend", beName),
+							a.logger.Info("waiting until a backend is in running state", zap.String("backend", name),
 								zap.String("current state", s), zap.String("wait time", (time.Duration(i)*time.Second).String()))
 							time.Sleep(time.Duration(i) * time.Second)
 							continue
