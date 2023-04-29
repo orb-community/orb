@@ -31,6 +31,7 @@ func (d *diodeBackend) ApplyPolicy(data policies.PolicyData, updatePolicy bool) 
 		d.logger.Warn("yaml policy marshal failure", zap.String("policy_id", data.ID), zap.Any("policy", pol))
 		return err
 	}
+
 	var resp map[string]interface{}
 	err = d.request("policies", &resp, http.MethodPost, bytes.NewBuffer(policyYaml), "application/x-yaml", ApplyPolicyTimeout)
 	if err != nil {

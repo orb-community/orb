@@ -1,92 +1,38 @@
 package diode
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/go-kit/kit/endpoint"
+	"github.com/mainflux/mainflux"
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
 )
 
-// func viewAgentBackendHandlerEndpoint(dio diodeBackend) endpoint.Endpoint {
-// 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
-// 		req := request.(viewResourceReq)
-// 		if err := req.validate(); err != nil {
-// 			return nil, err
-// 		}
-// 		_, err = dio.auth.Identify(ctx, &mainflux.Token{Value: req.token})
-// 		if err != nil {
-// 			return "", errors.Wrap(errors.ErrUnauthorizedAccess, err)
-// 		}
+func viewAgentBackendConfigsEndpoint(dio diodeBackend) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(viewResourceReq)
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+		_, err = dio.auth.Identify(ctx, &mainflux.Token{Value: req.token})
+		if err != nil {
+			return "", errors.Wrap(errors.ErrUnauthorizedAccess, err)
+		}
 
-// 		bk, err := dio.handlers()
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		return bk, nil
-// 	}
-// }
+		var bk string
+		if dio.Backend != "" {
+			bk = dio.Backend
+		}
+		if bk == "" {
+			return nil, errors.New("error null backend")
+		}
+		return bk, nil
+	}
+}
 
-// func viewAgentBackendInputEndpoint(dio diodeBackend) endpoint.Endpoint {
-// 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
-// 		req := request.(viewResourceReq)
-// 		if err := req.validate(); err != nil {
-// 			return nil, err
-// 		}
-
-// 		_, err = dio.auth.Identify(ctx, &mainflux.Token{Value: req.token})
-// 		if err != nil {
-// 			return "", errors.Wrap(errors.ErrUnauthorizedAccess, err)
-// 		}
-
-// 		bk, err := dio.inputs()
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		return bk, nil
-// 	}
-// }
-
-// func viewAgentBackendTapsEndpoint(dio diodeBackend) endpoint.Endpoint {
-// 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
-// 		req := request.(viewResourceReq)
-// 		if err := req.validate(); err != nil {
-// 			return nil, err
-// 		}
-// 		r, err := dio.auth.Identify(ctx, &mainflux.Token{Value: req.token})
-// 		if err != nil {
-// 			return "", errors.Wrap(errors.ErrUnauthorizedAccess, err)
-// 		}
-
-// 		metadataList, err := dio.taps(ctx, r.Id)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-
-// 		var list []types.Metadata
-// 		for _, mt := range metadataList {
-// 			extractTaps(mt, &list)
-// 		}
-
-// 		res, err := toBackendTaps(list)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		tapsGroup := groupTaps(res)
-
-// 		var tpRes []agentBackendTapsRes
-// 		for _, v := range tapsGroup {
-// 			tpRes = append(tpRes, agentBackendTapsRes{
-// 				Name:             v.Name,
-// 				InputType:        v.InputType,
-// 				ConfigPredefined: v.ConfigPredefined,
-// 				TotalAgents:      totalAgents{Total: v.TotalAgents},
-// 			})
-// 		}
-// 		return tpRes, nil
-// 	}
-// }
-
-// Used to get the taps from policy json
+// Used to get the taps from policy json - CHECK IF STILL NEEDED
 func extractTaps(mt map[string]interface{}, list *[]types.Metadata) {
 	for k, v := range mt {
 		if k == "taps" {
@@ -99,7 +45,7 @@ func extractTaps(mt map[string]interface{}, list *[]types.Metadata) {
 	}
 }
 
-// Used to cast the map[string]interface for a concrete struct
+// Used to cast the map[string]interface for a concrete struct - CHECK IF STILL NEEDED
 func toBackendTaps(list []types.Metadata) ([]BackendTaps, error) {
 	var bkTaps []BackendTaps
 	for _, tc := range list {
@@ -133,7 +79,7 @@ func toBackendTaps(list []types.Metadata) ([]BackendTaps, error) {
 	return bkTaps, nil
 }
 
-// Used to aggregate and summarize the taps and return a slice of BackendTaps
+// Used to aggregate and summarize the taps and return a slice of BackendTaps - CHECK IF STILL NEEDED
 func groupTaps(taps []BackendTaps) []BackendTaps {
 	tapsMap := make(map[string]BackendTaps)
 	for _, tap := range taps {
