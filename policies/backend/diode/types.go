@@ -8,8 +8,38 @@ import "github.com/orb-community/orb/pkg/types"
 
 const CurrentSchemaVersion = "1.0"
 
+// policy for suzieq
 type collectionPolicy struct {
-	Handlers types.Metadata `json:"handlers"`
-	Input    types.Metadata `json:"input"`
-	Kind     string         `json:"kind"`
+	Backend    types.Metadata `json:"backend"`
+	Inventory  types.Metadata `json:"inventory"`
+	Hosts      types.Metadata `json:"hosts"`
+	Devices    types.Metadata `json:"devices"`
+	Namespaces types.Metadata `json:"namespaces"`
+	Kind       string         `json:"kind"`
 }
+
+/*
+
+kind: discovery
+backend: suzieq
+config:
+  netbox:
+    site: New York NY
+data:
+  inventory:
+    sources:
+      - name: default_inventory
+  hosts:
+    - url: ssh://1.2.3.4:2021 username=user password=password
+    - url: ssh://resolvable.host.name username=user password=password
+  devices:
+    - name: default_devices
+      transport: ssh
+      ignore-known-hosts: true
+      slow-host: true
+  namespaces:
+    - name: default_namespace
+      source: default_inventory
+      device: default_devices
+
+*/
