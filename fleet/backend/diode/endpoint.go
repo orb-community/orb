@@ -10,7 +10,7 @@ import (
 	"github.com/orb-community/orb/pkg/types"
 )
 
-func viewAgentBackendConfigsEndpoint(dio diodeBackend) endpoint.Endpoint {
+func viewAgentBackendHandlerEndpoint(dio diodeBackend) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(viewResourceReq)
 		if err := req.validate(); err != nil {
@@ -21,14 +21,71 @@ func viewAgentBackendConfigsEndpoint(dio diodeBackend) endpoint.Endpoint {
 			return "", errors.Wrap(errors.ErrUnauthorizedAccess, err)
 		}
 
-		var bk string
-		if dio.Backend != "" {
-			bk = dio.Backend
-		}
-		if bk == "" {
-			return nil, errors.New("error null backend")
+		bk, err := dio.handlers()
+		if err != nil {
+			return nil, err
 		}
 		return bk, nil
+	}
+}
+
+func viewAgentBackendInputEndpoint(dio diodeBackend) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(viewResourceReq)
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+
+		_, err = dio.auth.Identify(ctx, &mainflux.Token{Value: req.token})
+		if err != nil {
+			return "", errors.Wrap(errors.ErrUnauthorizedAccess, err)
+		}
+
+		bk, err := dio.inputs()
+		if err != nil {
+			return nil, err
+		}
+		return bk, nil
+	}
+}
+
+func viewAgentBackendTapsEndpoint(dio diodeBackend) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(viewResourceReq)
+		if err := req.validate(); err != nil {
+			return nil, err
+		}
+		r, err := dio.auth.Identify(ctx, &mainflux.Token{Value: req.token})
+		if err != nil {
+			return "", errors.Wrap(errors.ErrUnauthorizedAccess, err)
+		}
+
+		metadataList, err := dio.taps(ctx, r.Id)
+		if err != nil {
+			return nil, err
+		}
+
+		var list []types.Metadata
+		for _, mt := range metadataList {
+			extractTaps(mt, &list)
+		}
+
+		res, err := toBackendTaps(list)
+		if err != nil {
+			return nil, err
+		}
+		tapsGroup := groupTaps(res)
+
+		var tpRes []agentBackendTapsRes
+		for _, v := range tapsGroup {
+			tpRes = append(tpRes, agentBackendTapsRes{
+				Name:             v.Name,
+				InputType:        v.InputType,
+				ConfigPredefined: v.ConfigPredefined,
+				TotalAgents:      totalAgents{Total: v.TotalAgents},
+			})
+		}
+		return tpRes, nil
 	}
 }
 
