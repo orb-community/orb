@@ -158,3 +158,21 @@
   min-width: 600px;
   max-height: calc(25vh);
 }
+
+.orb-service- {
+  &new {
+    color: #9b51e0;
+  }
+  &online, &healthy {
+    color: #6fcf97;
+  }
+  &stale, &none {
+    color: #f2994a;
+  }
+  &error, &failure {
+    color: #df316f;
+  }
+  &offline {
+    color: #969fb9;
+  }
+}
