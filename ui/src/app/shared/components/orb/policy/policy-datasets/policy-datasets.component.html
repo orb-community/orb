@@ -39,7 +39,7 @@
 </ng-template>
 
 <ng-template #groupTemplateCell let-i="index" let-row="row" let-value="value">
-    <button (click)="onOpenGroupDetails(row?.agent_group)"
+    <button (click)="showAgentGroupMatches(row?.agent_group)"
             class="edit-dataset-button" matTooltip="{{ row?.agent_group?.name }}">
         {{ row?.agent_group?.name }}
     </button>
