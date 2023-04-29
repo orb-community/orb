@@ -10,18 +10,18 @@ import (
 	"github.com/orb-community/orb/pkg/types"
 )
 
-func viewAgentBackendHandlerEndpoint(pkt diodeBackend) endpoint.Endpoint {
+func viewAgentBackendHandlerEndpoint(dio diodeBackend) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(viewResourceReq)
 		if err := req.validate(); err != nil {
 			return nil, err
 		}
-		_, err = pkt.auth.Identify(ctx, &mainflux.Token{Value: req.token})
+		_, err = dio.auth.Identify(ctx, &mainflux.Token{Value: req.token})
 		if err != nil {
 			return "", errors.Wrap(errors.ErrUnauthorizedAccess, err)
 		}
 
-		bk, err := pkt.handlers()
+		bk, err := dio.handlers()
 		if err != nil {
 			return nil, err
 		}
@@ -29,19 +29,19 @@ func viewAgentBackendHandlerEndpoint(pkt diodeBackend) endpoint.Endpoint {
 	}
 }
 
-func viewAgentBackendInputEndpoint(pkt diodeBackend) endpoint.Endpoint {
+func viewAgentBackendInputEndpoint(dio diodeBackend) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(viewResourceReq)
 		if err := req.validate(); err != nil {
 			return nil, err
 		}
 
-		_, err = pkt.auth.Identify(ctx, &mainflux.Token{Value: req.token})
+		_, err = dio.auth.Identify(ctx, &mainflux.Token{Value: req.token})
 		if err != nil {
 			return "", errors.Wrap(errors.ErrUnauthorizedAccess, err)
 		}
 
-		bk, err := pkt.inputs()
+		bk, err := dio.inputs()
 		if err != nil {
 			return nil, err
 		}
@@ -49,18 +49,18 @@ func viewAgentBackendInputEndpoint(pkt diodeBackend) endpoint.Endpoint {
 	}
 }
 
-func viewAgentBackendTapsEndpoint(pkt diodeBackend) endpoint.Endpoint {
+func viewAgentBackendTapsEndpoint(dio diodeBackend) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(viewResourceReq)
 		if err := req.validate(); err != nil {
 			return nil, err
 		}
-		r, err := pkt.auth.Identify(ctx, &mainflux.Token{Value: req.token})
+		r, err := dio.auth.Identify(ctx, &mainflux.Token{Value: req.token})
 		if err != nil {
 			return "", errors.Wrap(errors.ErrUnauthorizedAccess, err)
 		}
 
-		metadataList, err := pkt.taps(ctx, r.Id)
+		metadataList, err := dio.taps(ctx, r.Id)
 		if err != nil {
 			return nil, err
 		}
