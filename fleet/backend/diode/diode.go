@@ -5,16 +5,12 @@
 package diode
 
 import (
-	"context"
-	"encoding/json"
-
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/go-zoo/bone"
 	"github.com/mainflux/mainflux"
 	"github.com/opentracing/opentracing-go"
 	"github.com/orb-community/orb/fleet"
 	"github.com/orb-community/orb/fleet/backend"
-	"github.com/orb-community/orb/pkg/types"
 )
 
 var _ backend.Backend = (*diodeBackend)(nil)
@@ -47,33 +43,6 @@ func (p diodeBackend) Metadata() interface{} {
 
 func (p diodeBackend) MakeHandler(tracer opentracing.Tracer, opts []kithttp.ServerOption, r *bone.Mux) {
 	MakeDiodeHandler(tracer, p, opts, r)
-}
-
-func (p diodeBackend) handlers() (_ types.Metadata, err error) {
-	var handlers types.Metadata
-	err = json.Unmarshal([]byte(handlersJson), &handlers)
-	if err != nil {
-		return nil, err
-	}
-	return handlers, nil
-}
-
-func (p diodeBackend) inputs() (_ types.Metadata, err error) {
-	var handlers types.Metadata
-	err = json.Unmarshal([]byte(inputsJson), &handlers)
-	if err != nil {
-		return nil, err
-	}
-	return handlers, nil
-}
-
-func (p diodeBackend) taps(ctx context.Context, ownerID string) ([]types.Metadata, error) {
-
-	taps, err := p.agentRepo.RetrieveAgentMetadataByOwner(ctx, ownerID)
-	if err != nil {
-		return nil, err
-	}
-	return taps, nil
 }
 
 func Register(auth mainflux.AuthServiceClient, agentRepo fleet.AgentRepository) bool {

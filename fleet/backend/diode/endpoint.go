@@ -1,93 +1,90 @@
 package diode
 
 import (
-	"context"
 	"fmt"
 
-	"github.com/go-kit/kit/endpoint"
-	"github.com/mainflux/mainflux"
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
 )
 
-func viewAgentBackendHandlerEndpoint(dio diodeBackend) endpoint.Endpoint {
-	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
-		req := request.(viewResourceReq)
-		if err := req.validate(); err != nil {
-			return nil, err
-		}
-		_, err = dio.auth.Identify(ctx, &mainflux.Token{Value: req.token})
-		if err != nil {
-			return "", errors.Wrap(errors.ErrUnauthorizedAccess, err)
-		}
+// func viewAgentBackendHandlerEndpoint(dio diodeBackend) endpoint.Endpoint {
+// 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+// 		req := request.(viewResourceReq)
+// 		if err := req.validate(); err != nil {
+// 			return nil, err
+// 		}
+// 		_, err = dio.auth.Identify(ctx, &mainflux.Token{Value: req.token})
+// 		if err != nil {
+// 			return "", errors.Wrap(errors.ErrUnauthorizedAccess, err)
+// 		}
 
-		bk, err := dio.handlers()
-		if err != nil {
-			return nil, err
-		}
-		return bk, nil
-	}
-}
+// 		bk, err := dio.handlers()
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		return bk, nil
+// 	}
+// }
 
-func viewAgentBackendInputEndpoint(dio diodeBackend) endpoint.Endpoint {
-	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
-		req := request.(viewResourceReq)
-		if err := req.validate(); err != nil {
-			return nil, err
-		}
+// func viewAgentBackendInputEndpoint(dio diodeBackend) endpoint.Endpoint {
+// 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+// 		req := request.(viewResourceReq)
+// 		if err := req.validate(); err != nil {
+// 			return nil, err
+// 		}
 
-		_, err = dio.auth.Identify(ctx, &mainflux.Token{Value: req.token})
-		if err != nil {
-			return "", errors.Wrap(errors.ErrUnauthorizedAccess, err)
-		}
+// 		_, err = dio.auth.Identify(ctx, &mainflux.Token{Value: req.token})
+// 		if err != nil {
+// 			return "", errors.Wrap(errors.ErrUnauthorizedAccess, err)
+// 		}
 
-		bk, err := dio.inputs()
-		if err != nil {
-			return nil, err
-		}
-		return bk, nil
-	}
-}
+// 		bk, err := dio.inputs()
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		return bk, nil
+// 	}
+// }
 
-func viewAgentBackendTapsEndpoint(dio diodeBackend) endpoint.Endpoint {
-	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
-		req := request.(viewResourceReq)
-		if err := req.validate(); err != nil {
-			return nil, err
-		}
-		r, err := dio.auth.Identify(ctx, &mainflux.Token{Value: req.token})
-		if err != nil {
-			return "", errors.Wrap(errors.ErrUnauthorizedAccess, err)
-		}
+// func viewAgentBackendTapsEndpoint(dio diodeBackend) endpoint.Endpoint {
+// 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+// 		req := request.(viewResourceReq)
+// 		if err := req.validate(); err != nil {
+// 			return nil, err
+// 		}
+// 		r, err := dio.auth.Identify(ctx, &mainflux.Token{Value: req.token})
+// 		if err != nil {
+// 			return "", errors.Wrap(errors.ErrUnauthorizedAccess, err)
+// 		}
 
-		metadataList, err := dio.taps(ctx, r.Id)
-		if err != nil {
-			return nil, err
-		}
+// 		metadataList, err := dio.taps(ctx, r.Id)
+// 		if err != nil {
+// 			return nil, err
+// 		}
 
-		var list []types.Metadata
-		for _, mt := range metadataList {
-			extractTaps(mt, &list)
-		}
+// 		var list []types.Metadata
+// 		for _, mt := range metadataList {
+// 			extractTaps(mt, &list)
+// 		}
 
-		res, err := toBackendTaps(list)
-		if err != nil {
-			return nil, err
-		}
-		tapsGroup := groupTaps(res)
+// 		res, err := toBackendTaps(list)
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		tapsGroup := groupTaps(res)
 
-		var tpRes []agentBackendTapsRes
-		for _, v := range tapsGroup {
-			tpRes = append(tpRes, agentBackendTapsRes{
-				Name:             v.Name,
-				InputType:        v.InputType,
-				ConfigPredefined: v.ConfigPredefined,
-				TotalAgents:      totalAgents{Total: v.TotalAgents},
-			})
-		}
-		return tpRes, nil
-	}
-}
+// 		var tpRes []agentBackendTapsRes
+// 		for _, v := range tapsGroup {
+// 			tpRes = append(tpRes, agentBackendTapsRes{
+// 				Name:             v.Name,
+// 				InputType:        v.InputType,
+// 				ConfigPredefined: v.ConfigPredefined,
+// 				TotalAgents:      totalAgents{Total: v.TotalAgents},
+// 			})
+// 		}
+// 		return tpRes, nil
+// 	}
+// }
 
 // Used to get the taps from policy json
 func extractTaps(mt map[string]interface{}, list *[]types.Metadata) {
