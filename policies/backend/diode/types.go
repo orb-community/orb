@@ -10,12 +10,9 @@ const CurrentSchemaVersion = "1.0"
 
 // policy for suzieq
 type collectionPolicy struct {
-	Backend    types.Metadata `json:"backend"`
-	Inventory  types.Metadata `json:"inventory"`
-	Hosts      types.Metadata `json:"hosts"`
-	Devices    types.Metadata `json:"devices"`
-	Namespaces types.Metadata `json:"namespaces"`
-	Kind       string         `json:"kind"`
+	Backend string         `json:"backend"`
+	Data    types.Metadata `json:"data"`
+	Kind    string         `json:"kind"`
 }
 
 /*

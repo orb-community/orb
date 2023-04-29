@@ -29,7 +29,7 @@ func (p diodeBackend) convertFromYAML(policy string) (types.Metadata, error) {
 		return types.Metadata{}, err
 	}
 
-	if j.Backend == nil || j.Inventory == nil || j.Kind == "" {
+	if j.Backend == "" || j.Data == nil || j.Kind == "" {
 		return types.Metadata{}, errors.New("malformed yaml policy")
 	}
 
@@ -37,7 +37,7 @@ func (p diodeBackend) convertFromYAML(policy string) (types.Metadata, error) {
 
 	ret["kind"] = j.Kind
 	ret["backend"] = j.Backend
-	ret["inventory"] = j.Inventory
+	ret["data"] = j.Data
 
 	return ret, nil
 }
