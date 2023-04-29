@@ -12,13 +12,16 @@ import (
 	"github.com/orb-community/orb/agent/otel"
 	"github.com/orb-community/orb/agent/otel/otlpmqttexporter"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/confighttp"
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.opentelemetry.io/otel/metric/global"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
+)
+
+const (
+	otlpProtocol = "tcp"
 )
 
 func (d *diodeBackend) createOtlpMqttExporter(ctx context.Context, cancelFunc context.CancelFunc) (exporter.Logs, error) {
@@ -61,12 +64,11 @@ func (d *diodeBackend) receiveOtlp() {
 					return
 				}
 				pFactory := otlpreceiver.NewFactory()
-				cfg := pFactory.CreateDefaultConfig()
-				cfg.(*otlpreceiver.Config).Protocols = otlpreceiver.Protocols{
-					HTTP: &confighttp.HTTPServerSettings{
-						Endpoint: d.otelReceiverHost + ":" + strconv.Itoa(d.otelReceiverPort),
-					},
-				}
+				cfg := pFactory.CreateDefaultConfig().(*otlpreceiver.Config)
+				cfg.HTTP = nil
+				cfg.GRPC.NetAddr.Endpoint = d.otelReceiverHost + ":" + strconv.Itoa(d.otelReceiverPort)
+				cfg.GRPC.NetAddr.Transport = otlpProtocol
+
 				set := receiver.CreateSettings{
 					TelemetrySettings: component.TelemetrySettings{
 						Logger:         d.logger,
