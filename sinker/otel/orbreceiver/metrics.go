@@ -64,7 +64,7 @@ func (r *OrbReceiver) ProccessMetricsContext(scope pmetric.ScopeMetrics, channel
 	}
 	datasets := attrDataset.AsString()
 	if datasets == "" {
-		r.cfg.Logger.Info("datasetIDs information is empty")
+		r.cfg.Logger.Info("datasetIDs information on metrics is empty")
 		return
 	}
 	datasetIDs := strings.Split(datasets, ",")
@@ -76,7 +76,7 @@ func (r *OrbReceiver) ProccessMetricsContext(scope pmetric.ScopeMetrics, channel
 	}
 	polID := attrPolID.AsString()
 	if polID == "" {
-		r.cfg.Logger.Info("policyID information is empty")
+		r.cfg.Logger.Info("policyID information on metrics is empty")
 		return
 	}
 	// Delete datasets_ids and policy_ids from scope attributes
@@ -99,7 +99,7 @@ func (r *OrbReceiver) ProccessMetricsContext(scope pmetric.ScopeMetrics, channel
 	sinkIds, err := r.sinkerService.GetSinkIdsFromDatasetIDs(execCtx, agentPb.OwnerID, datasetIDs)
 	if err != nil {
 		execCancelF()
-		r.cfg.Logger.Info("No data extracting sinks information from datasetIds = " + datasets)
+		r.cfg.Logger.Info("No data extracting metrics sinks information from datasetIds = " + datasets)
 		return
 	}
 	attributeCtx := context.WithValue(r.ctx, "agent_name", agentPb.AgentName)
@@ -110,7 +110,7 @@ func (r *OrbReceiver) ProccessMetricsContext(scope pmetric.ScopeMetrics, channel
 	for sinkId := range sinkIds {
 		err := r.cfg.SinkerService.NotifyActiveSink(r.ctx, agentPb.OwnerID, sinkId, "active", "")
 		if err != nil {
-			r.cfg.Logger.Error("error notifying sink active, changing state, skipping sink", zap.String("sink-id", sinkId), zap.Error(err))
+			r.cfg.Logger.Error("error notifying metrics sink active, changing state, skipping sink", zap.String("sink-id", sinkId), zap.Error(err))
 			continue
 		}
 		attributeCtx = context.WithValue(attributeCtx, "sink_id", sinkId)
@@ -121,7 +121,7 @@ func (r *OrbReceiver) ProccessMetricsContext(scope pmetric.ScopeMetrics, channel
 		request := pmetricotlp.NewExportRequestFromMetrics(mr)
 		_, err = r.exportMetrics(attributeCtx, request)
 		if err != nil {
-			r.cfg.Logger.Error("error during export, skipping sink", zap.Error(err))
+			r.cfg.Logger.Error("error during metrics export, skipping sink", zap.Error(err))
 			_ = r.cfg.SinkerService.NotifyActiveSink(r.ctx, agentPb.OwnerID, sinkId, "error", err.Error())
 			continue
 		}

@@ -107,7 +107,7 @@ func (r *OrbReceiver) ProccessLogsContext(scope plog.ScopeLogs, channel string) 
 	for sinkId := range sinkIds {
 		err := r.cfg.SinkerService.NotifyActiveSink(r.ctx, agentPb.OwnerID, sinkId, "active", "")
 		if err != nil {
-			r.cfg.Logger.Error("error notifying sink active, changing state, skipping sink", zap.String("sink-id", sinkId), zap.Error(err))
+			r.cfg.Logger.Error("error notifying logs sink active, changing state, skipping sink", zap.String("sink-id", sinkId), zap.Error(err))
 			continue
 		}
 		attributeCtx = context.WithValue(attributeCtx, "sink_id", sinkId)
@@ -118,7 +118,7 @@ func (r *OrbReceiver) ProccessLogsContext(scope plog.ScopeLogs, channel string) 
 		request := plogotlp.NewExportRequestFromLogs(lr)
 		_, err = r.exportLogs(attributeCtx, request)
 		if err != nil {
-			r.cfg.Logger.Error("error during export, skipping sink", zap.Error(err))
+			r.cfg.Logger.Error("error during logs export, skipping sink", zap.Error(err))
 			_ = r.cfg.SinkerService.NotifyActiveSink(r.ctx, agentPb.OwnerID, sinkId, "error", err.Error())
 			continue
 		}
