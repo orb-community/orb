@@ -2,15 +2,17 @@ package policies
 
 import (
 	"context"
+	"time"
+
 	"github.com/mainflux/mainflux"
 	fleetpb "github.com/orb-community/orb/fleet/pb"
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
+	"github.com/orb-community/orb/policies/backend/diode"
 	"github.com/orb-community/orb/policies/backend/orb"
 	"github.com/orb-community/orb/policies/backend/pktvisor"
 	sinkpb "github.com/orb-community/orb/sinks/pb"
 	"go.uber.org/zap"
-	"time"
 )
 
 type PageMetadata struct {
@@ -50,6 +52,7 @@ func New(logger *zap.Logger, auth mainflux.AuthServiceClient, repo Repository, f
 
 	orb.Register()
 	pktvisor.Register()
+	diode.Register()
 
 	return &policiesService{
 		logger:          logger,

@@ -15,6 +15,7 @@ import (
 
 	"github.com/orb-community/orb/agent/backend"
 	"go.uber.org/zap"
+	"gopkg.in/yaml.v2"
 )
 
 // note this needs to be stateless because it is called for multiple go routines
@@ -48,7 +49,7 @@ func (d *diodeBackend) request(url string, payload interface{}, method string, b
 	if (res.StatusCode < 200) || (res.StatusCode > 299) {
 		body, err := ioutil.ReadAll(res.Body)
 		if err != nil {
-			return errors.New(fmt.Sprintf("non 2xx HTTP error code from pktvisord, no or invalid body: %d", res.StatusCode))
+			return errors.New(fmt.Sprintf("non 2xx HTTP error code from diode, no or invalid body: %d", res.StatusCode))
 		}
 		if len(body) == 0 {
 			return errors.New(fmt.Sprintf("%d empty body", res.StatusCode))
@@ -66,7 +67,10 @@ func (d *diodeBackend) request(url string, payload interface{}, method string, b
 	if res.Body != nil {
 		err = json.NewDecoder(res.Body).Decode(&payload)
 		if err != nil {
-			return err
+			err = yaml.NewDecoder(res.Body).Decode(&payload)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil

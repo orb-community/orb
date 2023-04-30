@@ -48,7 +48,7 @@ func (ke kafkaErrors) Error() string {
 }
 
 func (e *kafkaTracesProducer) tracesPusher(ctx context.Context, td ptrace.Traces) error {
-	sinkId := ctx.Value("sink-id").(string)
+	sinkId := ctx.Value("sink_id").(string)
 	topic := e.topic + "-" + sinkId
 	e.logger.Info("Pushing traces to kafka topic = " + topic)
 	messages, err := e.marshaler.Marshal(td, topic)
@@ -114,7 +114,7 @@ type kafkaLogsProducer struct {
 }
 
 func (e *kafkaLogsProducer) logsDataPusher(ctx context.Context, ld plog.Logs) error {
-	sinkId := ctx.Value("sink-id").(string)
+	sinkId := ctx.Value("sink_id").(string)
 	topic := e.topic + "-" + sinkId
 	e.logger.Info("Pushing logs to kafka topic = " + topic)
 	messages, err := e.marshaler.Marshal(ld, topic)
