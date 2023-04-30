@@ -87,7 +87,7 @@ func (p diodeBackend) taps(ctx context.Context, ownerID string) ([]types.Metadat
 func Register(auth mainflux.AuthServiceClient, agentRepo fleet.AgentRepository) bool {
 	backend.Register("diode", &diodeBackend{
 		Backend:     "diode",
-		Description: "diode observability agent from diode.dev",
+		Description: "diode network automation agent from netboxlabs.com",
 		auth:        auth,
 		agentRepo:   agentRepo,
 	})

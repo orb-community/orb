@@ -221,7 +221,7 @@ func (e *baseExporter) pushLogs(ctx context.Context, ld plog.Logs) error {
 		scope.Scope().Attributes().PutStr("policy_id", agentData.PolicyID)
 		scope.Scope().Attributes().PutStr("dataset_ids", datasets)
 		scope.CopyTo(ref.ScopeLogs().AppendEmpty())
-		e.logger.Info("scraped metrics for policy", zap.String("policy", policyName), zap.String("policy_id", agentData.PolicyID))
+		e.logger.Info("scraped logs for policy", zap.String("policy", policyName), zap.String("policy_id", agentData.PolicyID))
 	}
 
 	request, err := tr.MarshalProto()
@@ -275,7 +275,7 @@ func (e *baseExporter) pushTraces(ctx context.Context, td ptrace.Traces) error {
 		scope.Scope().Attributes().PutStr("policy_id", agentData.PolicyID)
 		scope.Scope().Attributes().PutStr("dataset_ids", datasets)
 		scope.CopyTo(ref.ScopeSpans().AppendEmpty())
-		e.logger.Info("scraped metrics for policy", zap.String("policy", policyName), zap.String("policy_id", agentData.PolicyID))
+		e.logger.Info("scraped traces for policy", zap.String("policy", policyName), zap.String("policy_id", agentData.PolicyID))
 	}
 
 	request, err := tr.MarshalProto()
@@ -301,7 +301,7 @@ func (e *baseExporter) export(ctx context.Context, topic string, request []byte)
 		e.config.OrbAgentService.NotifyAgentDisconnection(ctx, token.Error())
 		return token.Error()
 	}
-	e.logger.Info("scraped and published metrics", zap.String("topic", topic), zap.Int("payload_size_b", len(request)), zap.Int("compressed_payload_size_b", len(compressedPayload)))
+	e.logger.Info("scraped and published telemetry", zap.String("topic", topic), zap.Int("payload_size_b", len(request)), zap.Int("compressed_payload_size_b", len(compressedPayload)))
 
 	return nil
 }

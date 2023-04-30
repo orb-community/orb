@@ -113,7 +113,7 @@ func StartOtelLogsComponents(ctx context.Context, bridgeService *bridgeservice.S
 	log := logger.Sugar()
 	log.Info("Starting to create Otel Logs Components in routine: ", ctx.Value("routine"))
 	exporterFactory := kafkaexporter.NewFactory()
-	exporterCtx := context.WithValue(otelContext, "component", "kafkaexporter")
+	exporterCtx := context.WithValue(otelContext, "component", "kafkaexporterlogs")
 	exporterCreateSettings := exporter.CreateSettings{
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         logger,
@@ -141,7 +141,7 @@ func StartOtelLogsComponents(ctx context.Context, bridgeService *bridgeservice.S
 		return nil, err
 	}
 	transformFactory := transformprocessor.NewFactory()
-	transformCtx := context.WithValue(otelContext, "component", "transformprocessor")
+	transformCtx := context.WithValue(otelContext, "component", "transformprocessorlogs")
 	log.Info("start to create logs component", zap.Any("component", transformCtx.Value("component")))
 	transformCfg := transformFactory.CreateDefaultConfig().(*transformprocessor.Config)
 	transformSet := processor.CreateSettings{
@@ -162,7 +162,7 @@ func StartOtelLogsComponents(ctx context.Context, bridgeService *bridgeservice.S
 	log.Info("created kafka logs exporter successfully")
 	// receiver Factory
 	orbReceiverFactory := orbreceiver.NewFactory()
-	receiverCtx := context.WithValue(otelContext, "component", "orbreceiver")
+	receiverCtx := context.WithValue(otelContext, "component", "orbreceiverlogs")
 	receiverCfg := orbReceiverFactory.CreateDefaultConfig().(*orbreceiver.Config)
 	receiverCfg.Logger = logger
 	receiverCfg.PubSub = pubSub

@@ -62,7 +62,7 @@ func (r *OrbReceiver) ProccessLogsContext(scope plog.ScopeLogs, channel string) 
 	}
 	datasets := attrDataset.AsString()
 	if datasets == "" {
-		r.cfg.Logger.Info("datasetIDs information is empty")
+		r.cfg.Logger.Info("datasetIDs information on logs is empty")
 		return
 	}
 	datasetIDs := strings.Split(datasets, ",")
@@ -74,7 +74,7 @@ func (r *OrbReceiver) ProccessLogsContext(scope plog.ScopeLogs, channel string) 
 	}
 	polID := attrPolID.AsString()
 	if polID == "" {
-		r.cfg.Logger.Info("policyID information is empty")
+		r.cfg.Logger.Info("policyID information on logs is empty")
 		return
 	}
 	// Delete datasets_ids and policy_ids from scope attributes
@@ -96,7 +96,7 @@ func (r *OrbReceiver) ProccessLogsContext(scope plog.ScopeLogs, channel string) 
 	sinkIds, err := r.sinkerService.GetSinkIdsFromDatasetIDs(execCtx, agentPb.OwnerID, datasetIDs)
 	if err != nil {
 		execCancelF()
-		r.cfg.Logger.Info("No data extracting sinks information from datasetIds = " + datasets)
+		r.cfg.Logger.Info("No data extracting log sinks information from datasetIds = " + datasets)
 		return
 	}
 	attributeCtx := context.WithValue(r.ctx, "agent_name", agentPb.AgentName)
