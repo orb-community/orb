@@ -37,6 +37,8 @@ export class AgentPoliciesDatasetsComponent implements OnInit, OnChanges {
 
   errors;
 
+  amountRunningPolicies;
+
   constructor(
     private router: Router,
     private route: ActivatedRoute,
@@ -46,10 +48,21 @@ export class AgentPoliciesDatasetsComponent implements OnInit, OnChanges {
     this.datasets = {};
     this.policies = [];
     this.errors = {};
+    this.amountRunningPolicies = 0;
   }
 
-  ngOnInit(): void {}
-
+  ngOnInit(): void { 
+    this.getAmountRunningPolicies() 
+  }
+  
+  getAmountRunningPolicies() {
+    this.policies.forEach(element => {
+      if (element.state == 'running') {
+        this.amountRunningPolicies++;
+      }
+    }); 
+  }
+  
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.agent) {
       const policiesStates = this.agent?.last_hb_data?.policy_state;
