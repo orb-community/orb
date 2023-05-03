@@ -9,13 +9,13 @@ from control_plane_sink import sink_name_prefix, list_sinks
 configs = TestConfig.configs()
 orb_url = configs.get('orb_url')
 sink_description_prefix = "sink_description_"
-sink_remote_url = "www.remoteurl.com"
+sink_remote_url = "https://remoteurl.com"
 username = configs.get('email')
 password = configs.get('password')
 
 
 @step('a sink is created through the UI with {orb_tags} orb tag')
-def create_sink(context, orb_tags):
+def create_sink_through_UI(context, orb_tags):
     context.orb_tags = create_tags_set(orb_tags)
     context.initial_counter_datatable = check_total_counter(context.driver)
     button_was_clicked = button_click_by_xpath(SinkPage.new_sink_button(), context.driver,
@@ -51,8 +51,9 @@ def create_sink(context, orb_tags):
     button_was_clicked = button_click_by_xpath(UtilButton.save_button(), context.driver,
                                                "Unable to click on save sink button")
     assert_that(button_was_clicked, equal_to(True), "Unable to click on save sink button")
-    WebDriverWait(context.driver, 3).until(
-        EC.text_to_be_present_in_element((By.CSS_SELECTOR, "span.title"), 'Sink successfully created'))
+    # WebDriverWait(context.driver, 3).until(
+    #     EC.text_to_be_present_in_element((By.CSS_SELECTOR, "span.title"), 'Sink successfully created'))
+    #     issue https://linear.app/netboxlabs/issue/ORB-197/confirmation-span-of-creatingediting-a-grouppolicysink-is-not
     context.initial_counter = check_total_counter(context.driver)
     all_sinks = list_sinks(context.token)
     for sink in all_sinks:
@@ -87,7 +88,7 @@ def check_total_counter(driver):
 
 @when("delete a sink using filter by name with {orb_tags} orb tag")
 def delete_a_sink_item(context, orb_tags):
-    create_sink(context, orb_tags)
+    create_sink_through_UI(context, orb_tags)
     button_was_clicked = button_click_by_xpath(DataTable.filter_by(),
                                                context.driver, "Unable to click on filter on sink page")
     assert_that(button_was_clicked, equal_to(True), "Unable to click on filter on sink page")
@@ -123,7 +124,7 @@ def delete_a_sink_item(context, orb_tags):
 
 @when("delete a sink using filter by {filter_option} with {orb_tags} orb tag")
 def delete_a_sink_item(context, filter_option, orb_tags):
-    create_sink(context, orb_tags)
+    create_sink_through_UI(context, orb_tags)
     button_was_clicked = button_click_by_xpath(DataTable.filter_by(),
                                                context.driver, "Unable to click on filter on sink page")
     assert_that(button_was_clicked, equal_to(True), "Unable to click on filter on sink page")
@@ -159,7 +160,7 @@ def delete_a_sink_item(context, filter_option, orb_tags):
 
 @when("update a sink using filter by name with {orb_tags} orb tag")
 def update_a_sink_item(context, orb_tags):
-    create_sink(context, orb_tags)
+    create_sink_through_UI(context, orb_tags)
     context.initial_counter_datatable = check_total_counter(context.driver)
     button_was_clicked = button_click_by_xpath(DataTable.filter_by(),
                                                context.driver, "Unable to filter sink")

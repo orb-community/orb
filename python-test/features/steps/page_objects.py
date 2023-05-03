@@ -378,7 +378,7 @@ class PolicyPage:
 
     @classmethod
     def policy_view_name(cls):
-        return "//label[@class='summary-accent' and text()='Policy Name']//following-sibling::p"
+        return "//label[@class='summary-accent' and text()='Name']//following-sibling::p"
 
     @classmethod
     def policy(cls, policy_name):
@@ -405,9 +405,16 @@ class PolicyPage:
         return f"//button[contains(text( ), '{name}')]"
 
     @classmethod
-    def remove_dataset_button(cls):
-        return "//button[contains(@class, 'dataset-delete-button')]"
+    def active_datasets(cls):
+        return "//nb-card-header[contains(@class, 'summary-accent') and contains(text(), 'Active Datasets')]"
 
+    @classmethod
+    def remove_dataset_button(cls):
+        return "//button[contains(@class, 'del-button' ) and contains(@nbtooltip, 'Delete')]"
+
+    @classmethod
+    def edit_dataset_button(cls):
+        return "//button[contains(@class, 'edit-button' ) and contains(@nbtooltip, 'Edit')]"
 
 class DatasetModal:
     def __init__(self):
