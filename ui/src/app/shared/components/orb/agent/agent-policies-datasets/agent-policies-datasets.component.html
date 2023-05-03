@@ -1,6 +1,10 @@
 <nb-card>
   <nb-card-header>Active Policies/Datasets</nb-card-header>
   <nb-card-body>
+    <label *ngIf="policies?.length > 0" > <span class="code"> {{ amountRunningPolicies }}</span> 
+      out of <span class="code"> {{ policies?.length }} </span>
+      policies are running.
+    </label>
     <nb-accordion *ngFor="let policy of policies">
       <nb-accordion-item>
         <nb-accordion-item-header>
