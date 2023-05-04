@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { Agent } from 'app/common/interfaces/orb/agent.interface';
+import { Agent, AgentStates } from 'app/common/interfaces/orb/agent.interface';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 
 @Component({
@@ -10,6 +10,8 @@ import { NotificationsService } from 'app/common/services/notifications/notifica
 export class AgentBackendsComponent implements OnInit {
   @Input() agent: Agent;
 
+  agentStates = AgentStates;
+  
   constructor(
     protected notificationService: NotificationsService,
   ) {
