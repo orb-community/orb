@@ -9,8 +9,6 @@
 package http
 
 import (
-	"fmt"
-
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/policies"
@@ -69,7 +67,7 @@ func (req *addPolicyReq) validate() error {
 	if err != nil {
 		return errors.Wrap(errors.ErrMalformedEntity, err)
 	}
-	fmt.Println("Passou")
+
 	return nil
 }
 
