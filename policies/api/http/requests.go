@@ -67,7 +67,7 @@ func (req *addPolicyReq) validate() error {
 
 	_, err := types.NewIdentifier(req.Name)
 	if err != nil {
-		return errors.Wrap(errors.ErrorMapping, err)
+		return errors.Wrap(errors.ErrMalformedEntity, err)
 	}
 	fmt.Println("Passou")
 	return nil
