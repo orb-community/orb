@@ -16,7 +16,6 @@ export enum AgentStates {
   online = 'online',
   offline = 'offline',
   stale = 'stale',
-  removed = 'removed',
 }
 
 /**

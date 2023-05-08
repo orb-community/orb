@@ -14,6 +14,8 @@ import { OrbEntity } from 'app/common/interfaces/orb/orb.entity.interface';
 export enum SinkStates {
   active = 'active',
   error = 'error',
+  idle = 'idle',
+  unknown = 'unknown',
 }
 
 /**
