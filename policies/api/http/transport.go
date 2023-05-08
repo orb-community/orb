@@ -7,6 +7,10 @@ package http
 import (
 	"context"
 	"encoding/json"
+	"io"
+	"net/http"
+	"strings"
+
 	kitot "github.com/go-kit/kit/tracing/opentracing"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/go-zoo/bone"
@@ -19,9 +23,6 @@ import (
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/policies"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"io"
-	"net/http"
-	"strings"
 )
 
 const (
@@ -126,7 +127,6 @@ func decodeAddPolicyRequest(_ context.Context, r *http.Request) (interface{}, er
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return nil, errors.Wrap(errors.ErrMalformedEntity, err)
 	}
-
 	return req, nil
 }
 

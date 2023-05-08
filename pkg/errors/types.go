@@ -21,6 +21,8 @@ var (
 	// ErrMalformedEntity indicates a malformed entity specification
 	ErrMalformedEntity = New("malformed entity specification")
 
+	ErrorMapping = New("you here")
+
 	// ErrNotFound indicates a non-existent entity request.
 	ErrNotFound = New("non-existent entity")
 
