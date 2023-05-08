@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { Agent } from 'app/common/interfaces/orb/agent.interface';
+import { Agent, AgentStates } from 'app/common/interfaces/orb/agent.interface';
 import { AgentsService } from 'app/common/services/agents/agents.service';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 
@@ -12,6 +12,8 @@ export class AgentInformationComponent implements OnInit {
   @Input() agent: Agent;
 
   isResetting: boolean;
+
+  agentStates = AgentStates;
 
   constructor(
     protected agentsService: AgentsService,

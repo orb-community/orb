@@ -10,8 +10,8 @@
       <div class="col-6">
         <div class="float-right">
           <label>Agent Version</label>
-          <p>{{ getAgentVersion() }}</p>
-
+          <p *ngIf="agent?.state !== agentStates.new" >{{ getAgentVersion() }}</p>
+          <p *ngIf="agent?.state === agentStates.new" >Agent never connected</p>
         </div>
       </div>
       <div class="col-12">
