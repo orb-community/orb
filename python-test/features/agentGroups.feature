@@ -130,8 +130,7 @@ Feature: agent groups creation
             And the container logs contain the message "completed RPC subscription to group" referred to each matching group within 30 seconds
 
 
-#    @smoke
-    @MUTE
+    @smoke
     Scenario: Edit Agent Group tags (tags informed but empty)
         Given the Orb user has a registered account
             And the Orb user logs in

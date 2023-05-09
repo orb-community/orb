@@ -1,0 +1,45 @@
+<nb-card>
+    <nb-card-header class="summary-accent">Sink Backend Configuration
+      <button
+        (click)="toggleEdit(true)"
+        *ngIf="!editMode"
+        class="card-button"
+        nbButton
+        status="primary">
+        Edit
+      </button>
+      <button
+        (click)="toggleEdit(false)"
+        *ngIf="editMode"
+        class="card-button"
+        nbButton
+        status="danger">
+        Discard
+      </button>
+    </nb-card-header>
+    <nb-card-body>
+      <!--    <div *ngIf="editMode; then updateView else readView"></div>-->
+      <div class="code-editor-wrapper">
+        <ngx-monaco-editor
+            #editorComponent
+            [(ngModel)]="code"
+            [options]="editorOptions"
+            class="code-editor"
+            ngDefaultControl>
+        </ngx-monaco-editor>
+      </div>
+    </nb-card-body>
+  </nb-card>
+  
+  <ng-template #readView>
+    <div class="d-flex flex-column">
+        <pre
+          innerHtml="{{ (sink?.config | prettyJson: [false, 2]) }}"></pre>
+    </div>
+  </ng-template>
+  
+  <ng-template #updateView>
+          <pre
+            innerHtml="{{ (sink?.config | prettyJson: [false, 2]) }}"></pre>
+  </ng-template>
+  

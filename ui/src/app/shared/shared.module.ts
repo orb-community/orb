@@ -64,6 +64,8 @@ import { ToMillisecsPipe } from './pipes/time.pipe';
 import { PollControlComponent } from './components/poll-control/poll-control.component';
 import {EmptyInputDirective} from 'app/shared/directives/empty-input.directive';
 import { AgentBackendsComponent } from './components/orb/agent/agent-backends/agent-backends.component';
+import { SinkDetailsComponent } from './components/orb/sink/sink-details/sink-details.component';
+import { SinkConfigComponent } from './components/orb/sink/sink-config/sink-config.component';
 
 @NgModule({
   imports: [
@@ -132,6 +134,8 @@ import { AgentBackendsComponent } from './components/orb/agent/agent-backends/ag
     FilterComponent,
     PollControlComponent,
     EmptyInputDirective,
+    SinkDetailsComponent,
+    SinkConfigComponent,
   ],
   exports: [
     ThemeModule,
@@ -168,6 +172,8 @@ import { AgentBackendsComponent } from './components/orb/agent/agent-backends/ag
     FilterComponent,
     PollControlComponent,
     EmptyInputDirective,
+    SinkDetailsComponent,
+    SinkConfigComponent,
   ],
   providers: [
     MessageValuePipe,
