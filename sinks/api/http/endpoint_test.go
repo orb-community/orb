@@ -873,8 +873,8 @@ func TestAuthentitcationTypesEndpoints(t *testing.T) {
 				err = json.Unmarshal(body, &authResponse)
 				require.NoError(t, err, "must not error")
 				require.NotNil(t, authResponse, "response must not be nil")
-				meta := authResponse.AuthenticationTypes.(types.Metadata)
-				require.Equal(t, "basicauth", meta["name"], "must contain basicauth for now")
+				meta := authResponse.AuthenticationTypes.(map[string]interface{})
+				require.Equal(t, "basicauth", meta["type"], "must contain basicauth for now")
 			},
 		},
 	}
