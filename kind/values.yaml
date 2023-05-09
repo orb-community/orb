@@ -21,7 +21,7 @@ orb:
       name: "orb-policies"
       pullPolicy: "IfNotPresent"
       repository: "orbcommunity"
-      tag: "develop"
+      tag: "0.25.0-62e642f9"
 
   fleet:
     image:
