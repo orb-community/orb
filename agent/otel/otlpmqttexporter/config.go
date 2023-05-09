@@ -19,12 +19,12 @@ type Config struct {
 	Client *mqtt.Client
 
 	// Configuration to connect to MQTT
-	Address      string `mapstructure:"address"`
-	Id           string `mapstructure:"id"`
-	Key          string `mapstructure:"key"`
-	ChannelID    string `mapstructure:"channel_id"`
-	TLS          bool   `mapstructure:"enable_tls"`
-	MetricsTopic string `mapstructure:"metrics_topic"`
+	Address   string `mapstructure:"address"`
+	Id        string `mapstructure:"id"`
+	Key       string `mapstructure:"key"`
+	ChannelID string `mapstructure:"channel_id"`
+	TLS       bool   `mapstructure:"enable_tls"`
+	Topic     string `mapstructure:"topic"`
 
 	// Specific for ORB Agent
 	PktVisorVersion string `mapstructure:"pktvisor_version"`
@@ -36,7 +36,7 @@ var _ component.Config = (*Config)(nil)
 // Validate checks if the exporter configuration is valid
 func (cfg *Config) Validate() error {
 	if ((cfg.Address != "" && cfg.Id != "" && cfg.Key != "" && cfg.ChannelID != "") ||
-		cfg.Client != nil) && cfg.MetricsTopic != "" {
+		cfg.Client != nil) && cfg.Topic != "" {
 		return nil
 	}
 	return fmt.Errorf("invalid mqtt configuration")

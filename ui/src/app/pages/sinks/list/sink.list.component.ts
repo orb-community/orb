@@ -117,6 +117,12 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
         type: FilterTypes.MultiSelect,
         options: Object.values(SinkBackends).map((value) => value as string),
       },
+      {
+        name: 'Description',
+        prop: 'description',
+        filter: filterString,
+        type: FilterTypes.Input,
+      },
     ];
 
     this.filteredSinks$ = this.filters.createFilteredList()(

@@ -48,13 +48,13 @@ func TestUserAgent(t *testing.T) {
 	t.Run("metrics", func(t *testing.T) {
 		for _, test := range tests {
 			t.Run(test.name, func(t *testing.T) {
-				metricsTopic := "channels/uuid1/messages/be/test"
+				topic := "channels/uuid1/messages/be/test"
 				cfg := &Config{
-					Address:      mqttAddr,
-					Id:           "uuid1",
-					Key:          "uuid2",
-					TLS:          false,
-					MetricsTopic: metricsTopic,
+					Address: mqttAddr,
+					Id:      "uuid1",
+					Key:     "uuid2",
+					TLS:     false,
+					Topic:   topic,
 				}
 				exp, err := CreateMetricsExporter(context.Background(), set, cfg)
 				require.NoError(t, err)

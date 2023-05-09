@@ -5,13 +5,13 @@ FROM orbcommunity/orb-agent:${ORB_TAG} AS orb
 
 FROM orbcommunity/diode-agent:${DIODE_TAG} AS diode
 RUN SQPATH=$(pip show suzieq |  sed -n 's/Location: \(.*\)/\1/p') \
-&& cp -rf "$SQPATH/suzieq" "/tmp/suzieq-patched"
+    && cp -rf "$SQPATH/suzieq" "/tmp/suzieq-patched"
 
 FROM orbcommunity/pktvisor:${PKTVISOR_TAG}
 # adding orb-agent
 RUN mkdir /opt/orb
 COPY --from=orb /usr/local/bin/orb-agent /usr/local/bin/orb-agent
-COPY --from=orb /opt/orb/agent_default.yaml /opt/orb/agent_default.yaml
+COPY ./agent/docker/agent_default_full.yaml /opt/orb/agent_default.yaml
 COPY --from=orb /usr/local/bin/orb-agent-entry.sh /usr/local/bin/orb-agent-entry.sh
 COPY --from=orb /run-agent.sh /run-agent.sh
 
@@ -26,8 +26,8 @@ RUN python3 -m pip install --upgrade pip && pip install suzieq==0.20.1
 COPY --from=diode /root/.suzieq /root/.suzieq
 COPY --from=diode /tmp/suzieq-patched /tmp/suzieq-patched
 RUN SQPATH=$(pip show suzieq |  sed -n 's/Location: \(.*\)/\1/p') \
-&& cp -rf /tmp/suzieq-patched/* "$SQPATH/suzieq/" \
-&& rm -rf /tmp/suzieq-patched
+    && cp -rf /tmp/suzieq-patched/* "$SQPATH/suzieq/" \
+    && rm -rf /tmp/suzieq-patched
 
 RUN chmod a+x /run-agent.sh
 

@@ -45,7 +45,7 @@
       [(editMode)]="editMode.details"
       [policy]="policy"
     ></ngx-policy-details>
-    <ngx-policy-groups [groups]="policy.groups"></ngx-policy-groups>
+    <ngx-policy-groups [groups]="policy.groups" [policy]="policy"></ngx-policy-groups>
   </div>
   <div class="card-col col-8">
     <ngx-policy-datasets

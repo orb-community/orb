@@ -7,6 +7,7 @@ import { Agent } from 'app/common/interfaces/orb/agent.interface';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { AgentsService } from 'app/common/services/agents/agents.service';
 import { Router } from '@angular/router';
+import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 
 @Component({
   selector: 'ngx-agent-match-component',
@@ -19,6 +20,9 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
 
   @Input()
   agentGroup: AgentGroup;
+
+  @Input()
+  policy!: AgentPolicy;
 
   agents: Agent[];
 
@@ -34,6 +38,8 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
   @ViewChild('agentTagsTemplateCell') agentTagsTemplateCell: TemplateRef<any>;
 
   @ViewChild('agentStateTemplateCell') agentStateTemplateRef: TemplateRef<any>;
+
+  @ViewChild('agentEspecificPolicyStateTemplateCell') agentEspecificPolicyStateTemplateRef: TemplateRef<any>;
 
   tableFilters: DropdownFilterItem[] = [
     {
@@ -94,14 +100,23 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
       },
       {
         prop: 'state',
-        name: 'Status',
+        name: 'Agent Status',
         resizeable: false,
         canAutoResize: true,
-        flexGrow: 2,
+        flexGrow: 3,
         minWidth: 90,
-        width: 90,
-        maxWidth: 90,
+        width: 344,
+        maxWidth: 344,
         cellTemplate: this.agentStateTemplateRef,
+      },
+      {
+        prop: 'policy_agg_info',
+        name: 'Policy Status',
+        resizeable: false,
+        flexGrow: 3,
+        canAutoResize: true,
+        minWidth: 150,
+        cellTemplate: this.agentEspecificPolicyStateTemplateRef,
       },
     ];
   }
@@ -116,7 +131,16 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
     const tagsList = Object.keys(tags).map(key => ({ [key]: tags[key] }));
     this.agentsService.getAllAgents(tagsList).subscribe(
       resp => {
-        this.agents = resp;
+        if(!!this.policy){
+          this.agents = resp.map((agent)=>{
+            const {policy_state} = agent;
+            const policy_agg_info = !!policy_state && policy_state[this.policy.id].state || "Not Applied";
+            
+            return {...agent, policy_agg_info };
+          })
+        } else {
+          this.agents = resp;
+        }
       },
     );
   }

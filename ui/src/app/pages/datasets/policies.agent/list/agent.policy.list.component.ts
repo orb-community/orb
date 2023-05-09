@@ -92,12 +92,6 @@ export class AgentPolicyListComponent
         type: FilterTypes.Input,
       },
       {
-        name: 'Description',
-        prop: 'description',
-        filter: filterString,
-        type: FilterTypes.Input,
-      },
-      {
         name: 'Tags',
         prop: 'tags',
         filter: filterTags,
@@ -108,6 +102,12 @@ export class AgentPolicyListComponent
         prop: 'version',
         filter: filterNumber,
         type: FilterTypes.Number,
+      },
+      {
+        name: 'Description',
+        prop: 'description',
+        filter: filterString,
+        type: FilterTypes.Input,
       },
     ];
 

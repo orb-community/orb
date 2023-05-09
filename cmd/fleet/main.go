@@ -11,23 +11,6 @@ package main
 import (
 	"context"
 	"fmt"
-	authapi "github.com/mainflux/mainflux/auth/api/grpc"
-	mflog "github.com/mainflux/mainflux/logger"
-	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
-	opentracing "github.com/opentracing/opentracing-go"
-	"github.com/orb-community/orb/fleet"
-	fleetgrpc "github.com/orb-community/orb/fleet/api/grpc"
-	fleethttp "github.com/orb-community/orb/fleet/api/http"
-	"github.com/orb-community/orb/fleet/backend/pktvisor"
-	"github.com/orb-community/orb/fleet/pb"
-	"github.com/orb-community/orb/fleet/postgres"
-	rediscons "github.com/orb-community/orb/fleet/redis/consumer"
-	redisprod "github.com/orb-community/orb/fleet/redis/producer"
-	"github.com/orb-community/orb/pkg/config"
-	policiesgrpc "github.com/orb-community/orb/policies/api/grpc"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-	"google.golang.org/grpc/reflection"
 	"io"
 	"io/ioutil"
 	"log"
@@ -39,6 +22,25 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	authapi "github.com/mainflux/mainflux/auth/api/grpc"
+	mflog "github.com/mainflux/mainflux/logger"
+	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
+	opentracing "github.com/opentracing/opentracing-go"
+	"github.com/orb-community/orb/fleet"
+	fleetgrpc "github.com/orb-community/orb/fleet/api/grpc"
+	fleethttp "github.com/orb-community/orb/fleet/api/http"
+	"github.com/orb-community/orb/fleet/backend/diode"
+	"github.com/orb-community/orb/fleet/backend/pktvisor"
+	"github.com/orb-community/orb/fleet/pb"
+	"github.com/orb-community/orb/fleet/postgres"
+	rediscons "github.com/orb-community/orb/fleet/redis/consumer"
+	redisprod "github.com/orb-community/orb/fleet/redis/producer"
+	"github.com/orb-community/orb/pkg/config"
+	policiesgrpc "github.com/orb-community/orb/policies/api/grpc"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"google.golang.org/grpc/reflection"
 
 	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
 	r "github.com/go-redis/redis/v8"
@@ -239,6 +241,7 @@ func newFleetService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.L
 	mfsdk := mfsdk.NewSDK(config)
 
 	pktvisor.Register(auth, agentRepo)
+	diode.Register(auth, agentRepo)
 
 	svc := fleet.NewFleetService(logger, auth, agentRepo, agentGroupRepo, agentComms, mfsdk, aDone)
 	svc = redisprod.NewEventStoreMiddleware(svc, esClient)

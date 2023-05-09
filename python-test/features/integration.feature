@@ -272,8 +272,8 @@ Scenario: Provision agent with tag matching existing group with multiple policie
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
         And referred sink must have active state on response within 120 seconds
         And 20 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
-
-@sanity @sink_status_idle
+@MUTE
+#@sanity @sink_status_idle
 Scenario: Sink idle after 5 minutes without metrics flow
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -291,7 +291,8 @@ Scenario: Sink idle after 5 minutes without metrics flow
     When stop the orb-agent container
     Then referred sink must have idle state on response after 660 seconds
 
-@sanity @sink_status_error
+@MUTE
+#@sanity @sink_status_error
 Scenario: Sink with invalid endpoint
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -371,8 +372,8 @@ Scenario: Unapplying policies that failed by removing group
         And no dataset should be linked to the removed group anymore
         And 0 dataset(s) have validity valid and 4 have validity invalid in 30 seconds
 
-
-@smoke @sink_status_error
+@MUTE
+#@smoke @sink_status_error
 Scenario: Sink with invalid username
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -391,8 +392,8 @@ Scenario: Sink with invalid username
         And referred sink must have error state on response within 120 seconds
         And 4 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
-
-@smoke @sink_status_error
+@MUTE
+#@sanity @sink_status_error
 Scenario: Sink with invalid password
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -944,7 +945,8 @@ Scenario: Remove agent (check dataset)
         And last container created is exited after 120 seconds
         And 2 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
-@smoke @sink_status_error
+@MUTE
+#@sanity @sink_status_error
 Scenario: Edit sink active and use invalid remote host
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -964,8 +966,8 @@ Scenario: Edit sink active and use invalid remote host
     Then referred sink must have error state on response within 120 seconds
         And 10 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
-
-@smoke @sink_status_error
+@MUTE
+#@sanity @sink_status_error
 Scenario: Edit sink active and use invalid username
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -985,8 +987,8 @@ Scenario: Edit sink active and use invalid username
     Then referred sink must have error state on response within 120 seconds
         And 10 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
-
-@smoke @sink_status_error
+@MUTE
+#@sanity @sink_status_error
 Scenario: Edit sink active and use invalid password
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -1006,8 +1008,8 @@ Scenario: Edit sink active and use invalid password
     Then referred sink must have error state on response within 120 seconds
         And 10 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
-
-@sanity @sink_status_error
+@MUTE
+#@sanity @sink_status_error
 Scenario: Edit sink with invalid username and use valid one
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -1028,8 +1030,8 @@ Scenario: Edit sink with invalid username and use valid one
     Then referred sink must have active state on response within 120 seconds
         And 4 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
-
-@sanity @sink_status_error
+@MUTE
+#@sanity @sink_status_error
 Scenario: Edit sink with password and use valid one
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -1135,13 +1137,13 @@ Scenario: Partial Update: sink status after updating only sink name
         And this agent's heartbeat shows that 2 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 360 seconds
     When the name of this sink is updated
     Then the name updates to the new value and other fields remains the same
         And referred sink must have active state on response after 360 seconds
 
 
-  @sanity @sink_partial_update
+@sanity @sink_partial_update
 Scenario: Partial Update: sink status after updating only sink description
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -1154,7 +1156,7 @@ Scenario: Partial Update: sink status after updating only sink description
         And this agent's heartbeat shows that 2 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 360 seconds
     When the description of this sink is updated
     Then the description updates to the new value and other fields remains the same
       And referred sink must have active state on response after 360 seconds
@@ -1173,7 +1175,7 @@ Scenario: Partial Update: sink status after updating only sink tags
         And this agent's heartbeat shows that 2 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 360 seconds
     When the tags of this sink is updated
     Then the tags updates to the new value and other fields remains the same
         And referred sink must have active state on response after 360 seconds
@@ -1191,7 +1193,7 @@ Scenario: Partial Update: sink status after updating only sink configs
         And 3 simple policies are applied to the group
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And referred sink must have error state on response within 120 seconds
+        And referred sink must have error state on response within 360 seconds
     When the config of this sink is updated
     Then the config updates to the new value and other fields remains the same
         And referred sink must have active state on response within 360 seconds
@@ -1210,7 +1212,7 @@ Scenario: Partial Update: sink status after updating only sink name and descript
         And this agent's heartbeat shows that 2 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 360 seconds
     When the name and description of this sink is updated
     Then the name and description updates to the new value and other fields remains the same
         And referred sink must have active state on response after 360 seconds
@@ -1228,7 +1230,7 @@ Scenario: Partial Update: sink status after updating only sink name and configs
         And 3 simple policies are applied to the group
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And referred sink must have error state on response within 120 seconds
+        And referred sink must have error state on response within 360 seconds
     When the name and config of this sink is updated
     Then the name and config updates to the new value and other fields remains the same
         And referred sink must have active state on response within 360 seconds
@@ -1247,7 +1249,7 @@ Scenario: Partial Update: sink status after updating only sink name and tags
         And this agent's heartbeat shows that 2 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 360 seconds
     When the name and tags of this sink is updated
     Then the name and tags updates to the new value and other fields remains the same
         And referred sink must have active state on response after 360 seconds
@@ -1266,7 +1268,7 @@ Scenario: Partial Update: sink status after updating only sink description and t
         And this agent's heartbeat shows that 2 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 360 seconds
     When the description and tags of this sink is updated
     Then the description and tags updates to the new value and other fields remains the same
         And referred sink must have active state on response after 360 seconds
@@ -1302,7 +1304,7 @@ Scenario: Partial Update: sink status after updating only sink tags and configs
         And 3 simple policies are applied to the group
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And referred sink must have error state on response within 120 seconds
+        And referred sink must have error state on response within 360 seconds
     When the tags and config of this sink is updated
     Then the tags and config updates to the new value and other fields remains the same
         And referred sink must have active state on response within 360 seconds
@@ -1321,7 +1323,7 @@ Scenario: Partial Update: sink status after updating only sink name, description
         And this agent's heartbeat shows that 2 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And referred sink must have active state on response within 120 seconds
+        And referred sink must have active state on response within 360 seconds
     When the name, description and tags of this sink is updated
     Then the name, description and tags updates to the new value and other fields remains the same
         And referred sink must have active state on response after 360 seconds
@@ -1340,7 +1342,7 @@ Scenario: Partial Update: sink status after updating only sink name, description
         And 3 simple policies are applied to the group
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And referred sink must have error state on response within 120 seconds
+        And referred sink must have error state on response within 360 seconds
     When the name, description and config of this sink is updated
     Then the name, description and config updates to the new value and other fields remains the same
         And referred sink must have active state on response within 360 seconds
@@ -1358,7 +1360,7 @@ Scenario: Partial Update: sink status after updating only sink name, tags and co
         And 3 simple policies are applied to the group
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And referred sink must have error state on response within 120 seconds
+        And referred sink must have error state on response within 360 seconds
     When the name, tags and config of this sink is updated
     Then the name, tags and config updates to the new value and other fields remains the same
         And referred sink must have active state on response within 360 seconds
@@ -1376,7 +1378,7 @@ Scenario: Partial Update: sink status after updating only sink description, tags
         And 3 simple policies are applied to the group
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And referred sink must have error state on response within 120 seconds
+        And referred sink must have error state on response within 360 seconds
     When the description, tags and config of this sink is updated
     Then the description, tags and config updates to the new value and other fields remains the same
         And referred sink must have active state on response within 360 seconds

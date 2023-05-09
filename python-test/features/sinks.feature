@@ -141,7 +141,7 @@ Scenario: Partial Update: updating only sink name, description and tags
   Then the name, description and tags updates to the new value and other fields remains the same
 
 
-@sanity@sink_partial_update
+@sanity @sink_partial_update
 Scenario: Partial Update: updating only sink name, description and configs
   Given that the user has the prometheus/grafana credentials
     And the Orb user has a registered account
