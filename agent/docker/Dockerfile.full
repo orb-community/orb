@@ -1,6 +1,9 @@
 ARG PKTVISOR_TAG=develop
 ARG DIODE_TAG=develop
 ARG ORB_TAG=develop
+ARG OTELINF_TAG=develop
+FROM ghcr.io/leoparente/opentelemetry-infinity:${OTELINF_TAG} AS otelinf
+
 FROM orbcommunity/orb-agent:${ORB_TAG} AS orb
 
 FROM orbcommunity/diode-agent:${DIODE_TAG} AS diode
@@ -14,6 +17,9 @@ COPY --from=orb /usr/local/bin/orb-agent /usr/local/bin/orb-agent
 COPY ./agent/docker/agent_default_full.yaml /opt/orb/agent_default.yaml
 COPY --from=orb /usr/local/bin/orb-agent-entry.sh /usr/local/bin/orb-agent-entry.sh
 COPY --from=orb /run-agent.sh /run-agent.sh
+
+# adding otelinf-agent
+COPY --from=otelinf /exe /usr/local/bin/otelinf-agent
 
 # adding diode-agent
 COPY --from=diode /usr/local/bin/diode-agent /usr/local/bin/diode-agent
