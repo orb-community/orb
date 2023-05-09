@@ -209,6 +209,7 @@ def get_policy_ui_status(driver, name, status, event=None):
     policy_name = policy_name.text
     if span_elements[0].text == "Policy:" and span_elements[1].text == "Status:" and policy_status == status:
         event.set()
+        return policy_status, policy_name
     else:
         driver.refresh()
         event.wait(1)

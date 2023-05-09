@@ -31,7 +31,9 @@ func NewFactory() receiver.Factory {
 	return receiver.NewFactory(
 		typeStr,
 		CreateDefaultConfig,
-		receiver.WithMetrics(createMetricsReceiver, component.StabilityLevelAlpha))
+		receiver.WithMetrics(createMetricsReceiver, component.StabilityLevelAlpha),
+		receiver.WithLogs(createLogsReceiver, component.StabilityLevelAlpha),
+		receiver.WithTraces(createTracesReceiver, component.StabilityLevelAlpha))
 }
 
 // createDefaultConfig creates the default configuration for receiver.
@@ -51,6 +53,40 @@ func createMetricsReceiver(
 	err := r.registerMetricsConsumer(consumer)
 	if err != nil {
 		receiverCfg.Logger.Info("error on register metrics consumer")
+		return nil, err
+	}
+	return r, nil
+}
+
+// createLogsReceiver creates a logs receiver based on provided config.
+func createLogsReceiver(
+	ctx context.Context,
+	set receiver.CreateSettings,
+	cfg component.Config,
+	consumer consumer.Logs,
+) (receiver.Logs, error) {
+	receiverCfg := cfg.(*Config)
+	r := NewOrbReceiver(ctx, cfg.(*Config), set)
+	err := r.registerLogsConsumer(consumer)
+	if err != nil {
+		receiverCfg.Logger.Info("error on register logs consumer")
+		return nil, err
+	}
+	return r, nil
+}
+
+// createLogsReceiver creates a logs receiver based on provided config.
+func createTracesReceiver(
+	ctx context.Context,
+	set receiver.CreateSettings,
+	cfg component.Config,
+	consumer consumer.Traces,
+) (receiver.Traces, error) {
+	receiverCfg := cfg.(*Config)
+	r := NewOrbReceiver(ctx, cfg.(*Config), set)
+	err := r.registerTracesConsumer(consumer)
+	if err != nil {
+		receiverCfg.Logger.Info("error on register traces consumer")
 		return nil, err
 	}
 	return r, nil

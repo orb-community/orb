@@ -39,11 +39,6 @@ const (
 	TapsTimeout         = 5
 )
 
-const (
-	Prometheus string = "prometheus"
-	Otlp              = "otlp"
-)
-
 // AppInfo represents server application information
 type AppInfo struct {
 	App struct {
@@ -81,12 +76,10 @@ type pktvisorBackend struct {
 
 	// OpenTelemetry management
 	scrapeOtel       bool
-	otelReceiverType string
 	otelReceiverHost string
 	otelReceiverPort int
-	receiver         map[string]receiver.Metrics
-	exporter         map[string]exporter.Metrics
-	routineMap       map[string]context.CancelFunc
+	receiver         receiver.Metrics
+	exporter         exporter.Metrics
 }
 
 func (p *pktvisorBackend) getFreePort() (int, error) {
@@ -100,21 +93,6 @@ func (p *pktvisorBackend) getFreePort() (int, error) {
 	}
 	defer l.Close()
 	return l.Addr().(*net.TCPAddr).Port, nil
-}
-
-func (p *pktvisorBackend) addScraperProcess(ctx context.Context, cancel context.CancelFunc, policyID string, policyName string) {
-	attributeCtx := context.WithValue(ctx, "policy_name", policyName)
-	attributeCtx = context.WithValue(attributeCtx, "policy_id", policyID)
-	p.scrapeOpenTelemetry(attributeCtx)
-	p.routineMap[policyID] = cancel
-}
-
-func (p *pktvisorBackend) killScraperProcess(policyID string) {
-	cancel := p.routineMap[policyID]
-	if cancel != nil {
-		cancel()
-		delete(p.routineMap, policyID)
-	}
 }
 
 func (p *pktvisorBackend) GetStartTime() time.Time {
@@ -162,18 +140,6 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 	p.cancelFunc = cancelFunc
 	p.ctx = ctx
 
-	if p.routineMap == nil {
-		p.routineMap = make(map[string]context.CancelFunc)
-	}
-
-	if p.receiver == nil {
-		p.receiver = make(map[string]receiver.Metrics)
-	}
-
-	if p.exporter == nil {
-		p.exporter = make(map[string]exporter.Metrics)
-	}
-
 	_, err := exec.LookPath(p.binary)
 	if err != nil {
 		p.logger.Error("pktvisor startup error: binary not found", zap.Error(err))
@@ -191,7 +157,7 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 		pvOptions = append(pvOptions, "--config", p.configFile)
 	}
 
-	if p.scrapeOtel && p.otelReceiverType == Otlp {
+	if p.scrapeOtel {
 		pvOptions = append(pvOptions, "--otel")
 		pvOptions = append(pvOptions, "--otel-host", p.otelReceiverHost)
 		if p.otelReceiverPort == 0 {
@@ -295,9 +261,7 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 		if err := p.scrapeDefault(); err != nil {
 			return err
 		}
-	} else if p.otelReceiverType == Prometheus {
-		p.scraper.StartAsync()
-	} else if p.otelReceiverType == Otlp {
+	} else {
 		p.receiveOtlp()
 	}
 
@@ -314,12 +278,6 @@ func (p *pktvisorBackend) Stop(ctx context.Context) error {
 	}
 	p.scraper.Stop()
 
-	// Stop otel scraper goroutines
-	if p.scrapeOtel && p.otelReceiverType == Prometheus {
-		for key := range p.routineMap {
-			p.killScraperProcess(key)
-		}
-	}
 	p.logger.Info("pktvisor process stopped", zap.Int("pid", finalStatus.PID), zap.Int("exit_code", finalStatus.Exit))
 	return nil
 }
@@ -352,12 +310,6 @@ func (p *pktvisorBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo
 			if v.(bool) {
 				p.logger.Info("OpenTelemetry enabled")
 			}
-		case "ReceiverType":
-			p.otelReceiverType = v.(string)
-			if v.(string) == Otlp {
-				p.logger.Info("OTLP receiver enabled")
-			}
-
 		case "Host":
 			p.otelReceiverHost = v.(string)
 		case "Port":

@@ -49,22 +49,25 @@
       <div class="d-flex flex-column col-5 px-0 mx-0">
         <div>
           <label class="font-weight-bold">{{strings.value}}</label>
+          <span *ngIf="required" class="ns1red">*</span>
         </div>
         <div>
-          <input #valueInput
+          <input #valueInput="ngModel"
                  data-orb-qa-id="input#orb_tag_value"
                  fieldSize="medium"
                  id="value"
                  maxlength="64"
                  [(ngModel)]="value"
                  fullWidth="true"
+                 required
+                 ngxEmptyInput
                  nbInput/>
         </div>
       </div>
       <div class="d-flex col-1 align-items-center justify-content-center mx-0 pl-4 px-0"
            style="transform: translateY(14px);">
         <button (click)="onAddTag()"
-                [disabled]="keyInput.invalid"
+                [disabled]="keyInput.invalid || valueInput.invalid"
                 data-orb-qa-id="button#addTag"
                 ghost
                 nbButton>

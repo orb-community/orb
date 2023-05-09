@@ -21,6 +21,7 @@ def after_scenario(context, scenario):
         Then remove the orb-agent container
         ''')
     if "driver" in context:
+        context.driver.stop_client()
         context.driver.close()
         context.driver.quit()
     if "mocked_interface" in scenario.tags and scenario.status == Status.passed:

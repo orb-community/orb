@@ -52,7 +52,8 @@ func (svc *SinkerService) checkSinker() {
 	for {
 		select {
 		case <-svc.hbDone:
-			svc.otelCancelFunct()
+			svc.otelMetricsCancelFunct()
+			svc.otelLogsCancelFunct()
 			svc.cancelAsyncContext()
 			return
 		case t := <-svc.hbTicker.C:

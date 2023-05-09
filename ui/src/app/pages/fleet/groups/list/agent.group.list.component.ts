@@ -109,6 +109,12 @@ export class AgentGroupListComponent
         autoSuggestion: orb.getGroupsTags(),
         type: FilterTypes.AutoComplete,
       },
+      {
+        name: 'Description',
+        prop: 'description',
+        filter: filterString,
+        type: FilterTypes.Input,
+      },
       // {
       //   name: 'Status',
       //   prop: 'state',

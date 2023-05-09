@@ -68,6 +68,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { AgentViewComponent } from './fleet/agents/view/agent.view.component';
 import { PagesRoutingModule } from './pages-routing.module';
 import { PagesComponent } from './pages.component';
+import { SinkViewComponent } from './sinks/view/sink.view.component';
 
 @NgModule({
   imports: [
@@ -150,6 +151,7 @@ import { PagesComponent } from './pages.component';
     SinkAddComponent,
     SinkDetailsComponent,
     SinkDeleteComponent,
+    SinkViewComponent,
     // DEV SHOWCASE
     ShowcaseComponent,
   ],
