@@ -834,6 +834,66 @@ func TestListSinks(t *testing.T) {
 	}
 }
 
+func TestAuthentitcationTypesEndpoints(t *testing.T) {
+	service := newService(map[string]string{token: email})
+	server := newServer(service)
+	defer server.Close()
+
+	cases := map[string]struct {
+		path               string
+		auth               string
+		assertionFunctions func(t *testing.T, response http.Response, err error)
+	}{
+		"list authentication types": {
+			path: "features/authenticationtypes",
+			auth: token,
+			assertionFunctions: func(t *testing.T, response http.Response, err error) {
+				require.NoError(t, err, "must not error")
+				assert.Equal(t, 200, response.StatusCode, "expected OK Status code")
+				res := response.Body
+				body, err := io.ReadAll(res)
+				require.NoError(t, err, "must not error")
+				var authResponse sinkAuthTypesRes
+				err = json.Unmarshal(body, &authResponse)
+				require.NoError(t, err, "must not error")
+				require.NotNil(t, authResponse, "response must not be nil")
+				require.Equal(t, 1, len(authResponse.AuthenticationTypes), "must contain basicauth for now")
+			},
+		},
+		"view authentication type basicauth": {
+			path: "features/authenticationtypes/basicauth",
+			auth: token,
+			assertionFunctions: func(t *testing.T, response http.Response, err error) {
+				require.NoError(t, err, "must not error")
+				assert.Equal(t, 200, response.StatusCode, "expected OK Status code")
+				res := response.Body
+				body, err := io.ReadAll(res)
+				require.NoError(t, err, "must not error")
+				var authResponse sinkAuthTypeRes
+				err = json.Unmarshal(body, &authResponse)
+				require.NoError(t, err, "must not error")
+				require.NotNil(t, authResponse, "response must not be nil")
+				meta := authResponse.AuthenticationTypes.(types.Metadata)
+				require.Equal(t, "basicauth", meta["name"], "must contain basicauth for now")
+			},
+		},
+	}
+
+	for desc, tc := range cases {
+		t.Run(desc, func(t *testing.T) {
+			req := testRequest{
+				client: server.Client(),
+				method: http.MethodGet,
+				url:    fmt.Sprintf("%s/%s", server.URL, tc.path),
+				token:  fmt.Sprintf("Bearer %s", tc.auth),
+			}
+
+			res, err := req.make()
+			tc.assertionFunctions(t, *res, err)
+		})
+	}
+}
+
 func TestViewBackend(t *testing.T) {
 	service := newService(map[string]string{token: email})
 	server := newServer(service)

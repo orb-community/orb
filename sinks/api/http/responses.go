@@ -6,6 +6,7 @@ package http
 
 import (
 	"github.com/orb-community/orb/pkg/types"
+	"github.com/orb-community/orb/sinks/authentication_type"
 	"net/http"
 	"time"
 )
@@ -83,7 +84,7 @@ func (s sinkAuthTypeRes) Empty() bool {
 }
 
 type sinkAuthTypesRes struct {
-	AuthenticationTypes []interface{} `json:"authentication_types,omitempty"`
+	AuthenticationTypes []authentication_type.AuthenticationTypeConfig `json:"authentication_types,omitempty"`
 }
 
 func (s sinkAuthTypesRes) Code() int {
