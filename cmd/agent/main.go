@@ -13,6 +13,7 @@ import (
 	"syscall"
 
 	"github.com/orb-community/orb/agent"
+	"github.com/orb-community/orb/agent/backend/diode"
 	"github.com/orb-community/orb/agent/backend/pktvisor"
 	"github.com/orb-community/orb/agent/config"
 	"github.com/orb-community/orb/buildinfo"
@@ -32,9 +33,8 @@ var (
 )
 
 func init() {
-
 	pktvisor.Register()
-
+	diode.Register()
 }
 
 func Version(cmd *cobra.Command, args []string) {
@@ -53,8 +53,6 @@ func Run(cmd *cobra.Command, args []string) {
 		cobra.CheckErr(fmt.Errorf("agent start up error (config): %w", err))
 		os.Exit(1)
 	}
-
-	config.OrbAgent.Debug.Enable = Debug
 
 	// include pktvisor backend by default if binary is at default location
 	_, err = os.Stat(pktvisor.DefaultBinary)
@@ -147,10 +145,9 @@ func mergeOrError(path string) {
 	v.SetDefault("orb.db.file", "./orb-agent.db")
 	v.SetDefault("orb.tls.verify", true)
 	v.SetDefault("orb.otel.enable", true)
-	v.SetDefault("orb.otel.receiver_type", "prometheus")
 	v.SetDefault("orb.otel.host", "localhost")
 	v.SetDefault("orb.otel.port", 0)
-	v.SetDefault("orb.debug.enable", false)
+	v.SetDefault("orb.debug.enable", Debug)
 
 	v.SetDefault("orb.backends.pktvisor.binary", "/usr/local/sbin/pktvisord")
 	v.SetDefault("orb.backends.pktvisor.config_file", "/opt/orb/agent.yaml")

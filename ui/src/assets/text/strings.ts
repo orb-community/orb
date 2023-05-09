@@ -66,6 +66,9 @@ export const STRINGS = {
     edit: {
       header: 'Edit Sink',
     },
+    view: {
+      header: 'View Sink',
+    },
     // delete modal
     delete: {
       header: 'Delete Sink Confirmation',

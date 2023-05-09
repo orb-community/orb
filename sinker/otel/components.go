@@ -11,19 +11,22 @@ import (
 	"github.com/orb-community/orb/sinker/otel/orbreceiver"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configtelemetry"
+	"go.opentelemetry.io/collector/exporter"
+	"go.opentelemetry.io/collector/processor"
+	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/otel/metric/global"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
-func StartOtelComponents(ctx context.Context, bridgeService *bridgeservice.SinkerOtelBridgeService, logger *zap.Logger, kafkaUrl string, pubSub mfnats.PubSub) (context.CancelFunc, error) {
+func StartOtelMetricsComponents(ctx context.Context, bridgeService *bridgeservice.SinkerOtelBridgeService, logger *zap.Logger, kafkaUrl string, pubSub mfnats.PubSub) (context.CancelFunc, error) {
 	otelContext, otelCancelFunc := context.WithCancel(ctx)
 
 	log := logger.Sugar()
-	log.Info("Starting to create Otel Components in routine: ", ctx.Value("routine"))
+	log.Info("Starting to create Otel Metrics Components in routine: ", ctx.Value("routine"))
 	exporterFactory := kafkaexporter.NewFactory()
 	exporterCtx := context.WithValue(otelContext, "component", "kafkaexporter")
-	exporterCreateSettings := component.ExporterCreateSettings{
+	exporterCreateSettings := exporter.CreateSettings{
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         logger,
 			TracerProvider: trace.NewNoopTracerProvider(),
@@ -37,34 +40,23 @@ func StartOtelComponents(ctx context.Context, bridgeService *bridgeservice.Sinke
 	expCfg.Topic = "otlp_metrics"
 	exporter, err := exporterFactory.CreateMetricsExporter(exporterCtx, exporterCreateSettings, expCfg)
 	if err != nil {
-		log.Error("error on creating exporter", err)
+		log.Error("error on creating metrics exporter", err)
 		otelCancelFunc()
 		ctx.Done()
 		return nil, err
 	}
 	err = exporter.Start(exporterCtx, nil)
 	if err != nil {
-		log.Error("error on starting exporter", err)
+		log.Error("error on starting metrics exporter", err)
 		otelCancelFunc()
 		ctx.Done()
 		return nil, err
 	}
 	transformFactory := transformprocessor.NewFactory()
 	transformCtx := context.WithValue(otelContext, "component", "transformprocessor")
-	log.Info("start to create component", zap.Any("component", transformCtx.Value("component")))
+	log.Info("start to create metrics component", zap.Any("component", transformCtx.Value("component")))
 	transformCfg := transformFactory.CreateDefaultConfig().(*transformprocessor.Config)
-	transformCfg.OTTLConfig.Metrics.Statements = []string{
-		`set(attributes["agent-name"], resource.attributes["agent_name"])`,
-		`set(attributes["agent-tags"], resource.attributes["agent_tags"])`,
-		`set(attributes["orb-tags"], resource.attributes["orb_tags"])`,
-		`set(attributes["agent-groups"], resource.attributes["agent_groups"])`,
-		`set(attributes["agent-ownerID"], resource.attributes["agent_ownerID"])`,
-		`set(attributes["policy-id"], resource.attributes["policy_id"])`,
-		`set(attributes["policy-name"], resource.attributes["policy_name"])`,
-		`set(attributes["sink-id"], resource.attributes["sink_id"])`,
-		`set(attributes["format"], "otlp")`,
-	}
-	transformSet := component.ProcessorCreateSettings{
+	transformSet := processor.CreateSettings{
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         logger,
 			TracerProvider: trace.NewNoopTracerProvider(),
@@ -74,12 +66,12 @@ func StartOtelComponents(ctx context.Context, bridgeService *bridgeservice.Sinke
 	}
 	processor, err := transformFactory.CreateMetricsProcessor(transformCtx, transformSet, transformCfg, exporter)
 	if err != nil {
-		log.Error("error on creating processor", err)
+		log.Error("error on creating metrics processor", err)
 		otelCancelFunc()
 		ctx.Done()
 		return nil, err
 	}
-	log.Info("created kafka exporter successfully")
+	log.Info("created kafka metrics exporter successfully")
 	// receiver Factory
 	orbReceiverFactory := orbreceiver.NewFactory()
 	receiverCtx := context.WithValue(otelContext, "component", "orbreceiver")
@@ -87,7 +79,7 @@ func StartOtelComponents(ctx context.Context, bridgeService *bridgeservice.Sinke
 	receiverCfg.Logger = logger
 	receiverCfg.PubSub = pubSub
 	receiverCfg.SinkerService = bridgeService
-	receiverSet := component.ReceiverCreateSettings{
+	receiverSet := receiver.CreateSettings{
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         logger,
 			TracerProvider: trace.NewNoopTracerProvider(),
@@ -96,9 +88,9 @@ func StartOtelComponents(ctx context.Context, bridgeService *bridgeservice.Sinke
 		},
 	}
 	receiver, err := orbReceiverFactory.CreateMetricsReceiver(receiverCtx, receiverSet, receiverCfg, processor)
-	log.Info("created receiver")
+	log.Info("created metrics receiver")
 	if err != nil {
-		log.Error("error on creating receiver", err)
+		log.Error("error on creating metrics receiver", err)
 		otelCancelFunc()
 		ctx.Done()
 		return nil, err
@@ -106,11 +98,187 @@ func StartOtelComponents(ctx context.Context, bridgeService *bridgeservice.Sinke
 	err = receiver.Start(receiverCtx, nil)
 	log.Info("started receiver")
 	if err != nil {
-		log.Error("error on starting receiver", err)
+		log.Error("error on starting metrics receiver", err)
 		otelCancelFunc()
 		ctx.Done()
 		return nil, err
 	}
-	log.Info("created orb receiver successfully")
+	log.Info("created orb metrics receiver successfully")
+	return otelCancelFunc, nil
+}
+
+func StartOtelLogsComponents(ctx context.Context, bridgeService *bridgeservice.SinkerOtelBridgeService, logger *zap.Logger, kafkaUrl string, pubSub mfnats.PubSub) (context.CancelFunc, error) {
+	otelContext, otelCancelFunc := context.WithCancel(ctx)
+
+	log := logger.Sugar()
+	log.Info("Starting to create Otel Logs Components in routine: ", ctx.Value("routine"))
+	exporterFactory := kafkaexporter.NewFactory()
+	exporterCtx := context.WithValue(otelContext, "component", "kafkaexporterlogs")
+	exporterCreateSettings := exporter.CreateSettings{
+		TelemetrySettings: component.TelemetrySettings{
+			Logger:         logger,
+			TracerProvider: trace.NewNoopTracerProvider(),
+			MeterProvider:  global.MeterProvider(),
+			MetricsLevel:   configtelemetry.LevelDetailed,
+		},
+		BuildInfo: component.NewDefaultBuildInfo(),
+	}
+	expCfg := exporterFactory.CreateDefaultConfig().(*kafkaexporter.Config)
+	expCfg.Brokers = []string{kafkaUrl}
+	expCfg.Topic = "otlp_logs"
+	exporter, err := exporterFactory.CreateLogsExporter(exporterCtx, exporterCreateSettings, expCfg)
+	if err != nil {
+		log.Error("error on creating logs exporter", err)
+		otelCancelFunc()
+		ctx.Done()
+		return nil, err
+	}
+	err = exporter.Start(exporterCtx, nil)
+	if err != nil {
+		log.Error("error on starting logs exporter", err)
+		otelCancelFunc()
+		ctx.Done()
+		return nil, err
+	}
+	transformFactory := transformprocessor.NewFactory()
+	transformCtx := context.WithValue(otelContext, "component", "transformprocessorlogs")
+	log.Info("start to create logs component", zap.Any("component", transformCtx.Value("component")))
+	transformCfg := transformFactory.CreateDefaultConfig().(*transformprocessor.Config)
+	transformSet := processor.CreateSettings{
+		TelemetrySettings: component.TelemetrySettings{
+			Logger:         logger,
+			TracerProvider: trace.NewNoopTracerProvider(),
+			MeterProvider:  global.MeterProvider(),
+			MetricsLevel:   configtelemetry.LevelDetailed,
+		},
+	}
+	processor, err := transformFactory.CreateLogsProcessor(transformCtx, transformSet, transformCfg, exporter)
+	if err != nil {
+		log.Error("error on creating logs processor", err)
+		otelCancelFunc()
+		ctx.Done()
+		return nil, err
+	}
+	log.Info("created kafka logs exporter successfully")
+	// receiver Factory
+	orbReceiverFactory := orbreceiver.NewFactory()
+	receiverCtx := context.WithValue(otelContext, "component", "orbreceiverlogs")
+	receiverCfg := orbReceiverFactory.CreateDefaultConfig().(*orbreceiver.Config)
+	receiverCfg.Logger = logger
+	receiverCfg.PubSub = pubSub
+	receiverCfg.SinkerService = bridgeService
+	receiverSet := receiver.CreateSettings{
+		TelemetrySettings: component.TelemetrySettings{
+			Logger:         logger,
+			TracerProvider: trace.NewNoopTracerProvider(),
+			MeterProvider:  global.MeterProvider(),
+			MetricsLevel:   configtelemetry.LevelDetailed,
+		},
+	}
+	receiver, err := orbReceiverFactory.CreateLogsReceiver(receiverCtx, receiverSet, receiverCfg, processor)
+	log.Info("created logs receiver")
+	if err != nil {
+		log.Error("error on creating receiver", err)
+		otelCancelFunc()
+		ctx.Done()
+		return nil, err
+	}
+	err = receiver.Start(receiverCtx, nil)
+	log.Info("started logs receiver")
+	if err != nil {
+		log.Error("error on starting logs receiver", err)
+		otelCancelFunc()
+		ctx.Done()
+		return nil, err
+	}
+	log.Info("created orb logs receiver successfully")
+	return otelCancelFunc, nil
+}
+
+func StartOtelTracesComponents(ctx context.Context, bridgeService *bridgeservice.SinkerOtelBridgeService, logger *zap.Logger, kafkaUrl string, pubSub mfnats.PubSub) (context.CancelFunc, error) {
+	otelContext, otelCancelFunc := context.WithCancel(ctx)
+
+	log := logger.Sugar()
+	log.Info("Starting to create Otel Traces Components in routine: ", ctx.Value("routine"))
+	exporterFactory := kafkaexporter.NewFactory()
+	exporterCtx := context.WithValue(otelContext, "component", "kafkaexporter")
+	exporterCreateSettings := exporter.CreateSettings{
+		TelemetrySettings: component.TelemetrySettings{
+			Logger:         logger,
+			TracerProvider: trace.NewNoopTracerProvider(),
+			MeterProvider:  global.MeterProvider(),
+			MetricsLevel:   configtelemetry.LevelDetailed,
+		},
+		BuildInfo: component.NewDefaultBuildInfo(),
+	}
+	expCfg := exporterFactory.CreateDefaultConfig().(*kafkaexporter.Config)
+	expCfg.Brokers = []string{kafkaUrl}
+	expCfg.Topic = "otlp_traces"
+	exporter, err := exporterFactory.CreateTracesExporter(exporterCtx, exporterCreateSettings, expCfg)
+	if err != nil {
+		log.Error("error on creating traces exporter", err)
+		otelCancelFunc()
+		ctx.Done()
+		return nil, err
+	}
+	err = exporter.Start(exporterCtx, nil)
+	if err != nil {
+		log.Error("error on starting traces exporter", err)
+		otelCancelFunc()
+		ctx.Done()
+		return nil, err
+	}
+	transformFactory := transformprocessor.NewFactory()
+	transformCtx := context.WithValue(otelContext, "component", "transformprocessor")
+	log.Info("start to create traces component", zap.Any("component", transformCtx.Value("component")))
+	transformCfg := transformFactory.CreateDefaultConfig().(*transformprocessor.Config)
+	transformSet := processor.CreateSettings{
+		TelemetrySettings: component.TelemetrySettings{
+			Logger:         logger,
+			TracerProvider: trace.NewNoopTracerProvider(),
+			MeterProvider:  global.MeterProvider(),
+			MetricsLevel:   configtelemetry.LevelDetailed,
+		},
+	}
+	processor, err := transformFactory.CreateTracesProcessor(transformCtx, transformSet, transformCfg, exporter)
+	if err != nil {
+		log.Error("error on creating traces processor", err)
+		otelCancelFunc()
+		ctx.Done()
+		return nil, err
+	}
+	log.Info("created kafka traces exporter successfully")
+	// receiver Factory
+	orbReceiverFactory := orbreceiver.NewFactory()
+	receiverCtx := context.WithValue(otelContext, "component", "orbreceiver")
+	receiverCfg := orbReceiverFactory.CreateDefaultConfig().(*orbreceiver.Config)
+	receiverCfg.Logger = logger
+	receiverCfg.PubSub = pubSub
+	receiverCfg.SinkerService = bridgeService
+	receiverSet := receiver.CreateSettings{
+		TelemetrySettings: component.TelemetrySettings{
+			Logger:         logger,
+			TracerProvider: trace.NewNoopTracerProvider(),
+			MeterProvider:  global.MeterProvider(),
+			MetricsLevel:   configtelemetry.LevelDetailed,
+		},
+	}
+	receiver, err := orbReceiverFactory.CreateTracesReceiver(receiverCtx, receiverSet, receiverCfg, processor)
+	log.Info("created traces receiver")
+	if err != nil {
+		log.Error("error on creating traces receiver", err)
+		otelCancelFunc()
+		ctx.Done()
+		return nil, err
+	}
+	err = receiver.Start(receiverCtx, nil)
+	log.Info("started traces receiver")
+	if err != nil {
+		log.Error("error on starting traces receiver", err)
+		otelCancelFunc()
+		ctx.Done()
+		return nil, err
+	}
+	log.Info("created orb traces receiver successfully")
 	return otelCancelFunc, nil
 }

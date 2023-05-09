@@ -117,6 +117,12 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
         type: FilterTypes.MultiSelect,
         options: Object.values(SinkBackends).map((value) => value as string),
       },
+      {
+        name: 'Description',
+        prop: 'description',
+        filter: filterString,
+        type: FilterTypes.Input,
+      },
     ];
 
     this.filteredSinks$ = this.filters.createFilteredList()(
@@ -214,6 +220,13 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
     this.router.navigate([`edit/${sink.id}`], {
       relativeTo: this.route,
       state: { sink: sink, edit: true },
+    });
+  }
+
+  onOpenView(sink: any) {
+    this.router.navigate([`view/${sink.id}`], {
+      relativeTo: this.route,
+      state: { sink: sink },
     });
   }
 

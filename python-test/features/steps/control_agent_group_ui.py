@@ -186,8 +186,9 @@ def create_group_via_UI(name, orb_tags, driver, token, existent_groups, descript
     button_was_clicked = button_click_by_xpath(UtilButton.save_button(), driver,
                                                "Unable to click on save button on group page")
     assert_that(button_was_clicked, equal_to(True), "Unable to click on save tags button on group page")
-    WebDriverWait(driver, time_to_wait_until).until(
-        EC.text_to_be_present_in_element((By.CSS_SELECTOR, "span.title"), 'Agent Group successfully created'))
+    # WebDriverWait(driver, time_to_wait_until).until(
+    #     EC.text_to_be_present_in_element((By.CSS_SELECTOR, "span.title"), 'Agent Group successfully created'))
+    #     issue https://linear.app/netboxlabs/issue/ORB-197/confirmation-span-of-creatingediting-a-grouppolicysink-is-not
     all_groups = list_agent_groups(token)
     for group in all_groups:
         if group['name'] == name:

@@ -8,6 +8,7 @@ import {
 import { ActivatedRoute, Router } from '@angular/router';
 import { NbDialogService } from '@nebular/theme';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
+import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 import { AgentMatchComponent } from 'app/pages/fleet/agents/match/agent.match.component';
 
 @Component({
@@ -17,6 +18,8 @@ import { AgentMatchComponent } from 'app/pages/fleet/agents/match/agent.match.co
 })
 export class PolicyGroupsComponent implements OnInit, OnChanges {
   @Input() groups: AgentGroup[];
+
+  @Input() policy: AgentPolicy;
 
   isLoading: boolean;
 
@@ -37,7 +40,7 @@ export class PolicyGroupsComponent implements OnInit, OnChanges {
 
   showAgentGroupMatches(agentGroup) {
     this.dialogService.open(AgentMatchComponent, {
-      context: { agentGroup },
+      context: { agentGroup: agentGroup, policy: this.policy },
       autoFocus: true,
       closeOnEsc: true,
     });

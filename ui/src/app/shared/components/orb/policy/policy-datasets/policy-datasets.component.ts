@@ -29,6 +29,7 @@ import { DatasetDeleteComponent } from 'app/pages/datasets/delete/dataset.delete
 import { AgentGroupDetailsComponent } from 'app/pages/fleet/groups/details/agent.group.details.component';
 import { SinkDetailsComponent } from 'app/pages/sinks/details/sink.details.component';
 import { Subscription } from 'rxjs';
+import { AgentMatchComponent } from 'app/pages/fleet/agents/match/agent.match.component';
 
 @Component({
   selector: 'ngx-policy-datasets',
@@ -186,22 +187,6 @@ export class PolicyDatasetsComponent
       });
   }
 
-  onOpenGroupDetails(agentGroup) {
-    this.dialogService
-      .open(AgentGroupDetailsComponent, {
-        autoFocus: true,
-        closeOnEsc: true,
-        context: { agentGroup },
-        hasScroll: false,
-        hasBackdrop: false,
-      })
-      .onClose.subscribe((resp) => {
-        if (resp) {
-          this.onOpenEditAgentGroup(agentGroup);
-        }
-      });
-  }
-
   onOpenEditAgentGroup(agentGroup: any) {
     this.router.navigate([`/pages/fleet/groups/edit/${agentGroup.id}`], {
       state: { agentGroup: agentGroup, edit: true },
@@ -256,4 +241,13 @@ export class PolicyDatasetsComponent
   ngOnDestroy() {
     this.subscription?.unsubscribe();
   }
+
+  showAgentGroupMatches(agentGroup) {
+    this.dialogService.open(AgentMatchComponent, {
+      context: { agentGroup },
+      autoFocus: true,
+      closeOnEsc: true,
+    });
+  }
+  
 }

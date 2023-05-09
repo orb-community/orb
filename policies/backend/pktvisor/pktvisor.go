@@ -6,6 +6,7 @@ package pktvisor
 
 import (
 	"errors"
+
 	"github.com/ghodss/yaml"
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/policies/backend"

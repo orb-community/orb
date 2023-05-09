@@ -49,6 +49,7 @@ const (
 	Active
 	Error
 	Idle
+	Warning
 )
 
 type State int
@@ -58,6 +59,7 @@ var stateMap = [...]string{
 	"active",
 	"error",
 	"idle",
+	"warning",
 }
 
 const MetadataLabelOtel = "opentelemetry"
@@ -72,6 +74,7 @@ var stateRevMap = map[string]State{
 	"active":  Active,
 	"error":   Error,
 	"idle":    Idle,
+	"warning": Warning,
 }
 
 func (s State) String() string {

@@ -61,3 +61,9 @@
     </mat-chip-list>
   </div>
 </ng-template>
+
+<ng-template #agentEspecificPolicyStateTemplateCell let-i="index" let-row="row" let-value="value"
+>
+  <span [nbTooltip]="value" class="orb-service-{{ row?.policy_agg_state }}">
+    {{ value | titlecase }}</span>
+</ng-template>

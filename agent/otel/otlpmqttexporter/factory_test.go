@@ -10,10 +10,9 @@ import (
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/exporter/exportertest"
 	"go.uber.org/zap"
-
-	"go.opentelemetry.io/collector/component/componenttest"
 )
 
 func TestCreateDefaultConfig(t *testing.T) {
@@ -27,14 +26,14 @@ func TestCreateDefaultConfig(t *testing.T) {
 	assert.Equal(t, "uuid2", testedCfg.Key, "default key uuid1")
 	assert.Equal(t, "channels/uuid1/messages", testedCfg.ChannelID, "default channel ID agent_test_metrics ")
 	assert.False(t, testedCfg.TLS, "default TLS is disabled")
-	assert.Equal(t, "channels/uuid1/messages/otlp/pktvisor", testedCfg.MetricsTopic, "default metrics topic is nil, only passed in the export function")
+	assert.Equal(t, "channels/uuid1/messages/otlp/pktvisor", testedCfg.Topic, "default metrics topic is nil, only passed in the export function")
 }
 
 func TestCreateMetricsExporter(t *testing.T) {
 	factory := NewFactory()
 	cfg := factory.CreateDefaultConfig().(*Config)
 
-	set := componenttest.NewNopExporterCreateSettings()
+	set := exportertest.NewNopCreateSettings()
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, "policy_name", "test")
 	ctx = context.WithValue(ctx, "policy_id", "test")
@@ -101,31 +100,7 @@ func TestCreateConfigClient(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			c := &tt.args.client
 			got := CreateConfigClient(c, tt.args.metricsTopic, " 1.0", nil)
-			assert.Equal(t, tt.want, got.Validate(), "expected %s but got %s", tt.want, got.Validate())
-		})
-	}
-}
-
-func TestCreateDefaultSettings(t *testing.T) {
-	logger, _ := zap.NewDevelopment()
-	type args struct {
-		logger *zap.Logger
-	}
-	tests := []struct {
-		name string
-		args args
-	}{
-		{
-			name: "ok default",
-			args: args{
-				logger: logger,
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := CreateDefaultSettings(tt.args.logger)
-			assert.NotNil(t, got.TelemetrySettings.Logger, "expected to not be nil")
+			assert.Equal(t, tt.want, component.ValidateConfig(got), "expected %s but got %s", tt.want, component.ValidateConfig(got))
 		})
 	}
 }
@@ -141,7 +116,7 @@ func TestCreateConfig(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want config.Exporter
+		want component.Config
 	}{
 		{
 			name: "local mqtt",
