@@ -25,6 +25,7 @@ import { DashboardComponent } from 'app/pages/dashboard/dashboard.component';
 import { DatasetAddComponent } from 'app/pages/datasets/add/dataset.add.component';
 import { ProfileComponent } from './profile/profile.component';
 import { AgentPolicyViewComponent } from 'app/pages/datasets/policies.agent/view/agent.policy.view.component';
+import { SinkViewComponent } from './sinks/view/sink.view.component';
 
 const children = [
   {
@@ -115,6 +116,11 @@ const children = [
         path: 'edit/:id',
         component: SinkAddComponent,
         data: {breadcrumb: 'Edit Sink'},
+      },
+      {
+        path: 'view/:id',
+        component: SinkViewComponent,
+        data: {breadcrumb: 'View Sink'},
       },
     ],
   },
