@@ -1,14 +1,13 @@
 @sinks @AUTORETRY
 Feature: sink creation
 
-#  @smoke
-  @MUTE
+  @smoke
   Scenario: Create Sink using Prometheus
     Given that the user has the prometheus/grafana credentials
       And the Orb user has a registered account
       And the Orb user logs in
     When a new sink is created
-    Then referred sink must have new state on response within 30 seconds
+    Then referred sink must have unknown state on response within 30 seconds
 
 
 @smoke @sanity
@@ -20,7 +19,7 @@ Scenario: Create sink with name conflict
   When a new sink is is requested to be created with the same name as an existent one
     Then the error message on response is failed to create Sink
 
-@MUTE
+@sanity
 Scenario: Edit sink using an already existent name (conflict)
   Given that the user has the prometheus/grafana credentials
     And the Orb user has a registered account
