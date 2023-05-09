@@ -1,7 +1,7 @@
 <nb-card>
   <nb-card-header>Agent Backends</nb-card-header>
   <nb-card-body>    
-    <nb-tabset>
+    <nb-tabset *ngIf="agent?.state !== agentStates.new">
       <nb-tab *ngFor="let backend of agent?.agent_metadata?.backends | keyvalue"
           tabTitle="{{backend.key}}">
           <p><label>Version:</label> {{backend.value.version}}</p>
@@ -11,5 +11,8 @@
           </ng-container>
       </nb-tab>
     </nb-tabset>
+    <span *ngIf="agent?.state === agentStates.new" class="summary-accent">
+      Agent needs to be running and linked to a policy to have a backend.
+    </span>
   </nb-card-body>
 </nb-card>
