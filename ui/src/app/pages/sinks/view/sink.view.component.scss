@@ -1,0 +1,72 @@
+button {
+  margin: 0 3px;
+
+  &.policy-duplicate {
+    float: right;
+    color: #fff !important;
+    font-family: "Montserrat", sans-serif;
+    font-weight: 700;
+    text-transform: none !important;
+
+    &.btn-disabled {
+      background: #2b3148;
+    }
+
+    &:not(.btn-disabled) {
+      background-color: #3089fc !important;
+    }
+  }
+
+  &.policy-save {
+    float: right;
+    color: #fff !important;
+    font-family: "Montserrat", sans-serif;
+    font-weight: 500;
+    text-transform: none !important;
+
+    &.btn-disabled {
+      background: #2b3148;
+    }
+
+    &:not(.btn-disabled) {
+      background-color: #3089fc !important;
+    }
+  }
+
+  &.policy-discard {
+    float: right;
+    color: #fff !important;
+    font-family: "Montserrat", sans-serif;
+    font-weight: 500;
+    text-transform: none !important;
+
+    &.btn-disabled {
+      background: #2b3148;
+    }
+
+    &:not(.btn-disabled) {
+      background-color: #df316f !important;
+    }
+  }
+}
+
+ngx-sink-details {
+  flex: 0 1 22rem;
+}
+
+ngx-sink-config {
+  flex: 2 1 auto;
+  min-height: 30rem !important;
+
+   nb-card {
+    height: 30rem !important;
+  }
+}
+
+.row {
+  gap: 1rem;
+}
+
+header {
+  justify-content: space-between;
+}

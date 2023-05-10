@@ -48,12 +48,12 @@ func (req *addPolicyReq) validate() error {
 
 	if req.Policy == nil {
 		// passing policy data blob in the specified format
-		if req.Format == "" || req.PolicyData == "" {
+		if req.Format != "yaml" || req.PolicyData == "" {
 			return errors.ErrMalformedEntity
 		}
 	} else {
 		// policy is in json, verified by the back ends later
-		if req.PolicyData != "" || req.Format != "json" {
+		if req.Format == "yaml" || req.PolicyData != "" {
 			return errors.ErrMalformedEntity
 		}
 	}

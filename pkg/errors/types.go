@@ -20,7 +20,7 @@ var (
 
 	// ErrMalformedEntity indicates a malformed entity specification
 	ErrMalformedEntity = New("malformed entity specification")
-	Tracking           = New("You here")
+
 	// ErrNotFound indicates a non-existent entity request.
 	ErrNotFound = New("non-existent entity")
 

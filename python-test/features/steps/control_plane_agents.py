@@ -752,7 +752,7 @@ def create_agent(token, name, tags, expected_status_code=201):
     :param expected_status_code: status code to be returned on response
     :returns: (dict) a dictionary containing the created agent data
     """
-    response, response_json = wait_until_agent_being_created(token, name, tags, expected_status_code, wait_time=1)
+    response, response_json = wait_until_agent_being_created(token, name, tags, expected_status_code)
     assert_that(response.status_code, equal_to(expected_status_code),
                 'Request to create agent failed with status=' + str(response.status_code) + ":" + str(response_json))
 
