@@ -56,6 +56,8 @@ func (p *Plan1UpdateConfiguration) Up(ctx context.Context) (err error) {
 			sink.Config = newMetadata
 			_, err = p.service.UpdateSinkInternal(ctx, sink)
 			if err != nil {
+				p.logger.Error("failed to update sink",
+					zap.String("sinkID", sink.ID), zap.Error(err))
 				continue
 			}
 		}
