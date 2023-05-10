@@ -18,8 +18,21 @@ type Plan1UpdateConfiguration struct {
 	passwordService authentication_type.PasswordService
 }
 
+func NewPlan1(logger *zap.Logger, service sinks.SinkService, passwordService authentication_type.PasswordService) Plan {
+	return &Plan1UpdateConfiguration{
+		logger:          logger,
+		service:         service,
+		passwordService: passwordService,
+	}
+}
+
 func (p *Plan1UpdateConfiguration) Up(ctx context.Context) (err error) {
 	allSinks, err := p.service.ListSinksInternal(ctx, sinks.Filter{})
+	if err != nil {
+		p.logger.Error("could not list sinks", zap.Error(err))
+		return
+	}
+	updated := 0
 	for _, sink := range allSinks {
 		if _, ok := sink.Config["authentication"]; !ok {
 			sinkRemoteHost, ok := sink.Config["remote_host"]
@@ -60,7 +73,9 @@ func (p *Plan1UpdateConfiguration) Up(ctx context.Context) (err error) {
 					zap.String("sinkID", sink.ID), zap.Error(err))
 				continue
 			}
+			updated++
 		}
 	}
+	p.logger.Info("migration results", zap.Int("total_sinks", len(allSinks)), zap.Int("updated_sinks", updated))
 	return
 }
