@@ -167,6 +167,85 @@ func (svc sinkService) decryptMetadata(configSvc Configuration, sink Sink) (Sink
 	return sink, err
 }
 
+func (svc sinkService) UpdateSinkInternal(ctx context.Context, sink Sink) (Sink, error) {
+	var currentSink Sink
+	currentSink, err := svc.sinkRepo.RetrieveById(ctx, sink.ID)
+	if err != nil {
+		return Sink{}, err
+	}
+	var cfg Configuration
+	if sink.Config == nil && sink.ConfigData == "" {
+		// No config sent, keep the previous
+		sink.Config = currentSink.Config
+		authType, _ := authentication_type.GetAuthType(sink.GetAuthenticationTypeName())
+		be := backend.GetBackend(currentSink.Backend)
+		cfg = Configuration{
+			Authentication: authType,
+			Exporter:       be,
+		}
+
+		// get the decrypted config, otherwise the password would be encrypted again
+		sink, err = svc.decryptMetadata(cfg, sink)
+		if err != nil {
+			return Sink{}, errors.Wrap(ErrUpdateEntity, err)
+		}
+	} else {
+		sink.Backend = currentSink.Backend
+		be, err := validateBackend(&sink)
+		if err != nil {
+			return Sink{}, errors.Wrap(ErrMalformedEntity, err)
+		}
+		at, err := validateAuthType(&sink)
+		if err != nil {
+			return Sink{}, errors.Wrap(ErrMalformedEntity, err)
+		}
+		cfg = Configuration{
+			Authentication: at,
+			Exporter:       be,
+		}
+		//// add default values
+		defaultMetadata := make(types.Metadata, 1)
+		defaultMetadata["opentelemetry"] = "enabled"
+		sink.Config.Merge(defaultMetadata)
+		currentSink.Error = ""
+	}
+
+	if sink.Tags == nil {
+		sink.Tags = currentSink.Tags
+	}
+
+	if sink.Description == nil {
+		sink.Description = currentSink.Description
+	}
+
+	if newName := sink.Name.String(); newName == "" {
+		sink.Name = currentSink.Name
+	}
+
+	sink.MFOwnerID = currentSink.MFOwnerID
+	if sink.Backend == "" && currentSink.Backend != "" {
+		sink.Backend = currentSink.Backend
+	}
+	sink, err = svc.encryptMetadata(cfg, sink)
+	if err != nil {
+		return Sink{}, errors.Wrap(ErrUpdateEntity, err)
+	}
+	err = svc.sinkRepo.Update(ctx, sink)
+	if err != nil {
+		return Sink{}, errors.Wrap(ErrUpdateEntity, err)
+	}
+	sinkEdited, err := svc.sinkRepo.RetrieveById(ctx, sink.ID)
+	if err != nil {
+		return Sink{}, errors.Wrap(ErrUpdateEntity, err)
+	}
+	sinkEdited, err = svc.decryptMetadata(cfg, sinkEdited)
+	if err != nil {
+		return Sink{}, errors.Wrap(ErrUpdateEntity, err)
+	}
+
+	return sinkEdited, nil
+}
+
 func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) (Sink, error) {
 	skOwnerID, err := svc.identify(token)
 	if err != nil {
