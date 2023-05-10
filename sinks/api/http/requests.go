@@ -9,6 +9,8 @@
 package http
 
 import (
+	"fmt"
+
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks"
@@ -50,7 +52,7 @@ func (req addReq) validate() (err error) {
 	}
 
 	var config types.Metadata
-	if req.Format != "" {
+	if req.Format == "yaml" {
 		config, err = reqBackend.ParseConfig(req.Format, req.ConfigData)
 		if err != nil {
 			return errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
@@ -72,7 +74,6 @@ func (req addReq) validate() (err error) {
 	if err != nil {
 		return errors.Wrap(errors.ErrMalformedEntity, errors.New("identifier duplicated"))
 	}
-
 	return nil
 }
 
@@ -100,9 +101,10 @@ func (req updateSinkReq) validate(sinkBackend backend.Backend) error {
 	if req.ConfigData != "" || req.Config != nil {
 		var config types.Metadata
 		var err error
-		if req.Format != "" {
+		if req.Format == "yaml" {
 			config, err = sinkBackend.ParseConfig(req.Format, req.ConfigData)
 			if err != nil {
+				fmt.Println("Passou pela verificação no format")
 				return errors.Wrap(errors.ErrMalformedEntity, err)
 			}
 		} else {
