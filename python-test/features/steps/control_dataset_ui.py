@@ -60,8 +60,7 @@ def create_dataset_through_ui(context):
             break
     assert_that(context.dataset, is_not(None), "Unable to find dataset on orb backend")
     amount_of_datasets_after = wait_until_expected_amount_of_datasets_in_policy_view_page(context.driver,
-                                                                                          amount_of_datasets_before + 1,
-                                                                                          wait_time=1)
+                                                                                          amount_of_datasets_before + 1)
     assert_that(amount_of_datasets_after, equal_to(amount_of_datasets_before + 1), f"Incorrect number of datasets.")
 
 
