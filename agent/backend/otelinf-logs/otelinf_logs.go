@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-package otelinf
+package otelinf_logs
 
 import (
 	"context"
@@ -11,7 +11,6 @@ import (
 	"net"
 	"net/http"
 	"os/exec"
-	"strconv"
 	"strings"
 	"time"
 
@@ -31,7 +30,7 @@ var _ backend.Backend = (*otelinfBackend)(nil)
 const (
 	DefaultBinary       = "/usr/local/bin/otelinf-agent"
 	DefaultHost         = "localhost"
-	DefaultPort         = "10222"
+	DefaultPort         = "10223"
 	ReadinessBackoff    = 10
 	ReadinessTimeout    = 10
 	ApplyPolicyTimeout  = 10
@@ -55,9 +54,9 @@ type otelinfBackend struct {
 	// MQTT Config for OTEL MQTT Exporter
 	mqttConfig config.MQTTConfig
 
-	mqttClient  *mqtt.Client
-	metricTopic string
-	policyRepo  policies.PolicyRepo
+	mqttClient *mqtt.Client
+	logTopic   string
+	policyRepo policies.PolicyRepo
 
 	adminAPIHost     string
 	adminAPIPort     string
@@ -74,7 +73,7 @@ type otelinfBackend struct {
 }
 
 func Register() bool {
-	backend.Register("otelinf", &otelinfBackend{
+	backend.Register("otelinf_logs", &otelinfBackend{
 		adminAPIProtocol: "http",
 	})
 	return true
@@ -121,13 +120,13 @@ func (d *otelinfBackend) Version() (string, error) {
 	if err := d.request("status", &dConf, http.MethodGet, http.NoBody, "application/json", VersionTimeout); err != nil {
 		return "", err
 	}
-	return dConf.Version, nil
+	return dConf.InfVersion, nil
 }
 
 func (d *otelinfBackend) SetCommsClient(agentID string, client *mqtt.Client, baseTopic string) {
 	d.mqttClient = client
-	metricTopic := strings.Replace(baseTopic, "?", "otlp", 1)
-	d.metricTopic = fmt.Sprintf("%s/m/%c", metricTopic, agentID[0])
+	logTopic := strings.Replace(baseTopic, "?", "otlp", 1)
+	d.logTopic = fmt.Sprintf("%s/l/%c", logTopic, agentID[0])
 }
 
 func (d *otelinfBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo, config map[string]string, otelConfig map[string]interface{}) error {
@@ -169,30 +168,22 @@ func (d *otelinfBackend) Start(ctx context.Context, cancelFunc context.CancelFun
 
 	pvOptions := []string{
 		"run",
-		"-i",
+		"-a",
 		d.adminAPIHost,
 		"-p",
 		d.adminAPIPort,
-		"-t",
-		"otlp",
 	}
 	if len(d.configFile) > 0 {
 		pvOptions = append(pvOptions, "--config", d.configFile)
 	}
 
 	if d.otelReceiverPort == 0 {
-		d.otelReceiverPort, err = d.getFreePort()
-		if err != nil {
-			d.logger.Error("otelinf-agent otlp startup error", zap.Error(err))
-			return err
-		}
+		d.otelReceiverPort = 4318
 	}
 
 	if len(d.otelReceiverHost) == 0 {
 		d.otelReceiverHost = DefaultHost
 	}
-
-	pvOptions = append(pvOptions, "-o", d.otelReceiverHost+":"+strconv.Itoa(d.otelReceiverPort))
 
 	d.logger.Info("otelinf-agent startup", zap.Strings("arguments", pvOptions))
 
@@ -253,7 +244,7 @@ func (d *otelinfBackend) Start(ctx context.Context, cancelFunc context.CancelFun
 		var dConf dconf.Status
 		readinessError = d.request("status", &dConf, http.MethodGet, http.NoBody, "application/json", ReadinessTimeout)
 		if readinessError == nil {
-			d.logger.Info("otelinf-agent readiness ok, got version ", zap.String("diode_agent_version", dConf.Version))
+			d.logger.Info("otelinf-agent readiness ok, got version ", zap.String("otelinf_agent_version", dConf.InfVersion))
 			break
 		}
 		backoffDuration := time.Duration(backoff) * time.Second

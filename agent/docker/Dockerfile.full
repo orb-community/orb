@@ -11,6 +11,7 @@ RUN SQPATH=$(pip show suzieq |  sed -n 's/Location: \(.*\)/\1/p') \
     && cp -rf "$SQPATH/suzieq" "/tmp/suzieq-patched"
 
 FROM orbcommunity/pktvisor:${PKTVISOR_TAG}
+
 # adding orb-agent
 RUN mkdir /opt/orb
 COPY --from=orb /usr/local/bin/orb-agent /usr/local/bin/orb-agent

@@ -141,6 +141,7 @@ require (
 	github.com/klauspost/compress v1.16.3 // indirect
 	github.com/knadh/koanf v1.5.0 // indirect
 	github.com/kolo/xmlrpc v0.0.0-20220921171641-a4b6fa1dd06b // indirect
+	github.com/leoparente/opentelemetry-infinity v0.0.0-20230510124126-512818693dc7 // indirect
 	github.com/linode/linodego v1.14.1 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mainflux/senml v1.5.0 // indirect
@@ -178,7 +179,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.14 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
-	github.com/spf13/afero v1.9.3 // indirect
+	github.com/spf13/afero v1.9.5 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect

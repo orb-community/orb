@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-package otelinf
+package otelinf_metrics
 
 import (
 	"context"
@@ -28,7 +28,7 @@ func (d *otelinfBackend) createOtlpMqttExporter(ctx context.Context, cancelFunc 
 
 	bridgeService := otel.NewBridgeService(ctx, &d.policyRepo, d.agentTags)
 	if d.mqttClient != nil {
-		cfg := otlpmqttexporter.CreateConfigClient(d.mqttClient, d.logTopic, d.version, bridgeService)
+		cfg := otlpmqttexporter.CreateConfigClient(d.mqttClient, d.metricTopic, d.version, bridgeService)
 		set := otlpmqttexporter.CreateDefaultSettings(d.logger)
 		// Create the OTLP logs exporter that'll receive and verify the logs produced.
 		exporter, err := otlpmqttexporter.CreateLogsExporter(ctx, set, cfg)
@@ -38,7 +38,7 @@ func (d *otelinfBackend) createOtlpMqttExporter(ctx context.Context, cancelFunc 
 		return exporter, nil
 	} else {
 		cfg := otlpmqttexporter.CreateConfig(d.mqttConfig.Address, d.mqttConfig.Id, d.mqttConfig.Key,
-			d.mqttConfig.ChannelID, d.version, d.logTopic, bridgeService)
+			d.mqttConfig.ChannelID, d.version, d.metricTopic, bridgeService)
 		set := otlpmqttexporter.CreateDefaultSettings(d.logger)
 		// Create the OTLP logs exporter that'll receive and verify the logs produced.
 		exporter, err := otlpmqttexporter.CreateLogsExporter(ctx, set, cfg)

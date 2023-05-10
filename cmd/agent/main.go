@@ -14,6 +14,7 @@ import (
 
 	"github.com/orb-community/orb/agent"
 	"github.com/orb-community/orb/agent/backend/diode"
+	"github.com/orb-community/orb/agent/backend/otelinf_metrics"
 	"github.com/orb-community/orb/agent/backend/pktvisor"
 	"github.com/orb-community/orb/agent/config"
 	"github.com/orb-community/orb/buildinfo"
@@ -35,6 +36,8 @@ var (
 func init() {
 	pktvisor.Register()
 	diode.Register()
+	otelinf_metrics.Register()
+
 }
 
 func Version(cmd *cobra.Command, args []string) {
