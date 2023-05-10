@@ -8,10 +8,6 @@ import (
 	"go.uber.org/zap"
 )
 
-type Plan interface {
-	Up(ctx context.Context) error
-}
-
 type Plan1UpdateConfiguration struct {
 	logger          *zap.Logger
 	service         sinks.SinkService
@@ -24,6 +20,10 @@ func NewPlan1(logger *zap.Logger, service sinks.SinkService, passwordService aut
 		service:         service,
 		passwordService: passwordService,
 	}
+}
+
+func (p *Plan1UpdateConfiguration) Version() string {
+	return "0.25.1"
 }
 
 func (p *Plan1UpdateConfiguration) Up(ctx context.Context) (err error) {

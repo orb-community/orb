@@ -75,6 +75,20 @@ func migrateDB(db *sqlx.DB) error {
 					`ALTER TABLE sinks DROP COLUMN config_data;`,
 				},
 			},
+			{
+				Id: "sinks_3",
+				Up: []string{
+					`CREATE TABLE IF NOT EXISTS current_version (
+						id			   UUID NOT NULL DEFAULT gen_random_uuid(),
+						version        TEXT NOT NULL,
+    					ts_created     TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
+						PRIMARY KEY (id, version),
+					)`,
+				},
+				Down: []string{
+					"DROP TABLE current_version",
+				},
+			},
 		},
 	}
 

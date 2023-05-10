@@ -32,6 +32,23 @@ type sinksRepository struct {
 	logger *zap.Logger
 }
 
+func (s sinksRepository) GetVersion(ctx context.Context) (string, error) {
+	q := `SELECT version FROM current_version`
+	rows, err := s.db.NamedQueryContext(ctx, q, nil)
+	if err != nil {
+		return "", err
+	}
+	for rows.Next() {
+		version := ""
+		err := rows.Scan(version)
+		if err != nil {
+			return "", err
+		}
+		return version, nil
+	}
+	return "", err
+}
+
 func (s sinksRepository) SearchAllSinks(ctx context.Context, filter sinks.Filter) ([]sinks.Sink, error) {
 	q := `SELECT id, name, mf_owner_id, description, tags, state, coalesce(error, '') as error, backend, metadata, ts_created FROM sinks`
 	params := map[string]interface{}{}

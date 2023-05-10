@@ -187,4 +187,8 @@ type SinkRepository interface {
 	Remove(ctx context.Context, owner string, key string) error
 	// UpdateSinkState updates sink state like active, idle, new, unknown
 	UpdateSinkState(ctx context.Context, sinkID string, msg string, ownerID string, state State) error
+	// GetVersion for migrate service
+	GetVersion(ctx context.Context) (string, error)
+	// UpsertVersion for migrate service
+	UpsertVersion(ctx context.Context, version string) error
 }
