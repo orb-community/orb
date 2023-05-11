@@ -14,7 +14,7 @@ orb:
       name: "orb-sinks"
       pullPolicy: "IfNotPresent"
       repository: "orbcommunity"
-      tag: "develop"
+      tag: "0.25.0-044b0c82"
 
   policies:
     image:

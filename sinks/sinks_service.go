@@ -10,11 +10,12 @@ package sinks
 
 import (
 	"context"
+	"net/url"
+
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks/backend"
 	"go.uber.org/zap"
-	"net/url"
 )
 
 var (
@@ -86,12 +87,13 @@ func (svc sinkService) encryptMetadata(sink Sink) (Sink, error) {
 		}
 		return key, newValue
 	})
+	reqSpecification := ""
 	if sink.ConfigData != "" {
 		sinkBE := backend.GetBackend(sink.Backend)
 		if sinkBE == nil {
 			return sink, errors.New("backend cannot be nil")
 		}
-		sink.ConfigData, err = sinkBE.ConfigToFormat(sink.Format, sink.Config)
+		sink.ConfigData, err = sinkBE.ConfigToFormat(sink.Format, sink.Config, reqSpecification)
 		if err != nil {
 			svc.logger.Error("error on parsing encrypted config in data")
 			return sink, err
@@ -113,12 +115,13 @@ func (svc sinkService) decryptMetadata(sink Sink) (Sink, error) {
 		}
 		return key, newValue
 	})
+	reqSpecification := ""
 	if sink.ConfigData != "" {
 		sinkBE := backend.GetBackend(sink.Backend)
 		if sinkBE == nil {
 			return sink, errors.New("backend cannot be nil")
 		}
-		sink.ConfigData, err = sinkBE.ConfigToFormat(sink.Format, sink.Config)
+		sink.ConfigData, err = sinkBE.ConfigToFormat(sink.Format, sink.Config, reqSpecification)
 		if err != nil {
 			svc.logger.Error("error on parsing encrypted config in data")
 			return sink, err

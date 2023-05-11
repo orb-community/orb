@@ -12,6 +12,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+
 	"github.com/gofrs/uuid"
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
 	"github.com/opentracing/opentracing-go/mocktracer"
@@ -23,12 +30,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
-	"io"
-	"io/ioutil"
-	"net/http"
-	"net/http/httptest"
-	"strings"
-	"testing"
 )
 
 const (
@@ -776,11 +777,11 @@ func TestViewSink(t *testing.T) {
 	service := newService(map[string]string{token: email})
 	server := newServer(service)
 	defer server.Close()
-
+	reqSpecification = "get"
 	sk, err := service.CreateSink(context.Background(), token, sink)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 	sinkBE := backend.GetBackend("prometheus")
-	omitedConfig, _ := omitSecretInformation(sinkBE, sk.Format, sk.Config)
+	omitedConfig, _ := omitSecretInformation(sinkBE, sk.Format, sk.Config, reqSpecification)
 	require.NoError(t, err, "error during omitting secrets")
 	data := toJSON(sinkRes{
 		ID:          sk.ID,
@@ -1023,10 +1024,10 @@ func TestOmitPasswords(t *testing.T) {
 			expectedMetadata: types.Metadata{"username": &username, "password": "", "remote_host": "someUrl"},
 		},
 	}
-
+	reqSpecification = "get"
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
-			metadata, _ := omitSecretInformation(tc.backend, "yaml", tc.inputMetadata)
+			metadata, _ := omitSecretInformation(tc.backend, "yaml", tc.inputMetadata, reqSpecification)
 			assert.Equal(t, tc.expectedMetadata, metadata)
 		})
 	}

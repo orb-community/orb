@@ -21,8 +21,9 @@ import (
 )
 
 var restrictiveKeyPrefixes = []string{backend.ConfigFeatureTypePassword}
+var reqSpecification string
 
-func omitSecretInformation(be backend.Backend, format string, metadata types.Metadata) (restrictedMetadata types.Metadata, configData string) {
+func omitSecretInformation(be backend.Backend, format string, metadata types.Metadata, reqType string) (restrictedMetadata types.Metadata, configData string) {
 	metadata.RestrictKeys(func(key string) bool {
 		match := false
 		for _, restrictiveKey := range restrictiveKeyPrefixes {
@@ -34,8 +35,8 @@ func omitSecretInformation(be backend.Backend, format string, metadata types.Met
 		return match
 	})
 	var err error
-	if format != "" {
-		configData, err = be.ConfigToFormat(format, metadata)
+	if format == "yaml" {
+		configData, err = be.ConfigToFormat(format, metadata, reqType)
 		if err != nil {
 			return metadata, ""
 		}
@@ -50,6 +51,11 @@ func addEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			svc.GetLogger().Error("got error in validating request", zap.Error(err))
 			return nil, err
 		}
+
+		// Eu posso tentar setar uma flag para sinalizar qual o tipo do método que está
+		// Sendo realizado, e a partir disso realizar a conversão da string para *string ou nao.
+
+		reqSpecification = "post"
 
 		nID, err := types.NewIdentifier(req.Name)
 		if err != nil {
@@ -88,7 +94,7 @@ func addEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			return nil, err
 		}
 
-		omittedConfig, omittedConfigData := omitSecretInformation(reqBackend, saved.Format, saved.Config)
+		omittedConfig, omittedConfigData := omitSecretInformation(reqBackend, saved.Format, saved.Config, reqSpecification)
 
 		res := sinkRes{
 			ID:          saved.ID,
@@ -160,7 +166,8 @@ func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			svc.GetLogger().Error("error on updating sink", zap.Error(err))
 			return nil, err
 		}
-		omittedConfig, omittedConfigData := omitSecretInformation(sinkBackend, sinkEdited.Format, sinkEdited.Config)
+		reqSpecification = "put"
+		omittedConfig, omittedConfigData := omitSecretInformation(sinkBackend, sinkEdited.Format, sinkEdited.Config, reqSpecification)
 		res := sinkRes{
 			ID:          sinkEdited.ID,
 			Name:        sinkEdited.Name.String(),
@@ -201,9 +208,10 @@ func listSinksEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			},
 			Sinks: []sinkRes{},
 		}
+		reqSpecification = "get"
 		for _, sink := range page.Sinks {
 			reqBackend := backend.GetBackend(sink.Backend)
-			omittedConfig, omittedConfigData := omitSecretInformation(reqBackend, sink.Format, sink.Config)
+			omittedConfig, omittedConfigData := omitSecretInformation(reqBackend, sink.Format, sink.Config, reqSpecification)
 			view := sinkRes{
 				ID:         sink.ID,
 				Name:       sink.Name.String(),
@@ -283,8 +291,9 @@ func viewSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 		if err != nil {
 			return sink, err
 		}
+		reqSpecification = "get"
 		reqBackend := backend.GetBackend(sink.Backend)
-		omittedConfig, omittedConfigData := omitSecretInformation(reqBackend, sink.Format, sink.Config)
+		omittedConfig, omittedConfigData := omitSecretInformation(reqBackend, sink.Format, sink.Config, reqSpecification)
 		res := sinkRes{
 			ID:          sink.ID,
 			Name:        sink.Name.String(),
@@ -301,7 +310,6 @@ func viewSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 		if sink.Description != nil {
 			res.Description = *sink.Description
 		}
-
 		return res, err
 	}
 }

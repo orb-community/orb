@@ -7,11 +7,12 @@ package sinks
 import (
 	"context"
 	"database/sql/driver"
+	"time"
+
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks/backend"
 	"go.uber.org/zap"
-	"time"
 )
 
 var (

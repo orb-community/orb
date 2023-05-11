@@ -5,9 +5,10 @@
 package http
 
 import (
-	"github.com/orb-community/orb/pkg/types"
 	"net/http"
 	"time"
+
+	"github.com/orb-community/orb/pkg/types"
 )
 
 type sinkRes struct {

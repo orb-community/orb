@@ -10,8 +10,22 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func (p *Backend) ConfigToFormat(format string, metadata types.Metadata) (string, error) {
-	if format == "yaml" {
+func (p *Backend) ConfigToFormat(format string, metadata types.Metadata, reqType string) (string, error) {
+
+	if reqType == "get" {
+		username := metadata[UsernameConfigFeature].(string)
+		password := metadata[PasswordConfigFeature].(string)
+		parseUtil := configParseUtility{
+			RemoteHost: metadata[RemoteHostURLConfigFeature].(string),
+			Username:   &username,
+			Password:   &password,
+		}
+		config, err := yaml.Marshal(parseUtil)
+		if err != nil {
+			return "", err
+		}
+		return string(config), nil
+	} else {
 		username := metadata[UsernameConfigFeature].(*string)
 		password := metadata[PasswordConfigFeature].(string)
 		parseUtil := configParseUtility{
@@ -24,9 +38,8 @@ func (p *Backend) ConfigToFormat(format string, metadata types.Metadata) (string
 			return "", err
 		}
 		return string(config), nil
-	} else {
-		return "", errors.New("unsupported format")
 	}
+
 }
 
 func (p *Backend) ParseConfig(format string, config string) (configReturn types.Metadata, err error) {
