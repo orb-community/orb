@@ -1024,7 +1024,7 @@ func TestOmitPasswords(t *testing.T) {
 			expectedMetadata: types.Metadata{"username": &username, "password": "", "remote_host": "someUrl"},
 		},
 	}
-	reqSpecification = "get"
+	reqSpecification = ""
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
 			metadata, _ := omitSecretInformation(tc.backend, "yaml", tc.inputMetadata, reqSpecification)
