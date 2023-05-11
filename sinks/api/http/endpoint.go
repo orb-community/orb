@@ -52,9 +52,6 @@ func addEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			return nil, err
 		}
 
-		// Eu posso tentar setar uma flag para sinalizar qual o tipo do método que está
-		// Sendo realizado, e a partir disso realizar a conversão da string para *string ou nao.
-
 		reqSpecification = "post"
 
 		nID, err := types.NewIdentifier(req.Name)
