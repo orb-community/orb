@@ -116,8 +116,12 @@ func main() {
 	svc := newSinkService(auth, logger, esClient, sdkCfg, sinkRepo, pwdSvc)
 	errs := make(chan error, 2)
 
-	migrateService := migrate.NewService()
 	plan1 := migrate.NewPlan1(logger, svc, pwdSvc)
+	migrateService := migrate.NewService(logger, sinkRepo)
+	err = migrateService.Migrate(plan1)
+	if err != nil {
+		log.Fatalf("Migration failed with error %e", err)
+	}
 
 	go startHTTPServer(tracer, svc, svcCfg, logger, errs)
 	go startGRPCServer(svc, tracer, sinksGRPCCfg, logger, errs)

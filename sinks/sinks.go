@@ -190,5 +190,5 @@ type SinkRepository interface {
 	// GetVersion for migrate service
 	GetVersion(ctx context.Context) (string, error)
 	// UpsertVersion for migrate service
-	UpsertVersion(ctx context.Context, version string) error
+	UpdateVersion(ctx context.Context, version string) error
 }
