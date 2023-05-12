@@ -65,7 +65,8 @@ func (s sinksRepository) UpdateVersion(ctx context.Context, incomingVersion stri
 
 func (s sinksRepository) GetVersion(ctx context.Context) (string, error) {
 	q := `SELECT version FROM current_version`
-	rows, err := s.db.NamedQueryContext(ctx, q, nil)
+	params := map[string]interface{}{}
+	rows, err := s.db.NamedQueryContext(ctx, q, params)
 	if err != nil {
 		return "", err
 	}
