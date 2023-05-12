@@ -125,6 +125,10 @@ type Sink struct {
 
 func (s *Sink) GetAuthenticationTypeName() string {
 	authMeta := s.Config.GetSubMetadata("authentication")
+	// Defaults to basicauth
+	if authMeta == nil {
+		return "basicauth"
+	}
 	return authMeta["type"].(string)
 }
 

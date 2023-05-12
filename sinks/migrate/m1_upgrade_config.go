@@ -27,7 +27,7 @@ func (p *Plan1UpdateConfiguration) Version() string {
 }
 
 func (p *Plan1UpdateConfiguration) Up(ctx context.Context) (err error) {
-	allSinks, err := p.service.ListSinksInternal(ctx, sinks.Filter{})
+	allSinks, err := p.service.ListSinksInternal(ctx, sinks.Filter{StateFilter: "", OpenTelemetry: "enabled"})
 	if err != nil {
 		p.logger.Error("could not list sinks", zap.Error(err))
 		return
@@ -65,6 +65,7 @@ func (p *Plan1UpdateConfiguration) Up(ctx context.Context) (err error) {
 				"exporter": types.Metadata{
 					"remote_host": sinkRemoteHost,
 				},
+				"opentelemetry": "enabled",
 			}
 			sink.Config = newMetadata
 			_, err = p.service.UpdateSinkInternal(ctx, sink)
