@@ -10,13 +10,14 @@ package http
 
 import (
 	"context"
+	"time"
+
 	"github.com/go-kit/kit/endpoint"
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks"
 	"github.com/orb-community/orb/sinks/backend"
 	"go.uber.org/zap"
-	"time"
 )
 
 var restrictiveKeyPrefixes = []string{backend.ConfigFeatureTypePassword}
@@ -57,7 +58,7 @@ func addEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 		}
 		var config types.Metadata
 		reqBackend := backend.GetBackend(req.Backend)
-		if req.Format != "" {
+		if req.Format == "yaml" {
 			config, err = reqBackend.ParseConfig(req.Format, req.ConfigData)
 			if err != nil {
 				svc.GetLogger().Error("got error in parsing configuration", zap.Error(err))
@@ -125,7 +126,7 @@ func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			return nil, err
 		}
 		var config types.Metadata
-		if req.Format != "" {
+		if req.Format == "yaml" {
 			config, err = sinkBackend.ParseConfig(req.Format, req.ConfigData)
 			if err != nil {
 				svc.GetLogger().Error("got error in parsing configuration", zap.Error(err))

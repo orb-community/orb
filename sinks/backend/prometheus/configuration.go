@@ -1,12 +1,13 @@
 package prometheus
 
 import (
+	"net/url"
+
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks/backend"
 	"golang.org/x/exp/maps"
 	"gopkg.in/yaml.v3"
-	"net/url"
 )
 
 func (p *Backend) ConfigToFormat(format string, metadata types.Metadata) (string, error) {
@@ -29,23 +30,21 @@ func (p *Backend) ConfigToFormat(format string, metadata types.Metadata) (string
 }
 
 func (p *Backend) ParseConfig(format string, config string) (configReturn types.Metadata, err error) {
-	if format == "yaml" {
-		configAsByte := []byte(config)
-		// Parse the YAML data into a Config struct
-		var configUtil configParseUtility
-		err = yaml.Unmarshal(configAsByte, &configUtil)
-		if err != nil {
-			return nil, errors.Wrap(errors.New("failed to parse config YAML"), err)
-		}
-		configReturn = make(types.Metadata)
-		// Check for Token Auth
-		configReturn[RemoteHostURLConfigFeature] = configUtil.RemoteHost
-		configReturn[UsernameConfigFeature] = configUtil.Username
-		configReturn[PasswordConfigFeature] = configUtil.Password
-		return
-	} else {
-		return nil, errors.New("unsupported format")
+
+	configAsByte := []byte(config)
+	// Parse the YAML data into a Config struct
+	var configUtil configParseUtility
+	err = yaml.Unmarshal(configAsByte, &configUtil)
+	if err != nil {
+		return nil, errors.Wrap(errors.New("failed to parse config YAML"), err)
 	}
+	configReturn = make(types.Metadata)
+	// Check for Token Auth
+	configReturn[RemoteHostURLConfigFeature] = configUtil.RemoteHost
+	configReturn[UsernameConfigFeature] = configUtil.Username
+	configReturn[PasswordConfigFeature] = configUtil.Password
+	return
+
 }
 
 func (p *Backend) ValidateConfiguration(config types.Metadata) error {
