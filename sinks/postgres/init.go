@@ -79,12 +79,12 @@ func migrateDB(db *sqlx.DB) error {
 				Id: "sinks_3",
 				Up: []string{
 					`CREATE TABLE IF NOT EXISTS current_version (
-						id			   UUID NOT NULL DEFAULT gen_random_uuid(),
-						version        TEXT NOT NULL,
+						id			     UUID NOT NULL DEFAULT gen_random_uuid(),
+						version          TEXT NOT NULL,
     					last_updated     TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
-						PRIMARY KEY (id, version),
+						PRIMARY KEY (id, version)
 					)`,
-					`INSERT INTO current_version  (id, version, last_updated) VALUES (DEFAULT, "0.25.0", DEFAULT);`,
+					`INSERT INTO current_version  (id, version, last_updated) VALUES (DEFAULT, '0.25.0', DEFAULT);`,
 				},
 				Down: []string{
 					"DROP TABLE current_version",
