@@ -59,6 +59,7 @@ func (m *migrateService) Migrate(plans ...Plan) error {
 			m.logger.Error("error during migrate service", zap.Error(err))
 			return err
 		}
+		m.updateNewVersion(ctx, plan.Version())
 	}
 	return nil
 }
