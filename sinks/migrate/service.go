@@ -32,7 +32,7 @@ type migrateService struct {
 func (m *migrateService) updateNewVersion(ctx context.Context, newVersion string) {
 	currentVersion := m.getCurrentVersion(ctx)
 	incomingSemVer := types.NewSemVerFromString(newVersion)
-	if !currentVersion.IsEqualTo(incomingSemVer) && incomingSemVer.IsNewerThan(currentVersion) {
+	if incomingSemVer.IsNewerThan(currentVersion) {
 		err := m.sinkRepository.UpdateVersion(ctx, newVersion)
 		if err != nil {
 			m.logger.Error("error during update of version", zap.String("newVersion", newVersion), zap.Error(err))
@@ -48,18 +48,18 @@ func (m *migrateService) getCurrentVersion(ctx context.Context) types.SemVer {
 }
 
 func (m *migrateService) Migrate(plans ...Plan) error {
-
 	for i, plan := range plans {
 		planName := fmt.Sprintf("plan%d", i)
 		ctx := context.WithValue(context.Background(), "migrate", planName)
-
-		m.logger.Info("Starting plan", zap.Int("plan", i))
-		err := plan.Up(ctx)
-		if err != nil {
-			m.logger.Error("error during migrate service", zap.Error(err))
-			return err
+		if types.NewSemVerFromString(plan.Version()).IsNewerThan(m.getCurrentVersion(ctx)) {
+			m.logger.Info("Starting plan", zap.Int("plan", i))
+			err := plan.Up(ctx)
+			if err != nil {
+				m.logger.Error("error during migrate service", zap.Error(err))
+				return err
+			}
+			m.updateNewVersion(ctx, plan.Version())
 		}
-		m.updateNewVersion(ctx, plan.Version())
 	}
 	return nil
 }
