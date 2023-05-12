@@ -35,6 +35,8 @@ type sinksRepository struct {
 func (s sinksRepository) UpdateVersion(ctx context.Context, incomingVersion string) error {
 	q := `UPDATE current_version SET version = :version, last_updated = :currentTime`
 	params := make(map[string]interface{})
+	params["version"] = incomingVersion
+	params["currentTime"] = time.Now()
 	res, err := s.db.NamedExecContext(ctx, q, params)
 	if err != nil {
 		pqErr, ok := err.(*pq.Error)
