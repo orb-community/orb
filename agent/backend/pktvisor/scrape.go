@@ -151,11 +151,13 @@ func (p *pktvisorBackend) receiveOtlp() {
 				}
 				pFactory := otlpreceiver.NewFactory()
 				cfg := pFactory.CreateDefaultConfig()
+				cfg.GRPC = nil
 				cfg.(*otlpreceiver.Config).Protocols = otlpreceiver.Protocols{
 					HTTP: &confighttp.HTTPServerSettings{
 						Endpoint: p.otelReceiverHost + ":" + strconv.Itoa(p.otelReceiverPort),
 					},
 				}
+
 				set := receiver.CreateSettings{
 					TelemetrySettings: component.TelemetrySettings{
 						Logger:         p.logger,
