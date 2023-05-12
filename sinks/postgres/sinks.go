@@ -80,7 +80,7 @@ func (s sinksRepository) GetVersion(ctx context.Context) (string, error) {
 func (s sinksRepository) SearchAllSinks(ctx context.Context, filter sinks.Filter) ([]sinks.Sink, error) {
 	q := `SELECT id, name, mf_owner_id, description, tags, state, coalesce(error, '') as error, backend, metadata, ts_created FROM sinks`
 	params := map[string]interface{}{}
-	if filter.StateFilter != "" {
+	if (filter != sinks.Filter{} && filter.StateFilter != "") {
 		q += `WHERE state == :state`
 		params["state"] = filter.StateFilter
 	}
