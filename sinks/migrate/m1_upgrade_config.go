@@ -11,13 +11,15 @@ import (
 type Plan1UpdateConfiguration struct {
 	logger          *zap.Logger
 	service         sinks.SinkService
+	sinkRepo        sinks.SinkRepository
 	passwordService authentication_type.PasswordService
 }
 
-func NewPlan1(logger *zap.Logger, service sinks.SinkService, passwordService authentication_type.PasswordService) Plan {
+func NewPlan1(logger *zap.Logger, service sinks.SinkService, sinkRepo sinks.SinkRepository, passwordService authentication_type.PasswordService) Plan {
 	return &Plan1UpdateConfiguration{
 		logger:          logger,
 		service:         service,
+		sinkRepo:        sinkRepo,
 		passwordService: passwordService,
 	}
 }
@@ -27,7 +29,7 @@ func (p *Plan1UpdateConfiguration) Version() string {
 }
 
 func (p *Plan1UpdateConfiguration) Up(ctx context.Context) (err error) {
-	allSinks, err := p.service.ListSinksInternal(ctx, sinks.Filter{StateFilter: "", OpenTelemetry: "enabled"})
+	allSinks, err := p.sinkRepo.SearchAllSinks(ctx, sinks.Filter{StateFilter: "", OpenTelemetry: "enabled"})
 	if err != nil {
 		p.logger.Error("could not list sinks", zap.Error(err))
 		return

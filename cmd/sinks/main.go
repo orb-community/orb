@@ -116,7 +116,7 @@ func main() {
 	svc := newSinkService(auth, logger, esClient, sdkCfg, sinkRepo, pwdSvc)
 	errs := make(chan error, 2)
 
-	plan1 := migrate.NewPlan1(logger, svc, pwdSvc)
+	plan1 := migrate.NewPlan1(logger, svc, sinkRepo, pwdSvc)
 	migrateService := migrate.NewService(logger, sinkRepo)
 	err = migrateService.Migrate(plan1)
 	if err != nil {
