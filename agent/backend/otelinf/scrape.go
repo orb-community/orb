@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-package otelinf_metrics
+package otelinf
 
 import (
 	"context"
@@ -24,14 +24,14 @@ const (
 	otlpProtocol = "tcp"
 )
 
-func (d *otelinfBackend) createOtlpMqttExporter(ctx context.Context, cancelFunc context.CancelFunc) (exporter.Logs, error) {
+func (d *otelinfBackend) createOtlpMqttExporter(ctx context.Context, cancelFunc context.CancelFunc) (exporter.Metrics, error) {
 
 	bridgeService := otel.NewBridgeService(ctx, &d.policyRepo, d.agentTags)
 	if d.mqttClient != nil {
 		cfg := otlpmqttexporter.CreateConfigClient(d.mqttClient, d.metricTopic, d.version, bridgeService)
 		set := otlpmqttexporter.CreateDefaultSettings(d.logger)
-		// Create the OTLP logs exporter that'll receive and verify the logs produced.
-		exporter, err := otlpmqttexporter.CreateLogsExporter(ctx, set, cfg)
+		// Create the OTLP metrics exporter that'll receive and verify the metrics produced.
+		exporter, err := otlpmqttexporter.CreateMetricsExporter(ctx, set, cfg)
 		if err != nil {
 			return nil, err
 		}
@@ -40,8 +40,8 @@ func (d *otelinfBackend) createOtlpMqttExporter(ctx context.Context, cancelFunc 
 		cfg := otlpmqttexporter.CreateConfig(d.mqttConfig.Address, d.mqttConfig.Id, d.mqttConfig.Key,
 			d.mqttConfig.ChannelID, d.version, d.metricTopic, bridgeService)
 		set := otlpmqttexporter.CreateDefaultSettings(d.logger)
-		// Create the OTLP logs exporter that'll receive and verify the logs produced.
-		exporter, err := otlpmqttexporter.CreateLogsExporter(ctx, set, cfg)
+		// Create the OTLP metrics exporter that'll receive and verify the metrics produced.
+		exporter, err := otlpmqttexporter.CreateMetricsExporter(ctx, set, cfg)
 		if err != nil {
 			return nil, err
 		}
@@ -77,7 +77,7 @@ func (d *otelinfBackend) receiveOtlp() {
 					},
 					BuildInfo: component.NewDefaultBuildInfo(),
 				}
-				d.receiver, err = pFactory.CreateLogsReceiver(exeCtx, set, cfg, d.exporter)
+				d.receiver, err = pFactory.CreateMetricsReceiver(exeCtx, set, cfg, d.exporter)
 				if err != nil {
 					d.logger.Error("failed to create a receiver", zap.Error(err))
 					return
