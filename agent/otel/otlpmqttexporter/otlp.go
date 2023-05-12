@@ -297,7 +297,7 @@ func (e *baseExporter) export(ctx context.Context, topic string, request []byte)
 	compressedPayload := e.compressBrotli(request)
 	c := *e.config.Client
 	if token := c.Publish(topic, 1, false, compressedPayload); token.Wait() && token.Error() != nil {
-		e.logger.Error("error sending metrics RPC", zap.String("topic", topic), zap.Error(token.Error()))
+		e.logger.Error("error sending telemetry RPC", zap.String("topic", topic), zap.Error(token.Error()))
 		e.config.OrbAgentService.NotifyAgentDisconnection(ctx, token.Error())
 		return token.Error()
 	}

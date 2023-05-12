@@ -26,7 +26,7 @@ func (d *otelinfBackend) request(url string, payload interface{}, method string,
 
 	status, _, err := d.getProcRunningStatus()
 	if status != backend.Running {
-		d.logger.Warn("skipping diode REST API request because process is not running or is unresponsive", zap.String("url", url), zap.String("method", method), zap.Error(err))
+		d.logger.Warn("skipping otelinf REST API request because process is not running or is unresponsive", zap.String("url", url), zap.String("method", method), zap.Error(err))
 		return err
 	}
 
@@ -49,7 +49,7 @@ func (d *otelinfBackend) request(url string, payload interface{}, method string,
 	if (res.StatusCode < 200) || (res.StatusCode > 299) {
 		body, err := ioutil.ReadAll(res.Body)
 		if err != nil {
-			return errors.New(fmt.Sprintf("non 2xx HTTP error code from diode, no or invalid body: %d", res.StatusCode))
+			return errors.New(fmt.Sprintf("non 2xx HTTP error code from otelinf, no or invalid body: %d", res.StatusCode))
 		}
 		if len(body) == 0 {
 			return errors.New(fmt.Sprintf("%d empty body", res.StatusCode))
@@ -79,15 +79,15 @@ func (d *otelinfBackend) request(url string, payload interface{}, method string,
 func (d *otelinfBackend) getProcRunningStatus() (backend.RunningStatus, string, error) {
 	status := d.proc.Status()
 	if status.Error != nil {
-		errMsg := fmt.Sprintf("diode process error: %v", status.Error)
+		errMsg := fmt.Sprintf("otelinf process error: %v", status.Error)
 		return backend.BackendError, errMsg, status.Error
 	}
 	if status.Complete {
 		err := d.proc.Stop()
-		return backend.Offline, "diode process ended", err
+		return backend.Offline, "otelinf process ended", err
 	}
 	if status.StopTs > 0 {
-		return backend.Offline, "diode process ended", nil
+		return backend.Offline, "otelinf process ended", nil
 	}
 	return backend.Running, "", nil
 }

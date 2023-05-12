@@ -56,6 +56,7 @@ type otelinfBackend struct {
 
 	mqttClient  *mqtt.Client
 	metricTopic string
+	logTopic    string
 	policyRepo  policies.PolicyRepo
 
 	adminAPIHost     string
@@ -66,14 +67,18 @@ type otelinfBackend struct {
 	agentTags map[string]string
 
 	// OpenTelemetry management
-	otelReceiverHost string
-	otelReceiverPort int
-	receiver         receiver.Metrics
-	exporter         exporter.Metrics
+	otelMetricsReceiverHost string
+	otelMetricsReceiverPort int
+	otelLogsReceiverHost    string
+	otelLogsReceiverPort    int
+	receiverMetrics         receiver.Metrics
+	exporterMetrics         exporter.Metrics
+	receiverLogs            receiver.Logs
+	exporterLogs            exporter.Logs
 }
 
 func Register() bool {
-	backend.Register("otelinf_metrics", &otelinfBackend{
+	backend.Register("otelinf", &otelinfBackend{
 		adminAPIProtocol: "http",
 	})
 	return true
@@ -174,12 +179,22 @@ func (d *otelinfBackend) Start(ctx context.Context, cancelFunc context.CancelFun
 		d.adminAPIPort,
 	}
 
-	if d.otelReceiverPort == 0 {
-		d.otelReceiverPort = 4317 //otlp metrics port
+	// Metrics
+	if d.otelMetricsReceiverPort == 0 {
+		d.otelMetricsReceiverPort = 4317
 	}
 
-	if len(d.otelReceiverHost) == 0 {
-		d.otelReceiverHost = DefaultHost
+	if len(d.otelMetricsReceiverHost) == 0 {
+		d.otelMetricsReceiverHost = DefaultHost
+	}
+
+	// Logs
+	if d.otelLogsReceiverPort == 0 {
+		d.otelLogsReceiverPort = 4318
+	}
+
+	if len(d.otelLogsReceiverHost) == 0 {
+		d.otelLogsReceiverHost = DefaultHost
 	}
 
 	d.logger.Info("otelinf-agent startup", zap.Strings("arguments", pvOptions))

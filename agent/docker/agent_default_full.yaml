@@ -11,6 +11,6 @@ orb:
     diode:
       binary: /usr/local/bin/diode-agent
       config_file: /opt/orb/agent_default.yaml
-    otelinf_metrics:
+    otelinf:
       binary: /usr/local/bin/otelinf-agent
       config_file: /opt/orb/agent_default.yaml

@@ -24,7 +24,33 @@ const (
 	otlpProtocol = "tcp"
 )
 
-func (d *otelinfBackend) createOtlpMqttExporter(ctx context.Context, cancelFunc context.CancelFunc) (exporter.Metrics, error) {
+func (d *otelinfBackend) createOtlpMqttLogsExporter(ctx context.Context, cancelFunc context.CancelFunc) (exporter.Logs, error) {
+
+	bridgeService := otel.NewBridgeService(ctx, &d.policyRepo, d.agentTags)
+	if d.mqttClient != nil {
+		cfg := otlpmqttexporter.CreateConfigClient(d.mqttClient, d.logTopic, d.version, bridgeService)
+		set := otlpmqttexporter.CreateDefaultSettings(d.logger)
+		// Create the OTLP logs exporter that'll receive and verify the logs produced.
+		exporter, err := otlpmqttexporter.CreateLogsExporter(ctx, set, cfg)
+		if err != nil {
+			return nil, err
+		}
+		return exporter, nil
+	} else {
+		cfg := otlpmqttexporter.CreateConfig(d.mqttConfig.Address, d.mqttConfig.Id, d.mqttConfig.Key,
+			d.mqttConfig.ChannelID, d.version, d.logTopic, bridgeService)
+		set := otlpmqttexporter.CreateDefaultSettings(d.logger)
+		// Create the OTLP logs exporter that'll receive and verify the logs produced.
+		exporter, err := otlpmqttexporter.CreateLogsExporter(ctx, set, cfg)
+		if err != nil {
+			return nil, err
+		}
+		return exporter, nil
+	}
+
+}
+
+func (d *otelinfBackend) createOtlpMqttMetricsExporter(ctx context.Context, cancelFunc context.CancelFunc) (exporter.Metrics, error) {
 
 	bridgeService := otel.NewBridgeService(ctx, &d.policyRepo, d.agentTags)
 	if d.mqttClient != nil {
@@ -58,15 +84,16 @@ func (d *otelinfBackend) receiveOtlp() {
 		count := 0
 		for {
 			if d.mqttClient != nil {
-				d.exporter, err = d.createOtlpMqttExporter(exeCtx, execCancelF)
+				// Metrics
+				d.exporterMetrics, err = d.createOtlpMqttMetricsExporter(exeCtx, execCancelF)
 				if err != nil {
-					d.logger.Error("failed to create a exporter", zap.Error(err))
+					d.logger.Error("failed to create a metrics exporter", zap.Error(err))
 					return
 				}
 				pFactory := otlpreceiver.NewFactory()
 				cfg := pFactory.CreateDefaultConfig().(*otlpreceiver.Config)
 				cfg.HTTP = nil
-				cfg.GRPC.NetAddr.Endpoint = d.otelReceiverHost + ":" + strconv.Itoa(d.otelReceiverPort)
+				cfg.GRPC.NetAddr.Endpoint = d.otelMetricsReceiverHost + ":" + strconv.Itoa(d.otelMetricsReceiverPort)
 				cfg.GRPC.NetAddr.Transport = otlpProtocol
 
 				set := receiver.CreateSettings{
@@ -77,21 +104,58 @@ func (d *otelinfBackend) receiveOtlp() {
 					},
 					BuildInfo: component.NewDefaultBuildInfo(),
 				}
-				d.receiver, err = pFactory.CreateMetricsReceiver(exeCtx, set, cfg, d.exporter)
+				d.receiverMetrics, err = pFactory.CreateMetricsReceiver(exeCtx, set, cfg, d.exporterMetrics)
 				if err != nil {
-					d.logger.Error("failed to create a receiver", zap.Error(err))
+					d.logger.Error("failed to create a metrics receiver", zap.Error(err))
 					return
 				}
 
-				err = d.exporter.Start(exeCtx, nil)
+				err = d.exporterMetrics.Start(exeCtx, nil)
 				if err != nil {
-					d.logger.Error("otel mqtt exporter startup error", zap.Error(err))
+					d.logger.Error("otel mqtt metrics exporter startup error", zap.Error(err))
 					return
 				}
 
-				err = d.receiver.Start(exeCtx, nil)
+				err = d.receiverMetrics.Start(exeCtx, nil)
 				if err != nil {
-					d.logger.Error("otel receiver startup error", zap.Error(err))
+					d.logger.Error("otel receiver metrics startup error", zap.Error(err))
+					return
+				}
+				// Logs
+				d.exporterLogs, err = d.createOtlpMqttLogsExporter(exeCtx, execCancelF)
+				if err != nil {
+					d.logger.Error("failed to create a logs exporter", zap.Error(err))
+					return
+				}
+				pFactoryLogs := otlpreceiver.NewFactory()
+				cfgLogs := pFactoryLogs.CreateDefaultConfig().(*otlpreceiver.Config)
+				cfgLogs.HTTP = nil
+				cfgLogs.GRPC.NetAddr.Endpoint = d.otelLogsReceiverHost + ":" + strconv.Itoa(d.otelLogsReceiverPort)
+				cfgLogs.GRPC.NetAddr.Transport = otlpProtocol
+
+				setLogs := receiver.CreateSettings{
+					TelemetrySettings: component.TelemetrySettings{
+						Logger:         d.logger,
+						TracerProvider: trace.NewNoopTracerProvider(),
+						MeterProvider:  global.MeterProvider(),
+					},
+					BuildInfo: component.NewDefaultBuildInfo(),
+				}
+				d.receiverLogs, err = pFactory.CreateLogsReceiver(exeCtx, setLogs, cfgLogs, d.exporterLogs)
+				if err != nil {
+					d.logger.Error("failed to create a logs receiver", zap.Error(err))
+					return
+				}
+
+				err = d.exporterLogs.Start(exeCtx, nil)
+				if err != nil {
+					d.logger.Error("otel mqtt logs exporter startup error", zap.Error(err))
+					return
+				}
+
+				err = d.receiverLogs.Start(exeCtx, nil)
+				if err != nil {
+					d.logger.Error("otel logs receiver startup error", zap.Error(err))
 					return
 				}
 				break
@@ -112,11 +176,19 @@ func (d *otelinfBackend) receiveOtlp() {
 				d.ctx.Done()
 				d.cancelFunc()
 			case <-d.ctx.Done():
-				err := d.exporter.Shutdown(exeCtx)
+				err := d.exporterMetrics.Shutdown(exeCtx)
 				if err != nil {
 					return
 				}
-				err = d.receiver.Shutdown(exeCtx)
+				err = d.receiverMetrics.Shutdown(exeCtx)
+				if err != nil {
+					return
+				}
+				err = d.exporterLogs.Shutdown(exeCtx)
+				if err != nil {
+					return
+				}
+				err = d.receiverLogs.Shutdown(exeCtx)
 				if err != nil {
 					return
 				}
