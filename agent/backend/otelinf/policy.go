@@ -22,7 +22,7 @@ func (d *otelinfBackend) ApplyPolicy(data policies.PolicyData, updatePolicy bool
 			d.logger.Warn("policy failed to remove", zap.String("policy_id", data.ID), zap.String("policy_name", data.Name), zap.Error(err))
 		}
 	}
-	d.logger.Debug("diode-agent policy apply", zap.String("policy_id", data.ID), zap.Any("data", data.Data))
+	d.logger.Debug("otelinf-agent policy apply", zap.String("policy_id", data.ID), zap.Any("data", data.Data))
 	pol := map[string]interface{}{
 		data.Name: data.Data,
 	}
@@ -41,7 +41,7 @@ func (d *otelinfBackend) ApplyPolicy(data policies.PolicyData, updatePolicy bool
 }
 
 func (d *otelinfBackend) RemovePolicy(data policies.PolicyData) error {
-	d.logger.Debug("diode-agent policy remove", zap.String("policy_id", data.ID))
+	d.logger.Debug("otelinf-agent policy remove", zap.String("policy_id", data.ID))
 	var resp interface{}
 	var name string
 	// Since we use Name for removing policies not IDs, if there is a change, we need to remove the previous name of the policy

@@ -130,8 +130,9 @@ func (d *otelinfBackend) Version() (string, error) {
 
 func (d *otelinfBackend) SetCommsClient(agentID string, client *mqtt.Client, baseTopic string) {
 	d.mqttClient = client
-	metricTopic := strings.Replace(baseTopic, "?", "otlp", 1)
-	d.metricTopic = fmt.Sprintf("%s/m/%c", metricTopic, agentID[0])
+	otlpTopic := strings.Replace(baseTopic, "?", "otlp", 1)
+	d.metricTopic = fmt.Sprintf("%s/m/%c", otlpTopic, agentID[0])
+	d.logTopic = fmt.Sprintf("%s/l/%c", otlpTopic, agentID[0])
 }
 
 func (d *otelinfBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo, config map[string]string, otelConfig map[string]interface{}) error {
