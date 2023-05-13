@@ -6,7 +6,6 @@ package otelinf
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -49,16 +48,16 @@ func (d *otelinfBackend) request(url string, payload interface{}, method string,
 	if (res.StatusCode < 200) || (res.StatusCode > 299) {
 		body, err := ioutil.ReadAll(res.Body)
 		if err != nil {
-			return errors.New(fmt.Sprintf("non 2xx HTTP error code from otelinf, no or invalid body: %d", res.StatusCode))
+			return fmt.Errorf("non 2xx HTTP error code from otelinf, no or invalid body: %d", res.StatusCode)
 		}
 		if len(body) == 0 {
-			return errors.New(fmt.Sprintf("%d empty body", res.StatusCode))
+			return fmt.Errorf("%d empty body", res.StatusCode)
 		} else if body[0] == '{' {
 			var jsonBody map[string]interface{}
 			err := json.Unmarshal(body, &jsonBody)
 			if err == nil {
 				if errMsg, ok := jsonBody["error"]; ok {
-					return errors.New(fmt.Sprintf("%d %s", res.StatusCode, errMsg))
+					return fmt.Errorf("%d %s", res.StatusCode, errMsg)
 				}
 			}
 		}
@@ -67,9 +66,9 @@ func (d *otelinfBackend) request(url string, payload interface{}, method string,
 	if res.Body != nil {
 		err = json.NewDecoder(res.Body).Decode(&payload)
 		if err != nil {
-			err = yaml.NewDecoder(res.Body).Decode(&payload)
-			if err != nil {
-				return err
+			err2 := yaml.NewDecoder(res.Body).Decode(&payload)
+			if err2 != nil {
+				return fmt.Errorf("otelinf: error decode request body %v", err2)
 			}
 		}
 	}

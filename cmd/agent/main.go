@@ -14,6 +14,7 @@ import (
 
 	"github.com/orb-community/orb/agent"
 	"github.com/orb-community/orb/agent/backend/diode"
+	"github.com/orb-community/orb/agent/backend/gnmic"
 	"github.com/orb-community/orb/agent/backend/otelinf"
 	"github.com/orb-community/orb/agent/backend/pktvisor"
 	"github.com/orb-community/orb/agent/config"
@@ -37,6 +38,7 @@ func init() {
 	pktvisor.Register()
 	diode.Register()
 	otelinf.Register()
+	gnmic.Register()
 
 }
 

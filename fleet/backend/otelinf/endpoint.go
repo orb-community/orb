@@ -1,4 +1,4 @@
-package diode
+package otelinf
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/orb-community/orb/pkg/types"
 )
 
-func viewAgentBackendHandlerEndpoint(dio diodeBackend) endpoint.Endpoint {
+func viewAgentBackendHandlerEndpoint(dio otelinfBackend) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(viewResourceReq)
 		if err := req.validate(); err != nil {
@@ -29,7 +29,7 @@ func viewAgentBackendHandlerEndpoint(dio diodeBackend) endpoint.Endpoint {
 	}
 }
 
-func viewAgentBackendInputEndpoint(dio diodeBackend) endpoint.Endpoint {
+func viewAgentBackendInputEndpoint(dio otelinfBackend) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(viewResourceReq)
 		if err := req.validate(); err != nil {
@@ -49,7 +49,7 @@ func viewAgentBackendInputEndpoint(dio diodeBackend) endpoint.Endpoint {
 	}
 }
 
-func viewAgentBackendTapsEndpoint(dio diodeBackend) endpoint.Endpoint {
+func viewAgentBackendTapsEndpoint(dio otelinfBackend) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(viewResourceReq)
 		if err := req.validate(); err != nil {

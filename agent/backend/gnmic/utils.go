@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-package diode
+package gnmic
 
 import (
 	"encoding/json"
@@ -18,14 +18,14 @@ import (
 )
 
 // note this needs to be stateless because it is called for multiple go routines
-func (d *diodeBackend) request(url string, payload interface{}, method string, body io.Reader, contentType string, timeout int32) error {
+func (d *gnmicBackend) request(url string, payload interface{}, method string, body io.Reader, contentType string, timeout int32) error {
 	client := http.Client{
 		Timeout: time.Second * time.Duration(timeout),
 	}
 
 	status, _, err := d.getProcRunningStatus()
 	if status != backend.Running {
-		d.logger.Warn("skipping diode REST API request because process is not running or is unresponsive", zap.String("url", url), zap.String("method", method), zap.Error(err))
+		d.logger.Warn("skipping gnmic REST API request because process is not running or is unresponsive", zap.String("url", url), zap.String("method", method), zap.Error(err))
 		return err
 	}
 
@@ -48,7 +48,7 @@ func (d *diodeBackend) request(url string, payload interface{}, method string, b
 	if (res.StatusCode < 200) || (res.StatusCode > 299) {
 		body, err := ioutil.ReadAll(res.Body)
 		if err != nil {
-			return fmt.Errorf("non 2xx HTTP error code from diode, no or invalid body: %d", res.StatusCode)
+			return fmt.Errorf("non 2xx HTTP error code from gnmic, no or invalid body: %d", res.StatusCode)
 		}
 		if len(body) == 0 {
 			return fmt.Errorf("%d empty body", res.StatusCode)
@@ -68,25 +68,25 @@ func (d *diodeBackend) request(url string, payload interface{}, method string, b
 		if err != nil {
 			err2 := yaml.NewDecoder(res.Body).Decode(&payload)
 			if err2 != nil {
-				return fmt.Errorf("diode: error decode request body %v", err2)
+				return fmt.Errorf("gnmic: error decode request body %v", err2)
 			}
 		}
 	}
 	return nil
 }
 
-func (d *diodeBackend) getProcRunningStatus() (backend.RunningStatus, string, error) {
+func (d *gnmicBackend) getProcRunningStatus() (backend.RunningStatus, string, error) {
 	status := d.proc.Status()
 	if status.Error != nil {
-		errMsg := fmt.Sprintf("diode process error: %v", status.Error)
+		errMsg := fmt.Sprintf("gnmic process error: %v", status.Error)
 		return backend.BackendError, errMsg, status.Error
 	}
 	if status.Complete {
 		err := d.proc.Stop()
-		return backend.Offline, "diode process ended", err
+		return backend.Offline, "gnmic process ended", err
 	}
 	if status.StopTs > 0 {
-		return backend.Offline, "diode process ended", nil
+		return backend.Offline, "gnmic process ended", nil
 	}
 	return backend.Running, "", nil
 }
