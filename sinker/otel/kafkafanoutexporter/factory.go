@@ -41,7 +41,7 @@ const (
 	// default from sarama.NewConfig()
 	defaultMetadataFull = true
 	// default max.message.bytes for the producer
-	defaultProducerMaxMessageBytes = 1000000
+	defaultProducerMaxMessageBytes = 5000000
 	// default required_acks for the producer
 	defaultProducerRequiredAcks = sarama.WaitForLocal
 	// default from sarama.NewConfig()
