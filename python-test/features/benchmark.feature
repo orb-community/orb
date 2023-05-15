@@ -10,7 +10,7 @@ Feature: Integrated Benchmark Tests
     And pktvisor state is running
     And referred agent is subscribed to 1 group
     And this agent's heartbeat shows that 1 groups are matching the agent
-    And that a sink already exists
+    And that a sink with default configuration type already exists
     When <amount> mixed policies are applied to the group
     Then this agent's heartbeat shows that <amount> policies are applied and all has status running
     And the container logs contain the message "policy applied successfully" referred to each policy within <waiting_time> seconds

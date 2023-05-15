@@ -1,9 +1,11 @@
 from behave import given, when, then, step
 from test_config import TestConfig
-from utils import random_string, filter_list_by_parameter_start_with, threading_wait_until, validate_json
+from utils import random_string, filter_list_by_parameter_start_with, threading_wait_until, validate_json, \
+    remove_empty_from_json
 from hamcrest import *
 import requests
 import threading
+import yaml
 
 configs = TestConfig.configs()
 sink_name_prefix = "test_sink_label_name_"
@@ -44,16 +46,32 @@ def create_sink(context, **kwargs):
         include_otel_env_var = configs.get("include_otel_env_var")
         enable_otel = configs.get("enable_otel")
     otel_map = {"true": "enabled", "false": "disabled"}
+    if "configuration_type" in kwargs:
+        configuration_type = kwargs["configuration_type"].lower()
+    else:
+        configuration_type = ""
+
     if include_otel_env_var == "true":
         context.sink = create_new_sink(token, sink_label_name, endpoint, username, password,
-                                       include_otel=include_otel_env_var, otel=otel_map[enable_otel])
+                                       include_otel=include_otel_env_var, otel=otel_map[enable_otel],
+                                       configuration_type=configuration_type)
     else:
-        context.sink = create_new_sink(token, sink_label_name, endpoint, username, password)
+        context.sink = create_new_sink(token, sink_label_name, endpoint, username, password,
+                                       configuration_type=configuration_type)
     local_orb_path = configs.get("local_orb_path")
     sink_schema_path = local_orb_path + "/python-test/features/steps/schemas/sink_schema.json"
     is_schema_valid = validate_json(context.sink, sink_schema_path)
     assert_that(is_schema_valid, equal_to(True), f"Invalid sink json. \n Sink = {context.sink}")
+    sink_get_response = get_sink(context.token, context.sink['id'])
+    is_get_schema_valid = validate_json(sink_get_response, sink_schema_path)
+    assert_that(is_get_schema_valid, equal_to(True), f"Invalid sink json in get response."
+                                                     f" \n Sink = {sink_get_response}")
     context.existent_sinks_id.append(context.sink['id'])
+
+
+@step("a new sink is created using {configuration_type} configuration type")
+def create_yaml_sink(context, configuration_type):
+    create_sink(context, configuration_type=configuration_type)
 
 
 @step("a new sink is is requested to be created with the same name as an existent one")
@@ -88,10 +106,15 @@ def create_multiple_sinks(context, amount_of_sinks):
         create_sink(context)
 
 
-@given("that a sink already exists")
-def new_sink(context):
+@given("that a sink with {configuration_type} configuration type already exists")
+def new_sink(context, configuration_type):
     check_prometheus_grafana_credentials(context)
-    create_sink(context)
+    if configuration_type.lower() == "default":
+        create_sink(context)
+    else:
+        assert_that(configuration_type.lower(), any_of(equal_to("yaml"), equal_to("json")),
+                    f"Unexpected value for sink configuration type")
+        create_sink(context, configuration_type=configuration_type.lower())
 
 
 # this step is only necessary for OTEL migration tests, so we can exclude it after the migration
@@ -254,8 +277,7 @@ def sink_partial_update(context, sink_keys):
                 sink_configs = {"remote_host": remote_host, "username": username, "password": password}
             context.values_to_use_to_update_sink = {"name": f"{context.sink['name']}_updated",
                                                     "description": "this sink has been updated",
-                                                    "tags": {"sink": "updated", "new": "tag"},
-                                                    "config": sink_configs}
+                                                    "tags": {"sink": "updated", "new": "tag"}, "config": sink_configs}
             update_sink_body[sink_key] = context.values_to_use_to_update_sink[sink_key]
     context.sink_before_update = get_sink(context.token, context.sink['id'])
     context.sink = edit_sink(context.token, context.sink['id'], update_sink_body, 200)
@@ -295,8 +317,8 @@ def clean_sinks(context):
     delete_sinks(token, sinks_filtered_list)
 
 
-def create_new_sink(token, name_label, remote_host, username, password, description=None, tag_key='',
-                    tag_value=None, backend_type="prometheus", include_otel="false", otel="disabled",
+def create_new_sink(token, name_label, remote_host, username, password, description=None, tag_key='', tag_value=None,
+                    backend_type="prometheus", include_otel="false", otel="disabled", configuration_type="",
                     expected_status_code=201):
     """
 
@@ -313,6 +335,7 @@ def create_new_sink(token, name_label, remote_host, username, password, descript
     :param (str) backend_type: type of backend used to send metrics. Default: prometheus
     :param (str) include_otel: if true it include 'opentelemetry' on sink's configs
     :param (str) otel: the value to be used on 'opentelemetry' config
+    :param (str) configuration_type: define in which type the configuration will be written
     :param (int) expected_status_code: status code expected as response
     :return: (dict) a dictionary containing the created sink data
     """
@@ -321,12 +344,20 @@ def create_new_sink(token, name_label, remote_host, username, password, descript
         sink_configs = {"remote_host": remote_host, "username": username, "password": password, "opentelemetry": otel}
     else:
         sink_configs = {"remote_host": remote_host, "username": username, "password": password}
-    json_request = {"name": name_label, "description": description, "tags": {tag_key: tag_value},
-                    "backend": backend_type, "validate_only": False,
-                    "config": sink_configs}
-    headers_request = {'Content-type': 'application/json', 'Accept': '*/*',
-                       'Authorization': f'Bearer {token}'}
-
+    if configuration_type == "yaml":
+        sink_configs_yaml = yaml.dump(sink_configs)
+        json_request = {"name": name_label, "description": description, "tags": {tag_key: tag_value},
+                        "backend": backend_type, "validate_only": False, "config_data": sink_configs_yaml,
+                        "format": configuration_type}
+    elif configuration_type == "json":
+        json_request = {"name": name_label, "description": description, "tags": {tag_key: tag_value},
+                        "backend": backend_type, "validate_only": False, "config": sink_configs,
+                        "format": configuration_type}
+    else:
+        json_request = {"name": name_label, "description": description, "tags": {tag_key: tag_value},
+                        "backend": backend_type, "validate_only": False, "config": sink_configs}
+    headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
+    json_request = remove_empty_from_json(json_request)
     response = requests.post(orb_url + '/api/v1/sinks', json=json_request, headers=headers_request,
                              verify=verify_ssl_bool)
     try:
@@ -357,8 +388,8 @@ def get_sink(token, sink_id):
         response_json = get_sink_response.text
 
     assert_that(get_sink_response.status_code, equal_to(200),
-                'Request to get sink id=' + sink_id + ' failed with status=' + str(get_sink_response.status_code) + ': '
-                + str(response_json))
+                'Request to get sink id=' + sink_id + ' failed with status=' + str(
+                    get_sink_response.status_code) + ': ' + str(response_json))
 
     return response_json
 
@@ -396,15 +427,14 @@ def list_up_to_limit_sinks(token, limit=100, offset=0):
 
     response = requests.get(orb_url + '/api/v1/sinks', headers={'Authorization': f'Bearer {token}'},
                             params={'limit': limit, 'offset': offset}, verify=verify_ssl_bool)
-    
+
     try:
         response_json = response.json()
     except ValueError:
         response_json = response.text
 
     assert_that(response.status_code, equal_to(200),
-                'Request to list sinks failed with status=' + str(response.status_code) + ': '
-                + str(response_json))
+                'Request to list sinks failed with status=' + str(response.status_code) + ': ' + str(response_json))
 
     sinks_as_json = response.json()
     return sinks_as_json['sinks'], sinks_as_json['total'], sinks_as_json['offset']
@@ -430,11 +460,11 @@ def delete_sink(token, sink_id):
     :param (str) sink_id: that identifies the sink to be deleted
     """
 
-    response = requests.delete(orb_url + '/api/v1/sinks/' + sink_id,
-                               headers={'Authorization': f'Bearer {token}'}, verify=verify_ssl_bool)
+    response = requests.delete(orb_url + '/api/v1/sinks/' + sink_id, headers={'Authorization': f'Bearer {token}'},
+                               verify=verify_ssl_bool)
 
-    assert_that(response.status_code, equal_to(204), 'Request to delete sink id='
-                + sink_id + ' failed with status=' + str(response.status_code))
+    assert_that(response.status_code, equal_to(204),
+                'Request to delete sink id=' + sink_id + ' failed with status=' + str(response.status_code))
 
 
 @threading_wait_until
@@ -466,8 +496,8 @@ def edit_sink(token, sink_id, sink_body, expected_status_code=200):
 
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
 
-    response = requests.put(orb_url + '/api/v1/sinks/' + sink_id, json=sink_body,
-                            headers=headers_request, verify=verify_ssl_bool)
+    response = requests.put(orb_url + '/api/v1/sinks/' + sink_id, json=sink_body, headers=headers_request,
+                            verify=verify_ssl_bool)
     try:
         response_json = response.json()
     except ValueError:
