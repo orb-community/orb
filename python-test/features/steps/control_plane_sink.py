@@ -253,8 +253,8 @@ def sink_partial_update(context, sink_keys):
     sink_keys = sink_keys.replace(" and ", ", ")
     keys_to_update = sink_keys.split(", ")
     update_sink_body = get_sink(context.token, context.sink['id'])
-    keys_to_not_update = list(set(update_sink_body.keys()).symmetric_difference(set(keys_to_update)))
-    all_sink_keys = list(update_sink_body.keys())
+    keys_to_not_update = list(set(update_sink_body.keys()).difference(set(keys_to_update)))
+    all_sink_keys = list(set(update_sink_body.keys()).union(set(keys_to_update)))
     for sink_key in all_sink_keys:
         if sink_key in keys_to_not_update:
             del update_sink_body[sink_key]
@@ -288,7 +288,7 @@ def verify_sink_after_update(context, sink_keys):
     sink_keys = sink_keys.replace(" and ", ", ")
     updated_keys = sink_keys.split(", ")
     all_sink_keys = list(context.sink.keys())
-    assert_that(set(context.sink.keys()), equal_to(set(context.sink_before_update)),
+    assert_that(set(context.sink.keys()), equal_to(set(context.sink_before_update).union(set(updated_keys))),
                 f"Sink keys are not the same after sink partial update:"
                 f"Sink before update: {context.sink_before_update}. Sink after update: {context.sink}")
     for sink_key in all_sink_keys:
