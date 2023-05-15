@@ -25,10 +25,16 @@ export class SinkDetailsComponent {
   }
 
   onOpenEdit(sink: any) {
-    this.dialogRef.close(true);
+    this.router.navigateByUrl(`/pages/sinks/edit/${sink.id}`);
+    this.dialogRef.close();
   }
 
   onClose() {
     this.dialogRef.close(false);
+  }
+
+  onOpenView(sink: any) {
+    this.router.navigateByUrl(`/pages/sinks/view/${sink.id}`);
+    this.dialogRef.close();
   }
 }
