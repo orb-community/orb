@@ -3,11 +3,11 @@ import { NbDialogRef } from '@nebular/theme';
 import { STRINGS } from 'assets/text/strings';
 import { ColumnMode, TableColumn } from '@swimlane/ngx-datatable';
 import { DropdownFilterItem } from 'app/common/interfaces/mainflux.interface';
-import { Agent } from 'app/common/interfaces/orb/agent.interface';
+import { Agent, AgentPolicyAggStates } from 'app/common/interfaces/orb/agent.interface';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { AgentsService } from 'app/common/services/agents/agents.service';
 import { Router } from '@angular/router';
-import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
+import { AgentPolicy, AgentPolicyStates } from 'app/common/interfaces/orb/agent.policy.interface';
 
 @Component({
   selector: 'ngx-agent-match-component',
@@ -32,6 +32,10 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
 
   columns: TableColumn[];
 
+  statePolicy: AgentPolicyAggStates;
+
+  specificPolicy: boolean;
+
   // templates
   @ViewChild('agentNameTemplateCell') agentNameTemplateCell: TemplateRef<any>;
 
@@ -39,7 +43,7 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
 
   @ViewChild('agentStateTemplateCell') agentStateTemplateRef: TemplateRef<any>;
 
-  @ViewChild('agentEspecificPolicyStateTemplateCell') agentEspecificPolicyStateTemplateRef: TemplateRef<any>;
+  @ViewChild('agentSpecificPolicyStateTemplateCell') agentSpecificPolicyStateTemplateRef: TemplateRef<any>;
 
   tableFilters: DropdownFilterItem[] = [
     {
@@ -61,6 +65,7 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
     protected agentsService: AgentsService,
     protected router: Router,
   ) {
+    this.specificPolicy = false;
   }
 
   ngOnInit() {
@@ -116,7 +121,7 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
         flexGrow: 3,
         canAutoResize: true,
         minWidth: 150,
-        cellTemplate: this.agentEspecificPolicyStateTemplateRef,
+        cellTemplate: this.agentSpecificPolicyStateTemplateRef,
       },
     ];
   }
@@ -131,11 +136,11 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
     const tagsList = Object.keys(tags).map(key => ({ [key]: tags[key] }));
     this.agentsService.getAllAgents(tagsList).subscribe(
       resp => {
-        if(!!this.policy){
-          this.agents = resp.map((agent)=>{
+        if(!!this.policy) {
+          this.specificPolicy = true;
+          this.agents = resp.map((agent) => {
             const {policy_state} = agent;
-            const policy_agg_info = !!policy_state && policy_state[this.policy.id].state || "Not Applied";
-            
+            const policy_agg_info = !!policy_state && policy_state[this.policy.id].state || AgentPolicyStates.failedToApply;
             return {...agent, policy_agg_info };
           })
         } else {

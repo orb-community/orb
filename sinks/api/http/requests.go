@@ -95,7 +95,6 @@ func (req addReq) validate() (err error) {
 	if err != nil {
 		return errors.Wrap(errors.ErrMalformedEntity, errors.New("identifier duplicated"))
 	}
-
 	return nil
 }
 
