@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// todo change to the dependency semantic version
 type SemVer struct {
 	Major int
 	Minor int

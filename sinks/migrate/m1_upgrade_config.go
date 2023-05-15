@@ -80,5 +80,6 @@ func (p *Plan1UpdateConfiguration) Up(ctx context.Context) (err error) {
 		}
 	}
 	p.logger.Info("migration results", zap.Int("total_sinks", len(allSinks)), zap.Int("updated_sinks", updated))
+	// todo ADD CLAUSE TO HAVE ANY ERRORS AND PROPAGATE UP
 	return
 }
