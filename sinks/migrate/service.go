@@ -3,7 +3,7 @@ package migrate
 import (
 	"context"
 	"fmt"
-	"github.com/orb-community/orb/pkg/types"
+	"github.com/hashicorp/go-version"
 	"github.com/orb-community/orb/sinks"
 	"go.uber.org/zap"
 )
@@ -31,8 +31,12 @@ type migrateService struct {
 
 func (m *migrateService) updateNewVersion(ctx context.Context, newVersion string) {
 	currentVersion := m.getCurrentVersion(ctx)
-	incomingSemVer := types.NewSemVerFromString(newVersion)
-	if incomingSemVer.IsNewerThan(currentVersion) {
+	incomingSemVer, err := version.NewVersion(newVersion)
+	if err != nil {
+		m.logger.Error("Could not parse version for plan", zap.String("version", newVersion), zap.Error(err))
+		return
+	}
+	if incomingSemVer.GreaterThan(currentVersion) {
 		err := m.sinkRepository.UpdateVersion(ctx, newVersion)
 		if err != nil {
 			m.logger.Error("error during update of version", zap.String("newVersion", newVersion), zap.Error(err))
@@ -41,9 +45,12 @@ func (m *migrateService) updateNewVersion(ctx context.Context, newVersion string
 	}
 }
 
-func (m *migrateService) getCurrentVersion(ctx context.Context) types.SemVer {
+func (m *migrateService) getCurrentVersion(ctx context.Context) *version.Version {
 	currentVersion, _ := m.sinkRepository.GetVersion(ctx)
-	currSemVer := types.NewSemVerFromString(currentVersion)
+	currSemVer, err := version.NewVersion(currentVersion)
+	if err != nil {
+		return nil
+	}
 	return currSemVer
 }
 
@@ -51,7 +58,11 @@ func (m *migrateService) Migrate(plans ...Plan) error {
 	for i, plan := range plans {
 		planName := fmt.Sprintf("plan%d", i)
 		ctx := context.WithValue(context.Background(), "migrate", planName)
-		if types.NewSemVerFromString(plan.Version()).IsNewerThan(m.getCurrentVersion(ctx)) {
+		v, err := version.NewVersion(plan.Version())
+		if err != nil {
+			m.logger.Error("Could not parse version for plan", zap.String("version", plan.Version()), zap.Error(err))
+		}
+		if v.GreaterThan(m.getCurrentVersion(ctx)) {
 			m.logger.Info("Starting plan", zap.Int("plan", i))
 			err := plan.Up(ctx)
 			if err != nil {
