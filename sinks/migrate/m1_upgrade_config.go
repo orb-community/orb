@@ -2,6 +2,7 @@ package migrate
 
 import (
 	"context"
+	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks"
 	"github.com/orb-community/orb/sinks/authentication_type"
@@ -28,34 +29,40 @@ func (p *Plan1UpdateConfiguration) Version() string {
 	return "0.25.1"
 }
 
-func (p *Plan1UpdateConfiguration) Up(ctx context.Context) (err error) {
-	allSinks, err := p.sinkRepo.SearchAllSinks(ctx, sinks.Filter{StateFilter: "", OpenTelemetry: "enabled"})
-	if err != nil {
-		p.logger.Error("could not list sinks", zap.Error(err))
+func (p *Plan1UpdateConfiguration) Up(ctx context.Context) (mainErr error) {
+	allSinks, mainErr := p.sinkRepo.SearchAllSinks(ctx, sinks.Filter{StateFilter: "", OpenTelemetry: "enabled"})
+	if mainErr != nil {
+		p.logger.Error("could not list sinks", zap.Error(mainErr))
 		return
 	}
+	needsUpdate := 0
 	updated := 0
 	for _, sink := range allSinks {
 		if _, ok := sink.Config["authentication"]; !ok {
+			needsUpdate++
 			sinkRemoteHost, ok := sink.Config["remote_host"]
 			if !ok {
 				p.logger.Error("failed to update sink for lack of remote_host", zap.String("sinkID", sink.ID))
+				mainErr = errors.New("failed to get remote_host from config")
 				continue
 			}
 			sinkUsername, ok := sink.Config["username"]
 			if !ok {
 				p.logger.Error("failed to update sink for lack of username", zap.String("sinkID", sink.ID))
+				mainErr = errors.New("failed to get username from config")
 				continue
 			}
 			encodedPassword, ok := sink.Config["password"]
 			if !ok {
 				p.logger.Error("failed to update sink for lack of password", zap.String("sinkID", sink.ID))
+				mainErr = errors.New("failed to get password from config")
 				continue
 			}
 			decodedPassword, err := p.passwordService.DecodePassword(encodedPassword.(string))
 			if err != nil {
 				p.logger.Error("failed to update sink for failure in decoding password",
 					zap.String("sinkID", sink.ID), zap.Error(err))
+				mainErr = err
 				continue
 			}
 			newMetadata := types.Metadata{
@@ -74,12 +81,12 @@ func (p *Plan1UpdateConfiguration) Up(ctx context.Context) (err error) {
 			if err != nil {
 				p.logger.Error("failed to update sink",
 					zap.String("sinkID", sink.ID), zap.Error(err))
+				mainErr = err
 				continue
 			}
 			updated++
 		}
 	}
-	p.logger.Info("migration results", zap.Int("total_sinks", len(allSinks)), zap.Int("updated_sinks", updated))
-	// todo ADD CLAUSE TO HAVE ANY ERRORS AND PROPAGATE UP
+	p.logger.Info("migration results", zap.Int("total_sinks", needsUpdate), zap.Int("updated_sinks", updated))
 	return
 }
