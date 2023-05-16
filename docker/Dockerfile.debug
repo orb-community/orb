@@ -19,4 +19,4 @@ RUN if [[ "maestro" == "$SVC" ]]; then apk update && apk add --no-cache docker-c
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=builder /exe /
 COPY --from=builder /go/bin/dlv /dlv
-CMD ["dlv", "--listen=:2345", "--headless=true", "--api-version=2", "--accept-multiclient", "exec", "/exe"]
+CMD ["/dlv", "--listen=:2345", "--headless=true", "--api-version=2", "--accept-multiclient", "exec", "/exe"]
