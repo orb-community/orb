@@ -30,6 +30,14 @@ type sinkRepositoryMock struct {
 	sinksMock immutable.Map[string, sinks.Sink]
 }
 
+func (s *sinkRepositoryMock) GetVersion(ctx context.Context) (string, error) {
+	return "", nil
+}
+
+func (s *sinkRepositoryMock) UpdateVersion(ctx context.Context, version string) error {
+	return nil
+}
+
 func (s *sinkRepositoryMock) SearchAllSinks(ctx context.Context, filter sinks.Filter) ([]sinks.Sink, error) {
 	return nil, nil
 }
