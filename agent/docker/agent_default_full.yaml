@@ -14,3 +14,6 @@ orb:
     otelinf:
       binary: /usr/local/bin/otelinf-agent
       config_file: /opt/orb/agent_default.yaml
+    gnmic:
+      binary: /usr/local/bin/gnmic-agent
+      config_file: /opt/orb/agent_default.yaml

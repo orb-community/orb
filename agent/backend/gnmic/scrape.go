@@ -6,22 +6,31 @@ package gnmic
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"time"
 
+	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver"
 	"github.com/orb-community/orb/agent/otel"
 	"github.com/orb-community/orb/agent/otel/otlpmqttexporter"
+	configutil "github.com/prometheus/common/config"
+	"github.com/prometheus/common/model"
+	"github.com/prometheus/prometheus/config"
+	"github.com/prometheus/prometheus/discovery"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/receiver"
-	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.opentelemetry.io/otel/metric/global"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
 const (
-	otlpProtocol = "tcp"
+	typeStr            = "orb-gnmic"
+	PromScheme         = "http"
+	PromScrapeInterval = 60 * time.Second
+	PromScrapeTimeout  = 15 * time.Second
+	PromMetricsPath    = "/metrics"
 )
 
 func (d *gnmicBackend) createOtlpMqttLogsExporter(ctx context.Context, cancelFunc context.CancelFunc) (exporter.Logs, error) {
@@ -76,8 +85,11 @@ func (d *gnmicBackend) createOtlpMqttMetricsExporter(ctx context.Context, cancel
 
 }
 
-func (d *gnmicBackend) receiveOtlp() {
+func (d *gnmicBackend) scrapeOtlp(ctx context.Context) {
 	exeCtx, execCancelF := context.WithCancel(d.ctx)
+	policyID := ctx.Value("policy_id").(string)
+	policyName := ctx.Value("policy_name").(string)
+	// add policyName in context
 	go func() {
 		defer execCancelF()
 		var err error
@@ -85,16 +97,37 @@ func (d *gnmicBackend) receiveOtlp() {
 		for {
 			if d.mqttClient != nil {
 				// Metrics
-				d.exporterMetrics, err = d.createOtlpMqttMetricsExporter(exeCtx, execCancelF)
+				d.exporter[policyID], err = d.createOtlpMqttMetricsExporter(exeCtx, execCancelF)
 				if err != nil {
 					d.logger.Error("failed to create a metrics exporter", zap.Error(err))
 					return
 				}
-				pFactory := otlpreceiver.NewFactory()
-				cfg := pFactory.CreateDefaultConfig().(*otlpreceiver.Config)
-				cfg.HTTP = nil
-				cfg.GRPC.NetAddr.Endpoint = d.otelMetricsReceiverHost + ":" + strconv.Itoa(d.otelMetricsReceiverPort)
-				cfg.GRPC.NetAddr.Transport = otlpProtocol
+				promFactory := prometheusreceiver.NewFactory()
+				promCfg := promFactory.CreateDefaultConfig().(*prometheusreceiver.Config)
+				httpConfig := configutil.HTTPClientConfig{}
+				scrapeConfig := &config.ScrapeConfig{
+					ScrapeInterval:  model.Duration(PromScrapeInterval),
+					ScrapeTimeout:   model.Duration(PromScrapeTimeout),
+					JobName:         fmt.Sprintf("%s-%s", typeStr, policyName),
+					HonorTimestamps: true,
+					Scheme:          PromScheme,
+
+					MetricsPath: PromMetricsPath,
+					Params:      d.PromParams,
+					ServiceDiscoveryConfigs: discovery.Configs{
+						&discovery.StaticConfig{
+							{
+								Targets: []model.LabelSet{
+									{model.AddressLabel: model.LabelValue(d.otelMetricsReceiverHost)},
+								},
+							},
+						},
+					},
+				}
+				scrapeConfig.HTTPClientConfig = httpConfig
+				promCfg.PrometheusConfig = &config.Config{ScrapeConfigs: []*config.ScrapeConfig{
+					scrapeConfig,
+				}}
 
 				set := receiver.CreateSettings{
 					TelemetrySettings: component.TelemetrySettings{
@@ -104,58 +137,21 @@ func (d *gnmicBackend) receiveOtlp() {
 					},
 					BuildInfo: component.NewDefaultBuildInfo(),
 				}
-				d.receiverMetrics, err = pFactory.CreateMetricsReceiver(exeCtx, set, cfg, d.exporterMetrics)
+				d.receiver[policyID], err = promFactory.CreateMetricsReceiver(exeCtx, set, promCfg, d.exporter[policyID])
 				if err != nil {
 					d.logger.Error("failed to create a metrics receiver", zap.Error(err))
 					return
 				}
 
-				err = d.exporterMetrics.Start(exeCtx, nil)
+				err = d.exporter[policyID].Start(exeCtx, nil)
 				if err != nil {
 					d.logger.Error("otel mqtt metrics exporter startup error", zap.Error(err))
 					return
 				}
 
-				err = d.receiverMetrics.Start(exeCtx, nil)
+				err = d.receiver[policyID].Start(exeCtx, nil)
 				if err != nil {
 					d.logger.Error("otel receiver metrics startup error", zap.Error(err))
-					return
-				}
-				// Logs
-				d.exporterLogs, err = d.createOtlpMqttLogsExporter(exeCtx, execCancelF)
-				if err != nil {
-					d.logger.Error("failed to create a logs exporter", zap.Error(err))
-					return
-				}
-				pFactoryLogs := otlpreceiver.NewFactory()
-				cfgLogs := pFactoryLogs.CreateDefaultConfig().(*otlpreceiver.Config)
-				cfgLogs.HTTP = nil
-				cfgLogs.GRPC.NetAddr.Endpoint = d.otelLogsReceiverHost + ":" + strconv.Itoa(d.otelLogsReceiverPort)
-				cfgLogs.GRPC.NetAddr.Transport = otlpProtocol
-
-				setLogs := receiver.CreateSettings{
-					TelemetrySettings: component.TelemetrySettings{
-						Logger:         d.logger,
-						TracerProvider: trace.NewNoopTracerProvider(),
-						MeterProvider:  global.MeterProvider(),
-					},
-					BuildInfo: component.NewDefaultBuildInfo(),
-				}
-				d.receiverLogs, err = pFactory.CreateLogsReceiver(exeCtx, setLogs, cfgLogs, d.exporterLogs)
-				if err != nil {
-					d.logger.Error("failed to create a logs receiver", zap.Error(err))
-					return
-				}
-
-				err = d.exporterLogs.Start(exeCtx, nil)
-				if err != nil {
-					d.logger.Error("otel mqtt logs exporter startup error", zap.Error(err))
-					return
-				}
-
-				err = d.receiverLogs.Start(exeCtx, nil)
-				if err != nil {
-					d.logger.Error("otel logs receiver startup error", zap.Error(err))
 					return
 				}
 				break
@@ -176,23 +172,15 @@ func (d *gnmicBackend) receiveOtlp() {
 				d.ctx.Done()
 				d.cancelFunc()
 			case <-d.ctx.Done():
-				err := d.exporterMetrics.Shutdown(exeCtx)
+				err := d.exporter[policyID].Shutdown(exeCtx)
 				if err != nil {
 					return
 				}
-				err = d.receiverMetrics.Shutdown(exeCtx)
+				err = d.receiver[policyID].Shutdown(exeCtx)
 				if err != nil {
 					return
 				}
-				err = d.exporterLogs.Shutdown(exeCtx)
-				if err != nil {
-					return
-				}
-				err = d.receiverLogs.Shutdown(exeCtx)
-				if err != nil {
-					return
-				}
-				d.logger.Info("stopped otelinf agent OpenTelemetry collector")
+				d.logger.Info("stopped gnmic telemetry collector policy:" + policyID)
 				return
 			}
 		}

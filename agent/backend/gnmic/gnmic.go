@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/url"
 	"os/exec"
 	"strings"
 	"time"
@@ -71,10 +72,14 @@ type gnmicBackend struct {
 	otelMetricsReceiverPort int
 	otelLogsReceiverHost    string
 	otelLogsReceiverPort    int
-	receiverMetrics         receiver.Metrics
-	exporterMetrics         exporter.Metrics
-	receiverLogs            receiver.Logs
-	exporterLogs            exporter.Logs
+
+	// control scrap individually
+	receiver   map[string]receiver.Metrics
+	exporter   map[string]exporter.Metrics
+	routineMap map[string]context.CancelFunc
+
+	// Prometheus Receiver
+	PromParams url.Values
 }
 
 func Register() bool {
@@ -95,6 +100,21 @@ func (d *gnmicBackend) getFreePort() (int, error) {
 	}
 	defer l.Close()
 	return l.Addr().(*net.TCPAddr).Port, nil
+}
+
+func (d *gnmicBackend) addScraperProcess(ctx context.Context, cancel context.CancelFunc, policyID string, policyName string) {
+	attributeCtx := context.WithValue(ctx, "policy_name", policyName)
+	attributeCtx = context.WithValue(attributeCtx, "policy_id", policyID)
+	d.scrapeOtlp(attributeCtx)
+	d.routineMap[policyID] = cancel
+}
+
+func (d *gnmicBackend) killScraperProcess(policyID string) {
+	cancel := d.routineMap[policyID]
+	if cancel != nil {
+		cancel()
+		delete(d.routineMap, policyID)
+	}
 }
 
 func (d *gnmicBackend) GetStartTime() time.Time {
@@ -182,20 +202,11 @@ func (d *gnmicBackend) Start(ctx context.Context, cancelFunc context.CancelFunc)
 
 	// Metrics
 	if d.otelMetricsReceiverPort == 0 {
-		d.otelMetricsReceiverPort = 4317
+		d.otelMetricsReceiverPort = 8080
 	}
 
 	if len(d.otelMetricsReceiverHost) == 0 {
 		d.otelMetricsReceiverHost = DefaultHost
-	}
-
-	// Logs
-	if d.otelLogsReceiverPort == 0 {
-		d.otelLogsReceiverPort = 4318
-	}
-
-	if len(d.otelLogsReceiverHost) == 0 {
-		d.otelLogsReceiverHost = DefaultHost
 	}
 
 	d.logger.Info("gnmic-agent startup", zap.Strings("arguments", pvOptions))
@@ -273,8 +284,6 @@ func (d *gnmicBackend) Start(ctx context.Context, cancelFunc context.CancelFunc)
 		}
 		return readinessError
 	}
-
-	d.receiveOtlp()
 
 	return nil
 }

@@ -2,9 +2,12 @@ ARG PKTVISOR_TAG=develop
 ARG DIODE_TAG=develop
 ARG ORB_TAG=develop
 ARG OTELINF_TAG=develop
+ARG ORB_GNMIC_TAG=develop
 FROM ghcr.io/leoparente/opentelemetry-infinity:${OTELINF_TAG} AS otelinf
 
 FROM orbcommunity/orb-agent:${ORB_TAG} AS orb
+
+FROM ghcr.io/orb-community/orb-gnmic:${ORB_GNMIC_TAG} AS gnmic
 
 FROM orbcommunity/diode-agent:${DIODE_TAG} AS diode
 RUN SQPATH=$(pip show suzieq |  sed -n 's/Location: \(.*\)/\1/p') \
@@ -21,6 +24,9 @@ COPY --from=orb /run-agent.sh /run-agent.sh
 
 # adding otelinf-agent
 COPY --from=otelinf /exe /usr/local/bin/otelinf-agent
+
+# adding gnmic-agent
+COPY --from=gnmic /exe /usr/local/bin/gnmic-agent
 
 # adding diode-agent
 COPY --from=diode /usr/local/bin/diode-agent /usr/local/bin/diode-agent

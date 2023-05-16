@@ -4,20 +4,19 @@ on:
   workflow_dispatch:
     inputs:
       pktvisor_tag:
-        description: 'pktvisor agent docker tag to package'
+        description: "pktvisor agent docker tag to package"
         default: "develop"
       diode_tag:
-        description: 'diode agent docker tag to package'
+        description: "diode agent docker tag to package"
         default: "develop"
       orb_tag:
-        description: 'orb agent docker tag to package'
+        description: "orb agent docker tag to package"
         default: "develop"
 
   repository_dispatch:
-      types: [build-agent]
+    types: [build-agent]
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
     steps:
@@ -94,7 +93,7 @@ jobs:
 
       - name: Debug version
         run: echo ${{ env.VERSION }}
-          
+
       - name: Replace crashpad and geo-db params
         run: |
           ESCAPED_REPLACE_LINE1_NEW=$(printf '%s\n' "pvOptions = append(pvOptions, \"--cp-token\", \"${{ secrets.CRASHPAD_TOKEN }}\")" | sed -e 's/[\/&]/\\&/g')
@@ -126,7 +125,7 @@ jobs:
             PKTVISOR_TAG=${{ github.event.inputs.pktvisor_tag }} make agent
             PKTVISOR_TAG=${{ github.event.inputs.pktvisor_tag }} make agent_debug
           fi
-          
+
       - name: Login to Docker Hub orbcommunity
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v2
@@ -137,7 +136,6 @@ jobs:
       - name: Push agent container orbcommunity
         if: github.event_name != 'pull_request'
         run: docker push -a orbcommunity/orb-agent
-
 
   package-agent-full:
     needs: package
@@ -177,7 +175,7 @@ jobs:
 
       - name: Debug version
         run: echo ${{ env.VERSION }}
-          
+
       - name: Replace crashpad and geo-db params
         run: |
           ESCAPED_REPLACE_LINE1_NEW=$(printf '%s\n' "pvOptions = append(pvOptions, \"--cp-token\", \"${{ secrets.CRASHPAD_TOKEN }}\")" | sed -e 's/[\/&]/\\&/g')
@@ -203,11 +201,11 @@ jobs:
         shell: bash
         run: |
           if [ "${{ github.event.inputs.pktvisor_tag }}" == "" ]; then
-            DIODE_TAG=${{ env.REF_TAG }} PKTVISOR_TAG=${{ env.REF_TAG }} ORB_TAG=${{ env.REF_TAG }} make agent_full
+            DIODE_TAG=${{ env.REF_TAG }} PKTVISOR_TAG=${{ env.REF_TAG }} ORB_TAG=${{ env.REF_TAG }} ORB_GNMIC_TAG=${{ env.REF_TAG }} make agent_full
           else
             DIODE_TAG=${{ github.event.inputs.diode_tag }} PKTVISOR_TAG=${{ github.event.inputs.pktvisor_tag }} ORB_TAG=${{ github.event.inputs.orb_tag }} make agent_full
           fi
-          
+
       - name: Login to Docker Hub orbcommunity
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v2

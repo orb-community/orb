@@ -6,6 +6,7 @@ package gnmic
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"net/http"
 
@@ -37,6 +38,8 @@ func (d *gnmicBackend) ApplyPolicy(data policies.PolicyData, updatePolicy bool) 
 		d.logger.Warn("yaml policy application failure", zap.String("policy_id", data.ID), zap.ByteString("policy", policyYaml))
 		return err
 	}
+	exeCtx, execCancelF := context.WithCancel(d.ctx)
+	d.addScraperProcess(exeCtx, execCancelF, data.ID, data.Name)
 	return nil
 }
 
@@ -54,5 +57,6 @@ func (d *gnmicBackend) RemovePolicy(data policies.PolicyData) error {
 	if err != nil {
 		return err
 	}
+	d.killScraperProcess(data.ID)
 	return nil
 }
