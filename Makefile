@@ -58,6 +58,20 @@ define make_docker
 		-f docker/Dockerfile .
 	$(eval SERVICE="")
 endef
+define make_docker_debug
+	$(eval SERVICE=$(shell [ -z "$(SERVICE)" ] && echo $(subst docker_,,$(1)) || echo $(SERVICE)))
+	docker build \
+		--no-cache \
+		--build-arg SVC=$(SERVICE) \
+		--build-arg GOARCH=$(GOARCH) \
+		--build-arg GOARM=$(GOARM) \
+		--tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-$(SERVICE):$(REF_TAG) \
+		--tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-$(SERVICE):$(ORB_VERSION) \
+		--tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-$(SERVICE):$(ORB_VERSION)-$(COMMIT_HASH) \
+		-f docker/Dockerfile.debug .
+	$(eval SERVICE="")
+endef
+
 define make_docker_dev
 	$(eval svc=$(shell [ -z "$(SERVICE)" ] && echo $(subst docker_dev_,,$(1)) || echo $(svc)))
 	docker build \
@@ -121,6 +135,9 @@ dockers_dev: $(DOCKERS_DEV)
 
 build_docker:
 	$(call make_docker,$(@),$(GOARCH))
+
+build_docker_debug:
+	$(call make_docker_debug,$(@),$(GOARCH))
 
 # install tools for kind
 
