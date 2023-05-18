@@ -357,7 +357,7 @@ func TestCreateSinks(t *testing.T) {
 			req:         jsonSinkTestConfig2,
 			contentType: contentType,
 			auth:        token,
-			status:      http.StatusBadRequest,
+			status:      http.StatusInternalServerError,
 			location:    "/sinks",
 		},
 		"add sink with no authentication type within config": {

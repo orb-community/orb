@@ -29,18 +29,18 @@ func (svc sinkService) CreateSink(ctx context.Context, token string, sink Sink) 
 
 	mfOwnerID, err := svc.identify(token)
 	if err != nil {
-		return Sink{}, err
+		return Sink{}, errors.Wrap(ErrCreateSink, err)
 	}
 
 	sink.MFOwnerID = mfOwnerID
 
 	be, err := validateBackend(&sink)
 	if err != nil {
-		return Sink{}, err
+		return Sink{}, errors.Wrap(ErrCreateSink, err)
 	}
 	at, err := validateAuthType(&sink)
 	if err != nil {
-		return Sink{}, err
+		return Sink{}, errors.Wrap(ErrCreateSink, err)
 	}
 	cfg := Configuration{
 		Authentication: at,
@@ -88,7 +88,11 @@ func validateAuthType(s *Sink) (authentication_type.AuthenticationType, error) {
 	} else {
 		authMetadata = s.Config.GetSubMetadata("authentication")
 	}
-	authType, ok := authentication_type.GetAuthType(authMetadata["type"].(string))
+	authTypeStr, ok := authMetadata["type"]
+	if !ok {
+		return nil, errors.New("authentication type not found")
+	}
+	authType, ok := authentication_type.GetAuthType(authTypeStr.(string))
 	if !ok {
 		return nil, errors.New("authentication type not found")
 	}
