@@ -395,6 +395,9 @@ func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig string, sink Sin
 		return "", errors.New("failed to create config invalid authentication type")
 	}
 	authBuilder := GetAuthService(authTypeStr)
+	if authBuilder == nil {
+		return "", errors.New("invalid authentication type")
+	}
 	exporterBuilder := FromStrategy(sink.Backend)
 	extensions, extensionName := authBuilder.GetExtensionsFromMetadata(sink.Config)
 	exporters, exporterName := exporterBuilder.GetExportersFromMetadata(sink.Config, extensionName)

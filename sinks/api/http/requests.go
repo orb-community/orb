@@ -53,8 +53,7 @@ func GetConfigurationAndMetadataFromMeta(backendName string, config types.Metada
 	authentication = config.GetSubMetadata("authentication")
 	authtype, ok := authentication["type"]
 	if !ok {
-		err = errors.Wrap(errors.ErrMalformedEntity, errors.New("missing required field authentication type"))
-		return
+		authtype = "basicauth"
 	}
 	switch authtype.(type) {
 	case string:
@@ -79,6 +78,7 @@ func GetConfigurationAndMetadataFromYaml(backendName string, config string) (con
 	}
 
 	_ = backend.GetBackend(backendName)
+	// TODO need to add this code to backend
 	return
 }
 
