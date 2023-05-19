@@ -79,7 +79,7 @@ func (es eventStore) handleSinksCreateCollector(ctx context.Context, event redis
 func (es eventStore) CreateDeploymentEntry(ctx context.Context, sink config.SinkData) error {
 	deploy, err := config.GetDeploymentJson(es.kafkaUrl, sink)
 	if err != nil {
-		es.logger.Error("error trying to get deployment json for sink ID", zap.String("sinkId", sink.SinkID))
+		es.logger.Error("error trying to get deployment json for sink ID", zap.String("sinkId", sink.SinkID), zap.Error(err))
 		return err
 	}
 
@@ -104,7 +104,7 @@ func (es eventStore) handleSinksUpdateCollector(ctx context.Context, event redis
 
 	deploy, err := config.GetDeploymentJson(es.kafkaUrl, data)
 	if err != nil {
-		es.logger.Error("error trying to get deployment json for sink ID", zap.String("sinkId", event.SinkID))
+		es.logger.Error("error trying to get deployment json for sink ID", zap.String("sinkId", event.SinkID), zap.Error(err))
 		return err
 	}
 	es.sinkerKeyRedisClient.HSet(ctx, deploymentKey, event.SinkID, deploy)
@@ -117,8 +117,16 @@ func (es eventStore) handleSinksUpdateCollector(ctx context.Context, event redis
 	es.PublishSinkStateChange(sinkData, "unknown", err, err)
 	data.SinkID = sinkData.Id
 	data.OwnerID = sinkData.OwnerID
-	_ = data.State.SetFromString("unknown")
-	_ = es.UpdateSinkStateCache(ctx, data)
+	err = data.State.SetFromString("unknown")
+	if err != nil {
+		es.logger.Error("error setting state as unknown", zap.Error(err))
+		return err
+	}
+	err = es.UpdateSinkStateCache(ctx, data)
+	if err != nil {
+		es.logger.Error("error update sink cache state as unknown", zap.Error(err))
+		return err
+	}
 	return nil
 }
 
@@ -131,6 +139,7 @@ func (es eventStore) UpdateSinkCache(ctx context.Context, data config.SinkData) 
 		return err
 	}
 	if err = es.sinkerKeyRedisClient.Set(ctx, skey, bytes, 0).Err(); err != nil {
+		es.logger.Error("failed to update sink cache", zap.Error(err))
 		return err
 	}
 	return
@@ -141,6 +150,7 @@ func (es eventStore) UpdateSinkStateCache(ctx context.Context, data config.SinkD
 	skey := fmt.Sprintf("%s-%s:%s", keyPrefix, data.OwnerID, data.SinkID)
 	bytes, err := json.Marshal(data)
 	if err != nil {
+		es.logger.Error("error update sink cache state", zap.Error(err))
 		return err
 	}
 	if err = es.sinkerKeyRedisClient.Set(ctx, skey, bytes, 0).Err(); err != nil {

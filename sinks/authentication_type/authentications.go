@@ -26,8 +26,8 @@ type AuthenticationTypeConfig struct {
 
 var authTypes = make(map[string]AuthenticationType)
 
-func Register(name string, b AuthenticationType) {
-	authTypes[name] = b
+func Register(name string, authenticationType AuthenticationType) {
+	authTypes[name] = authenticationType
 }
 
 func GetList() []AuthenticationTypeConfig {

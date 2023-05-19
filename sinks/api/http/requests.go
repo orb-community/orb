@@ -14,6 +14,7 @@ import (
 	"github.com/orb-community/orb/sinks"
 	"github.com/orb-community/orb/sinks/authentication_type"
 	"github.com/orb-community/orb/sinks/backend"
+	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -53,8 +54,7 @@ func GetConfigurationAndMetadataFromMeta(backendName string, config types.Metada
 	authentication = config.GetSubMetadata("authentication")
 	authtype, ok := authentication["type"]
 	if !ok {
-		err = errors.Wrap(errors.ErrMalformedEntity, errors.New("missing required field authentication type"))
-		return
+		authtype = "basicauth"
 	}
 	switch authtype.(type) {
 	case string:
@@ -78,7 +78,39 @@ func GetConfigurationAndMetadataFromYaml(backendName string, config string) (con
 		return nil, nil, nil, errors.Wrap(errors.ErrMalformedEntity, errors.New("backend not found"))
 	}
 
-	_ = backend.GetBackend(backendName)
+	configSvc = &sinks.Configuration{
+		Exporter: backend.GetBackend(backendName),
+	}
+	var configStr types.Metadata
+	err = yaml.Unmarshal([]byte(config), &configStr)
+	if err != nil {
+		return
+	}
+	exporter = configStr.GetSubMetadata("exporter")
+	err = configSvc.Exporter.ValidateConfiguration(exporter)
+	if err != nil {
+		return
+	}
+
+	authentication = configStr.GetSubMetadata("authentication")
+	authtype, ok := authentication["type"]
+	if !ok {
+		authtype = "basicauth"
+	}
+	switch authtype.(type) {
+	case string:
+		break
+	default:
+		err = errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
+		return
+	}
+	authTypeSvc, ok := authentication_type.GetAuthType(authtype.(string))
+	if !ok {
+		err = errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid required field authentication type"))
+		return
+	}
+	configSvc.Authentication = authTypeSvc
+	err = configSvc.Authentication.ValidateConfiguration("object", authentication)
 	return
 }
 
