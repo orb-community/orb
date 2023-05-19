@@ -30,8 +30,12 @@ type migrateService struct {
 }
 
 func (m *migrateService) updateNewVersion(ctx context.Context, newVersion string) {
-	currentVersion := m.getCurrentVersion(ctx)
-	incomingSemVer, err := version.NewVersion(newVersion)
+	currentVersion, err := m.getCurrentVersion(ctx)
+	if err != nil {
+		m.logger.Error("Could not parse current version", zap.Error(err))
+		return
+	}
+	incomingSemVer, err := version.NewSemver(newVersion)
 	if err != nil {
 		m.logger.Error("Could not parse version for plan", zap.String("version", newVersion), zap.Error(err))
 		return
@@ -45,24 +49,25 @@ func (m *migrateService) updateNewVersion(ctx context.Context, newVersion string
 	}
 }
 
-func (m *migrateService) getCurrentVersion(ctx context.Context) *version.Version {
+func (m *migrateService) getCurrentVersion(ctx context.Context) (*version.Version, error) {
 	currentVersion, _ := m.sinkRepository.GetVersion(ctx)
-	currSemVer, err := version.NewVersion(currentVersion)
-	if err != nil {
-		return nil
-	}
-	return currSemVer
+	return version.NewSemver(currentVersion)
 }
 
 func (m *migrateService) Migrate(plans ...Plan) error {
 	for i, plan := range plans {
 		planName := fmt.Sprintf("plan%d", i)
 		ctx := context.WithValue(context.Background(), "migrate", planName)
-		v, err := version.NewVersion(plan.Version())
+		v, err := version.NewSemver(plan.Version())
 		if err != nil {
 			m.logger.Error("Could not parse version for plan", zap.String("version", plan.Version()), zap.Error(err))
 		}
-		if v.GreaterThan(m.getCurrentVersion(ctx)) {
+		curV, err := m.getCurrentVersion(ctx)
+		if err != nil {
+			m.logger.Error("could not find current version, version", zap.Error(err))
+			return err
+		}
+		if v.GreaterThan(curV) {
 			m.logger.Info("Starting plan", zap.Int("plan", i))
 			err := plan.Up(ctx)
 			if err != nil {
