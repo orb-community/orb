@@ -180,7 +180,7 @@ func TestCreateSinks(t *testing.T) {
 
 	otlpSink := toJSON(addReq{
 		Name:    "otlp-s-1",
-		Backend: "otlpexporter",
+		Backend: "otlphttp",
 		Config: types.Metadata{
 			"exporter": types.Metadata{
 				"endpoint": "localhost:4318",

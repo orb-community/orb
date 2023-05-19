@@ -10,7 +10,7 @@ func FromStrategy(backend string) ExporterConfigService {
 	switch backend {
 	case "prometheus":
 		return &PrometheusExporterConfig{}
-	case "otlpexporter":
+	case "otlphttp":
 		return &OTLPExporterBuilder{}
 	}
 

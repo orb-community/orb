@@ -38,7 +38,7 @@ type OTLPBackend struct {
 
 func (b *OTLPBackend) Metadata() interface{} {
 	return backend.SinkFeature{
-		Backend:     "otlpexporter",
+		Backend:     "otlphttp",
 		Description: "OTLP Exporter over HTTP",
 		Config:      b.CreateFeatureConfig(),
 	}
@@ -56,7 +56,7 @@ type tlsConfig struct {
 }
 
 func Register() bool {
-	backend.Register("otlpexporter", &OTLPBackend{})
+	backend.Register("otlphttp", &OTLPBackend{})
 	return true
 }
 

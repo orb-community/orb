@@ -55,7 +55,7 @@ func TestReturnConfigYamlFromSink(t *testing.T) {
 				sink: SinkData{
 					SinkID:  "sink-id-22",
 					OwnerID: "22",
-					Backend: "otlpexporter",
+					Backend: "otlphttp",
 					Config: types.Metadata{
 						"exporter": types.Metadata{
 							"endpoint": "https://acme.com/otlphttp/push",
