@@ -15,6 +15,9 @@ export class SinkConfigComponent implements OnInit, OnChanges {
   @Input()
   editMode: boolean;
 
+  @Input()
+  createMode: boolean;
+  
   @Output()
   editModeChange: EventEmitter<boolean>;
 
@@ -45,6 +48,8 @@ export class SinkConfigComponent implements OnInit, OnChanges {
 
   code = '';
 
+  sinkConfigSchema: any;
+
   formControl: FormControl;
 
   constructor(private fb: FormBuilder) { 
@@ -52,10 +57,22 @@ export class SinkConfigComponent implements OnInit, OnChanges {
     this.editMode = false;
     this.editModeChange = new EventEmitter<boolean>();
     this.updateForm();
+    this.sinkConfigSchema = {
+      "opentelemetry": "enabled",
+      "password": "",
+      "remote_host": "",
+      "username": ""
+    }
   }
 
   ngOnInit(): void {
-    this.code = JSON.stringify(this.sink.config, null, 2);
+    if (this.createMode) {
+      this.toggleEdit(true);
+      this.code = JSON.stringify(this.sinkConfigSchema, null, 2);
+    }
+    else {
+      this.code = JSON.stringify(this.sink.config, null, 2);
+    }
   }
 
   ngOnChanges(changes: SimpleChanges) {
