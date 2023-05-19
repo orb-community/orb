@@ -72,7 +72,7 @@ func (s sinksRepository) GetVersion(ctx context.Context) (string, error) {
 	}
 	for rows.Next() {
 		version := ""
-		err := rows.Scan(version)
+		err := rows.Scan(&version)
 		if err != nil {
 			return "", err
 		}
