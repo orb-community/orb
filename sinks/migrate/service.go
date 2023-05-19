@@ -50,7 +50,11 @@ func (m *migrateService) updateNewVersion(ctx context.Context, newVersion string
 }
 
 func (m *migrateService) getCurrentVersion(ctx context.Context) (*version.Version, error) {
-	currentVersion, _ := m.sinkRepository.GetVersion(ctx)
+	currentVersion, err := m.sinkRepository.GetVersion(ctx)
+	if err != nil {
+		m.logger.Error("error fetching current version")
+		return nil, err
+	}
 	return version.NewSemver(currentVersion)
 }
 
