@@ -2,7 +2,7 @@
     <nb-card-header class="summary-accent">Sink Backend Configuration
       <button
         (click)="toggleEdit(true)"
-        *ngIf="!editMode"
+        *ngIf="!editMode && !createMode"
         class="card-button"
         nbButton
         status="primary">
@@ -10,7 +10,7 @@
       </button>
       <button
         (click)="toggleEdit(false)"
-        *ngIf="editMode"
+        *ngIf="editMode && !createMode"
         class="card-button"
         nbButton
         status="danger">
