@@ -38,9 +38,9 @@
             <p>{{ sink?.backend | titlecase}}</p>
           </div> 
           <div class="flex-row">
-            <label class="summary-accent">State</label>
-            <p *ngIf="sink?.state !== sinkStates.error" class="orb-service-{{sink?.state}}"> {{ sink?.state | titlecase}} </p>
-            <p *ngIf="sink?.state === sinkStates.error" class="orb-service-{{sink?.state}}"> {{ sink?.error | titlecase}} </p>
+            <label class="summary-accent">Status</label>
+            <p *ngIf="sink?.state !== sinkStates.error" class="orb-service-{{sink?.state}}"> {{ sink?.state | titlecase }} </p>
+            <p *ngIf="sink?.state === sinkStates.error" class="orb-service-{{sink?.state}}"> {{ sink?.state | titlecase }} {{ sink?.error | titlecase }} </p>
           </div>
           <div class="flex-row">
             <label class="summary-accent">Tags</label>
