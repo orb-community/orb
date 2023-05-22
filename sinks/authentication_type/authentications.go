@@ -10,6 +10,8 @@ type AuthenticationType interface {
 	DecodeInformation(outputFormat string, input interface{}) (interface{}, error)
 }
 
+const AuthenticationKey = "authentication"
+
 type ConfigFeature struct {
 	Type     string `json:"type"`
 	Input    string `json:"input"`

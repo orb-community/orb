@@ -53,7 +53,7 @@ func (s *sinkRepositoryMock) RetrieveByOwnerAndId(ctx context.Context, ownerID s
 	if sink, ok := s.sinksMock.Get(key); ok {
 		if sink.MFOwnerID == ownerID {
 			// pass test code
-			v := sink.Config.GetSubMetadata("authentication")
+			v := sink.Config.GetSubMetadata(authentication_type.AuthenticationKey)
 			if v["password"] == "dbpass" {
 				v["password"], _ = s.passSvc.EncodePassword(v["password"].(string))
 			}
@@ -164,7 +164,7 @@ func (s *sinkRepositoryMock) RetrieveById(ctx context.Context, key string) (sink
 
 	if c, ok := s.sinksMock.Get(key); ok {
 		// Pass test schema
-		v := c.Config.GetSubMetadata("authentication")
+		v := c.Config.GetSubMetadata(authentication_type.AuthenticationKey)
 		if v["password"] == "dbpass" {
 			v["password"], _ = s.passSvc.EncodePassword(v["password"].(string))
 		}

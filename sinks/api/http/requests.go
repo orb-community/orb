@@ -51,7 +51,7 @@ func GetConfigurationAndMetadataFromMeta(backendName string, config types.Metada
 		return
 	}
 
-	authentication = config.GetSubMetadata("authentication")
+	authentication = config.GetSubMetadata(authentication_type.AuthenticationKey)
 	authtype, ok := authentication["type"]
 	if !ok {
 		authtype = "basicauth"
@@ -92,7 +92,7 @@ func GetConfigurationAndMetadataFromYaml(backendName string, config string) (con
 		return
 	}
 
-	authentication = configStr.GetSubMetadata("authentication")
+	authentication = configStr.GetSubMetadata(authentication_type.AuthenticationKey)
 	authtype, ok := authentication["type"]
 	if !ok {
 		authtype = "basicauth"

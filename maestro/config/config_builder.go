@@ -386,7 +386,7 @@ func GetDeploymentJson(kafkaUrl string, sink SinkData) (string, error) {
 
 // ReturnConfigYamlFromSink this is the main method, which will generate the YAML file from the
 func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig string, sink SinkData) (string, error) {
-	authType := sink.Config.GetSubMetadata("authentication")["type"]
+	authType := sink.Config.GetSubMetadata(AuthenticationKey)["type"]
 	var authTypeStr string
 	switch authType.(type) {
 	case string:

@@ -4,6 +4,8 @@ import (
 	"github.com/orb-community/orb/pkg/types"
 )
 
+const AuthenticationKey = "authentication"
+
 type AuthBuilderService interface {
 	GetExtensionsFromMetadata(config types.Metadata) (Extensions, string)
 }
@@ -20,7 +22,8 @@ type BasicAuthBuilder struct {
 }
 
 func (b *BasicAuthBuilder) GetExtensionsFromMetadata(config types.Metadata) (Extensions, string) {
-	authcfg := config.GetSubMetadata("authentication")
+
+	authcfg := config.GetSubMetadata(AuthenticationKey)
 	username := authcfg["username"].(string)
 	password := authcfg["password"].(string)
 	return Extensions{

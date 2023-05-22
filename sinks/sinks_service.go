@@ -81,12 +81,12 @@ func validateAuthType(s *Sink) (authentication_type.AuthenticationType, error) {
 			if err != nil {
 				return nil, err
 			}
-			authMetadata = helper.GetSubMetadata("authentication")
+			authMetadata = helper.GetSubMetadata(authentication_type.AuthenticationKey)
 		} else {
 			return nil, errors.New("config format not supported")
 		}
 	} else {
-		authMetadata = s.Config.GetSubMetadata("authentication")
+		authMetadata = s.Config.GetSubMetadata(authentication_type.AuthenticationKey)
 	}
 	authTypeStr, ok := authMetadata["type"]
 	if !ok {

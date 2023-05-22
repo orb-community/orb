@@ -38,7 +38,7 @@ func (p *Plan1UpdateConfiguration) Up(ctx context.Context) (mainErr error) {
 	needsUpdate := 0
 	updated := 0
 	for _, sink := range allSinks {
-		if _, ok := sink.Config["authentication"]; !ok {
+		if _, ok := sink.Config[authentication_type.AuthenticationKey]; !ok {
 			needsUpdate++
 			sinkRemoteHost, ok := sink.Config["remote_host"]
 			if !ok {

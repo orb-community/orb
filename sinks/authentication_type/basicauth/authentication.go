@@ -107,9 +107,9 @@ func (a *AuthConfig) OmitInformation(outputFormat string, input interface{}) (in
 	switch input.(type) {
 	case types.Metadata:
 		inputMeta := input.(types.Metadata)
-		authMeta := inputMeta.GetSubMetadata("authentication")
+		authMeta := inputMeta.GetSubMetadata(authentication_type.AuthenticationKey)
 		authMeta[PasswordConfigFeature] = ""
-		inputMeta["authentication"] = authMeta
+		inputMeta[authentication_type.AuthenticationKey] = authMeta
 		if outputFormat == "yaml" {
 			return a.ConfigToFormat("yaml", inputMeta)
 		} else if outputFormat == "object" {
@@ -123,9 +123,9 @@ func (a *AuthConfig) OmitInformation(outputFormat string, input interface{}) (in
 			return nil, err
 		}
 		inputMeta := iia.(types.Metadata)
-		authMeta := inputMeta.GetSubMetadata("authentication")
+		authMeta := inputMeta.GetSubMetadata(authentication_type.AuthenticationKey)
 		authMeta[PasswordConfigFeature] = ""
-		inputMeta["authentication"] = authMeta
+		inputMeta[authentication_type.AuthenticationKey] = authMeta
 		if outputFormat == "yaml" {
 			return a.ConfigToFormat("yaml", inputMeta)
 		} else if outputFormat == "object" {
@@ -141,13 +141,13 @@ func (a *AuthConfig) EncodeInformation(outputFormat string, input interface{}) (
 	switch input.(type) {
 	case types.Metadata:
 		inputMeta := input.(types.Metadata)
-		authMeta := inputMeta.GetSubMetadata("authentication")
+		authMeta := inputMeta.GetSubMetadata(authentication_type.AuthenticationKey)
 		encoded, err := a.encryptionService.EncodePassword(authMeta[PasswordConfigFeature].(string))
 		if err != nil {
 			return nil, err
 		}
 		authMeta[PasswordConfigFeature] = encoded
-		inputMeta["authentication"] = authMeta
+		inputMeta[authentication_type.AuthenticationKey] = authMeta
 		if outputFormat == "yaml" {
 			return a.ConfigToFormat("yaml", inputMeta)
 		} else if outputFormat == "object" {
@@ -161,13 +161,13 @@ func (a *AuthConfig) EncodeInformation(outputFormat string, input interface{}) (
 			return nil, err
 		}
 		inputMeta := iia.(types.Metadata)
-		authMeta := inputMeta.GetSubMetadata("authentication")
+		authMeta := inputMeta.GetSubMetadata(authentication_type.AuthenticationKey)
 		encoded, err := a.encryptionService.EncodePassword(authMeta[PasswordConfigFeature].(string))
 		if err != nil {
 			return nil, err
 		}
 		authMeta[PasswordConfigFeature] = encoded
-		inputMeta["authentication"] = authMeta
+		inputMeta[authentication_type.AuthenticationKey] = authMeta
 		if outputFormat == "yaml" {
 			return a.ConfigToFormat("yaml", inputMeta)
 		} else if outputFormat == "object" {
@@ -183,13 +183,13 @@ func (a *AuthConfig) DecodeInformation(outputFormat string, input interface{}) (
 	switch input.(type) {
 	case types.Metadata:
 		inputMeta := input.(types.Metadata)
-		authMeta := inputMeta.GetSubMetadata("authentication")
+		authMeta := inputMeta.GetSubMetadata(authentication_type.AuthenticationKey)
 		decoded, err := a.encryptionService.DecodePassword(authMeta[PasswordConfigFeature].(string))
 		if err != nil {
 			return nil, err
 		}
 		authMeta[PasswordConfigFeature] = decoded
-		inputMeta["authentication"] = authMeta
+		inputMeta[authentication_type.AuthenticationKey] = authMeta
 		if outputFormat == "yaml" {
 			return a.ConfigToFormat("yaml", inputMeta)
 		} else if outputFormat == "object" {
@@ -203,13 +203,13 @@ func (a *AuthConfig) DecodeInformation(outputFormat string, input interface{}) (
 			return nil, err
 		}
 		inputMeta := iia.(types.Metadata)
-		authMeta := inputMeta.GetSubMetadata("authentication")
+		authMeta := inputMeta.GetSubMetadata(authentication_type.AuthenticationKey)
 		decoded, err := a.encryptionService.DecodePassword(authMeta[PasswordConfigFeature].(string))
 		if err != nil {
 			return nil, err
 		}
 		authMeta[PasswordConfigFeature] = decoded
-		inputMeta["authentication"] = authMeta
+		inputMeta[authentication_type.AuthenticationKey] = authMeta
 		if outputFormat == "yaml" {
 			return a.ConfigToFormat("yaml", inputMeta)
 		} else if outputFormat == "object" {
