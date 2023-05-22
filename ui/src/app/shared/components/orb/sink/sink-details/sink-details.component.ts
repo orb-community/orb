@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Sink } from 'app/common/interfaces/orb/sink.interface';
+import { Sink, SinkStates } from 'app/common/interfaces/orb/sink.interface';
 import { SinkFeature } from 'app/common/interfaces/orb/sink/sink.feature.interface';
 import { Tags } from 'app/common/interfaces/orb/tag';
 import { SinksService } from 'app/common/services/sinks/sinks.service';
@@ -32,6 +32,8 @@ export class SinkDetailsComponent implements OnInit, OnChanges {
   mode: string;
 
   sinkTypesList = [];
+
+  sinkStates = SinkStates;
 
   constructor(
     private fb: FormBuilder,
