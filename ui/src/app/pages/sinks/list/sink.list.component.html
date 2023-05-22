@@ -86,7 +86,7 @@
 >
   <div class="block">
     <button
-      (click)="openDetailsModal(row)"
+      (click)="onOpenView(row)"
       class="orb-action-hover detail-button"
       ghost
       nbTooltip="View Details"
@@ -95,7 +95,7 @@
       <nb-icon icon="search-outline"></nb-icon>
     </button>
     <button
-      (click)="onOpenEdit(row)"
+      (click)="onOpenView(row)"
       class="orb-action-hover edit-button"
       ghost
       nbTooltip="Edit"

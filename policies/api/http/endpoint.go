@@ -11,6 +11,7 @@ package http
 import (
 	"context"
 	"fmt"
+
 	"github.com/go-kit/kit/endpoint"
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"

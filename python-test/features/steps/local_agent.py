@@ -24,8 +24,7 @@ def check_metrics_by_handler(context, handler_type):
     policy_name = context.policy['name']
     local_prometheus_endpoint = f"http://localhost:{context.port}/api/v1/policies/{policy_name}/metrics/prometheus"
     correct_metrics, metrics_dif, metrics_present = wait_until_metrics_scraped(local_prometheus_endpoint,
-                                                                               expected_metrics, timeout=60,
-                                                                               wait_time=5)
+                                                                               expected_metrics, timeout=60)
     expected_metrics_not_present = expected_metrics.difference(metrics_present)
     if expected_metrics_not_present == set():
         expected_metrics_not_present = None

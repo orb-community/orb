@@ -60,11 +60,14 @@ export const STRINGS = {
     },
     // add page
     add: {
-      header: 'New Sink',
+      header: 'Create New Sink',
     },
     // edit page
     edit: {
       header: 'Edit Sink',
+    },
+    view: {
+      header: 'View Sink',
     },
     // delete modal
     delete: {

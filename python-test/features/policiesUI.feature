@@ -1,7 +1,7 @@
 @policies_ui @AUTORETRY
 Feature: Create policies using orb ui
 
-  @MUTE
+  @smoke_ui
   Scenario: Create policy with tap pcap and handler dns through wizard editor
     Given that the Orb user logs in Orb UI
       And that an agent with 1 orb tag(s) already exists and is online

@@ -15,7 +15,7 @@ import {
   AgentPolicyStates,
 } from 'app/common/interfaces/orb/agent.policy.interface';
 import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
-import { DatasetFromComponent } from 'app/pages/datasets/dataset-from/dataset-from.component';
+import { DatasetFromComponent, DATASET_RESPONSE } from 'app/pages/datasets/dataset-from/dataset-from.component';
 
 @Component({
   selector: 'ngx-agent-policies-datasets',
@@ -113,7 +113,7 @@ export class AgentPoliciesDatasetsComponent implements OnInit, OnChanges {
         closeOnBackdropClick: true,
       })
       .onClose.subscribe((resp) => {
-        if (resp === 'changed' || 'deleted') {
+        if (resp === DATASET_RESPONSE.EDITED) {
           this.refreshAgent.emit('refresh-from-dataset');
         }
       });
