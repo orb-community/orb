@@ -33,10 +33,15 @@
             <label class="summary-accent">Description</label>
             <p>{{ sink?.description }}</p>
           </div>
-          <!-- <div class="flex-row">
+          <div class="flex-row">
             <label class="summary-accent">Backend</label>
-            <p>{{ sink?.backend }}</p>
-          </div> -->
+            <p>{{ sink?.backend | titlecase}}</p>
+          </div> 
+          <div class="flex-row">
+            <label class="summary-accent">State</label>
+            <p *ngIf="sink?.state !== sinkStates.error" class="orb-service-{{sink?.state}}"> {{ sink?.state | titlecase}} </p>
+            <p *ngIf="sink?.state === sinkStates.error" class="orb-service-{{sink?.state}}"> {{ sink?.error | titlecase}} </p>
+          </div>
           <div class="flex-row">
             <label class="summary-accent">Tags</label>
             <ngx-tag-display [tags]="selectedTags"></ngx-tag-display>

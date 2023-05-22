@@ -13,3 +13,20 @@ nb-form-field {
 input {
   height: 2.85em;
 }
+.orb-service- {
+  &active {
+    color: #6fcf97;
+  }
+  &unknown {
+    color: #f2994a;
+  }
+  &error {
+    color: #df316f;
+  }
+  &idle {
+    color: #f2994a; 
+  }
+}
+.ns1red {
+  color: #df316f;
+}
