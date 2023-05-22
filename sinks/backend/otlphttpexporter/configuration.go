@@ -1,4 +1,4 @@
-package otlpexporter
+package otlphttpexporter
 
 import (
 	"github.com/orb-community/orb/pkg/errors"
@@ -30,13 +30,13 @@ import (
 
 const EndpointFieldName = "endpoint"
 
-type OTLPBackend struct {
+type OTLPHTTPBackend struct {
 	Endpoint string `yaml:"endpoint"`
 	//TODO will keep TLS until we confirm there is no need for those
 	//Tls      *tlsConfig `yaml:"tls,omitempty,flow"`
 }
 
-func (b *OTLPBackend) Metadata() interface{} {
+func (b *OTLPHTTPBackend) Metadata() interface{} {
 	return backend.SinkFeature{
 		Backend:     "otlphttp",
 		Description: "OTLP Exporter over HTTP",
@@ -56,12 +56,12 @@ type tlsConfig struct {
 }
 
 func Register() bool {
-	backend.Register("otlphttp", &OTLPBackend{})
+	backend.Register("otlphttp", &OTLPHTTPBackend{})
 	return true
 }
 
 // CreateFeatureConfig Not available since this is only supported in YAML configuration
-func (b *OTLPBackend) CreateFeatureConfig() []backend.ConfigFeature {
+func (b *OTLPHTTPBackend) CreateFeatureConfig() []backend.ConfigFeature {
 	var configs []backend.ConfigFeature
 
 	remoteHost := backend.ConfigFeature{
@@ -76,7 +76,7 @@ func (b *OTLPBackend) CreateFeatureConfig() []backend.ConfigFeature {
 	return configs
 }
 
-func (b *OTLPBackend) ValidateConfiguration(config types.Metadata) error {
+func (b *OTLPHTTPBackend) ValidateConfiguration(config types.Metadata) error {
 
 	if _, ok := config[EndpointFieldName]; !ok {
 		return errors.New("endpoint is required")
@@ -84,9 +84,9 @@ func (b *OTLPBackend) ValidateConfiguration(config types.Metadata) error {
 	return nil
 }
 
-func (b *OTLPBackend) ParseConfig(format string, config string) (retConfig types.Metadata, err error) {
+func (b *OTLPHTTPBackend) ParseConfig(format string, config string) (retConfig types.Metadata, err error) {
 	if format == "yaml" {
-		var parsedConfig OTLPBackend
+		var parsedConfig OTLPHTTPBackend
 		err = yaml.Unmarshal([]byte(config), &parsedConfig)
 		if err != nil {
 			return nil, errors.Wrap(errors.New("failed to unmarshal config"), err)
@@ -100,7 +100,7 @@ func (b *OTLPBackend) ParseConfig(format string, config string) (retConfig types
 	return
 }
 
-func (b *OTLPBackend) ConfigToFormat(format string, metadata types.Metadata) (string, error) {
+func (b *OTLPHTTPBackend) ConfigToFormat(format string, metadata types.Metadata) (string, error) {
 	if format == "yaml" {
 		value, err := yaml.Marshal(metadata)
 		return string(value), err

@@ -11,7 +11,7 @@ func FromStrategy(backend string) ExporterConfigService {
 	case "prometheus":
 		return &PrometheusExporterConfig{}
 	case "otlphttp":
-		return &OTLPExporterBuilder{}
+		return &OTLPHTTPExporterBuilder{}
 	}
 
 	return nil
@@ -30,10 +30,10 @@ func (p *PrometheusExporterConfig) GetExportersFromMetadata(config types.Metadat
 	}, "prometheusremotewrite"
 }
 
-type OTLPExporterBuilder struct {
+type OTLPHTTPExporterBuilder struct {
 }
 
-func (O *OTLPExporterBuilder) GetExportersFromMetadata(config types.Metadata, authenticationExtensionName string) (Exporters, string) {
+func (O *OTLPHTTPExporterBuilder) GetExportersFromMetadata(config types.Metadata, authenticationExtensionName string) (Exporters, string) {
 	endpointCfg := config.GetSubMetadata("exporter")["endpoint"].(string)
 	return Exporters{
 		OTLPExporter: &OTLPExporterConfig{
