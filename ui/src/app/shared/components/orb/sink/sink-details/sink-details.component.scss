@@ -1,5 +1,32 @@
 .required {
-    color: #df316f;
-    padding-left: 2px;
+  color: #df316f;
+  padding-left: 2px;
+}
+.summary-accent {
+  color: #969fb9 !important;
+}
+
+nb-form-field {
+  margin-bottom: 0.95em;
+}
+
+input {
+  height: 2.85em;
+}
+.orb-service- {
+  &active {
+    color: #6fcf97;
   }
-  
+  &unknown {
+    color: #f2994a;
+  }
+  &error {
+    color: #df316f;
+  }
+  &idle {
+    color: #ffffff; 
+  }
+}
+.ns1red {
+  color: #df316f;
+}

@@ -11,7 +11,7 @@ import { AgentPolicyListComponent } from 'app/pages/datasets/policies.agent/list
 import { DatasetListComponent } from 'app/pages/datasets/list/dataset.list.component';
 // Sink Management
 import { SinkListComponent } from 'app/pages/sinks/list/sink.list.component';
-import { SinkAddComponent } from 'app/pages/sinks/add/sink.add.component';
+import { SinkAddComponent } from 'app/pages/sinks/add/sink-add.component';
 // Fleet Management
 import { AgentListComponent } from 'app/pages/fleet/agents/list/agent.list.component';
 import { AgentAddComponent } from 'app/pages/fleet/agents/add/agent.add.component';

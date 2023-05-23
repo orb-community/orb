@@ -1,0 +1,39 @@
+<header data-orb-qa-id="sink#view" class="row">
+    <div class="col-7">
+      <xng-breadcrumb class="orb-breadcrumb" data-orb-qa-id="breadcrumb">
+        <ng-container
+          *xngBreadcrumbItem="let breadcrumb; let info = info; let first = first"
+        >
+          <ng-container [ngClass]="{ my_class: first === '' }">{{
+            breadcrumb
+          }}</ng-container>
+        </ng-container>
+      </xng-breadcrumb>
+      <h4>{{ strings.sink.add.header }}</h4>
+    </div>
+    <div class="col-3">
+      <button
+      (click)="createSink()"
+      class="sink-create"
+        nbButton
+      shape="round"
+      [disabled]="!canCreate()"
+      >
+      Create
+      </button> 
+      <button
+        (click)="goBack()"
+        class="card-button"
+        nbButton
+        status="danger">
+        Cancel
+      </button> 
+    </div>
+      
+</header>
+<div class="row">
+  <ngx-sink-details [(createMode)]="createMode">
+  </ngx-sink-details>
+  <ngx-sink-config [(createMode)]="createMode">
+  </ngx-sink-config>
+</div>
