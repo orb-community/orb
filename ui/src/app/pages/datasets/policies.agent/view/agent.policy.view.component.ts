@@ -65,11 +65,6 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy, OnChanges {
   ) {}
 
   ngOnInit() {
-    this.router.events
-      .pipe(filter((event: RouterEvent) => event instanceof NavigationEnd))
-      .subscribe(() => {
-        this.fetchData();
-      });
     this.fetchData();
   }
 
