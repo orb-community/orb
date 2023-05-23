@@ -6,7 +6,7 @@ Feature: Integration tests
 Scenario: General smoke test to validate private agent image
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
     When a new agent is created with 1 orb tag(s)
         And the agent container is started on an available port
         And the agent status is online
@@ -42,7 +42,7 @@ Scenario: Create dataset with name conflict
     Given the Orb user has a registered account
         And the Orb user logs in
         And 1 Agent Group(s) is created with 2 orb tag(s)
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And 1 simple policies are applied to the group
     When a new dataset is requested to be created with the same name as an existent one
     Then the error message on response is failed to create dataset
@@ -53,7 +53,7 @@ Scenario: Edit dataset using an already existent name (conflict)
     Given the Orb user has a registered account
         And the Orb user logs in
         And 1 Agent Group(s) is created with 2 orb tag(s)
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And 1 simple policies are applied to the group
         And 1 new dataset is created using the policy, last group and 1 sink
     When editing a dataset using a name already in use
@@ -68,7 +68,7 @@ Scenario: Apply multiple advanced policies to an agent
         And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
-        And that a sink already exists
+        And that a sink with default configuration type already exists
     When 14 mixed policies are applied to the group
     Then this agent's heartbeat shows that 14 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
@@ -83,7 +83,7 @@ Scenario: Apply two simple policies to an agent
         And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
-        And that a sink already exists
+        And that a sink with default configuration type already exists
     When 2 simple policies are applied to the group
     Then this agent's heartbeat shows that 2 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
@@ -100,7 +100,7 @@ Scenario: apply one policy using multiple datasets to the same group
         And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
-        And that a sink already exists
+        And that a sink with default configuration type already exists
     When 2 simple policies are applied to the group by 3 datasets each
     Then this agent's heartbeat shows that 2 policies are applied and all has status running
         And 3 datasets are linked with each policy on agent's heartbeat within 180 seconds
@@ -117,7 +117,7 @@ Scenario: Remove group to which agent is linked
         And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And 2 simple policies are applied to the group
         And this agent's heartbeat shows that 2 policies are applied and all has status running
     When 1 group(s) to which the agent is linked is removed
@@ -137,7 +137,7 @@ Scenario: Remove policy from agent
         And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And 2 simple policies are applied to the group
         And this agent's heartbeat shows that 2 policies are applied and all has status running
     When one of applied policies is removed
@@ -158,7 +158,7 @@ Scenario: Remove dataset from agent with just one dataset linked
         And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And 1 simple policies are applied to the group
         And this agent's heartbeat shows that 1 policies are applied and all has status running
     When a dataset linked to this agent is removed
@@ -177,7 +177,7 @@ Scenario: Remove dataset from agent with more than one dataset linked
         And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And 3 simple policies are applied to the group
         And this agent's heartbeat shows that 3 policies are applied and all has status running
     When a dataset linked to this agent is removed
@@ -206,7 +206,7 @@ Scenario: Provision agent with tag matching existing group linked to a valid dat
     Given the Orb user has a registered account
         And the Orb user logs in
         And 1 Agent Group(s) is created with 3 orb tag(s)
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And 2 simple policies are applied to the group
     When a new agent is created with orb tags matching 1 existing group
         And the agent container is started on an available port
@@ -223,7 +223,7 @@ Scenario: Provision agent with tag matching existing group with multiple policie
     Given the Orb user has a registered account
         And the Orb user logs in
         And 1 Agent Group(s) is created with 2 orb tag(s)
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And 14 mixed policies are applied to the group
     When a new agent is created with orb tags matching 1 existing group
         And the agent container is started on an available port
@@ -242,7 +242,7 @@ Scenario: Provision agent with tag matching existing edited group with multiple 
         And the Orb user logs in
         And 1 Agent Group(s) is created with 3 orb tag(s)
         And the name, tags, description of last Agent Group is edited using: name=edited_before_policy/ tags=2 orb tag(s)/ description=edited
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And 14 mixed policies are applied to the group
     When a new agent is created with orb tags matching 1 existing group
         And the agent container is started on an available port
@@ -260,7 +260,7 @@ Scenario: Provision agent with tag matching existing group with multiple policie
     Given the Orb user has a registered account
         And the Orb user logs in
         And 1 Agent Group(s) is created with 3 orb tag(s)
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And 20 mixed policies are applied to the group
         And the name, tags, description of last Agent Group is edited using: name=edited_after_policy/ tags=2 orb tag(s)/ description=edited
     When a new agent is created with orb tags matching 1 existing group
@@ -281,7 +281,7 @@ Scenario: Sink idle after 5 minutes without metrics flow
         And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And 2 simple policies are applied to the group
         And this agent's heartbeat shows that 2 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
@@ -320,7 +320,7 @@ Scenario: Unapplying policies that failed by editing agent orb tags to unsubscri
         And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And 3 simple policies are applied to the group
         And that a policy using: handler=dns, description='policy_dns', bpf_filter_expression=ufp pot 53 already exists
         And 1 new dataset is created using the policy, last group and 1 sink
@@ -340,7 +340,7 @@ Scenario: Unapplying policies that failed by editing group tags to unsubscribe a
         And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And 3 simple policies are applied to the group
         And that a policy using: handler=dns, description='policy_dns', bpf_filter_expression=ufp pot 53 already exists
         And 1 new dataset is created using the policy, last group and 1 sink
@@ -360,7 +360,7 @@ Scenario: Unapplying policies that failed by removing group
         And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And 3 simple policies are applied to the group
         And that a policy using: handler=dns, description='policy_dns', bpf_filter_expression=ufp pot 53 already exists
         And 1 new dataset is created using the policy, last group and 1 sink
@@ -488,7 +488,7 @@ Scenario: Agent subscription to multiple group with policies after editing orb a
         And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And 2 simple policies are applied to the group
         And this agent's heartbeat shows that 2 policies are applied and all has status running
         And 1 Agent Group(s) is created with 1 orb tag(s)
@@ -509,7 +509,7 @@ Scenario: Agent subscription to group with policies after editing orb agent's ta
         And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And 2 simple policies are applied to the group
         And this agent's heartbeat shows that 2 policies are applied and all has status running
         And 1 Agent Group(s) is created with 1 orb tag(s)
@@ -531,7 +531,7 @@ Scenario: Remove one of the groups that applies the same policy on the agent
         And pktvisor state is running
         And referred agent is subscribed to 2 groups
         And this agent's heartbeat shows that 2 groups are matching the agent
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a new policy is created using: handler=dns, description='policy_dns_2_groups'
         And 2 new dataset is created using the policy, an existing group and 1 sink
         And this agent's heartbeat shows that 1 policies are applied and 1 has status running
@@ -552,7 +552,7 @@ Scenario: Remove one of the datasets that applies the same policy on the agent
         And pktvisor state is running
         And referred agent is subscribed to 2 groups
         And this agent's heartbeat shows that 2 groups are matching the agent
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a new policy is created using: handler=dns, description='policy_dns_2_groups'
         And 2 new dataset is created using the policy, an existing group and 1 sink
         And this agent's heartbeat shows that 1 policies are applied and 1 has status running
@@ -569,7 +569,7 @@ Scenario: Insert tags in agents created without tags and apply policies to group
         And a new agent is created with 0 orb tag(s)
         And the agent container is started on an available port
         And the agent status is online
-        And that a sink already exists
+        And that a sink with default configuration type already exists
     When edit the orb tags on agent and use 2 orb tag(s)
         And 1 Agent Group(s) is created with same tag as the agent and without description
         And 1 simple policies are applied to the group
@@ -588,7 +588,7 @@ Scenario: Edit agent name and apply policies to then
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And 1 agent must be matching on response field matching_agents of the last group created
-        And that a sink already exists
+        And that a sink with default configuration type already exists
     When edit the agent name
         And 1 simple policies are applied to the group
     Then this agent's heartbeat shows that 1 policies are applied and all has status running
@@ -602,7 +602,7 @@ Scenario: Editing tags of an Agent Group with policies (unsubscription - provisi
         And that an agent with 1 orb tag(s) already exists and is online
         And 1 Agent Group(s) is created with same tag as the agent and without description
         And this agent's heartbeat shows that 1 groups are matching the agent
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And 2 simple policies are applied to the group
     When the name, tags, description of last Agent Group is edited using: name=new_name/ tags=2 orb tag(s)/ description=None
     Then 0 agent must be matching on response field matching_agents of the last group created
@@ -617,7 +617,7 @@ Scenario: Editing tags of an Agent Group with policies (subscription - provision
         And that an agent with 2 orb tag(s) already exists and is online
         And pktvisor state is running
         And 1 Agent Group(s) is created with 1 orb tag(s) and without description
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And 2 simple policies are applied to the group
     When the name, tags, description of last Agent Group is edited using: name=new_name/ tags=matching the agent/ description=None
     Then 1 agent must be matching on response field matching_agents of the last group created
@@ -631,7 +631,7 @@ Scenario: Editing tags of an Agent Group with policies (provision agent after ed
     Given the Orb user has a registered account
         And the Orb user logs in
         And 1 Agent Group(s) is created with 1 orb tag(s) and without description
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And 2 simple policies are applied to the group
         And a new agent is created with orb tags matching 1 existing group
         And 1 agent must be matching on response field matching_agents of the last group created
@@ -647,7 +647,7 @@ Scenario: Editing tags of an Agent Group with policies (subscription - provision
     Given the Orb user has a registered account
         And the Orb user logs in
         And 1 Agent Group(s) is created with 1 orb tag(s) and without description
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And 2 simple policies are applied to the group
     When the name, tags, description of last Agent Group is edited using: name=new_name/ tags=2 orb tag(s)/ description=None
         And a new agent is created with orb tags matching 1 existing group
@@ -667,7 +667,7 @@ Scenario: Editing tags of an Agent and Agent Group with policies (unsubscription
         And that an agent with 1 orb tag(s) already exists and is online
         And pktvisor state is running
         And 1 Agent Group(s) is created with same tag as the agent and without description
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And 2 simple policies are applied to the group
     When the name, tags, description of last Agent Group is edited using: name=new_name/ tags=2 orb tag(s)/ description=None
         And edit the orb tags on agent and use 1 orb tag(s)
@@ -685,7 +685,7 @@ Scenario: Editing tags of an Agent and Agent Group with policies (subscription -
         And that an agent with 3 orb tag(s) already exists and is online
         And pktvisor state is running
         And 1 Agent Group(s) is created with 1 orb tag(s) and without description
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And 2 simple policies are applied to the group
     When edit the orb tags on agent and use 2 orb tag(s)
         And the name, tags, description of last Agent Group is edited using: name=new_name/ tags=matching the agent/ description=None
@@ -701,7 +701,7 @@ Scenario: Editing tags of an Agent and Agent Group with policies (provision agen
     Given the Orb user has a registered account
         And the Orb user logs in
         And 1 Agent Group(s) is created with 1 orb tag(s) and without description
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And 2 simple policies are applied to the group
     When the name, tags, description of last Agent Group is edited using: name=new_name/ tags=2 orb tag(s)/ description=None
         And a new agent is created with 1 orb tag(s)
@@ -717,7 +717,7 @@ Scenario: Editing tags of an Agent and Agent Group with policies (subscription -
     Given the Orb user has a registered account
         And the Orb user logs in
         And 1 Agent Group(s) is created with 1 orb tag(s) and without description
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And 2 simple policies are applied to the group
     When the name, tags, description of last Agent Group is edited using: name=new_name/ tags=1 orb tag/ description=None
         And a new agent is created with 2 orb tag(s)
@@ -736,7 +736,7 @@ Scenario: Editing tags of an Agent and Agent Group with policies (subscription -
 Scenario: Edit an advanced policy with handler dns changing the handler to net
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And that an agent with 1 orb tag(s) already exists and is online
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
@@ -757,7 +757,7 @@ Scenario: Edit an advanced policy with handler dns changing the handler to net
 Scenario: Edit an advanced policy with handler dns changing the handler to dhcp
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And that an agent with 1 orb tag(s) already exists and is online
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
@@ -776,7 +776,7 @@ Scenario: Edit an advanced policy with handler dns changing the handler to dhcp
 Scenario: Edit a simple policy with handler dhcp changing the handler to net
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And that an agent with 1 orb tag(s) already exists and is online
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
@@ -794,7 +794,7 @@ Scenario: Edit a simple policy with handler dhcp changing the handler to net
 Scenario: Edit a simple policy with handler net changing the handler to dns and inserting advanced parameters
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And that an agent with 1 orb tag(s) already exists and is online
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
@@ -876,7 +876,7 @@ Scenario: Remotely restart agents with policies applied
         And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And 2 simple policies are applied to the group
         And this agent's heartbeat shows that 2 policies are applied and all has status running
     When remotely restart the agent
@@ -896,7 +896,7 @@ Scenario: Remotely restart agents without policies applied
         And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
-        And that a sink already exists
+        And that a sink with default configuration type already exists
     When remotely restart the agent
         And the container logs that were output after reset the agent contain the message "resetting backend" within 30 seconds
         And the container logs that were output after reset the agent contain the message "pktvisor process stopped" within 30 seconds
@@ -916,7 +916,7 @@ Scenario: Create duplicated policy
         And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
-        And that a sink already exists
+        And that a sink with default configuration type already exists
     When 1 simple policies are applied to the group
         And 1 duplicated policies is applied to the group
     Then this agent's heartbeat shows that 2 policies are applied and all has status running
@@ -934,7 +934,7 @@ Scenario: Remove agent (check dataset)
         And the agent container is started on an available port
         And the agent status is online
         And referred agent is subscribed to 1 group
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And 2 simple policies are applied to the group
     When this agent is removed
     Then 0 agent must be matching on response field matching_agents of the last group created
@@ -952,7 +952,7 @@ Scenario: Edit sink active and use invalid remote host
         And the Orb user logs in
         And 1 Agent Group(s) is created with 3 orb tag(s)
         And the name, tags, description of last Agent Group is edited using: name=edited_before_policy/ tags=2 orb tag(s)/ description=edited
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And 10 simple policies are applied to the group
     When a new agent is created with orb tags matching 1 existing group
         And the agent container is started on an available port
@@ -973,7 +973,7 @@ Scenario: Edit sink active and use invalid username
         And the Orb user logs in
         And 1 Agent Group(s) is created with 3 orb tag(s)
         And the name, tags, description of last Agent Group is edited using: name=edited_before_policy/ tags=2 orb tag(s)/ description=edited
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And 10 simple policies are applied to the group
     When a new agent is created with orb tags matching 1 existing group
         And the agent container is started on an available port
@@ -994,7 +994,7 @@ Scenario: Edit sink active and use invalid password
         And the Orb user logs in
         And 1 Agent Group(s) is created with 3 orb tag(s)
         And the name, tags, description of last Agent Group is edited using: name=edited_before_policy/ tags=2 orb tag(s)/ description=edited
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And 10 simple policies are applied to the group
     When a new agent is created with orb tags matching 1 existing group
         And the agent container is started on an available port
@@ -1061,7 +1061,7 @@ Scenario: Check policies status when agent backend stop running
         And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And 5 mixed policies are applied to the group
         And this agent's heartbeat shows that 5 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
@@ -1090,7 +1090,7 @@ Scenario: Check auto reset after pktvisor stop running
         And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And 10 mixed policies are applied to the group
         Then this agent's heartbeat shows that 10 policies are applied and all has status running
     When agent backend (pktvisor) stops running
@@ -1110,7 +1110,7 @@ Scenario: Check new policies applied after pktvisor stop running
         And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And 10 mixed policies are applied to the group
         And this agent's heartbeat shows that 10 policies are applied and all has status running
         And agent backend (pktvisor) stops running
@@ -1132,7 +1132,7 @@ Scenario: Partial Update: sink status after updating only sink name
         And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And 2 simple policies are applied to the group
         And this agent's heartbeat shows that 2 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
@@ -1151,7 +1151,7 @@ Scenario: Partial Update: sink status after updating only sink description
         And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And 2 simple policies are applied to the group
         And this agent's heartbeat shows that 2 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
@@ -1170,7 +1170,7 @@ Scenario: Partial Update: sink status after updating only sink tags
         And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And 2 simple policies are applied to the group
         And this agent's heartbeat shows that 2 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
@@ -1207,7 +1207,7 @@ Scenario: Partial Update: sink status after updating only sink name and descript
         And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And 2 simple policies are applied to the group
         And this agent's heartbeat shows that 2 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
@@ -1244,7 +1244,7 @@ Scenario: Partial Update: sink status after updating only sink name and tags
         And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And 2 simple policies are applied to the group
         And this agent's heartbeat shows that 2 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
@@ -1263,7 +1263,7 @@ Scenario: Partial Update: sink status after updating only sink description and t
         And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And 2 simple policies are applied to the group
         And this agent's heartbeat shows that 2 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
@@ -1318,7 +1318,7 @@ Scenario: Partial Update: sink status after updating only sink name, description
         And pktvisor state is running
         And referred agent is subscribed to 1 group
         And this agent's heartbeat shows that 1 groups are matching the agent
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And 2 simple policies are applied to the group
         And this agent's heartbeat shows that 2 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
@@ -1382,3 +1382,31 @@ Scenario: Partial Update: sink status after updating only sink description, tags
     When the description, tags and config of this sink is updated
     Then the description, tags and config updates to the new value and other fields remains the same
         And referred sink must have active state on response within 360 seconds
+
+@smoke @sink_yaml
+Scenario: Using sink with yaml configuration
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that an agent with 1 orb tag(s) already exists and is online
+        And pktvisor state is running
+        And referred agent is subscribed to 1 group
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And that a sink with yaml configuration type already exists
+    When 10 mixed policies are applied to the group
+    Then this agent's heartbeat shows that 10 policies are applied and all has status running
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
+        And 10 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
+
+@smoke
+Scenario: Using sink with json configuration specified
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that an agent with 1 orb tag(s) already exists and is online
+        And pktvisor state is running
+        And referred agent is subscribed to 1 group
+        And this agent's heartbeat shows that 1 groups are matching the agent
+        And that a sink with json configuration type already exists
+    When 10 mixed policies are applied to the group
+    Then this agent's heartbeat shows that 10 policies are applied and all has status running
+        And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
+        And 10 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
