@@ -2,13 +2,13 @@ package prometheus
 
 import (
 	"github.com/orb-community/orb/pkg/types"
-	"github.com/stretchr/testify/require"
+	"reflect"
 	"testing"
 )
 
 var (
-	validConfiguration = map[string]interface{}{RemoteHostURLConfigFeature: "https://acme.com/prom/push"}
-	validYaml          = "exporter:\n  remote_host: https://acme.com/prom/push"
+	validConfiguration = map[string]interface{}{RemoteHostURLConfigFeature: "https://acme.com/prom/push", UsernameConfigFeature: "wile.e.coyote", PasswordConfigFeature: "@secr3t-passw0rd"}
+	validYaml          = "remote_host: https://acme.com/prom/push\nusername: wile.e.coyote\npassword: \"@secr3t-passw0rd\""
 )
 
 func TestBackend_ValidateConfiguration(t *testing.T) {
@@ -31,14 +31,28 @@ func TestBackend_ValidateConfiguration(t *testing.T) {
 		{
 			name: "invalid host configuration",
 			args: args{
-				config: map[string]interface{}{RemoteHostURLConfigFeature: "acme.com/prom/push"},
+				config: map[string]interface{}{RemoteHostURLConfigFeature: "acme.com/prom/push", UsernameConfigFeature: "wile.e.coyote", PasswordConfigFeature: "@secr3t-passw0rd"},
 			},
 			wantErr: true,
 		},
 		{
 			name: "missing host configuration",
 			args: args{
-				config: map[string]interface{}{},
+				config: map[string]interface{}{UsernameConfigFeature: "wile.e.coyote", PasswordConfigFeature: "@secr3t-passw0rd"},
+			},
+			wantErr: true,
+		},
+		{
+			name: "missing username configuration",
+			args: args{
+				config: map[string]interface{}{RemoteHostURLConfigFeature: "acme.com/prom/push", PasswordConfigFeature: "@secr3t-passw0rd"},
+			},
+			wantErr: true,
+		},
+		{
+			name: "missing password configuration",
+			args: args{
+				config: map[string]interface{}{RemoteHostURLConfigFeature: "acme.com/prom/push", UsernameConfigFeature: "wile.e.coyote"},
 			},
 			wantErr: true,
 		},
@@ -58,6 +72,8 @@ func TestBackend_ParseConfig(t *testing.T) {
 		format string
 		config string
 	}
+	pass := "@secr3t-passw0rd"
+	user := "wile.e.coyote"
 	tests := []struct {
 		name             string
 		args             args
@@ -70,16 +86,16 @@ func TestBackend_ParseConfig(t *testing.T) {
 				format: "yaml",
 				config: validYaml,
 			},
-			wantConfigReturn: map[string]interface{}{"exporter": map[string]interface{}{RemoteHostURLConfigFeature: "https://acme.com/prom/push"}},
+			wantConfigReturn: map[string]interface{}{RemoteHostURLConfigFeature: "https://acme.com/prom/push", UsernameConfigFeature: &user, PasswordConfigFeature: &pass},
 			wantErr:          false,
 		},
 		{
 			name: "invalid parse",
 			args: args{
 				format: "yaml",
-				config: "exporter:\n  remote_host: \n  https://acme.com/prom/push\n\n",
+				config: "remote_host: https://acme.com/prom/push\nusername: wile.e.coyote\npassword \"@secr3t-passw0rd\"",
 			},
-			wantConfigReturn: map[string]interface{}{"exporter": map[string]interface{}{RemoteHostURLConfigFeature: "https://acme.com/prom/push"}},
+			wantConfigReturn: map[string]interface{}{RemoteHostURLConfigFeature: "https://acme.com/prom/push", UsernameConfigFeature: &user, PasswordConfigFeature: &pass},
 			wantErr:          true,
 		},
 	}
@@ -91,8 +107,8 @@ func TestBackend_ParseConfig(t *testing.T) {
 				t.Errorf("ParseConfig() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !tt.wantErr {
-				require.Equal(t, tt.wantConfigReturn.GetSubMetadata("exporter")["remote_host"], gotConfigReturn.GetSubMetadata("exporter")["remote_host"])
+			if !tt.wantErr && !reflect.DeepEqual(gotConfigReturn, tt.wantConfigReturn) {
+				t.Errorf("ParseConfig() gotConfigReturn = %v, want %v", gotConfigReturn, tt.wantConfigReturn)
 			}
 		})
 	}
@@ -108,13 +124,23 @@ func TestBackend_CreateFeatureConfig(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			p := &Backend{}
 			got := p.CreateFeatureConfig()
+			usernameOk := false
+			passwordOk := false
 			remoteHostOk := false
 			for _, feature := range got {
+				if feature.Name == UsernameConfigFeature {
+					usernameOk = true
+					continue
+				}
+				if feature.Name == PasswordConfigFeature {
+					passwordOk = true
+					continue
+				}
 				if feature.Name == RemoteHostURLConfigFeature {
 					remoteHostOk = true
 				}
 			}
-			if remoteHostOk {
+			if usernameOk && passwordOk && remoteHostOk {
 				return
 			} else {
 				t.Fail()

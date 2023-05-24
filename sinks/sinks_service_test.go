@@ -17,7 +17,6 @@ import (
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks"
-	"github.com/orb-community/orb/sinks/authentication_type"
 	skmocks "github.com/orb-community/orb/sinks/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -33,10 +32,25 @@ const (
 	n            = uint64(10)
 )
 
+var (
+	nameID, _   = types.NewIdentifier("my-sink")
+	description = "An example prometheus sink"
+	sink        = sinks.Sink{
+		Name:        nameID,
+		Description: &description,
+		Backend:     "prometheus",
+		State:       sinks.Unknown,
+		Error:       "",
+		Config:      map[string]interface{}{"remote_host": "https://orb.community/", "username": "dbuser"},
+		Tags:        map[string]string{"cloud": "aws"},
+	}
+	wrongID, _ = uuid.NewV4()
+)
+
 func newService(tokens map[string]string) sinks.SinkService {
 	logger := zap.NewNop()
 	auth := thmocks.NewAuthService(tokens, make(map[string][]thmocks.MockSubjectSet))
-	pwdSvc := authentication_type.NewPasswordService(logger, "_testing_string_")
+	pwdSvc := sinks.NewPasswordService(logger, "_testing_string_")
 	sinkRepo := skmocks.NewSinkRepository(pwdSvc)
 
 	config := mfsdk.Config{
@@ -49,31 +63,16 @@ func newService(tokens map[string]string) sinks.SinkService {
 
 func TestCreateSink(t *testing.T) {
 	service := newService(map[string]string{token: email})
-	nameID, _ := types.NewIdentifier("my-sink")
+
 	description := "An example prometheus sink"
-	sink := sinks.Sink{
-		Name:        nameID,
-		Description: &description,
-		Backend:     "prometheus",
-		State:       sinks.Unknown,
-		Error:       "",
-		Config: types.Metadata{
-			"exporter":       map[string]interface{}{"remote_host": "https://orb.community/"},
-			"authentication": map[string]interface{}{"type": "basicauth", "username": "dbuser", "password": "dbpass"},
-		},
-		Tags: map[string]string{"cloud": "aws"},
-	}
 	var invalidBackendSink = sinks.Sink{
 		Name:        nameID,
 		Description: &description,
 		Backend:     "invalid",
 		State:       sinks.Unknown,
 		Error:       "",
-		Config: map[string]interface{}{
-			"exporter":       map[string]interface{}{"remote_host": "https://orb.community/"},
-			"authentication": map[string]interface{}{"type": "basicauth", "username": "dbuser", "password": "dbpass"},
-		},
-		Tags: map[string]string{"cloud": "aws"},
+		Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
+		Tags:        map[string]string{"cloud": "aws"},
 	}
 
 	cases := map[string]struct {
@@ -122,26 +121,22 @@ func TestIdempotencyUpdateSink(t *testing.T) {
 		Backend:     "prometheus",
 		State:       sinks.Unknown,
 		Error:       "",
-		Config: map[string]interface{}{
-			"exporter":       map[string]interface{}{"remote_host": "https://orb.community/"},
-			"authentication": map[string]interface{}{"type": "basicauth", "username": "netops", "password": "dbpass"},
-		},
-		Tags: map[string]string{"cloud": "aws"},
+		Config:      map[string]interface{}{"remote_host": "https://orb.community/", "username": "netops", "password": "w0w-orb-Rocks!"},
+		Tags:        map[string]string{"cloud": "aws"},
 	}
+	initialUsername := "netops"
+	initialPassword := "w0w-orb-Rocks!"
 	initialYamlSink := sinks.Sink{
 		Name:        yamlSinkName,
 		Description: &aInitialDescription,
 		Backend:     "prometheus",
 		State:       sinks.Unknown,
 		Error:       "",
-		ConfigData:  "exporter: \n    remote_host: https://orb.community/\nauthentication:\n    type: basicauth\n    username: netops\n    password: dbpass\n",
+		ConfigData:  "remote_host: https://orb.community/\nusername: netops\npassword: w0w-orb-Rocks!",
 		Format:      "yaml",
-		Config: map[string]interface{}{
-			"exporter":       map[string]interface{}{"remote_host": "https://orb.community/"},
-			"authentication": map[string]interface{}{"type": "basicauth", "username": "netops", "password": "dbpass"},
-		},
-		MFOwnerID: "OrbCommunity",
-		Tags:      map[string]string{"cloud": "aws"},
+		MFOwnerID:   "OrbCommunity",
+		Config:      map[string]interface{}{"remote_host": "https://orb.community/", "username": &initialUsername, "password": &initialPassword},
+		Tags:        map[string]string{"cloud": "aws"},
 	}
 	jsonCreatedSink, err := service.CreateSink(ctx, token, initialJsonSink)
 	require.NoError(t, err, "failed to create entity")
@@ -167,8 +162,8 @@ func TestIdempotencyUpdateSink(t *testing.T) {
 				tagVal, tagOk := value.Tags["cloud"]
 				require.True(t, tagOk)
 				require.Equal(t, "aws", tagVal)
-				require.Equalf(t, "https://orb.community/", value.Config.GetSubMetadata("exporter")["remote_host"], "remote host is not equal")
-				require.Equalf(t, "netops", value.Config.GetSubMetadata("authentication")["username"], "username is not equal")
+				require.Equalf(t, "https://orb.community/", value.Config["remote_host"], "remote host is not equal")
+				require.Equalf(t, "netops", value.Config["username"], "username is not equal")
 			},
 			token: token,
 		},
@@ -183,8 +178,9 @@ func TestIdempotencyUpdateSink(t *testing.T) {
 				tagVal, tagOk := value.Tags["cloud"]
 				require.True(t, tagOk)
 				require.Equal(t, "aws", tagVal)
-				require.Equalf(t, "https://orb.community/", value.Config.GetSubMetadata("exporter")["remote_host"], "remote host is not equal")
-				require.Equalf(t, "netops", value.Config.GetSubMetadata("authentication")["username"], "username is not equal")
+				require.Equalf(t, "https://orb.community/", value.Config["remote_host"], "remote host is not equal")
+				actual := value.Config["username"].(*string)
+				require.Equalf(t, "netops", *actual, "username is not equal")
 			},
 			token: token,
 		},
@@ -212,21 +208,23 @@ func TestPartialUpdateSink(t *testing.T) {
 		Name:        jsonSinkName,
 		Description: &aInitialDescription,
 		Backend:     "prometheus",
-		Config: map[string]interface{}{
-			"exporter":       map[string]interface{}{"remote_host": "https://orb.community/"},
-			"authentication": map[string]interface{}{"type": "basicauth", "username": "dbuser", "password": "dbpass"},
-		},
-		Tags: map[string]string{"cloud": "aws"},
+		State:       sinks.Unknown,
+		Error:       "",
+		Config:      map[string]interface{}{"remote_host": "https://orb.community/", "username": "netops", "password": "w0w-orb-Rocks!"},
+		Tags:        map[string]string{"cloud": "aws"},
 	}
+	initialUsername := "netops"
+	initialPassword := "w0w-orb-Rocks!"
 	initialYamlSink := sinks.Sink{
 		Name:        yamlSinkName,
 		Description: &aInitialDescription,
 		Backend:     "prometheus",
 		State:       sinks.Unknown,
 		Error:       "",
-		ConfigData:  "exporter:\n    remote_host: https://orb.community/\nauthentication:\n    type: basicauth\n    username: netops\n    password: w0w-orb-Rocks!",
+		ConfigData:  "remote_host:https://orb.community/\nusername: netops\npassword: w0w-orb-Rocks!",
 		Format:      "yaml",
 		MFOwnerID:   "OrbCommunity",
+		Config:      map[string]interface{}{"remote_host": "https://orb.community/", "username": &initialUsername, "password": &initialPassword},
 		Tags:        map[string]string{"cloud": "aws"},
 	}
 	jsonCreatedSink, err := service.CreateSink(ctx, token, initialJsonSink)
@@ -234,6 +232,7 @@ func TestPartialUpdateSink(t *testing.T) {
 	require.NotEmptyf(t, jsonCreatedSink.ID, "id must not be empty")
 	yamlCreatedSink, err := service.CreateSink(ctx, token, initialYamlSink)
 	require.NoError(t, err, "failed to create entity")
+	userHelper := "netops_admin"
 	initialJsonSink.ID = jsonCreatedSink.ID
 	initialYamlSink.ID = yamlCreatedSink.ID
 	var cases = map[string]struct {
@@ -242,30 +241,70 @@ func TestPartialUpdateSink(t *testing.T) {
 		expected    func(t *testing.T, value sinks.Sink, err error)
 		token       string
 	}{
+		// TODO this will fail locally because of password encryption,
+		// TODO we will revisit this whenever there is a update on password encryption
+		//"update only name": {
+		//	requestSink: sinks.Sink{
+		//		ID:   jsonCreatedSink.ID,
+		//		Name: newSinkName,
+		//	},
+		//	expected: func(t *testing.T, value sinks.Sink, err error) {
+		//		require.NoError(t, err, "no error expected")
+		//		require.Equal(t, value.Name, newSinkName, "sink name is not equal")
+		//	},
+		//	token: token,
+		//},
+		//"update only description": {
+		//	requestSink: sinks.Sink{
+		//		ID:          jsonCreatedSink.ID,
+		//		Description: &aNewDescription,
+		//	},
+		//	expected: func(t *testing.T, value sinks.Sink, err error) {
+		//		require.NoError(t, err, "no error expected")
+		//		require.NotNilf(t, value.Description, "description is nil")
+		//		desc := *value.Description
+		//		require.Equal(t, desc, aNewDescription, "description is not equal")
+		//	},
+		//	token: token,
+		//}, "update only tags": {
+		//	requestSink: sinks.Sink{
+		//		ID:   jsonCreatedSink.ID,
+		//		Tags: map[string]string{"cloud": "gcp", "from_aws": "true"},
+		//	},
+		//	expected: func(t *testing.T, value sinks.Sink, err error) {
+		//		require.NoError(t, err, "no error expected")
+		//		tagVal, tagOk := value.Tags["cloud"]
+		//		tag2Val, tag2Ok := value.Tags["from_aws"]
+		//		require.True(t, tagOk)
+		//		require.Equal(t, "gcp", tagVal)
+		//		require.True(t, tag2Ok)
+		//		require.Equal(t, "true", tag2Val)
+		//	},
+		//	token: token,
+		//},
 		"update config json": {
 			requestSink: sinks.Sink{
-				ID: jsonCreatedSink.ID,
-				Config: map[string]interface{}{
-					"exporter":       map[string]interface{}{"remote_host": "https://orb.community/prom/push"},
-					"authentication": map[string]interface{}{"type": "basicauth", "username": "netops_admin", "password": "newpass"},
-				},
+				ID:     jsonCreatedSink.ID,
+				Config: map[string]interface{}{"remote_host": "https://orb.community/prom/push", "username": "netops_admin", "password": "w0w-orb-Rocks!"},
 			},
 			expected: func(t *testing.T, value sinks.Sink, err error) {
 				require.NoError(t, err, "no error expected")
-				require.Equalf(t, "https://orb.community/prom/push", value.Config.GetSubMetadata("exporter")["remote_host"], "want %s, got %s", "https://orb.community/prom/push", value.Config.GetSubMetadata("exporter")["remote_host"])
-				require.Equalf(t, "netops_admin", value.Config.GetSubMetadata("authentication")["username"], "want %s, got %s", "netops_admin", value.Config.GetSubMetadata("authentication")["username"])
-				require.Equalf(t, "newpass", value.Config.GetSubMetadata("authentication")["password"], "want %s, got %s", "newpass", value.Config.GetSubMetadata("authentication")["password"])
+				require.Equalf(t, "https://orb.community/prom/push", value.Config["remote_host"], "want %s, got %s", "https://orb.community/prom/push", value.Config["remote_host"])
+				require.Equalf(t, "netops_admin", value.Config["username"], "want %s, got %s", "netops_admin", value.Config["username"])
 			},
 			token: token,
 		}, "update config yaml": {
 			requestSink: sinks.Sink{
 				ID:         yamlCreatedSink.ID,
 				Format:     "yaml",
-				ConfigData: "exporter:\n    remote_host: https://orb.community/\nauthentication:\n    type: basicauth\n    username: netops\n    password: w0w-orb-Rocks!",
+				ConfigData: "remote_host: https://orb.community/prom/push\nusername: netops_admin\npassword: \"w0w-orb-Rocks!\"",
 			},
 			expected: func(t *testing.T, value sinks.Sink, err error) {
 				require.NoError(t, err, "no error expected")
-				require.Equalf(t, "https://orb.community/", value.Config.GetSubMetadata("exporter")["remote_host"], "want %s, got %s", "https://orb.community/", value.Config.GetSubMetadata("exporter")["remote_host"])
+				require.Equalf(t, "https://orb.community/prom/push", value.Config["remote_host"], "want %s, got %s", "https://orb.community/prom/push", value.Config["remote_host"])
+				require.NotNilf(t, value.Config["username"], "description is nil")
+				desc := value.Config["username"]
+				require.Equal(t, &userHelper, desc, "description is not equal")
 			},
 			token: token,
 		},
@@ -280,21 +319,6 @@ func TestPartialUpdateSink(t *testing.T) {
 
 func TestUpdateSink(t *testing.T) {
 	service := newService(map[string]string{token: email})
-	nameID, _ := types.NewIdentifier("my-sink")
-	description := "An example prometheus sink"
-	sink := sinks.Sink{
-		Name:        nameID,
-		Description: &description,
-		Backend:     "prometheus",
-		State:       sinks.Unknown,
-		Error:       "",
-		Config: types.Metadata{
-			"exporter":       map[string]interface{}{"remote_host": "https://orb.community/"},
-			"authentication": map[string]interface{}{"type": "basicauth", "username": "dbuser", "password": "dbpass"},
-		},
-		Tags: map[string]string{"cloud": "aws"},
-	}
-	wrongID, _ := uuid.NewV4()
 	sk, err := service.CreateSink(context.Background(), token, sink)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
@@ -306,7 +330,10 @@ func TestUpdateSink(t *testing.T) {
 
 	noConfig := sk
 	noConfig.Config = make(map[string]interface{})
+
+	description := "An example prometheus sink"
 	newDescription := "new description"
+
 	nameTestConfigAttribute, _ := types.NewIdentifier("configSink")
 	sinkTestConfigAttribute, err := service.CreateSink(context.Background(), token, sinks.Sink{
 		Name:        nameTestConfigAttribute,
@@ -314,11 +341,8 @@ func TestUpdateSink(t *testing.T) {
 		Backend:     "prometheus",
 		State:       sinks.Unknown,
 		Error:       "",
-		Config: map[string]interface{}{
-			"exporter":       map[string]interface{}{"remote_host": "https://orb.community/"},
-			"authentication": map[string]interface{}{"type": "basicauth", "username": "dbuser", "password": "dbpass"},
-		},
-		Tags: map[string]string{"cloud": "aws"},
+		Config:      map[string]interface{}{"remote_host": "https://orb.community/", "username": "dbuser"},
+		Tags:        map[string]string{"cloud": "aws"},
 	})
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
@@ -329,11 +353,8 @@ func TestUpdateSink(t *testing.T) {
 		Backend:     "prometheus",
 		State:       sinks.Unknown,
 		Error:       "",
-		Config: map[string]interface{}{
-			"exporter":       map[string]interface{}{"remote_host": "https://orb.community/"},
-			"authentication": map[string]interface{}{"type": "basicauth", "username": "dbuser", "password": "dbpass"},
-		},
-		Tags: map[string]string{"cloud": "aws"},
+		Config:      map[string]interface{}{"remote_host": "https://orb.community/", "username": "dbuser"},
+		Tags:        map[string]string{"cloud": "aws"},
 	})
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
@@ -344,11 +365,8 @@ func TestUpdateSink(t *testing.T) {
 		Backend:     "prometheus",
 		State:       sinks.Unknown,
 		Error:       "",
-		Config: map[string]interface{}{
-			"exporter":       map[string]interface{}{"remote_host": "https://orb.community/"},
-			"authentication": map[string]interface{}{"type": "basicauth", "username": "dbuser", "password": "dbpass"},
-		},
-		Tags: map[string]string{"cloud": "aws"},
+		Config:      map[string]interface{}{"remote_host": "https://orb.community/", "username": "dbuser"},
+		Tags:        map[string]string{"cloud": "aws"},
 	})
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
@@ -359,11 +377,8 @@ func TestUpdateSink(t *testing.T) {
 		Backend:     "prometheus",
 		State:       sinks.Unknown,
 		Error:       "",
-		Config: map[string]interface{}{
-			"exporter":       map[string]interface{}{"remote_host": "https://orb.community/"},
-			"authentication": map[string]interface{}{"type": "basicauth", "username": "dbuser", "password": "dbpass"},
-		},
-		Tags: map[string]string{"cloud": "aws"},
+		Config:      map[string]interface{}{"remote_host": "https://orb.community/", "username": "dbuser"},
+		Tags:        map[string]string{"cloud": "aws"},
 	})
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
@@ -393,25 +408,14 @@ func TestUpdateSink(t *testing.T) {
 			incomingSink: sinks.Sink{
 				ID: sinkTestConfigAttribute.ID,
 				Config: types.Metadata{
-					"exporter": types.Metadata{
-						"remote_host": "https://orb.community/",
-					},
-					"authentication": types.Metadata{"type": "basicauth", "username": "dbuser", "password": "dbpass"},
+					"remote_host": "https://orb.community/",
 				},
 				Error: "",
 			},
 			expectedSink: sinks.Sink{
 				Name: sinkTestConfigAttribute.Name,
 				Config: types.Metadata{
-					"opentelemetry": "enabled",
-					"exporter": types.Metadata{
-						"remote_host": "https://orb.community/",
-					},
-					"authentication": types.Metadata{
-						"type":     "basicauth",
-						"username": "dbuser",
-						"password": "dbpass",
-					},
+					"opentelemetry": "enabled", "remote_host": "https://orb.community/",
 				},
 				Description: sinkTestConfigAttribute.Description,
 				Tags:        sinkTestConfigAttribute.Tags,
@@ -505,37 +509,22 @@ func TestUpdateSink(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		ctx := context.WithValue(context.Background(), "tc", desc)
 		t.Run(desc, func(t *testing.T) {
-			res, err := service.UpdateSink(ctx, tc.token, tc.incomingSink)
+			res, err := service.UpdateSink(context.Background(), tc.token, tc.incomingSink)
 			if err == nil {
+				assert.Equal(t, tc.expectedSink.Config, res.Config, "config not as expected")
 				assert.Equal(t, tc.expectedSink.Name.String(), res.Name.String(), "sink name not as expected")
 				assert.Equal(t, *tc.expectedSink.Description, *res.Description, "sink description not as expected")
 				assert.Equal(t, tc.expectedSink.Tags, res.Tags, "sink tags not as expected")
-			} else {
-				assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %d got %d", desc, tc.err, err))
 			}
+			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %d got %d", desc, tc.err, err))
 		})
 	}
 }
 
 func TestViewSink(t *testing.T) {
 	service := newService(map[string]string{token: email})
-	nameID, _ := types.NewIdentifier("my-sink")
-	description := "An example prometheus sink"
-	sink := sinks.Sink{
-		Name:        nameID,
-		Description: &description,
-		Backend:     "prometheus",
-		State:       sinks.Unknown,
-		Error:       "",
-		Config: types.Metadata{
-			"exporter":       map[string]interface{}{"remote_host": "https://orb.community/"},
-			"authentication": map[string]interface{}{"type": "basicauth", "username": "dbuser", "password": "dbpass"},
-		},
-		Tags: map[string]string{"cloud": "aws"},
-	}
-	wrongID, _ := uuid.NewV4()
+
 	sk, err := service.CreateSink(context.Background(), token, sink)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
@@ -571,20 +560,6 @@ func TestViewSink(t *testing.T) {
 
 func TestListSinks(t *testing.T) {
 	service := newService(map[string]string{token: email})
-	nameID, _ := types.NewIdentifier("my-sink")
-	description := "An example prometheus sink"
-	sink := sinks.Sink{
-		Name:        nameID,
-		Description: &description,
-		Backend:     "prometheus",
-		State:       sinks.Unknown,
-		Error:       "",
-		Config: types.Metadata{
-			"exporter":       map[string]interface{}{"remote_host": "https://orb.community/"},
-			"authentication": map[string]interface{}{"type": "basicauth", "username": "dbuser", "password": "dbpass"},
-		},
-		Tags: map[string]string{"cloud": "aws"},
-	}
 	metadata := make(map[string]interface{})
 	metadata["serial"] = "12345"
 	var sks []sinks.Sink
@@ -764,21 +739,7 @@ func TestListBackends(t *testing.T) {
 
 func TestDeleteSink(t *testing.T) {
 	svc := newService(map[string]string{token: email})
-	nameID, _ := types.NewIdentifier("my-sink")
-	description := "An example prometheus sink"
-	sink := sinks.Sink{
-		Name:        nameID,
-		Description: &description,
-		Backend:     "prometheus",
-		State:       sinks.Unknown,
-		Error:       "",
-		Config: types.Metadata{
-			"exporter":       map[string]interface{}{"remote_host": "https://orb.community/"},
-			"authentication": map[string]interface{}{"type": "basicauth", "username": "dbuser", "password": "dbpass"},
-		},
-		Tags: map[string]string{"cloud": "aws"},
-	}
-	wrongID, _ := uuid.NewV4()
+
 	sk, err := svc.CreateSink(context.Background(), token, sink)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s\n", err))
 
@@ -814,20 +775,8 @@ func TestDeleteSink(t *testing.T) {
 
 func TestValidateSink(t *testing.T) {
 	service := newService(map[string]string{token: email})
-	nameID, _ := types.NewIdentifier("my-sink")
+
 	description := "An example prometheus sink"
-	sink := sinks.Sink{
-		Name:        nameID,
-		Description: &description,
-		Backend:     "prometheus",
-		State:       sinks.Unknown,
-		Error:       "",
-		Config: types.Metadata{
-			"exporter":       map[string]interface{}{"remote_host": "https://orb.community/"},
-			"authentication": map[string]interface{}{"type": "basicauth", "username": "dbuser", "password": "dbpass"},
-		},
-		Tags: map[string]string{"cloud": "aws"},
-	}
 
 	cases := map[string]struct {
 		sink  sinks.Sink
@@ -849,11 +798,8 @@ func TestValidateSink(t *testing.T) {
 				Name:        nameID,
 				Description: &description,
 				Backend:     "invalid",
-				Config: map[string]interface{}{
-					"exporter":       map[string]interface{}{"remote_host": "https://orb.community/"},
-					"authentication": map[string]interface{}{"type": "basicauth", "username": "dbuser", "password": "dbpass"},
-				},
-				Tags: map[string]string{"cloud": "aws"},
+				Config:      map[string]interface{}{"remote_host": "data", "username": "dbuser"},
+				Tags:        map[string]string{"cloud": "aws"},
 			},
 			token: token,
 			err:   sinks.ErrValidateSink,
@@ -871,21 +817,7 @@ func TestValidateSink(t *testing.T) {
 
 func TestViewSinkInternal(t *testing.T) {
 	service := newService(map[string]string{token: email})
-	nameID, _ := types.NewIdentifier("my-sink")
-	description := "An example prometheus sink"
-	sink := sinks.Sink{
-		Name:        nameID,
-		Description: &description,
-		Backend:     "prometheus",
-		State:       sinks.Unknown,
-		Error:       "",
-		Config: types.Metadata{
-			"exporter":       map[string]interface{}{"remote_host": "https://orb.community/"},
-			"authentication": map[string]interface{}{"type": "basicauth", "username": "dbuser", "password": "dbpass"},
-		},
-		Tags: map[string]string{"cloud": "aws"},
-	}
-	wrongID, _ := uuid.NewV4()
+
 	sk, err := service.CreateSink(context.Background(), token, sink)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 

@@ -89,8 +89,7 @@ func (svc *maestroService) Start(ctx context.Context, cancelFunction context.Can
 		if val, _ := svc.eventStore.GetDeploymentEntryFromSinkId(ctx, sinkRes.Id); val != "" {
 			svc.logger.Info("Skipping deploymentEntry because it is already created")
 		} else {
-			data.SinkID = sinkRes.Id
-			err := svc.eventStore.CreateDeploymentEntry(sinkContext, data)
+			err := svc.eventStore.CreateDeploymentEntry(sinkContext, sinkRes.Id, data.Url, data.User, data.Password)
 			if err != nil {
 				svc.logger.Warn("failed to create deploymentEntry for sink, skipping", zap.String("sink-id", sinkRes.Id))
 				continue
