@@ -12,9 +12,10 @@ import (
 	"context"
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
+	"github.com/orb-community/orb/sinks/authentication_type"
 	"github.com/orb-community/orb/sinks/backend"
 	"go.uber.org/zap"
-	"net/url"
+	"gopkg.in/yaml.v3"
 )
 
 var (
@@ -28,24 +29,26 @@ func (svc sinkService) CreateSink(ctx context.Context, token string, sink Sink) 
 
 	mfOwnerID, err := svc.identify(token)
 	if err != nil {
-		return Sink{}, err
+		return Sink{}, errors.Wrap(ErrCreateSink, err)
 	}
 
 	sink.MFOwnerID = mfOwnerID
 
-	err = validateBackend(&sink)
+	be, err := validateBackend(&sink)
 	if err != nil {
-		return Sink{}, err
+		return Sink{}, errors.Wrap(ErrCreateSink, err)
 	}
-
-	// Validate remote_host
-	_, err = url.ParseRequestURI(sink.Config["remote_host"].(string))
+	at, err := validateAuthType(&sink)
 	if err != nil {
-		return Sink{}, errors.Wrap(errors.New("invalid remote url"), err)
+		return Sink{}, errors.Wrap(ErrCreateSink, err)
+	}
+	cfg := Configuration{
+		Authentication: at,
+		Exporter:       be,
 	}
 
 	// encrypt data for the password
-	sink, err = svc.encryptMetadata(sink)
+	sink, err = svc.encryptMetadata(cfg, sink)
 	if err != nil {
 		return Sink{}, errors.Wrap(ErrCreateSink, err)
 	}
@@ -62,69 +65,189 @@ func (svc sinkService) CreateSink(ctx context.Context, token string, sink Sink) 
 	sink.ID = id
 
 	// After creating, decrypt Metadata to send correct information to Redis
-	sink, err = svc.decryptMetadata(sink)
-
+	sink, err = svc.decryptMetadata(cfg, sink)
+	if err != nil {
+		return Sink{}, errors.Wrap(ErrCreateSink, err)
+	}
 	return sink, nil
 }
 
-func (svc sinkService) encryptMetadata(sink Sink) (Sink, error) {
+func validateAuthType(s *Sink) (authentication_type.AuthenticationType, error) {
+	var authMetadata types.Metadata
+	if len(s.ConfigData) != 0 {
+		var helper types.Metadata
+		if s.Format == "yaml" {
+			err := yaml.Unmarshal([]byte(s.ConfigData), &helper)
+			if err != nil {
+				return nil, err
+			}
+			authMetadata = helper.GetSubMetadata(authentication_type.AuthenticationKey)
+		} else {
+			return nil, errors.New("config format not supported")
+		}
+	} else {
+		authMetadata = s.Config.GetSubMetadata(authentication_type.AuthenticationKey)
+	}
+	authTypeStr, ok := authMetadata["type"]
+	if !ok {
+		return nil, errors.New("authentication type not found")
+	}
+	authType, ok := authentication_type.GetAuthType(authTypeStr.(string))
+	if !ok {
+		return nil, errors.New("authentication type not found")
+	}
+
+	err := authType.ValidateConfiguration("object", authMetadata)
+	if err != nil {
+		return nil, err
+	}
+
+	return authType, nil
+}
+
+func (svc sinkService) encryptMetadata(configSvc Configuration, sink Sink) (Sink, error) {
 	var err error
-	sink.Config.FilterMap(func(key string) bool {
-		return key == backend.ConfigFeatureTypePassword
-	}, func(key string, value interface{}) (string, interface{}) {
-		var stringVal string
-		switch v := value.(type) {
-		case *string:
-			stringVal = *v
-		case string:
-			stringVal = v
-		}
-		newValue, err2 := svc.passwordService.EncodePassword(stringVal)
-		if err2 != nil {
-			err = err2
-			return key, value
-		}
-		return key, newValue
-	})
-	if sink.ConfigData != "" {
-		sinkBE := backend.GetBackend(sink.Backend)
-		if sinkBE == nil {
-			return sink, errors.New("backend cannot be nil")
-		}
-		sink.ConfigData, err = sinkBE.ConfigToFormat(sink.Format, sink.Config)
+	if sink.Config != nil {
+		encodeMetadata, err := configSvc.Authentication.EncodeInformation("object", sink.Config)
 		if err != nil {
 			svc.logger.Error("error on parsing encrypted config in data")
 			return sink, err
 		}
+		sink.Config = encodeMetadata.(types.Metadata)
 	}
-
+	if sink.ConfigData != "" {
+		encodeMetadata, err := configSvc.Authentication.EncodeInformation("yaml", sink.ConfigData)
+		if err != nil {
+			svc.logger.Error("error on parsing encrypted config in data")
+			return sink, err
+		}
+		sink.ConfigData = encodeMetadata.(string)
+	}
 	return sink, err
 }
 
-func (svc sinkService) decryptMetadata(sink Sink) (Sink, error) {
+func (svc sinkService) ViewAuthenticationType(ctx context.Context, token string, key string) (authentication_type.AuthenticationTypeConfig, error) {
+	_, err := svc.identify(token)
+	if err != nil {
+		return authentication_type.AuthenticationTypeConfig{}, err
+	}
+
+	value, ok := authentication_type.GetAuthType(key)
+	if !ok {
+		return authentication_type.AuthenticationTypeConfig{}, errors.New("invalid authentication type given name")
+	}
+	return value.Metadata(), nil
+}
+
+func (svc sinkService) ListAuthenticationTypes(ctx context.Context, token string) ([]authentication_type.AuthenticationTypeConfig, error) {
+	_, err := svc.identify(token)
+	if err != nil {
+		return nil, err
+	}
+
+	value := authentication_type.GetList()
+
+	return value, nil
+}
+
+func (svc sinkService) decryptMetadata(configSvc Configuration, sink Sink) (Sink, error) {
 	var err error
-	sink.Config.FilterMap(func(key string) bool {
-		return key == backend.ConfigFeatureTypePassword
-	}, func(key string, value interface{}) (string, interface{}) {
-		newValue, err2 := svc.passwordService.DecodePassword(value.(string))
-		if err2 != nil {
-			err = err2
-			return key, value
-		}
-		return key, newValue
-	})
-	if sink.ConfigData != "" {
-		sinkBE := backend.GetBackend(sink.Backend)
-		if sinkBE == nil {
-			return sink, errors.New("backend cannot be nil")
-		}
-		sink.ConfigData, err = sinkBE.ConfigToFormat(sink.Format, sink.Config)
+	if sink.Config != nil {
+		decodeMetadata, err := configSvc.Authentication.DecodeInformation("object", sink.Config)
 		if err != nil {
 			svc.logger.Error("error on parsing encrypted config in data")
 			return sink, err
 		}
+		sink.Config = decodeMetadata.(types.Metadata)
+	}
+	if sink.ConfigData != "" {
+		decodeMetadata, err := configSvc.Authentication.DecodeInformation("yaml", sink.ConfigData)
+		if err != nil {
+			svc.logger.Error("error on parsing encrypted config in data")
+			return sink, err
+		}
+		sink.ConfigData = decodeMetadata.(string)
 	}
 	return sink, err
+}
+
+func (svc sinkService) UpdateSinkInternal(ctx context.Context, sink Sink) (Sink, error) {
+	var currentSink Sink
+	currentSink, err := svc.sinkRepo.RetrieveById(ctx, sink.ID)
+	if err != nil {
+		return Sink{}, err
+	}
+	var cfg Configuration
+	if sink.Config == nil && sink.ConfigData == "" {
+		// No config sent, keep the previous
+		sink.Config = currentSink.Config
+		authType, _ := authentication_type.GetAuthType(sink.GetAuthenticationTypeName())
+		be := backend.GetBackend(currentSink.Backend)
+		cfg = Configuration{
+			Authentication: authType,
+			Exporter:       be,
+		}
+
+		// get the decrypted config, otherwise the password would be encrypted again
+		sink, err = svc.decryptMetadata(cfg, sink)
+		if err != nil {
+			return Sink{}, errors.Wrap(ErrUpdateEntity, err)
+		}
+	} else {
+		sink.Backend = currentSink.Backend
+		be, err := validateBackend(&sink)
+		if err != nil {
+			return Sink{}, errors.Wrap(ErrMalformedEntity, err)
+		}
+		at, err := validateAuthType(&sink)
+		if err != nil {
+			return Sink{}, errors.Wrap(ErrMalformedEntity, err)
+		}
+		cfg = Configuration{
+			Authentication: at,
+			Exporter:       be,
+		}
+		//// add default values
+		defaultMetadata := make(types.Metadata, 1)
+		defaultMetadata["opentelemetry"] = "enabled"
+		sink.Config.Merge(defaultMetadata)
+		currentSink.Error = ""
+	}
+
+	if sink.Tags == nil {
+		sink.Tags = currentSink.Tags
+	}
+
+	if sink.Description == nil {
+		sink.Description = currentSink.Description
+	}
+
+	if newName := sink.Name.String(); newName == "" {
+		sink.Name = currentSink.Name
+	}
+
+	sink.MFOwnerID = currentSink.MFOwnerID
+	if sink.Backend == "" && currentSink.Backend != "" {
+		sink.Backend = currentSink.Backend
+	}
+	sink, err = svc.encryptMetadata(cfg, sink)
+	if err != nil {
+		return Sink{}, errors.Wrap(ErrUpdateEntity, err)
+	}
+	err = svc.sinkRepo.Update(ctx, sink)
+	if err != nil {
+		return Sink{}, errors.Wrap(ErrUpdateEntity, err)
+	}
+	sinkEdited, err := svc.sinkRepo.RetrieveById(ctx, sink.ID)
+	if err != nil {
+		return Sink{}, errors.Wrap(ErrUpdateEntity, err)
+	}
+	sinkEdited, err = svc.decryptMetadata(cfg, sinkEdited)
+	if err != nil {
+		return Sink{}, errors.Wrap(ErrUpdateEntity, err)
+	}
+
+	return sinkEdited, nil
 }
 
 func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) (Sink, error) {
@@ -138,28 +261,35 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 	if err != nil {
 		return Sink{}, err
 	}
-
+	var cfg Configuration
 	if sink.Config == nil && sink.ConfigData == "" {
-		// No config sent
+		// No config sent, keep the previous
 		sink.Config = currentSink.Config
+		authType, _ := authentication_type.GetAuthType(sink.GetAuthenticationTypeName())
+		be := backend.GetBackend(currentSink.Backend)
+		cfg = Configuration{
+			Authentication: authType,
+			Exporter:       be,
+		}
+
 		// get the decrypted config, otherwise the password would be encrypted again
-		sink, err = svc.decryptMetadata(sink)
+		sink, err = svc.decryptMetadata(cfg, sink)
 		if err != nil {
-			return Sink{}, err
+			return Sink{}, errors.Wrap(ErrUpdateEntity, err)
 		}
 	} else {
-		if sink.ConfigData != "" {
-			sinkBE := backend.GetBackend(currentSink.Backend)
-			if sinkBE == nil {
-				return sink, errors.New("backend cannot be nil")
-			}
-			sink.Config, err = sinkBE.ParseConfig(sink.Format, sink.ConfigData)
-			if err != nil {
-				return Sink{}, err
-			}
-			if err := sinkBE.ValidateConfiguration(sink.Config); err != nil {
-				return Sink{}, err
-			}
+		sink.Backend = currentSink.Backend
+		be, err := validateBackend(&sink)
+		if err != nil {
+			return Sink{}, errors.Wrap(ErrMalformedEntity, err)
+		}
+		at, err := validateAuthType(&sink)
+		if err != nil {
+			return Sink{}, errors.Wrap(ErrMalformedEntity, err)
+		}
+		cfg = Configuration{
+			Authentication: at,
+			Exporter:       be,
 		}
 		//// add default values
 		defaultMetadata := make(types.Metadata, 1)
@@ -184,19 +314,19 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 	if sink.Backend == "" && currentSink.Backend != "" {
 		sink.Backend = currentSink.Backend
 	}
-	sink, err = svc.encryptMetadata(sink)
+	sink, err = svc.encryptMetadata(cfg, sink)
 	if err != nil {
 		return Sink{}, errors.Wrap(ErrUpdateEntity, err)
 	}
 	err = svc.sinkRepo.Update(ctx, sink)
 	if err != nil {
-		return Sink{}, err
+		return Sink{}, errors.Wrap(ErrUpdateEntity, err)
 	}
 	sinkEdited, err := svc.sinkRepo.RetrieveById(ctx, sink.ID)
 	if err != nil {
 		return Sink{}, errors.Wrap(ErrUpdateEntity, err)
 	}
-	sinkEdited, err = svc.decryptMetadata(sinkEdited)
+	sinkEdited, err = svc.decryptMetadata(cfg, sinkEdited)
 	if err != nil {
 		return Sink{}, errors.Wrap(ErrUpdateEntity, err)
 	}
@@ -241,7 +371,13 @@ func (svc sinkService) ViewSinkInternal(ctx context.Context, ownerID string, key
 	if err != nil {
 		return Sink{}, errors.Wrap(errors.ErrNotFound, err)
 	}
-	res, err = svc.decryptMetadata(res)
+	authType, _ := authentication_type.GetAuthType(res.GetAuthenticationTypeName())
+	be := backend.GetBackend(res.Backend)
+	cfg := Configuration{
+		Authentication: authType,
+		Exporter:       be,
+	}
+	res, err = svc.decryptMetadata(cfg, res)
 	if err != nil {
 		return Sink{}, errors.Wrap(errors.ErrViewEntity, err)
 	}
@@ -254,7 +390,13 @@ func (svc sinkService) ListSinksInternal(ctx context.Context, filter Filter) (si
 		return nil, errors.Wrap(errors.ErrNotFound, err)
 	}
 	for _, sink := range sinks {
-		sink, err = svc.decryptMetadata(sink)
+		authType, _ := authentication_type.GetAuthType(sink.GetAuthenticationTypeName())
+		be := backend.GetBackend(sink.Backend)
+		cfg := Configuration{
+			Authentication: authType,
+			Exporter:       be,
+		}
+		sink, err = svc.decryptMetadata(cfg, sink)
 		if err != nil {
 			return nil, errors.Wrap(errors.ErrViewEntity, err)
 		}
@@ -291,7 +433,12 @@ func (svc sinkService) ValidateSink(ctx context.Context, token string, sink Sink
 
 	sink.MFOwnerID = mfOwnerID
 
-	err = validateBackend(&sink)
+	_, err = validateBackend(&sink)
+	if err != nil {
+		return Sink{}, errors.Wrap(ErrValidateSink, err)
+	}
+
+	_, err = validateAuthType(&sink)
 	if err != nil {
 		return Sink{}, errors.Wrap(ErrValidateSink, err)
 	}
@@ -303,11 +450,29 @@ func (svc sinkService) ChangeSinkStateInternal(ctx context.Context, sinkID strin
 	return svc.sinkRepo.UpdateSinkState(ctx, sinkID, msg, ownerID, state)
 }
 
-func validateBackend(sink *Sink) error {
+func validateBackend(sink *Sink) (be backend.Backend, err error) {
 	if backend.HaveBackend(sink.Backend) {
 		sink.State = Unknown
 	} else {
-		return ErrInvalidBackend
+		return nil, ErrInvalidBackend
 	}
-	return nil
+	sinkBe := backend.GetBackend(sink.Backend)
+	if len(sink.ConfigData) == 0 {
+		config := sink.Config.GetSubMetadata("exporter")
+		if config == nil {
+			return nil, errors.Wrap(ErrInvalidBackend, errors.New("missing exporter configuration"))
+		}
+		return sinkBe, sinkBe.ValidateConfiguration(config)
+	} else {
+		parseConfig, err := sinkBe.ParseConfig("yaml", sink.ConfigData)
+		if err != nil {
+			return nil, errors.Wrap(ErrInvalidBackend, err)
+		}
+		sink.Config = parseConfig
+		config2 := sink.Config.GetSubMetadata("exporter")
+		if config2 == nil {
+			return nil, errors.Wrap(ErrInvalidBackend, errors.New("missing exporter configuration"))
+		}
+		return sinkBe, sinkBe.ValidateConfiguration(config2)
+	}
 }

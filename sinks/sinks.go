@@ -9,6 +9,7 @@ import (
 	"database/sql/driver"
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
+	"github.com/orb-community/orb/sinks/authentication_type"
 	"github.com/orb-community/orb/sinks/backend"
 	"go.uber.org/zap"
 	"time"
@@ -95,6 +96,18 @@ func (s *State) Scan(value interface{}) error {
 }
 func (s State) Value() (driver.Value, error) { return s.String(), nil }
 
+func NewConfigBackends(e backend.Backend, a authentication_type.AuthenticationType) Configuration {
+	return Configuration{
+		Exporter:       e,
+		Authentication: a,
+	}
+}
+
+type Configuration struct {
+	Exporter       backend.Backend
+	Authentication authentication_type.AuthenticationType
+}
+
 type Sink struct {
 	ID          string
 	Name        types.Identifier
@@ -110,6 +123,15 @@ type Sink struct {
 	Created     time.Time
 }
 
+func (s *Sink) GetAuthenticationTypeName() string {
+	authMeta := s.Config.GetSubMetadata("authentication")
+	// Defaults to basicauth
+	if authMeta == nil {
+		return "basicauth"
+	}
+	return authMeta["type"].(string)
+}
+
 // Page contains page related metadata as well as list of sinks that
 // belong to this page
 type Page struct {
@@ -123,6 +145,8 @@ type SinkService interface {
 	CreateSink(ctx context.Context, token string, s Sink) (Sink, error)
 	// UpdateSink by id
 	UpdateSink(ctx context.Context, token string, s Sink) (Sink, error)
+	// UpdateSinkInternal by id
+	UpdateSinkInternal(ctx context.Context, s Sink) (Sink, error)
 	// ListSinks retrieves data about sinks
 	ListSinks(ctx context.Context, token string, pm PageMetadata) (Page, error)
 	// ListSinksInternal retrieves data from sinks filtered by SinksFilter for Services like Maestro, to build DeploymentEntries
@@ -131,6 +155,10 @@ type SinkService interface {
 	ListBackends(ctx context.Context, token string) ([]string, error)
 	// ViewBackend retrieves a backend by the name
 	ViewBackend(ctx context.Context, token string, key string) (backend.Backend, error)
+	// ListAuthenticationTypes retrieves a list of available AuthenticationTypes
+	ListAuthenticationTypes(ctx context.Context, token string) ([]authentication_type.AuthenticationTypeConfig, error)
+	// ViewAuthenticationType retrieves a AuthenticationType by the name
+	ViewAuthenticationType(ctx context.Context, token string, key string) (authentication_type.AuthenticationTypeConfig, error)
 	// ViewSink retrieves a sink by id, for View, does not send password
 	ViewSink(ctx context.Context, token string, key string) (Sink, error)
 	// ViewSinkInternal retrieves a sink by id, via GRPC, sends password
@@ -163,4 +191,8 @@ type SinkRepository interface {
 	Remove(ctx context.Context, owner string, key string) error
 	// UpdateSinkState updates sink state like active, idle, new, unknown
 	UpdateSinkState(ctx context.Context, sinkID string, msg string, ownerID string, state State) error
+	// GetVersion for migrate service
+	GetVersion(ctx context.Context) (string, error)
+	// UpsertVersion for migrate service
+	UpdateVersion(ctx context.Context, version string) error
 }
