@@ -14,7 +14,6 @@ import (
 	kitgrpc "github.com/go-kit/kit/transport/grpc"
 	"github.com/opentracing/opentracing-go"
 	"github.com/orb-community/orb/sinks"
-	"github.com/orb-community/orb/sinks/authentication_type"
 	"github.com/orb-community/orb/sinks/pb"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
@@ -27,7 +26,7 @@ type grpcServer struct {
 	logger *zap.Logger
 	pb.UnimplementedSinkServiceServer
 	retrieveSink    kitgrpc.Handler
-	passwordService authentication_type.PasswordService
+	passwordService sinks.PasswordService
 	retrieveSinks   kitgrpc.Handler
 }
 

@@ -6,7 +6,6 @@ package http
 
 import (
 	"github.com/orb-community/orb/pkg/types"
-	"github.com/orb-community/orb/sinks/authentication_type"
 	"net/http"
 	"time"
 )
@@ -65,38 +64,6 @@ type pageRes struct {
 	Limit  uint64 `json:"limit"`
 	Order  string `json:"order"`
 	Dir    string `json:"direction"`
-}
-
-type sinkAuthTypeRes struct {
-	AuthenticationTypes interface{} `json:"authentication_types,omitempty"`
-}
-
-func (s sinkAuthTypeRes) Code() int {
-	return http.StatusOK
-}
-
-func (s sinkAuthTypeRes) Headers() map[string]string {
-	return map[string]string{}
-}
-
-func (s sinkAuthTypeRes) Empty() bool {
-	return false
-}
-
-type sinkAuthTypesRes struct {
-	AuthenticationTypes []authentication_type.AuthenticationTypeConfig `json:"authentication_types,omitempty"`
-}
-
-func (s sinkAuthTypesRes) Code() int {
-	return http.StatusOK
-}
-
-func (s sinkAuthTypesRes) Headers() map[string]string {
-	return map[string]string{}
-}
-
-func (s sinkAuthTypesRes) Empty() bool {
-	return false
 }
 
 type sinksBackendsRes struct {

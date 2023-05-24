@@ -57,18 +57,21 @@ func (es eventStore) handleSinksCreateCollector(ctx context.Context, event redis
 	if err != nil {
 		es.logger.Error("could not fetch info for sink", zap.String("sink-id", event.SinkID), zap.Error(err))
 	}
-
-	var metadata types.Metadata
-	if err := json.Unmarshal(sinkData.Config, &metadata); err != nil {
+	var data config.SinkData
+	if err := json.Unmarshal(sinkData.Config, &data); err != nil {
 		return err
 	}
-	data := config.SinkData{
-		SinkID:  sinkData.Id,
-		OwnerID: sinkData.OwnerID,
-		Backend: sinkData.Backend,
-		Config:  metadata,
+	sinkUrl := data.Url
+	var sinkUsername string
+	var sinkPassword string
+	if data.User != "" {
+		sinkUsername = data.User
+		sinkPassword = data.Password
+	} else {
+		sinkPassword = data.Token
 	}
-	err2 := es.CreateDeploymentEntry(ctx, data)
+
+	err2 := es.CreateDeploymentEntry(ctx, event.SinkID, sinkUrl, sinkUsername, sinkPassword)
 	if err2 != nil {
 		return err2
 	}
@@ -76,14 +79,14 @@ func (es eventStore) handleSinksCreateCollector(ctx context.Context, event redis
 	return nil
 }
 
-func (es eventStore) CreateDeploymentEntry(ctx context.Context, sink config.SinkData) error {
-	deploy, err := config.GetDeploymentJson(es.kafkaUrl, sink)
+func (es eventStore) CreateDeploymentEntry(ctx context.Context, sinkId, sinkUrl, sinkUsername, sinkPassword string) error {
+	deploy, err := config.GetDeploymentJson(es.kafkaUrl, sinkId, sinkUrl, sinkUsername, sinkPassword)
 	if err != nil {
-		es.logger.Error("error trying to get deployment json for sink ID", zap.String("sinkId", sink.SinkID), zap.Error(err))
+		es.logger.Error("error trying to get deployment json for sink ID", zap.String("sinkId", sinkId))
 		return err
 	}
 
-	es.sinkerKeyRedisClient.HSet(ctx, deploymentKey, sink.SinkID, deploy)
+	es.sinkerKeyRedisClient.HSet(ctx, deploymentKey, sinkId, deploy)
 	return nil
 }
 
@@ -101,10 +104,12 @@ func (es eventStore) handleSinksUpdateCollector(ctx context.Context, event redis
 	if err := json.Unmarshal(sinkData.Config, &data); err != nil {
 		return err
 	}
-
-	deploy, err := config.GetDeploymentJson(es.kafkaUrl, data)
+	sinkUrl := data.Url
+	sinkUsername := data.User
+	sinkPassword := data.Password
+	deploy, err := config.GetDeploymentJson(es.kafkaUrl, event.SinkID, sinkUrl, sinkUsername, sinkPassword)
 	if err != nil {
-		es.logger.Error("error trying to get deployment json for sink ID", zap.String("sinkId", event.SinkID), zap.Error(err))
+		es.logger.Error("error trying to get deployment json for sink ID", zap.String("sinkId", event.SinkID))
 		return err
 	}
 	es.sinkerKeyRedisClient.HSet(ctx, deploymentKey, event.SinkID, deploy)
@@ -117,16 +122,8 @@ func (es eventStore) handleSinksUpdateCollector(ctx context.Context, event redis
 	es.PublishSinkStateChange(sinkData, "unknown", err, err)
 	data.SinkID = sinkData.Id
 	data.OwnerID = sinkData.OwnerID
-	err = data.State.SetFromString("unknown")
-	if err != nil {
-		es.logger.Error("error setting state as unknown", zap.Error(err))
-		return err
-	}
-	err = es.UpdateSinkStateCache(ctx, data)
-	if err != nil {
-		es.logger.Error("error update sink cache state as unknown", zap.Error(err))
-		return err
-	}
+	data.State.SetFromString("unknown")
+	es.UpdateSinkStateCache(ctx, data)
 	return nil
 }
 
@@ -139,7 +136,6 @@ func (es eventStore) UpdateSinkCache(ctx context.Context, data config.SinkData) 
 		return err
 	}
 	if err = es.sinkerKeyRedisClient.Set(ctx, skey, bytes, 0).Err(); err != nil {
-		es.logger.Error("failed to update sink cache", zap.Error(err))
 		return err
 	}
 	return
@@ -150,7 +146,6 @@ func (es eventStore) UpdateSinkStateCache(ctx context.Context, data config.SinkD
 	skey := fmt.Sprintf("%s-%s:%s", keyPrefix, data.OwnerID, data.SinkID)
 	bytes, err := json.Marshal(data)
 	if err != nil {
-		es.logger.Error("error update sink cache state", zap.Error(err))
 		return err
 	}
 	if err = es.sinkerKeyRedisClient.Set(ctx, skey, bytes, 0).Err(); err != nil {

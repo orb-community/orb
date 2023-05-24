@@ -7,7 +7,6 @@ package http
 import (
 	"context"
 	"github.com/orb-community/orb/sinks"
-	"github.com/orb-community/orb/sinks/authentication_type"
 	"github.com/orb-community/orb/sinks/backend"
 	"go.uber.org/zap"
 	"time"
@@ -74,20 +73,6 @@ func (l loggingMiddleware) UpdateSink(ctx context.Context, token string, s sinks
 		}
 	}(time.Now())
 	return l.svc.UpdateSink(ctx, token, s)
-}
-
-func (l loggingMiddleware) UpdateSinkInternal(ctx context.Context, s sinks.Sink) (sink sinks.Sink, err error) {
-	defer func(begin time.Time) {
-		if err != nil {
-			l.logger.Warn("method call: edit_internal_sink",
-				zap.Error(err),
-				zap.Duration("duration", time.Since(begin)))
-		} else {
-			l.logger.Info("method call: edit_internal_sink",
-				zap.Duration("duration", time.Since(begin)))
-		}
-	}(time.Now())
-	return l.svc.UpdateSinkInternal(ctx, s)
 }
 
 func (l loggingMiddleware) ListSinks(ctx context.Context, token string, pm sinks.PageMetadata) (_ sinks.Page, err error) {
@@ -186,14 +171,6 @@ func (l loggingMiddleware) ValidateSink(ctx context.Context, token string, s sin
 		}
 	}(time.Now())
 	return l.svc.ValidateSink(ctx, token, s)
-}
-
-func (l loggingMiddleware) ListAuthenticationTypes(ctx context.Context, token string) ([]authentication_type.AuthenticationTypeConfig, error) {
-	return l.svc.ListAuthenticationTypes(ctx, token)
-}
-
-func (l loggingMiddleware) ViewAuthenticationType(ctx context.Context, token string, key string) (authentication_type.AuthenticationTypeConfig, error) {
-	return l.svc.ViewAuthenticationType(ctx, token, key)
 }
 
 func (l loggingMiddleware) GetLogger() *zap.Logger {
