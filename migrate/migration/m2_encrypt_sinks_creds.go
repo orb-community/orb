@@ -6,6 +6,7 @@ import (
 	"github.com/orb-community/orb/pkg/db"
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks"
+	"github.com/orb-community/orb/sinks/authentication_type"
 	"github.com/orb-community/orb/sinks/backend"
 	"github.com/orb-community/orb/sinks/postgres"
 	"go.uber.org/zap"
@@ -14,7 +15,7 @@ import (
 type M2SinksCredentials struct {
 	logger  *zap.Logger
 	dbSinks postgres.Database
-	pwdSvc  sinks.PasswordService
+	pwdSvc  authentication_type.PasswordService
 }
 
 type querySink struct {
@@ -96,7 +97,7 @@ func (m M2SinksCredentials) Down() (err error) {
 }
 
 func NewM2SinksCredentials(log *zap.Logger, dbSinks postgres.Database, config config.EncryptionKey) Plan {
-	pwdSvc := sinks.NewPasswordService(log, config.Key)
+	pwdSvc := authentication_type.NewPasswordService(log, config.Key)
 	return &M2SinksCredentials{log, dbSinks, pwdSvc}
 }
 

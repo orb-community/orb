@@ -32,10 +32,59 @@ type sinksRepository struct {
 	logger *zap.Logger
 }
 
+func (s sinksRepository) UpdateVersion(ctx context.Context, incomingVersion string) error {
+	q := `UPDATE current_version SET version = :version, last_updated = :currenttime`
+	params := map[string]interface{}{
+		"version":     incomingVersion,
+		"currenttime": time.Now(),
+	}
+	res, err := s.db.NamedExecContext(ctx, q, params)
+	if err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if ok {
+			switch pqErr.Code.Name() {
+			case db.ErrInvalid, db.ErrTruncation:
+				return errors.Wrap(sinks.ErrMalformedEntity, err)
+			case db.ErrDuplicate:
+				return errors.Wrap(errors.ErrConflict, err)
+			}
+		}
+		return errors.Wrap(sinks.ErrUpdateEntity, err)
+	}
+
+	count, err := res.RowsAffected()
+	if err != nil {
+		return errors.Wrap(sinks.ErrUpdateEntity, err)
+	}
+
+	if count == 0 {
+		return sinks.ErrNotFound
+	}
+	return nil
+}
+
+func (s sinksRepository) GetVersion(ctx context.Context) (string, error) {
+	q := `SELECT version FROM current_version`
+	params := map[string]interface{}{}
+	rows, err := s.db.NamedQueryContext(ctx, q, params)
+	if err != nil {
+		return "", err
+	}
+	for rows.Next() {
+		version := ""
+		err := rows.Scan(&version)
+		if err != nil {
+			return "", err
+		}
+		return version, nil
+	}
+	return "", err
+}
+
 func (s sinksRepository) SearchAllSinks(ctx context.Context, filter sinks.Filter) ([]sinks.Sink, error) {
 	q := `SELECT id, name, mf_owner_id, description, tags, state, coalesce(error, '') as error, backend, metadata, ts_created FROM sinks`
 	params := map[string]interface{}{}
-	if filter.StateFilter != "" {
+	if (filter != sinks.Filter{} && filter.StateFilter != "") {
 		q += `WHERE state == :state`
 		params["state"] = filter.StateFilter
 	}

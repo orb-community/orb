@@ -33,7 +33,7 @@ const (
 )
 
 type Subscriber interface {
-	CreateDeploymentEntry(ctx context.Context, sinkId, sinkUrl, sinkUsername, sinkPassword string) error
+	CreateDeploymentEntry(ctx context.Context, sink config.SinkData) error
 	GetDeploymentEntryFromSinkId(ctx context.Context, sinkId string) (string, error)
 
 	UpdateSinkCache(ctx context.Context, data config.SinkData) (err error)
