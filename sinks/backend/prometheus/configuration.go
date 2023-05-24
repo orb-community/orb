@@ -10,9 +10,11 @@ import (
 
 func (p *Backend) ConfigToFormat(format string, metadata types.Metadata) (string, error) {
 	if format == "yaml" {
-		parseUtil := configParseUtility{
-			RemoteHost: metadata[RemoteHostURLConfigFeature].(string),
+		remoteHost := metadata[RemoteHostURLConfigFeature].(string)
+		parseUtil := Backend{
+			RemoteHost: remoteHost,
 		}
+		p.RemoteHost = remoteHost
 		config, err := yaml.Marshal(parseUtil)
 		if err != nil {
 			return "", err

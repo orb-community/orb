@@ -212,6 +212,13 @@ func (svc sinkService) UpdateSinkInternal(ctx context.Context, sink Sink) (Sink,
 		defaultMetadata["opentelemetry"] = "enabled"
 		sink.Config.Merge(defaultMetadata)
 		currentSink.Error = ""
+		if sink.Format == "yaml" {
+			configDataByte, err := yaml.Marshal(sink.Config)
+			if err != nil {
+				return Sink{}, errors.Wrap(ErrMalformedEntity, err)
+			}
+			sink.ConfigData = string(configDataByte)
+		}
 	}
 
 	if sink.Tags == nil {
@@ -296,6 +303,13 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 		defaultMetadata["opentelemetry"] = "enabled"
 		sink.Config.Merge(defaultMetadata)
 		currentSink.Error = ""
+		if sink.Format == "yaml" {
+			configDataByte, err := yaml.Marshal(sink.Config)
+			if err != nil {
+				return Sink{}, errors.Wrap(ErrMalformedEntity, err)
+			}
+			sink.ConfigData = string(configDataByte)
+		}
 	}
 
 	if sink.Tags == nil {

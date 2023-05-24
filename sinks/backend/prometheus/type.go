@@ -25,17 +25,7 @@ const (
 )
 
 type Backend struct {
-	apiHost     string
-	apiPort     uint64
-	apiUser     string
-	apiPassword string
-}
-
-type configParseUtility struct {
-	RemoteHost string  `yaml:"remote_host"`
-	Username   *string `yaml:"username,omitempty"`
-	Password   *string `yaml:"password,omitempty"`
-	APIToken   *string `yaml:"api_token,omitempty"`
+	RemoteHost string `json:"remote_host"`
 }
 
 func (p *Backend) Metadata() interface{} {
