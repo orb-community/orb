@@ -2,7 +2,7 @@
     <nb-card-header class="summary-accent">Sink Details
       <button
         (click)="toggleEdit(true)"
-        *ngIf="!editMode"
+        *ngIf="!editMode && !createMode"
         class="card-button"
         nbButton
         shape="round"
@@ -11,7 +11,7 @@
       </button>
       <button
         (click)="toggleEdit(false)"
-        *ngIf="editMode"
+        *ngIf="editMode && !createMode"
         class="card-button"
         nbButton
         shape="round"
@@ -20,75 +20,148 @@
       </button>
     </nb-card-header>
     <nb-card-body>
-      <div *ngIf="editMode; then updateView else readView"></div>
+      <!-- <div *ngIf="editMode; then updateView else readView"></div> -->
+      <div [ngSwitch]="mode">
+
+
+        <div *ngSwitchCase="'read'" class="d-flex flex-column">
+          <div class="flex-row">
+            <label class="summary-accent">Name</label>
+            <p>{{ sink?.name }}</p>
+          </div>
+          <div class="flex-row">
+            <label class="summary-accent">Description</label>
+            <p>{{ sink?.description }}</p>
+          </div>
+          <div class="flex-row">
+            <label class="summary-accent">Backend</label>
+            <p>{{ sink?.backend | titlecase}}</p>
+          </div> 
+          <div class="flex-row">
+            <label class="summary-accent">Status</label>
+            <p *ngIf="sink?.state !== sinkStates.error" class="orb-service-{{sink?.state}}"> {{ sink?.state | titlecase }} </p>
+            <p *ngIf="sink?.state === sinkStates.error" class="orb-service-{{sink?.state}}"> {{ sink?.state | titlecase }} {{ sink?.error | titlecase }} </p>
+          </div>
+          <div class="flex-row">
+            <label class="summary-accent">Tags</label>
+            <ngx-tag-display [tags]="selectedTags"></ngx-tag-display>
+          </div>
+        </div>
+
+
+        <div *ngSwitchCase="'edit'">
+          <form [formGroup]="formGroup">
+            <nb-form-field>
+              <div class="d-flex flex-column">
+                <div>
+                  <label class="font-weight-bold">Sink Name</label>
+                  <span class="required">*</span>
+                </div>
+                <input
+                  [placeholder]="sink?.name"
+                  autofocus
+                  class="form-control"
+                  data-orb-qa-id="name"
+                  fieldSize="medium"
+                  formControlName="name"
+                  fullWidth="true"
+                  nbInput/>
+                <div
+                  *ngIf="formGroup.controls?.name.invalid
+                  && (formGroup.controls?.name.dirty || formGroup.controls?.name.touched)"
+                  class="required">
+                  <div *ngIf="formGroup.controls?.name.errors?.required">
+                    Name is required.
+                  </div>
+                  <div *ngIf="formGroup.controls?.name.errors?.pattern">
+                    Name does not match the pattern.
+                  </div>
+                </div>
+              </div>
+            </nb-form-field>
+            <nb-form-field>
+              <div>
+                <label class="font-weight-bold">Sink Description</label>
+              </div>
+              <input
+                [placeholder]="sink?.description"
+                data-orb-qa-id="description"
+                fieldSize="medium"
+                formControlName="description"
+                fullWidth="true"
+                nbInput/>
+            </nb-form-field>
+          </form>
+          <label class="font-weight-bold">Tags</label>
+          <ngx-tag-control [(tags)]="selectedTags"></ngx-tag-control>
+        </div>
+
+
+        <div *ngSwitchCase="'create'">
+          <form [formGroup]="formGroup">
+            <nb-form-field>
+              <div class="d-flex flex-column">
+                <div>
+                  <label class="font-weight-bold">Sink Name</label>
+                  <span class="required">*</span>
+                </div>
+                <input
+                  autofocus
+                  class="form-control"
+                  data-orb-qa-id="name"
+                  fieldSize="medium"
+                  formControlName="name"
+                  fullWidth="true"
+                  required
+                  pattern="^[a-zA-Z_][a-zA-Z0-9_-]*$"          
+                  nbInput/>
+                  <div
+                  *ngIf="formGroup.controls?.name.invalid
+                  && (formGroup.controls?.name.dirty || formGroup.controls?.name.touched)"
+                  class="required">
+                  <div *ngIf="formGroup.controls?.name.errors?.required">
+                    Name is required.
+                  </div>
+                  <div *ngIf="formGroup.controls?.name.errors?.pattern">
+                    Sink name must start with a letter or "_" and contain only letters, numbers, "-" or "_"
+                  </div>
+                </div>
+              </div>
+            </nb-form-field>
+            <nb-form-field>
+              <div>
+                <label class="font-weight-bold">Sink Description</label>
+              </div>
+              <input
+                data-orb-qa-id="description"
+                fieldSize="medium"
+                formControlName="description"
+                fullWidth="true"
+                nbInput/>
+            </nb-form-field>
+            <nb-form-field>
+              <div>
+                <label class="font-weight-bold">Sink Backend</label>
+                <span class="required">*</span>
+              </div>
+              <nb-select appearance="filled"
+                         data-orb-qa-id="backend"
+                         formControlName="backend"
+                         fullWidth="true"
+                         placeholder="Select backend type"
+                         size="medium"
+                         required
+              >
+                <nb-option *ngFor="let type of sinkTypesList"
+                           [value]="type">{{ type | titlecase }}</nb-option>
+              </nb-select>
+            </nb-form-field>
+          </form>
+          <label class="font-weight-bold">Tags</label>
+          <ngx-tag-control [(tags)]="selectedTags"></ngx-tag-control>
+        </div>
+        
+      </div>
     </nb-card-body>
   </nb-card>
-  
-  <ng-template #readView>
-    <div class="d-flex flex-column">
-      <div class="flex-row">
-        <label class="summary-accent">Name</label>
-        <p>{{ sink?.name }}</p>
-      </div>
-      <div class="flex-row">
-        <label class="summary-accent">Description</label>
-        <p>{{ sink?.description }}</p>
-      </div>
-      <!-- <div class="flex-row">
-        <label class="summary-accent">Backend</label>
-        <p>{{ sink?.backend }}</p>
-      </div> -->
-      <div class="flex-row">
-        <label class="summary-accent">Tags</label>
-        <ngx-tag-display [tags]="selectedTags"></ngx-tag-display>
-      </div>
-    </div>
-  </ng-template>
-  
-  <ng-template #updateView>
-    <form [formGroup]="formGroup">
-      <nb-form-field>
-        <div class="d-flex flex-column">
-          <div>
-            <label class="font-weight-bold">Sink Name</label>
-            <span class="required">*</span>
-          </div>
-          <input
-            [placeholder]="sink?.name"
-            autofocus
-            class="form-control"
-            data-orb-qa-id="name"
-            fieldSize="medium"
-            formControlName="name"
-            fullWidth="true"
-            nbInput/>
-          <div
-            *ngIf="formGroup.controls?.name.invalid
-            && (formGroup.controls?.name.dirty || formGroup.controls?.name.touched)"
-            class="required">
-            <div *ngIf="formGroup.controls?.name.errors?.required">
-              Name is required.
-            </div>
-            <div *ngIf="formGroup.controls?.name.errors?.pattern">
-              Name does not match the pattern.
-            </div>
-          </div>
-        </div>
-      </nb-form-field>
-      <nb-form-field>
-        <div>
-          <label class="font-weight-bold">Sink Description</label>
-        </div>
-        <input
-          [placeholder]="sink?.description"
-          data-orb-qa-id="description"
-          fieldSize="medium"
-          formControlName="description"
-          fullWidth="true"
-          nbInput/>
-      </nb-form-field>
-    </form>
-    <label class="font-weight-bold">Tags</label>
-    <ngx-tag-control [(tags)]="selectedTags"></ngx-tag-control>
-  </ng-template>
   
