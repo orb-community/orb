@@ -175,7 +175,7 @@ func (svc sinkService) UpdateSinkInternal(ctx context.Context, sink Sink) (Sink,
 	var currentSink Sink
 	currentSink, err := svc.sinkRepo.RetrieveById(ctx, sink.ID)
 	if err != nil {
-		return Sink{}, err
+		return Sink{}, errors.Wrap(ErrUpdateEntity, err)
 	}
 	var cfg Configuration
 	if sink.Config == nil && sink.ConfigData == "" {
