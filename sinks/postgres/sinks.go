@@ -360,8 +360,8 @@ type dbSink struct {
 	Name        types.Identifier `db:"name"`
 	MFOwnerID   string           `db:"mf_owner_id"`
 	Metadata    db.Metadata      `db:"metadata"`
-	ConfigData  string           `db:"config_data"`
-	Format      string           `db:"format"`
+	ConfigData  *string          `db:"config_data"`
+	Format      *string          `db:"format"`
 	Backend     string           `db:"backend"`
 	Description string           `db:"description"`
 	Created     time.Time        `db:"ts_created"`
@@ -390,8 +390,8 @@ func toDBSink(sink sinks.Sink) (dbSink, error) {
 		Name:        sink.Name,
 		MFOwnerID:   uID.String(),
 		Metadata:    db.Metadata(sink.Config),
-		ConfigData:  sink.ConfigData,
-		Format:      sink.Format,
+		ConfigData:  &sink.ConfigData,
+		Format:      &sink.Format,
 		Backend:     sink.Backend,
 		Description: description,
 		Created:     sink.Created,
