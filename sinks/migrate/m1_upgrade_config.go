@@ -2,7 +2,6 @@ package migrate
 
 import (
 	"context"
-	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks"
 	"github.com/orb-community/orb/sinks/authentication_type"
@@ -44,26 +43,58 @@ func (p *Plan1UpdateConfiguration) Up(ctx context.Context) (mainErr error) {
 			sinkRemoteHost, ok := sink.Config["remote_host"]
 			if !ok {
 				p.logger.Error("failed to update sink for lack of remote_host", zap.String("sinkID", sink.ID))
-				mainErr = errors.New("failed to get remote_host from config")
+				sink.State = sinks.Error
+				sink.Error = "sink with invalid configuration, please update"
+				_, err := p.service.UpdateSinkInternal(ctx, sink)
+				if err != nil {
+					p.logger.Error("failed to update sink",
+						zap.String("sinkID", sink.ID), zap.Error(err))
+					mainErr = err
+					continue
+				}
 				continue
 			}
 			sinkUsername, ok := sink.Config["username"]
 			if !ok {
 				p.logger.Error("failed to update sink for lack of username", zap.String("sinkID", sink.ID))
-				mainErr = errors.New("failed to get username from config")
+				sink.State = sinks.Error
+				sink.Error = "sink with invalid configuration, please update"
+				_, err := p.service.UpdateSinkInternal(ctx, sink)
+				if err != nil {
+					p.logger.Error("failed to update sink",
+						zap.String("sinkID", sink.ID), zap.Error(err))
+					mainErr = err
+					continue
+				}
 				continue
 			}
 			encodedPassword, ok := sink.Config["password"]
 			if !ok {
 				p.logger.Error("failed to update sink for lack of password", zap.String("sinkID", sink.ID))
-				mainErr = errors.New("failed to get password from config")
+				sink.State = sinks.Error
+				sink.Error = "sink with invalid configuration, please update"
+				_, err := p.service.UpdateSinkInternal(ctx, sink)
+				if err != nil {
+					p.logger.Error("failed to update sink",
+						zap.String("sinkID", sink.ID), zap.Error(err))
+					mainErr = err
+					continue
+				}
 				continue
 			}
 			decodedPassword, err := p.passwordService.DecodePassword(encodedPassword.(string))
 			if err != nil {
 				p.logger.Error("failed to update sink for failure in decoding password",
 					zap.String("sinkID", sink.ID), zap.Error(err))
-				mainErr = err
+				sink.State = sinks.Error
+				sink.Error = "sink with invalid configuration, please update"
+				_, err := p.service.UpdateSinkInternal(ctx, sink)
+				if err != nil {
+					p.logger.Error("failed to update sink",
+						zap.String("sinkID", sink.ID), zap.Error(err))
+					mainErr = err
+					continue
+				}
 				continue
 			}
 			newMetadata := types.Metadata{
@@ -75,7 +106,6 @@ func (p *Plan1UpdateConfiguration) Up(ctx context.Context) (mainErr error) {
 				"exporter": types.Metadata{
 					"remote_host": sinkRemoteHost.(string),
 				},
-				"opentelemetry": "enabled",
 			}
 			sink.Config = newMetadata
 			_, err = p.service.UpdateSinkInternal(ctx, sink)
