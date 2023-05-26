@@ -6,6 +6,7 @@ import (
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks"
 	"github.com/orb-community/orb/sinks/authentication_type"
+	"github.com/orb-community/orb/sinks/authentication_type/basicauth"
 	"go.uber.org/zap"
 )
 
@@ -67,12 +68,12 @@ func (p *Plan1UpdateConfiguration) Up(ctx context.Context) (mainErr error) {
 			}
 			newMetadata := types.Metadata{
 				"authentication": types.Metadata{
-					"type":     "basicauth",
-					"username": sinkUsername,
+					"type":     basicauth.AuthType,
+					"username": sinkUsername.(string),
 					"password": decodedPassword,
 				},
 				"exporter": types.Metadata{
-					"remote_host": sinkRemoteHost,
+					"remote_host": sinkRemoteHost.(string),
 				},
 				"opentelemetry": "enabled",
 			}
