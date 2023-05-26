@@ -7,6 +7,7 @@
 import { PrometheusConfig } from 'app/common/interfaces/orb/sink/config/prometheus.config.interface';
 
 import { OrbEntity } from 'app/common/interfaces/orb/orb.entity.interface';
+import { OtlpConfig } from './sink/config/otlp.config.interface';
 
 /**
  * @enum SinkStates
@@ -23,6 +24,7 @@ export enum SinkStates {
  */
 export enum SinkBackends {
   prometheus = 'prometheus',
+  otlp = 'otlpexporter'
 }
 
 /**
@@ -69,16 +71,16 @@ export interface Sink extends OrbEntity {
   config?: SinkTypes;
 }
 
-export type SinkTypes = PrometheusConfig;
+export type SinkTypes = OtlpConfig;
 
 /**
  * Prometheus Sink Type
- * @type PromSink
+ * @type OtlpSink
  */
-export type PromSink =
+export type OtlpSink =
   | Sink
   | {
-      config?: PrometheusConfig;
+      config?: OtlpConfig;
     };
 
 /**

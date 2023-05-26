@@ -24,6 +24,8 @@ export class SinkAddComponent {
 
     createMode: boolean;
 
+    sinkBackend: any;
+
     constructor(
         private sinksService: SinksService,
         private notificationsService: NotificationsService,
@@ -59,7 +61,7 @@ export class SinkAddComponent {
             config,
         
         } as Sink;
-
+        console.log(payload);
         this.sinksService.addSink(payload).subscribe(() => {
             this.notificationsService.success('Sink successfully created', '');
             this.goBack();
@@ -68,5 +70,9 @@ export class SinkAddComponent {
 
     goBack() {
         this.router.navigateByUrl('/pages/sinks');
+    }
+
+    getBackendEmit(backend: any) {
+        this.sinkBackend = backend;
     }
 }

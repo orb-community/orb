@@ -32,8 +32,11 @@
       
 </header>
 <div class="row">
-  <ngx-sink-details [(createMode)]="createMode">
+  <ngx-sink-details 
+  [(createMode)]="createMode"
+  (sinkBackend)="getBackendEmit($event)"
+  >
   </ngx-sink-details>
-  <ngx-sink-config [(createMode)]="createMode">
+  <ngx-sink-config [(createMode)]="createMode" [(sinkBackend)]="sinkBackend">
   </ngx-sink-config>
 </div>
