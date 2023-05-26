@@ -13,6 +13,7 @@ import (
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks"
 	"github.com/orb-community/orb/sinks/authentication_type"
+	"github.com/orb-community/orb/sinks/authentication_type/basicauth"
 	"github.com/orb-community/orb/sinks/backend"
 	"gopkg.in/yaml.v3"
 )
@@ -54,7 +55,7 @@ func GetConfigurationAndMetadataFromMeta(backendName string, config types.Metada
 	authentication = config.GetSubMetadata(authentication_type.AuthenticationKey)
 	authtype, ok := authentication["type"]
 	if !ok {
-		authtype = "basicauth"
+		authtype = basicauth.AuthType
 	}
 	switch authtype.(type) {
 	case string:
@@ -95,7 +96,7 @@ func GetConfigurationAndMetadataFromYaml(backendName string, config string) (con
 	authentication = configStr.GetSubMetadata(authentication_type.AuthenticationKey)
 	authtype, ok := authentication["type"]
 	if !ok {
-		authtype = "basicauth"
+		authtype = basicauth.AuthType
 	}
 	switch authtype.(type) {
 	case string:

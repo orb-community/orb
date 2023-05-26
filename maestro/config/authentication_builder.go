@@ -2,6 +2,7 @@ package config
 
 import (
 	"github.com/orb-community/orb/pkg/types"
+	"github.com/orb-community/orb/sinks/authentication_type/basicauth"
 )
 
 const AuthenticationKey = "authentication"
@@ -12,7 +13,7 @@ type AuthBuilderService interface {
 
 func GetAuthService(authType string) AuthBuilderService {
 	switch authType {
-	case "basicauth":
+	case basicauth.AuthType:
 		return &BasicAuthBuilder{}
 	}
 	return nil

@@ -10,6 +10,7 @@ import (
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks/authentication_type"
+	"github.com/orb-community/orb/sinks/authentication_type/basicauth"
 	"github.com/orb-community/orb/sinks/backend"
 	"go.uber.org/zap"
 	"time"
@@ -127,7 +128,7 @@ func (s *Sink) GetAuthenticationTypeName() string {
 	authMeta := s.Config.GetSubMetadata("authentication")
 	// Defaults to basicauth
 	if authMeta == nil {
-		return "basicauth"
+		return basicauth.AuthType
 	}
 	return authMeta["type"].(string)
 }

@@ -32,6 +32,8 @@ var (
 	}
 )
 
+const AuthType = "basicauth"
+
 type AuthConfig struct {
 	Username          string `json:"username" ,yaml:"username"`
 	Password          string `json:"password" ,yaml:"password"`
@@ -41,7 +43,7 @@ type AuthConfig struct {
 func (a *AuthConfig) Metadata() authentication_type.AuthenticationTypeConfig {
 
 	return authentication_type.AuthenticationTypeConfig{
-		Type:        "basicauth",
+		Type:        AuthType,
 		Description: "Basic username and password authentication",
 		Config:      features,
 	}
@@ -225,5 +227,5 @@ func Register(encryptionService authentication_type.PasswordService) {
 	basicAuth := AuthConfig{
 		encryptionService: encryptionService,
 	}
-	authentication_type.Register("basicauth", &basicAuth)
+	authentication_type.Register(AuthType, &basicAuth)
 }
