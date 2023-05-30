@@ -7,7 +7,7 @@ Feature: Integration tests validating metric groups
 Scenario: netprobe handler with default metric groups configuration
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
     When an agent(input_type:netprobe, settings: {"test_type":"ping", "targets": {"www.google.com": {"target": "www.google.com"}, "orb_community": {"target": "orb.community"}}}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
@@ -25,7 +25,7 @@ Scenario: netprobe handler with default metric groups configuration
 Scenario: netprobe handler with all metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
     When an agent(input_type:netprobe, settings: {"test_type":"ping", "targets": {"www.google.com": {"target": "www.google.com"}, "orb_community": {"target": "orb.community"}}}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
@@ -43,7 +43,7 @@ Scenario: netprobe handler with all metric groups enabled
 Scenario: netprobe handler with all metric groups disabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
     When an agent(input_type:netprobe, settings: {"test_type":"ping", "targets": {"www.google.com": {"target": "www.google.com"}, "orb_community": {"target": "orb.community"}}}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
@@ -60,7 +60,7 @@ Scenario: netprobe handler with all metric groups disabled
 Scenario: netprobe handler with only counters metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
     When an agent(input_type:netprobe, settings: {"test_type":"ping", "targets": {"www.google.com": {"target": "www.google.com"}, "orb_community": {"target": "orb.community"}}}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
@@ -78,7 +78,7 @@ Scenario: netprobe handler with only counters metric groups enabled
 Scenario: netprobe handler with only quantiles metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
     When an agent(input_type:netprobe, settings: {"test_type":"ping", "targets": {"www.google.com": {"target": "www.google.com"}, "orb_community": {"target": "orb.community"}}}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
@@ -96,7 +96,7 @@ Scenario: netprobe handler with only quantiles metric groups enabled
 Scenario: netprobe handler with only histograms metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
     When an agent(input_type:netprobe, settings: {"test_type":"ping", "targets": {"www.google.com": {"target": "www.google.com"}, "orb_community": {"target": "orb.community"}}}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
@@ -114,7 +114,7 @@ Scenario: netprobe handler with only histograms metric groups enabled
 Scenario: netprobe handler with counters and histograms metric groups enabled and quantiles disabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
     When an agent(input_type:netprobe, settings: {"test_type":"ping", "targets": {"www.google.com": {"target": "www.google.com"}, "orb_community": {"target": "orb.community"}}}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
@@ -132,7 +132,7 @@ Scenario: netprobe handler with counters and histograms metric groups enabled an
 Scenario: netprobe handler with counters and quantiles metric groups enabled and histograms disabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
     When an agent(input_type:netprobe, settings: {"test_type":"ping", "targets": {"www.google.com": {"target": "www.google.com"}, "orb_community": {"target": "orb.community"}}}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
@@ -150,7 +150,7 @@ Scenario: netprobe handler with counters and quantiles metric groups enabled and
 Scenario: netprobe handler with histograms and quantiles metric groups enabled and counters disabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
     When an agent(input_type:netprobe, settings: {"test_type":"ping", "targets": {"www.google.com": {"target": "www.google.com"}, "orb_community": {"target": "orb.community"}}}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
@@ -169,7 +169,7 @@ Scenario: netprobe handler with histograms and quantiles metric groups enabled a
 Scenario: flow handler type netflow with default metric groups configuration
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type netflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"netflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -190,7 +190,7 @@ Scenario: flow handler type netflow with default metric groups configuration
 Scenario: flow handler type netflow with all metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type netflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"netflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -211,7 +211,7 @@ Scenario: flow handler type netflow with all metric groups enabled
 Scenario: flow handler type netflow with all metric groups disabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type netflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"netflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -231,7 +231,7 @@ Scenario: flow handler type netflow with all metric groups disabled
 Scenario: flow handler type netflow with only cardinality metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type netflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"netflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -252,7 +252,7 @@ Scenario: flow handler type netflow with only cardinality metric groups enabled
 Scenario: flow handler type netflow with only counters metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type netflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"netflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -273,7 +273,7 @@ Scenario: flow handler type netflow with only counters metric groups enabled
 Scenario: flow handler type netflow with only counters and by_bytes metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type netflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"netflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -294,7 +294,7 @@ Scenario: flow handler type netflow with only counters and by_bytes metric group
 Scenario: flow handler type netflow with only counters and by_packets metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type netflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"netflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -315,7 +315,7 @@ Scenario: flow handler type netflow with only counters and by_packets metric gro
 Scenario: flow handler type netflow with only by_packets metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type netflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"netflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -335,7 +335,7 @@ Scenario: flow handler type netflow with only by_packets metric groups enabled
 Scenario: flow handler type netflow with only by_bytes metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type netflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"netflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -355,7 +355,7 @@ Scenario: flow handler type netflow with only by_bytes metric groups enabled
 Scenario: flow handler type netflow with only top_geo metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type netflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"netflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -375,7 +375,7 @@ Scenario: flow handler type netflow with only top_geo metric groups enabled
 Scenario: flow handler type netflow with only top_geo and by_bytes metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type netflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"netflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -395,7 +395,7 @@ Scenario: flow handler type netflow with only top_geo and by_bytes metric groups
 Scenario: flow handler type netflow with only top_geo and by_packets metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type netflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"netflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -416,7 +416,7 @@ Scenario: flow handler type netflow with only top_geo and by_packets metric grou
 Scenario: flow handler type netflow with only conversations metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type netflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"netflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -436,7 +436,7 @@ Scenario: flow handler type netflow with only conversations metric groups enable
 Scenario: flow handler type netflow with only conversations and cardinality metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type netflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"netflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -456,7 +456,7 @@ Scenario: flow handler type netflow with only conversations and cardinality metr
 Scenario: flow handler type netflow with only conversations and by_bytes metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type netflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"netflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -477,7 +477,7 @@ Scenario: flow handler type netflow with only conversations and by_bytes metric 
 Scenario: flow handler type netflow with only conversations and by_packets metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type netflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"netflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -498,7 +498,7 @@ Scenario: flow handler type netflow with only conversations and by_packets metri
 Scenario: flow handler type netflow with only top_ports metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type netflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"netflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -518,7 +518,7 @@ Scenario: flow handler type netflow with only top_ports metric groups enabled
 Scenario: flow handler type netflow with only top_ports and by_packets metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type netflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"netflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -539,7 +539,7 @@ Scenario: flow handler type netflow with only top_ports and by_packets metric gr
 Scenario: flow handler type netflow with only top_ports and by_bytes metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type netflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"netflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -560,7 +560,7 @@ Scenario: flow handler type netflow with only top_ports and by_bytes metric grou
 Scenario: flow handler type netflow with only top_ips_ports metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type netflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"netflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -580,7 +580,7 @@ Scenario: flow handler type netflow with only top_ips_ports metric groups enable
 Scenario: flow handler type netflow with only top_ips_ports and by_bytes metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type netflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"netflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -601,7 +601,7 @@ Scenario: flow handler type netflow with only top_ips_ports and by_bytes metric 
 Scenario: flow handler type netflow with only top_ips_ports and by_packets metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type netflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"netflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -622,7 +622,7 @@ Scenario: flow handler type netflow with only top_ips_ports and by_packets metri
 Scenario: flow handler type netflow with only top_interfaces metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type netflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"netflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -642,7 +642,7 @@ Scenario: flow handler type netflow with only top_interfaces metric groups enabl
 Scenario: flow handler type netflow with only top_interfaces and by_bytes metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type netflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"netflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -663,7 +663,7 @@ Scenario: flow handler type netflow with only top_interfaces and by_bytes metric
 Scenario: flow handler type netflow with only top_interfaces and by_packets metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type netflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"netflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -683,7 +683,7 @@ Scenario: flow handler type netflow with only top_interfaces and by_packets metr
 Scenario: flow handler type netflow with only top_ips metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type netflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"netflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -703,7 +703,7 @@ Scenario: flow handler type netflow with only top_ips metric groups enabled
 Scenario: flow handler type netflow with only top_ips and by_packets metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type netflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"netflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -724,7 +724,7 @@ Scenario: flow handler type netflow with only top_ips and by_packets metric grou
 Scenario: flow handler type netflow with only top_ips and by_bytes metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type netflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"netflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -745,7 +745,7 @@ Scenario: flow handler type netflow with only top_ips and by_bytes metric groups
 Scenario: flow handler type netflow with only top_tos metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type netflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"netflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -765,7 +765,7 @@ Scenario: flow handler type netflow with only top_tos metric groups enabled
 Scenario: flow handler type netflow with only top_tos and by_bytes metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type netflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"netflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -786,7 +786,7 @@ Scenario: flow handler type netflow with only top_tos and by_bytes metric groups
 Scenario: flow handler type netflow with only top_tos and by_packets metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type netflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"netflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -809,7 +809,7 @@ Scenario: flow handler type netflow with only top_tos and by_packets metric grou
 Scenario: flow handler type sflow with default metric groups configuration
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type sflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"sflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -830,7 +830,7 @@ Scenario: flow handler type sflow with default metric groups configuration
 Scenario: flow handler type sflow with all metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type sflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"sflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -851,7 +851,7 @@ Scenario: flow handler type sflow with all metric groups enabled
 Scenario: flow handler type sflow with all metric groups disabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type sflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"sflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -871,7 +871,7 @@ Scenario: flow handler type sflow with all metric groups disabled
 Scenario: flow handler type sflow with only cardinality metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type sflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"sflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -892,7 +892,7 @@ Scenario: flow handler type sflow with only cardinality metric groups enabled
 Scenario: flow handler type sflow with only counters metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type sflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"sflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -913,7 +913,7 @@ Scenario: flow handler type sflow with only counters metric groups enabled
 Scenario: flow handler type sflow with only counters and by_bytes metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type sflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"sflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -934,7 +934,7 @@ Scenario: flow handler type sflow with only counters and by_bytes metric groups 
 Scenario: flow handler type sflow with only counters and by_packets metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type sflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"sflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -955,7 +955,7 @@ Scenario: flow handler type sflow with only counters and by_packets metric group
 Scenario: flow handler type sflow with only by_packets metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type sflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"sflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -975,7 +975,7 @@ Scenario: flow handler type sflow with only by_packets metric groups enabled
 Scenario: flow handler type sflow with only by_bytes metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type sflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"sflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -995,7 +995,7 @@ Scenario: flow handler type sflow with only by_bytes metric groups enabled
 Scenario: flow handler type sflow with only top_geo metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type sflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"sflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -1014,7 +1014,7 @@ Scenario: flow handler type sflow with only top_geo metric groups enabled
 Scenario: flow handler type sflow with only top_geo and by_bytes metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type sflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"sflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -1035,7 +1035,7 @@ Scenario: flow handler type sflow with only top_geo and by_bytes metric groups e
 Scenario: flow handler type sflow with only top_geo and by_packets metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type sflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"sflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -1056,7 +1056,7 @@ Scenario: flow handler type sflow with only top_geo and by_packets metric groups
 Scenario: flow handler type sflow with only conversations metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type sflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"sflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -1076,7 +1076,7 @@ Scenario: flow handler type sflow with only conversations metric groups enabled
 Scenario: flow handler type sflow with only conversations and cardinality metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type sflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"sflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -1096,7 +1096,7 @@ Scenario: flow handler type sflow with only conversations and cardinality metric
 Scenario: flow handler type sflow with only conversations and by_bytes metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type sflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"sflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -1117,7 +1117,7 @@ Scenario: flow handler type sflow with only conversations and by_bytes metric gr
 Scenario: flow handler type sflow with only conversations and by_packets metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type sflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"sflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -1138,7 +1138,7 @@ Scenario: flow handler type sflow with only conversations and by_packets metric 
 Scenario: flow handler type sflow with only top_ports metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type sflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"sflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -1157,7 +1157,7 @@ Scenario: flow handler type sflow with only top_ports metric groups enabled
 Scenario: flow handler type sflow with only top_ports and by_bytes metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type sflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"sflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -1178,7 +1178,7 @@ Scenario: flow handler type sflow with only top_ports and by_bytes metric groups
 Scenario: flow handler type sflow with only top_ports and by_packets metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type sflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"sflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -1199,7 +1199,7 @@ Scenario: flow handler type sflow with only top_ports and by_packets metric grou
 Scenario: flow handler type sflow with only top_ips_ports metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type sflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"sflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -1219,7 +1219,7 @@ Scenario: flow handler type sflow with only top_ips_ports metric groups enabled
 Scenario: flow handler type sflow with only top_ips_ports and by_bytes metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type sflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"sflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -1240,7 +1240,7 @@ Scenario: flow handler type sflow with only top_ips_ports and by_bytes metric gr
 Scenario: flow handler type sflow with only top_ips_ports and by_packets metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type sflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"sflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -1260,7 +1260,7 @@ Scenario: flow handler type sflow with only top_ips_ports and by_packets metric 
 Scenario: flow handler type sflow with only top_interfaces metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type sflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"sflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -1279,7 +1279,7 @@ Scenario: flow handler type sflow with only top_interfaces metric groups enabled
 Scenario: flow handler type sflow with only top_interfaces and by_bytes metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type sflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"sflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -1300,7 +1300,7 @@ Scenario: flow handler type sflow with only top_interfaces and by_bytes metric g
 Scenario: flow handler type sflow with only top_interfaces and by_packets metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type sflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"sflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -1321,7 +1321,7 @@ Scenario: flow handler type sflow with only top_interfaces and by_packets metric
 Scenario: flow handler type sflow with only top_ips metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type sflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"sflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -1340,7 +1340,7 @@ Scenario: flow handler type sflow with only top_ips metric groups enabled
 Scenario: flow handler type sflow with only top_ips and by_bytes metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type sflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"sflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -1361,7 +1361,7 @@ Scenario: flow handler type sflow with only top_ips and by_bytes metric groups e
 Scenario: flow handler type sflow with only top_ips and by_packets metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type sflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"sflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -1382,7 +1382,7 @@ Scenario: flow handler type sflow with only top_ips and by_packets metric groups
 Scenario: flow handler type sflow with only top_tos metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type sflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"sflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -1402,7 +1402,7 @@ Scenario: flow handler type sflow with only top_tos metric groups enabled
 Scenario: flow handler type sflow with only top_tos and by_bytes metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type sflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"sflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -1423,7 +1423,7 @@ Scenario: flow handler type sflow with only top_tos and by_bytes metric groups e
 Scenario: flow handler type sflow with only top_tos and by_packets metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: 192.168.100.2/24
         And a virtual switch is configured and is up with type sflow and target \"192.168.100.2:available\"
     When an agent(input_type:flow, settings: {"bind":"192.168.100.2", "port":"switch", "flow_type":"sflow"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
@@ -1446,7 +1446,7 @@ Scenario: flow handler type sflow with only top_tos and by_packets metric groups
 Scenario: pcap handler with default metric groups configuration
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -1466,7 +1466,7 @@ Scenario: pcap handler with default metric groups configuration
 Scenario: pcap handler with all metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -1486,7 +1486,7 @@ Scenario: pcap handler with all metric groups enabled
 Scenario: pcap handler with all metric groups disabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -1508,7 +1508,7 @@ Scenario: pcap handler with all metric groups disabled
 Scenario: bgp handler with default metric groups configuration
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -1528,7 +1528,7 @@ Scenario: bgp handler with default metric groups configuration
 Scenario: bgp handler with all metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -1548,7 +1548,7 @@ Scenario: bgp handler with all metric groups enabled
 Scenario: bgp handler with all metric groups disabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -1570,7 +1570,7 @@ Scenario: bgp handler with all metric groups disabled
 Scenario: dhcp handler with default metric groups configuration
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -1590,7 +1590,7 @@ Scenario: dhcp handler with default metric groups configuration
 Scenario: dhcp handler with all metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -1610,7 +1610,7 @@ Scenario: dhcp handler with all metric groups enabled
 Scenario: dhcp handler with all metric groups disabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -1632,7 +1632,7 @@ Scenario: dhcp handler with all metric groups disabled
 Scenario: net handler with default metric groups configuration
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked", "host_spec":"fe80::a00:27ff:fed4:10bb/48,192.168.0.0/24,75.75.75.75/32"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -1652,7 +1652,7 @@ Scenario: net handler with default metric groups configuration
 Scenario: net handler with all metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked", "host_spec":"fe80::a00:27ff:fed4:10bb/48,192.168.0.0/24,75.75.75.75/32"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -1672,7 +1672,7 @@ Scenario: net handler with all metric groups enabled
 Scenario: net handler with all metric groups disabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked", "host_spec":"fe80::a00:27ff:fed4:10bb/48,192.168.0.0/24,75.75.75.75/32"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -1691,7 +1691,7 @@ Scenario: net handler with all metric groups disabled
 Scenario: net handler with only cardinality metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked", "host_spec":"fe80::a00:27ff:fed4:10bb/48,192.168.0.0/24,75.75.75.75/32"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -1711,7 +1711,7 @@ Scenario: net handler with only cardinality metric groups enabled
 Scenario: net handler with only counters metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked", "host_spec":"fe80::a00:27ff:fed4:10bb/48,192.168.0.0/24,75.75.75.75/32"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -1731,7 +1731,7 @@ Scenario: net handler with only counters metric groups enabled
 Scenario: net handler with only top_geo metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked", "host_spec":"fe80::a00:27ff:fed4:10bb/48,192.168.0.0/24,75.75.75.75/32"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -1751,7 +1751,7 @@ Scenario: net handler with only top_geo metric groups enabled
 Scenario: net handler with only top_ips metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked", "host_spec":"fe80::a00:27ff:fed4:10bb/48,192.168.0.0/24,75.75.75.75/32"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -1773,7 +1773,7 @@ Scenario: net handler with only top_ips metric groups enabled
 Scenario: dns handler with default metric groups configuration
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked", "host_spec":"fe80::a00:27ff:fed4:10bb/48,192.168.0.0/24,75.75.75.75/32"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -1793,7 +1793,7 @@ Scenario: dns handler with default metric groups configuration
 Scenario: dns handler with all metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked", "host_spec":"fe80::a00:27ff:fed4:10bb/48,192.168.0.0/24,75.75.75.75/32"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -1813,7 +1813,7 @@ Scenario: dns handler with all metric groups enabled
 Scenario: dns handler with all metric groups disabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked", "host_spec":"fe80::a00:27ff:fed4:10bb/48,192.168.0.0/24,75.75.75.75/32"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -1832,7 +1832,7 @@ Scenario: dns handler with all metric groups disabled
 Scenario: dns handler with only top_ecs metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked", "host_spec":"fe80::a00:27ff:fed4:10bb/48,192.168.0.0/24,75.75.75.75/32"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -1852,7 +1852,7 @@ Scenario: dns handler with only top_ecs metric groups enabled
 Scenario: dns handler with only top_qnames_details metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked", "host_spec":"fe80::a00:27ff:fed4:10bb/48,192.168.0.0/24,75.75.75.75/32"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -1872,7 +1872,7 @@ Scenario: dns handler with only top_qnames_details metric groups enabled
 Scenario: dns handler with only cardinality metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked", "host_spec":"fe80::a00:27ff:fed4:10bb/48,192.168.0.0/24,75.75.75.75/32"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -1892,7 +1892,7 @@ Scenario: dns handler with only cardinality metric groups enabled
 Scenario: dns handler with only counters metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked", "host_spec":"fe80::a00:27ff:fed4:10bb/48,192.168.0.0/24,75.75.75.75/32"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -1912,7 +1912,7 @@ Scenario: dns handler with only counters metric groups enabled
 Scenario: dns handler with only dns_transaction metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked", "host_spec":"fe80::a00:27ff:fed4:10bb/48,192.168.0.0/24,75.75.75.75/32"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -1932,7 +1932,7 @@ Scenario: dns handler with only dns_transaction metric groups enabled
 Scenario: dns handler with only top_qnames metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked", "host_spec":"fe80::a00:27ff:fed4:10bb/48,192.168.0.0/24,75.75.75.75/32"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -1952,7 +1952,7 @@ Scenario: dns handler with only top_qnames metric groups enabled
 Scenario: dns handler with only top_ports metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked", "host_spec":"fe80::a00:27ff:fed4:10bb/48,192.168.0.0/24,75.75.75.75/32"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -1972,7 +1972,7 @@ Scenario: dns handler with only top_ports metric groups enabled
 Scenario: dns handler with only histograms metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked", "host_spec":"fe80::a00:27ff:fed4:10bb/48,192.168.0.0/24,75.75.75.75/32"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -1991,7 +1991,7 @@ Scenario: dns handler with only histograms metric groups enabled
 Scenario: dns handler with only histograms and dns_transaction metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked", "host_spec":"fe80::a00:27ff:fed4:10bb/48,192.168.0.0/24,75.75.75.75/32"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -2011,7 +2011,7 @@ Scenario: dns handler with only histograms and dns_transaction metric groups ena
 Scenario: dns handler with only quantiles metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked", "host_spec":"fe80::a00:27ff:fed4:10bb/48,192.168.0.0/24,75.75.75.75/32"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -2032,7 +2032,7 @@ Scenario: dns handler with only quantiles metric groups enabled
 Scenario: dns handler with default metric groups configuration (v2)
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -2052,7 +2052,7 @@ Scenario: dns handler with default metric groups configuration (v2)
 Scenario: dns handler with all metric groups enabled (v2)
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -2072,7 +2072,7 @@ Scenario: dns handler with all metric groups enabled (v2)
 Scenario: dns handler with all metric groups disabled (v2)
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -2091,7 +2091,7 @@ Scenario: dns handler with all metric groups disabled (v2)
 Scenario: dns handler with only top_ecs metric groups enabled (v2)
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -2111,7 +2111,7 @@ Scenario: dns handler with only top_ecs metric groups enabled (v2)
 Scenario: dns handler with only top_ports metric groups enabled (v2)
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -2131,7 +2131,7 @@ Scenario: dns handler with only top_ports metric groups enabled (v2)
 Scenario: dns handler with only top_size metric groups enabled (v2)
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -2151,7 +2151,7 @@ Scenario: dns handler with only top_size metric groups enabled (v2)
 Scenario: dns handler with only xact_times metric groups enabled (v2)
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -2171,7 +2171,7 @@ Scenario: dns handler with only xact_times metric groups enabled (v2)
 Scenario: dns handler with only cardinality metric groups enabled (v2)
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -2191,7 +2191,7 @@ Scenario: dns handler with only cardinality metric groups enabled (v2)
 Scenario: dns handler with only counters metric groups enabled (v2)
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -2211,7 +2211,7 @@ Scenario: dns handler with only counters metric groups enabled (v2)
 Scenario: dns handler with only top_qnames metric groups enabled (v2)
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -2231,7 +2231,7 @@ Scenario: dns handler with only top_qnames metric groups enabled (v2)
 Scenario: dns handler with only quantiles metric groups enabled (v2)
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -2251,7 +2251,7 @@ Scenario: dns handler with only quantiles metric groups enabled (v2)
 Scenario: dns handler with only top_qtypes metric groups enabled (v2)
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -2271,7 +2271,7 @@ Scenario: dns handler with only top_qtypes metric groups enabled (v2)
 Scenario: dns handler with only top_rcodes metric groups enabled (v2)
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -2293,7 +2293,7 @@ Scenario: dns handler with only top_rcodes metric groups enabled (v2)
 Scenario: net handler with default metric groups configuration (v2)
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -2313,7 +2313,7 @@ Scenario: net handler with default metric groups configuration (v2)
 Scenario: net handler with all metric groups enabled (v2)
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -2333,7 +2333,7 @@ Scenario: net handler with all metric groups enabled (v2)
 Scenario: net handler with all metric groups disabled (v2)
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -2352,7 +2352,7 @@ Scenario: net handler with all metric groups disabled (v2)
 Scenario: net handler with only cardinality metric groups enabled (v2)
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -2372,7 +2372,7 @@ Scenario: net handler with only cardinality metric groups enabled (v2)
 Scenario: net handler with only counters metric groups enabled (v2)
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -2392,7 +2392,7 @@ Scenario: net handler with only counters metric groups enabled (v2)
 Scenario: net handler with only top_geo metric groups enabled (v2)
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -2412,7 +2412,7 @@ Scenario: net handler with only top_geo metric groups enabled (v2)
 Scenario: net handler with only top_ips metric groups enabled (v2)
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
@@ -2432,7 +2432,7 @@ Scenario: net handler with only top_ips metric groups enabled (v2)
 Scenario: net handler with only quantiles metric groups enabled (v2)
     Given the Orb user has a registered account
         And the Orb user logs in
-        And that a sink already exists
+        And that a sink with default configuration type already exists
         And a mocked interface is configured with mtu: 65000 and ip: None
     When an agent(input_type:pcap, settings: {"iface":"mocked"}) is self-provisioned via a configuration file on port available with 1 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running

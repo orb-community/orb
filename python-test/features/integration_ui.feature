@@ -8,7 +8,7 @@ Feature: Integration UI tests
       And referred agent is subscribed to 1 group
       And this agent's heartbeat shows that 1 groups are matching the agent
       And a new policy is created using: handler=dns, description='policy_dns'
-      And that a sink already exists
+      And that a sink with default configuration type already exists
     When a dataset is created through the UI
     Then the policy must have status running on agent view page (Active Policies/Datasets)
       And policy and dataset are clickable and redirect user to referred pages
@@ -44,7 +44,7 @@ Feature: Integration UI tests
       And referred agent is subscribed to 1 group
       And this agent's heartbeat shows that 1 groups are matching the agent
       And a new policy is created using: handler=dns, description='policy_dns'
-      And that a sink already exists
+      And that a sink with default configuration type already exists
       And a dataset is created through the UI
       And the policy must have status running on agent view page (Active Policies/Datasets)
       And policy and dataset are clickable and redirect user to referred pages
@@ -60,7 +60,7 @@ Feature: Integration UI tests
       And referred agent is subscribed to 1 group
       And this agent's heartbeat shows that 1 groups are matching the agent
       And a new policy is created using: handler=dns, description='policy_dns'
-      And that a sink already exists
+      And that a sink with default configuration type already exists
       And a dataset is created through the UI
       And a new sink is created
     When the dataset is edited and one more sink is inserted and name is changed

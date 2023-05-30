@@ -12,7 +12,10 @@ import (
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks"
+	"github.com/orb-community/orb/sinks/authentication_type"
+	"github.com/orb-community/orb/sinks/authentication_type/basicauth"
 	"github.com/orb-community/orb/sinks/backend"
+	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -35,33 +38,86 @@ type addReq struct {
 	token       string
 }
 
+func GetConfigurationAndMetadataFromMeta(backendName string, config types.Metadata) (configSvc *sinks.Configuration, exporter types.Metadata, authentication types.Metadata, err error) {
+	if backendName == "" || !backend.HaveBackend(backendName) {
+		return nil, nil, nil, errors.Wrap(errors.ErrMalformedEntity, errors.New("backend not found: "+backendName))
+	}
+
+	configSvc = &sinks.Configuration{
+		Exporter: backend.GetBackend(backendName),
+	}
+	exporter = config.GetSubMetadata("exporter")
+	err = configSvc.Exporter.ValidateConfiguration(exporter)
+	if err != nil {
+		return
+	}
+
+	authentication = config.GetSubMetadata(authentication_type.AuthenticationKey)
+	authtype, ok := authentication["type"]
+	if !ok {
+		authtype = basicauth.AuthType
+	}
+	switch authtype.(type) {
+	case string:
+		break
+	default:
+		err = errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
+		return
+	}
+	authTypeSvc, ok := authentication_type.GetAuthType(authtype.(string))
+	if !ok {
+		err = errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid required field authentication type"))
+		return
+	}
+	configSvc.Authentication = authTypeSvc
+	err = configSvc.Authentication.ValidateConfiguration("object", authentication)
+	return
+}
+
+func GetConfigurationAndMetadataFromYaml(backendName string, config string) (configSvc *sinks.Configuration, exporter types.Metadata, authentication types.Metadata, err error) {
+	if backendName == "" || !backend.HaveBackend(backendName) {
+		return nil, nil, nil, errors.Wrap(errors.ErrMalformedEntity, errors.New("backend not found"))
+	}
+
+	configSvc = &sinks.Configuration{
+		Exporter: backend.GetBackend(backendName),
+	}
+	var configStr types.Metadata
+	err = yaml.Unmarshal([]byte(config), &configStr)
+	if err != nil {
+		return
+	}
+	exporter = configStr.GetSubMetadata("exporter")
+	err = configSvc.Exporter.ValidateConfiguration(exporter)
+	if err != nil {
+		return
+	}
+
+	authentication = configStr.GetSubMetadata(authentication_type.AuthenticationKey)
+	authtype, ok := authentication["type"]
+	if !ok {
+		authtype = basicauth.AuthType
+	}
+	switch authtype.(type) {
+	case string:
+		break
+	default:
+		err = errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
+		return
+	}
+	authTypeSvc, ok := authentication_type.GetAuthType(authtype.(string))
+	if !ok {
+		err = errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid required field authentication type"))
+		return
+	}
+	configSvc.Authentication = authTypeSvc
+	err = configSvc.Authentication.ValidateConfiguration("object", authentication)
+	return
+}
+
 func (req addReq) validate() (err error) {
 	if req.token == "" {
 		return errors.ErrUnauthorizedAccess
-	}
-
-	if req.Backend == "" || !backend.HaveBackend(req.Backend) {
-		return errors.Wrap(errors.ErrMalformedEntity, errors.New("backend not found"))
-	}
-
-	reqBackend := backend.GetBackend(req.Backend)
-	if req.ConfigData == "" && req.Config == nil {
-		return errors.Wrap(errors.ErrMalformedEntity, errors.New("config not found"))
-	}
-
-	var config types.Metadata
-	if req.Format == "yaml" {
-		config, err = reqBackend.ParseConfig(req.Format, req.ConfigData)
-		if err != nil {
-			return errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
-		}
-	} else {
-		config = req.Config
-	}
-
-	err = reqBackend.ValidateConfiguration(config)
-	if err != nil {
-		return errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
 	}
 
 	if req.Name == "" {
@@ -87,30 +143,13 @@ type updateSinkReq struct {
 	token       string
 }
 
-func (req updateSinkReq) validate(sinkBackend backend.Backend) error {
+func (req updateSinkReq) validate() error {
 	if req.token == "" {
 		return errors.ErrUnauthorizedAccess
 	}
 
 	if req.id == "" {
 		return errors.ErrMalformedEntity
-	}
-
-	if req.ConfigData != "" || req.Config != nil {
-		var config types.Metadata
-		var err error
-		if req.Format == "yaml" {
-			config, err = sinkBackend.ParseConfig(req.Format, req.ConfigData)
-			if err != nil {
-				return errors.Wrap(errors.ErrMalformedEntity, err)
-			}
-		} else {
-			config = req.Config
-		}
-		err = sinkBackend.ValidateConfiguration(config)
-		if err != nil {
-			return errors.Wrap(errors.ErrMalformedEntity, err)
-		}
 	}
 
 	if req.Description == nil && req.Name == "" && req.ConfigData == "" && len(req.Config) == 0 && req.Tags == nil {
@@ -175,6 +214,17 @@ type listBackendsReq struct {
 }
 
 func (req *listBackendsReq) validate() error {
+	if req.token == "" {
+		return errors.ErrUnauthorizedAccess
+	}
+	return nil
+}
+
+type listAuthTypesReq struct {
+	token string
+}
+
+func (req *listAuthTypesReq) validate() error {
 	if req.token == "" {
 		return errors.ErrUnauthorizedAccess
 	}
