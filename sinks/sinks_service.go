@@ -195,18 +195,6 @@ func (svc sinkService) UpdateSinkInternal(ctx context.Context, sink Sink) (Sink,
 		}
 	} else {
 		sink.Backend = currentSink.Backend
-		be, err := validateBackend(&sink)
-		if err != nil {
-			return Sink{}, errors.Wrap(ErrMalformedEntity, err)
-		}
-		at, err := validateAuthType(&sink)
-		if err != nil {
-			return Sink{}, errors.Wrap(ErrMalformedEntity, err)
-		}
-		cfg = Configuration{
-			Authentication: at,
-			Exporter:       be,
-		}
 		//// add default values
 		defaultMetadata := make(types.Metadata, 1)
 		defaultMetadata["opentelemetry"] = "enabled"
