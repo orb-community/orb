@@ -197,7 +197,7 @@ def check_sink_status(context, status, time_to_wait):
 def edit_sink_field(context, otel):
     assert_that(otel, any_of("enabled", "disabled"))
     sink = get_sink(context.token, context.sink['id'])
-    sink['config']['password'] = configs.get('prometheus_key')
+    sink['config']['authentication']['password'] = configs.get('prometheus_key')
     sink['config']["opentelemetry"] = otel
     context.sink = edit_sink(context.token, context.sink['id'], sink)
 
@@ -228,22 +228,22 @@ def edit_sink_field(context, field_to_edit, type_of_field):
                 "Unexpected field to be edited.")
     assert_that(type_of_field, any_of("valid", "invalid"), "Invalid type of sink field")
     sink = get_sink(context.token, context.sink['id'])
-    sink['config']['password'] = configs.get('prometheus_key')
+    sink['config']['authentication']['password'] = configs.get('prometheus_key')
     if field_to_edit == "remote host":
         if type_of_field == "invalid":
-            sink['config']['remote_host'] = context.remote_prometheus_endpoint[:-2]
+            sink['config']['exporter']['remote_host'] = context.remote_prometheus_endpoint[:-2]
         else:
-            sink['config']['remote_host'] = configs.get('remote_prometheus_endpoint')
+            sink['config']['authentication']['exporter']['remote_host'] = configs.get('remote_prometheus_endpoint')
     if field_to_edit == "password":
         if type_of_field == "invalid":
-            sink['config']['password'] = context.prometheus_key[:-2]
+            sink['config']['authentication']['password'] = context.prometheus_key[:-2]
         else:
-            sink['config']['password'] = configs.get('prometheus_key')
+            sink['config']['authentication']['password'] = configs.get('prometheus_key')
     if field_to_edit == "username":
         if type_of_field == "invalid":
-            sink['config']['username'] = context.prometheus_username[:-2]
+            sink['config']['authentication']['username'] = context.prometheus_username[:-2]
         else:
-            sink['config']['username'] = configs.get('prometheus_username')
+            sink['config']['authentication']['username'] = configs.get('prometheus_username')
 
     context.sink = edit_sink(context.token, context.sink['id'], sink)
 
@@ -271,10 +271,9 @@ def sink_partial_update(context, sink_keys):
             assert_that(include_otel_env_var, any_of("true", "false"), "Unexpected value for 'include_otel_env_var' on "
                                                                        "sinks partial update")
             if include_otel_env_var == "true":
-                sink_configs = {"remote_host": remote_host, "username": username, "password": password,
-                                "opentelemetry": otel_map[enable_otel]}
+                sink_configs = {"authentication": {"type": "basicauth", "password": password, "username": username}, "exporter": {"endpoint": remote_host}, "opentelemetry": otel_map[enable_otel]}
             else:
-                sink_configs = {"remote_host": remote_host, "username": username, "password": password}
+                sink_configs = {"authentication": {"type": "basicauth", "password": password, "username": username}, "exporter": {"endpoint": remote_host}}
             context.values_to_use_to_update_sink = {"name": f"{context.sink['name']}_updated",
                                                     "description": "this sink has been updated",
                                                     "tags": {"sink": "updated", "new": "tag"}, "config": sink_configs}
@@ -341,9 +340,9 @@ def create_new_sink(token, name_label, remote_host, username, password, descript
     """
     assert_that(include_otel, any_of("true", "false"), "Unexpected value for 'include_otel' on sinks creation")
     if include_otel == "true":
-        sink_configs = {"remote_host": remote_host, "username": username, "password": password, "opentelemetry": otel}
+        sink_configs = {"authentication": {"type": "basicauth", "password": password, "username": username}, "exporter": {"endpoint": remote_host}, "opentelemetry": otel}
     else:
-        sink_configs = {"remote_host": remote_host, "username": username, "password": password}
+        sink_configs = {"authentication": {"type": "basicauth", "password": password, "username": username}, "exporter": {"endpoint": remote_host}}
     if configuration_type == "yaml":
         sink_configs_yaml = yaml.dump(sink_configs)
         json_request = {"name": name_label, "description": description, "tags": {tag_key: tag_value},
