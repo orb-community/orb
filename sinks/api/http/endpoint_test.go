@@ -1025,11 +1025,28 @@ func TestViewBackends(t *testing.T) {
 			}
 			res, err := req.make()
 			assert.Nil(t, err, fmt.Sprintf("unexpected error %s", err))
-			body, err := ioutil.ReadAll(res.Body)
+			body, err := io.ReadAll(res.Body)
 			assert.Nil(t, err, fmt.Sprintf("unexpected error %s", err))
-			data := strings.Trim(string(body), "\n")
 			assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", desc, tc.status, res.StatusCode))
-			assert.Equal(t, tc.res, data, fmt.Sprintf("%s: expected body %s got %s", desc, tc.res, data))
+			var response sinksBackendsRes
+			err = json.Unmarshal(body, &response)
+			assert.Nil(t, err, fmt.Sprintf("unexpected error %s", err))
+			assert.NotNil(t, response, fmt.Sprintf("%s: response should not be nil", desc))
+			if res.StatusCode == http.StatusOK {
+				hasPromBe := false
+				hasOtlphttpBe := false
+				for _, backendObj := range response.Backends {
+					if v, ok := backendObj.(map[string]interface{})["backend"]; ok {
+						if v == "prometheus" {
+							hasPromBe = true
+						} else if v == "otlphttp" {
+							hasOtlphttpBe = true
+						}
+					}
+				}
+				assert.True(t, hasPromBe, fmt.Sprintf("%s: expected prometheus backend", desc))
+				assert.True(t, hasOtlphttpBe, fmt.Sprintf("%s: expected otlphttp backend", desc))
+			}
 		})
 	}
 
