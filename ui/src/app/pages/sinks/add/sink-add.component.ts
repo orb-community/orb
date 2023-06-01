@@ -61,7 +61,7 @@ export class SinkAddComponent {
             config,
         
         } as Sink;
-        console.log(payload);
+        
         this.sinksService.addSink(payload).subscribe(() => {
             this.notificationsService.success('Sink successfully created', '');
             this.goBack();

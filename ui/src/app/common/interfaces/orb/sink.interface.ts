@@ -4,7 +4,6 @@
  * [Sinks Architecture]{@link https://github.com/orb-community/orb/wiki/Architecture:-Sinks}
  */
 
-import { PrometheusConfig } from 'app/common/interfaces/orb/sink/config/prometheus.config.interface';
 
 import { OrbEntity } from 'app/common/interfaces/orb/orb.entity.interface';
 import { OtlpConfig } from './sink/config/otlp.config.interface';
@@ -24,7 +23,7 @@ export enum SinkStates {
  */
 export enum SinkBackends {
   prometheus = 'prometheus',
-  otlp = 'otlpexporter'
+  otlp = 'otlphttp'
 }
 
 /**
