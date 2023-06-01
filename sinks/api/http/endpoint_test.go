@@ -329,7 +329,7 @@ func TestCreateSinks(t *testing.T) {
 			req:         invalidNameJson,
 			contentType: contentType,
 			auth:        token,
-			status:      http.StatusBadRequest,
+			status:      http.StatusConflict,
 			location:    "/sinks",
 		},
 		"add a sink with empty name": {
@@ -584,21 +584,21 @@ func TestUpdateSink(t *testing.T) {
 			id:          sk.ID,
 			contentType: contentType,
 			auth:        token,
-			status:      http.StatusBadRequest,
+			status:      http.StatusConflict,
 		},
 		"update existing sink with a invalid regex name": {
 			req:         dataInvalidRgxName,
 			id:          sk.ID,
 			contentType: contentType,
 			auth:        token,
-			status:      http.StatusBadRequest,
+			status:      http.StatusConflict,
 		},
 		"update existing sink with a config without authentication": {
 			req:         dataInvalidRgxName,
 			id:          sk.ID,
 			contentType: contentType,
 			auth:        token,
-			status:      http.StatusBadRequest,
+			status:      http.StatusConflict,
 		},
 		"update existing sink with a config without exporter": {
 			req:         dataNoExporterConfig,
