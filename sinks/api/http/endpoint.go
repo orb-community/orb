@@ -28,7 +28,7 @@ func omitSecretInformation(configSvc *sinks.Configuration, inputSink sinks.Sink)
 	returnSink = inputSink
 	authMeta := a.(types.Metadata)
 	returnSink.Config = authMeta
-	if inputSink.Format != "" {
+	if inputSink.Format == "yaml" {
 		configData, newErr := configSvc.Authentication.ConfigToFormat(inputSink.Format, authMeta)
 		if newErr != nil {
 			err = newErr
@@ -177,7 +177,7 @@ func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			nameID, err := types.NewIdentifier(req.Name)
 			if err != nil {
 				svc.GetLogger().Error("error on getting new identifier", zap.Error(err))
-				return nil, errors.ErrMalformedEntity
+				return nil, errors.ErrConflict
 			}
 			sink.Name = nameID
 		}
