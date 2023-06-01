@@ -124,3 +124,10 @@
     </button>
   </div>
 </ng-template>
+
+<ng-template #usageStateTemplateCell let-value="value">
+  <span>
+    <i aria-hidden="true" class="fa fa-circle orb-service-{{ value }}"></i>
+    {{ value | titlecase }}
+  </span>
+</ng-template>
