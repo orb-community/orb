@@ -11,7 +11,14 @@
       </xng-breadcrumb>
       <h4>{{ strings.sink.add.header }}</h4>
     </div>
-    <div class="col-3">
+    <div class="col-2">
+      <button
+      (click)="goBack()"
+      shape="round"
+      nbButton
+      status="danger">
+      Cancel
+    </button> 
       <button
       (click)="createSink()"
       class="sink-create"
@@ -21,13 +28,7 @@
       >
       Create
       </button> 
-      <button
-        (click)="goBack()"
-        class="card-button"
-        nbButton
-        status="danger">
-        Cancel
-      </button> 
+     
     </div>
       
 </header>
