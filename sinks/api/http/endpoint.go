@@ -23,7 +23,7 @@ import (
 
 func omitSecretInformation(configSvc *sinks.Configuration, inputSink sinks.Sink) (returnSink sinks.Sink, err error) {
 	// partial update, without config information dont need be ommitted, return	the same object
-	if inputSink.Config != nil {
+	if inputSink.Config == nil {
 		return inputSink, nil
 	}
 	a, err := configSvc.Authentication.OmitInformation("object", inputSink.Config)
