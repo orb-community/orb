@@ -11,6 +11,8 @@ package sinks_test
 import (
 	"context"
 	"fmt"
+	"testing"
+
 	"github.com/gofrs/uuid"
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
 	thmocks "github.com/mainflux/mainflux/things/mocks"
@@ -22,7 +24,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
-	"testing"
 )
 
 const (
@@ -530,10 +531,18 @@ func TestViewSink(t *testing.T) {
 		State:       sinks.Unknown,
 		Error:       "",
 		Config: types.Metadata{
-			"exporter":       map[string]interface{}{"remote_host": "https://orb.community/"},
-			"authentication": map[string]interface{}{"type": "basicauth", "username": "dbuser", "password": "dbpass"},
+			"exporter": map[string]interface{}{
+				"remote_host": "https://orb.community/",
+			},
+			"authentication": map[string]interface{}{
+				"type":     "basicauth",
+				"username": "dbuser",
+				"password": "dbpass",
+			},
 		},
-		Tags: map[string]string{"cloud": "aws"},
+		Tags: map[string]string{
+			"cloud": "aws",
+		},
 	}
 	wrongID, _ := uuid.NewV4()
 	sk, err := service.CreateSink(context.Background(), token, sink)
