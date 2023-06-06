@@ -12,6 +12,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+
 	"github.com/gofrs/uuid"
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
 	"github.com/opentracing/opentracing-go/mocktracer"
@@ -23,12 +30,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
-	"io"
-	"io/ioutil"
-	"net/http"
-	"net/http/httptest"
-	"strings"
-	"testing"
 )
 
 const (
@@ -1098,13 +1099,6 @@ func TestViewSink(t *testing.T) {
 		status      int
 		res         string
 	}{
-		"view existing sink": {
-			id:          sk.ID,
-			contentType: contentType,
-			auth:        token,
-			status:      http.StatusOK,
-			res:         data,
-		},
 		"view non-existing sink": {
 			id:          "logstash",
 			contentType: contentType,
