@@ -57,12 +57,6 @@ func (p *Plan1UpdateConfiguration) Up(ctx context.Context) (mainErr error) {
 				}
 				continue
 			}
-			if _, err := url.Parse(sinkRemoteHost.(string)); err != nil {
-				s := sinkRemoteHost.(string)
-				if !strings.HasPrefix("https://", s) && !strings.HasPrefix("http://", s) {
-					sinkRemoteHost = fmt.Sprintf("https://%s", s)
-				}
-			}
 			sinkUsername, ok := sink.Config["username"]
 			if !ok {
 				p.logger.Error("failed to update sink for lack of username", zap.String("sinkID", sink.ID))
