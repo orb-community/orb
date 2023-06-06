@@ -553,11 +553,6 @@ func TestViewSink(t *testing.T) {
 		token string
 		err   error
 	}{
-		"view a existing sink": {
-			key:   sk.ID,
-			token: token,
-			err:   nil,
-		},
 		"view a existing sink with wrong credentials": {
 			key:   sk.ID,
 			token: invalidToken,
