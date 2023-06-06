@@ -25,6 +25,7 @@ import (
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks"
 	"github.com/orb-community/orb/sinks/authentication_type"
+	"github.com/orb-community/orb/sinks/backend"
 	skmocks "github.com/orb-community/orb/sinks/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -1068,7 +1069,32 @@ func TestViewSink(t *testing.T) {
 		},
 		Tags: map[string]string{"cloud": "aws"},
 	}
+	sk, err := service.CreateSink(context.Background(), token, sink)
+	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
+	sinkBE := backend.GetBackend("prometheus")
+	sinkAuthType, _ := authentication_type.GetAuthType("basicauth")
+	cfg := sinks.Configuration{
+		Exporter:       sinkBE,
+		Authentication: sinkAuthType,
+	}
+	omittedSink, _ := omitSecretInformation(&cfg, sink)
+	require.NoError(t, err, "error during omitting secrets")
+	data := toJSON(sinkRes{
+		ID:          sk.ID,
+		Name:        sk.Name.String(),
+		Description: *sk.Description,
+		Backend:     sk.Backend,
+		Config:      omittedSink.Config,
+		ConfigData:  omittedSink.ConfigData,
+		Tags:        sk.Tags,
+		State:       sk.State.String(),
+		Error:       sk.Error,
+		TsCreated:   sk.Created,
+	})
 
+	if data == "" {
+		return
+	}
 	cases := map[string]struct {
 		id          string
 		contentType string
