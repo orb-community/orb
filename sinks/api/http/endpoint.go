@@ -10,6 +10,8 @@ package http
 
 import (
 	"context"
+	"time"
+
 	"github.com/go-kit/kit/endpoint"
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
@@ -17,10 +19,13 @@ import (
 	"github.com/orb-community/orb/sinks/authentication_type"
 	"github.com/orb-community/orb/sinks/backend"
 	"go.uber.org/zap"
-	"time"
 )
 
 func omitSecretInformation(configSvc *sinks.Configuration, inputSink sinks.Sink) (returnSink sinks.Sink, err error) {
+	// partial update, without config information dont need be ommitted, return	the same object
+	if inputSink.Config != nil {
+		return inputSink, nil
+	}
 	a, err := configSvc.Authentication.OmitInformation("object", inputSink.Config)
 	if err != nil {
 		return sinks.Sink{}, err
