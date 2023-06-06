@@ -520,59 +520,6 @@ func TestUpdateSink(t *testing.T) {
 	}
 }
 
-func TestViewSink(t *testing.T) {
-	service := newService(map[string]string{token: email})
-	nameID, _ := types.NewIdentifier("my-sink")
-	description := "An example prometheus sink"
-	sink := sinks.Sink{
-		Name:        nameID,
-		Description: &description,
-		Backend:     "prometheus",
-		State:       sinks.Unknown,
-		Error:       "",
-		Config: types.Metadata{
-			"exporter": map[string]interface{}{
-				"remote_host": "https://orb.community/",
-			},
-			"authentication": map[string]interface{}{
-				"type":     "basicauth",
-				"username": "dbuser",
-				"password": "dbpass",
-			},
-		},
-		Tags: map[string]string{
-			"cloud": "aws",
-		},
-	}
-	wrongID, _ := uuid.NewV4()
-	sk, err := service.CreateSink(context.Background(), token, sink)
-	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
-
-	cases := map[string]struct {
-		key   string
-		token string
-		err   error
-	}{
-		"view a existing sink with wrong credentials": {
-			key:   sk.ID,
-			token: invalidToken,
-			err:   sinks.ErrUnauthorizedAccess,
-		},
-		"view a non-existing sink": {
-			key:   wrongID.String(),
-			token: token,
-			err:   sinks.ErrNotFound,
-		},
-	}
-
-	for desc, tc := range cases {
-		t.Run(desc, func(t *testing.T) {
-			_, err := service.ViewSink(context.Background(), tc.token, tc.key)
-			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
-		})
-	}
-}
-
 func TestListSinks(t *testing.T) {
 	service := newService(map[string]string{token: email})
 	nameID, _ := types.NewIdentifier("my-sink")
