@@ -199,18 +199,36 @@ func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 		} else {
 			svc.GetLogger().Info("request sink partial update", zap.String("sinkID", req.id))
 		}
-		res := sinkRes{
-			ID:          sinkEdited.ID,
-			Name:        sinkEdited.Name.String(),
-			Description: *sinkEdited.Description,
-			Tags:        sinkEdited.Tags,
-			State:       sinkEdited.State.String(),
-			Error:       sinkEdited.Error,
-			Backend:     sinkEdited.Backend,
-			Config:      omittedSink.Config,
-			ConfigData:  omittedSink.ConfigData,
-			Format:      sinkEdited.Format,
-			created:     false,
+		var res sinkRes
+		if req.Config != nil || req.ConfigData != "" {
+			res = sinkRes{
+				ID:          sinkEdited.ID,
+				Name:        sinkEdited.Name.String(),
+				Description: *sinkEdited.Description,
+				Tags:        sinkEdited.Tags,
+				State:       sinkEdited.State.String(),
+				Error:       sinkEdited.Error,
+				Backend:     sinkEdited.Backend,
+				Config:      omittedSink.Config,
+				ConfigData:  omittedSink.ConfigData,
+				Format:      sinkEdited.Format,
+				created:     false,
+			}
+		} else {
+			res = sinkRes{
+				ID:          sinkEdited.ID,
+				Name:        sinkEdited.Name.String(),
+				Description: *sinkEdited.Description,
+				Tags:        sinkEdited.Tags,
+				State:       sinkEdited.State.String(),
+				Error:       sinkEdited.Error,
+				Backend:     sinkEdited.Backend,
+				Config:      sinkEdited.Config,
+				ConfigData:  sinkEdited.ConfigData,
+				Format:      sinkEdited.Format,
+				created:     false,
+			}
+
 		}
 		return res, nil
 	}
