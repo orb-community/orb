@@ -27,8 +27,8 @@ import { FilterService } from 'app/common/services/filter.service';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { OrbService } from 'app/common/services/orb.service';
 import { AgentPolicyDeleteComponent } from 'app/pages/datasets/policies.agent/delete/agent.policy.delete.component';
-import { Observable } from 'rxjs';
-import { map, withLatestFrom } from 'rxjs/operators';
+import { combineLatest, Observable } from 'rxjs';
+import { filter, map } from 'rxjs/operators';
 import { STRINGS } from '../../../../../assets/text/strings';
 
 
@@ -87,16 +87,19 @@ export class AgentPolicyListComponent
     private filters: FilterService,
   ) {
     this.filters$ = this.filters.getFilters();
-
-    this.policies$ = this.orb.getPolicyListView().pipe(
-      withLatestFrom(this.orb.getDatasetListView()),
+  
+    this.policies$ = combineLatest([
+      this.orb.getPolicyListView(),
+      this.orb.getDatasetListView()
+    ]).pipe(
+      filter(([policies, datasets]) => policies !== undefined && policies !== null && datasets !== undefined && datasets !== null),
       map(([policies, datasets]) => {
         return policies.map((policy) => {
           const dataset = datasets.filter((d) => d.valid && d.agent_policy_id === policy.id);
           return { ...policy, policy_usage: dataset.length > 0 ? AgentPolicyUsage.inUse : AgentPolicyUsage.notInUse };
-        })
-      }
-    ));
+        });
+      })
+    );
 
     this.filterOptions = [
       {
