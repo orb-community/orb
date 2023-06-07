@@ -130,83 +130,59 @@ func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			return nil, err
 		}
 
-		if err := req.validate(); err != nil {
-			svc.GetLogger().Error("error validating request", zap.Error(err))
-			return nil, err
+		// Update only the fields in currentSink that are populated in req
+		if req.Tags != nil {
+			currentSink.Tags = req.Tags
 		}
-		var config types.Metadata
-		var exporterConfig types.Metadata
-		var authConfig types.Metadata
-		var configSvc *sinks.Configuration
-		if req.Config != nil || req.ConfigData != "" {
-			// full sink update
-			if len(req.Format) > 0 && req.Format == "yaml" {
-				if len(req.ConfigData) > 0 {
-					configSvc, exporterConfig, authConfig, err = GetConfigurationAndMetadataFromYaml(currentSink.Backend, req.ConfigData)
-					if err != nil {
-						svc.GetLogger().Error("got error in parse and validate configuration", zap.Error(err))
-						return nil, errors.Wrap(errors.ErrMalformedEntity, err)
-					}
-				} else {
-					svc.GetLogger().Error("got error in parse and validate configuration", zap.Error(err))
-					return nil, errors.Wrap(errors.ErrMalformedEntity, errors.New("missing required field when format is sent, config_data must be sent also"))
-				}
-			} else if req.Config != nil {
-				configSvc, exporterConfig, authConfig, err = GetConfigurationAndMetadataFromMeta(req.Backend, req.Config)
-				if err != nil {
-					svc.GetLogger().Error("got error in parse and validate configuration", zap.Error(err))
-					return nil, errors.Wrap(errors.ErrMalformedEntity, err)
-				}
-			}
-			config = types.Metadata{
-				"exporter":                            exporterConfig,
-				authentication_type.AuthenticationKey: authConfig,
-			}
-		} else {
-			// partial sink update
-			if len(currentSink.Format) > 0 && currentSink.Format == "yaml" {
-				if len(currentSink.ConfigData) > 0 {
-					configSvc, exporterConfig, authConfig, err = GetConfigurationAndMetadataFromYaml(currentSink.Backend, currentSink.ConfigData)
-					if err != nil {
-						svc.GetLogger().Error("got error in parse and validate configuration", zap.Error(err))
-						return nil, errors.Wrap(errors.ErrMalformedEntity, err)
-					}
-				} else {
-					svc.GetLogger().Error("got error in parse and validate configuration", zap.Error(err))
-					return nil, errors.Wrap(errors.ErrMalformedEntity, errors.New("missing required field when format is sent, config_data must be sent also"))
-				}
-			} else if currentSink.Config != nil {
-				configSvc, exporterConfig, authConfig, err = GetConfigurationAndMetadataFromMeta(currentSink.Backend, currentSink.Config)
-				if err != nil {
-					svc.GetLogger().Error("got error in parse and validate configuration", zap.Error(err))
-					return nil, errors.Wrap(errors.ErrMalformedEntity, err)
-				}
-			}
-			config = types.Metadata{
-				"exporter":                            exporterConfig,
-				authentication_type.AuthenticationKey: authConfig,
-			}
+		if req.ConfigData != "" {
+			currentSink.ConfigData = req.ConfigData
 		}
-
-		sink := sinks.Sink{
-			ID:          req.id,
-			Tags:        req.Tags,
-			Config:      config,
-			ConfigData:  req.ConfigData,
-			Format:      req.Format,
-			Description: req.Description,
+		if req.Format != "" {
+			currentSink.Format = req.Format
 		}
-
+		if req.Description != nil {
+			currentSink.Description = req.Description
+		}
 		if req.Name != "" {
 			nameID, err := types.NewIdentifier(req.Name)
 			if err != nil {
 				svc.GetLogger().Error("error on getting new identifier", zap.Error(err))
 				return nil, errors.ErrConflict
 			}
-			sink.Name = nameID
+			currentSink.Name = nameID
+		}
+		var configSvc *sinks.Configuration
+		var exporterConfig types.Metadata
+		var authConfig types.Metadata
+
+		// Update the config if either req.Config or req.ConfigData is populated
+		if req.Config != nil || req.ConfigData != "" {
+			if req.Format == "yaml" {
+				configSvc, exporterConfig, authConfig, err = GetConfigurationAndMetadataFromYaml(currentSink.Backend, req.ConfigData)
+				if err != nil {
+					svc.GetLogger().Error("got error in parse and validate configuration", zap.Error(err))
+					return nil, errors.Wrap(errors.ErrMalformedEntity, err)
+				}
+			} else if req.Config != nil {
+				configSvc, exporterConfig, authConfig, err = GetConfigurationAndMetadataFromMeta(currentSink.Backend, req.Config)
+				if err != nil {
+					svc.GetLogger().Error("got error in parse and validate configuration", zap.Error(err))
+					return nil, errors.Wrap(errors.ErrMalformedEntity, err)
+				}
+			}
+
+			currentSink.Config = types.Metadata{
+				"exporter":                            exporterConfig,
+				authentication_type.AuthenticationKey: authConfig,
+			}
 		}
 
-		sinkEdited, err := svc.UpdateSink(ctx, req.token, sink)
+		if err := req.validate(); err != nil {
+			svc.GetLogger().Error("error validating request", zap.Error(err))
+			return nil, err
+		}
+
+		sinkEdited, err := svc.UpdateSink(ctx, req.token, currentSink)
 		if err != nil {
 			svc.GetLogger().Error("error on updating sink", zap.Error(err))
 			return nil, err
