@@ -29,7 +29,7 @@ with more analyzers in the works.
 
 ## Realtime Agent Orchestration
 
-Orb uses IoT principals to allow the observability agents to connect out to the Orb central control plane, avoiding
+Orb uses IoT principles to allow the observability agents to connect out to the Orb central control plane, avoiding
 firewall problems. Once connected, agents are controlled in real time from the Orb Portal or REST API, orchestrating
 observability [policies](https://orb.community/about/#policies) designed to precisely extract the desired insights. Agents
 are grouped and addressed based on [tags](https://orb.community/about/#agent-group).

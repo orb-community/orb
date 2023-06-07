@@ -10,6 +10,7 @@ package sinks
 
 import (
 	"context"
+
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks/authentication_type"
@@ -195,6 +196,7 @@ func (svc sinkService) UpdateSinkInternal(ctx context.Context, sink Sink) (Sink,
 		}
 	} else {
 		sink.Backend = currentSink.Backend
+		// we still need to validate here
 		be, err := validateBackend(&sink)
 		if err != nil {
 			return Sink{}, errors.Wrap(ErrMalformedEntity, err)

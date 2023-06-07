@@ -15,19 +15,22 @@ import {
   DatatableComponent,
   TableColumn,
 } from '@swimlane/ngx-datatable';
-import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
+import { AgentPolicy, AgentPolicyUsage } from 'app/common/interfaces/orb/agent.policy.interface';
 import {
   filterNumber,
   FilterOption, filterString, filterTags,
   FilterTypes,
+  filterMultiSelect,
 } from 'app/common/interfaces/orb/filter-option';
 import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
 import { FilterService } from 'app/common/services/filter.service';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { OrbService } from 'app/common/services/orb.service';
 import { AgentPolicyDeleteComponent } from 'app/pages/datasets/policies.agent/delete/agent.policy.delete.component';
-import { Observable } from 'rxjs';
+import { combineLatest, Observable } from 'rxjs';
+import { filter, map } from 'rxjs/operators';
 import { STRINGS } from '../../../../../assets/text/strings';
+
 
 @Component({
   selector: 'ngx-agent-policy-list-component',
@@ -49,6 +52,8 @@ export class AgentPolicyListComponent
   @ViewChild('versionTemplateCell') versionTemplateCell: TemplateRef<any>;
 
   @ViewChild('actionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
+
+  @ViewChild('usageStateTemplateCell') usageStateTemplateCell: TemplateRef<any>;
 
   tableSorts = [
     {
@@ -81,8 +86,20 @@ export class AgentPolicyListComponent
     private orb: OrbService,
     private filters: FilterService,
   ) {
-    this.policies$ = this.orb.getPolicyListView();
     this.filters$ = this.filters.getFilters();
+  
+    this.policies$ = combineLatest([
+      this.orb.getPolicyListView(),
+      this.orb.getDatasetListView()
+    ]).pipe(
+      filter(([policies, datasets]) => policies !== undefined && policies !== null && datasets !== undefined && datasets !== null),
+      map(([policies, datasets]) => {
+        return policies.map((policy) => {
+          const dataset = datasets.filter((d) => d.valid && d.agent_policy_id === policy.id);
+          return { ...policy, policy_usage: dataset.length > 0 ? AgentPolicyUsage.inUse : AgentPolicyUsage.notInUse };
+        });
+      })
+    );
 
     this.filterOptions = [
       {
@@ -108,6 +125,13 @@ export class AgentPolicyListComponent
         prop: 'description',
         filter: filterString,
         type: FilterTypes.Input,
+      },
+      {
+        name: 'Usage',
+        prop: 'policy_usage',
+        filter: filterMultiSelect,
+        type: FilterTypes.MultiSelect,
+        options: Object.values(AgentPolicyUsage).map((value) => value as string),
       },
     ];
 
@@ -153,6 +177,7 @@ export class AgentPolicyListComponent
   }
 
   ngAfterViewInit() {
+
     this.orb.refreshNow();
     this.columns = [
       {
@@ -160,9 +185,18 @@ export class AgentPolicyListComponent
         name: 'Policy Name',
         resizeable: false,
         canAutoResize: true,
-        flexGrow: 2,
+        flexGrow: 1.5,
         minWidth: 100,
         cellTemplate: this.nameTemplateCell,
+      },
+      {
+        prop: 'policy_usage',
+        name: 'Usage',
+        resizeable: false,
+        canAutoResize: true,
+        flexGrow: 1,
+        minWidth: 100,
+        cellTemplate: this.usageStateTemplateCell,
       },
       {
         prop: 'description',

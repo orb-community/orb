@@ -10,6 +10,8 @@ package http
 
 import (
 	"context"
+	"time"
+
 	"github.com/go-kit/kit/endpoint"
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
@@ -17,7 +19,6 @@ import (
 	"github.com/orb-community/orb/sinks/authentication_type"
 	"github.com/orb-community/orb/sinks/backend"
 	"go.uber.org/zap"
-	"time"
 )
 
 func omitSecretInformation(configSvc *sinks.Configuration, inputSink sinks.Sink) (returnSink sinks.Sink, err error) {
@@ -28,7 +29,7 @@ func omitSecretInformation(configSvc *sinks.Configuration, inputSink sinks.Sink)
 	returnSink = inputSink
 	authMeta := a.(types.Metadata)
 	returnSink.Config = authMeta
-	if inputSink.Format != "" {
+	if inputSink.Format == "yaml" {
 		configData, newErr := configSvc.Authentication.ConfigToFormat(inputSink.Format, authMeta)
 		if newErr != nil {
 			err = newErr
@@ -128,70 +129,75 @@ func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			svc.GetLogger().Error("could not find sink with id", zap.String("sinkID", req.id), zap.Error(err))
 			return nil, err
 		}
-
 		if err := req.validate(); err != nil {
 			svc.GetLogger().Error("error validating request", zap.Error(err))
 			return nil, err
 		}
-		var config types.Metadata
+		// Update only the fields in currentSink that are populated in req
+		if req.Tags != nil {
+			currentSink.Tags = req.Tags
+		}
+		if req.ConfigData != "" {
+			currentSink.ConfigData = req.ConfigData
+		}
+		if req.Format != "" {
+			currentSink.Format = req.Format
+		}
+		if req.Description != nil {
+			currentSink.Description = req.Description
+		}
+		if req.Name != "" {
+			nameID, err := types.NewIdentifier(req.Name)
+			if err != nil {
+				svc.GetLogger().Error("error on getting new identifier", zap.Error(err))
+				return nil, errors.ErrConflict
+			}
+			currentSink.Name = nameID
+		}
+		var configSvc *sinks.Configuration
 		var exporterConfig types.Metadata
 		var authConfig types.Metadata
-		var configSvc *sinks.Configuration
+
+		// Update the config if either req.Config or req.ConfigData is populated
 		if req.Config != nil || req.ConfigData != "" {
-			if len(req.Format) > 0 && req.Format == "yaml" {
-				if len(req.ConfigData) > 0 {
-					configSvc, exporterConfig, authConfig, err = GetConfigurationAndMetadataFromYaml(currentSink.Backend, req.ConfigData)
-					if err != nil {
-						svc.GetLogger().Error("got error in parse and validate configuration", zap.Error(err))
-						return nil, errors.Wrap(errors.ErrMalformedEntity, err)
-					}
-				} else {
+			if req.Format == "yaml" {
+				configSvc, exporterConfig, authConfig, err = GetConfigurationAndMetadataFromYaml(currentSink.Backend, req.ConfigData)
+				if err != nil {
 					svc.GetLogger().Error("got error in parse and validate configuration", zap.Error(err))
-					return nil, errors.Wrap(errors.ErrMalformedEntity, errors.New("missing required field when format is sent, config_data must be sent also"))
+					return nil, errors.Wrap(errors.ErrMalformedEntity, err)
 				}
 			} else if req.Config != nil {
-				configSvc, exporterConfig, authConfig, err = GetConfigurationAndMetadataFromMeta(req.Backend, req.Config)
+				configSvc, exporterConfig, authConfig, err = GetConfigurationAndMetadataFromMeta(currentSink.Backend, req.Config)
 				if err != nil {
 					svc.GetLogger().Error("got error in parse and validate configuration", zap.Error(err))
 					return nil, errors.Wrap(errors.ErrMalformedEntity, err)
 				}
 			}
-			config = types.Metadata{
+
+			currentSink.Config = types.Metadata{
 				"exporter":                            exporterConfig,
 				authentication_type.AuthenticationKey: authConfig,
 			}
-		} else {
-			config = currentSink.Config
 		}
 
-		sink := sinks.Sink{
-			ID:          req.id,
-			Tags:        req.Tags,
-			Config:      config,
-			ConfigData:  req.ConfigData,
-			Format:      req.Format,
-			Description: req.Description,
+		if err := req.validate(); err != nil {
+			svc.GetLogger().Error("error validating request", zap.Error(err))
+			return nil, err
 		}
 
-		if req.Name != "" {
-			nameID, err := types.NewIdentifier(req.Name)
-			if err != nil {
-				svc.GetLogger().Error("error on getting new identifier", zap.Error(err))
-				return nil, errors.ErrMalformedEntity
-			}
-			sink.Name = nameID
-		}
-
-		sinkEdited, err := svc.UpdateSink(ctx, req.token, sink)
+		sinkEdited, err := svc.UpdateSink(ctx, req.token, currentSink)
 		if err != nil {
 			svc.GetLogger().Error("error on updating sink", zap.Error(err))
 			return nil, err
 		}
-		omittedSink, err := omitSecretInformation(configSvc, sinkEdited)
+
+		var omittedSink sinks.Sink
+		omittedSink, err = omitSecretInformation(configSvc, sinkEdited)
 		if err != nil {
-			svc.GetLogger().Error("sink was created, but got error in the response build", zap.Error(err))
+			svc.GetLogger().Error("sink was updated, but got error in the response build", zap.Error(err))
 			return nil, err
 		}
+
 		res := sinkRes{
 			ID:          sinkEdited.ID,
 			Name:        sinkEdited.Name.String(),
@@ -205,6 +211,7 @@ func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			Format:      sinkEdited.Format,
 			created:     false,
 		}
+
 		return res, nil
 	}
 }

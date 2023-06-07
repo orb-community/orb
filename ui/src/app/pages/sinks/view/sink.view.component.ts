@@ -79,26 +79,40 @@ export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   save() {
-    const { name, description, id, backend } = this.sink;
+    const { id, backend } = this.sink;
 
     const sinkDetails = this.detailsComponent.formGroup?.value;
     const tags = this.detailsComponent.selectedTags;
     const configSink = this.configComponent.code;
 
-    const detailsPartial = { ...sinkDetails, id, backend};
+    let payload = {};
+    const details = { ...sinkDetails, tags};
+    const config = JSON.parse(configSink);
 
-    let configPartial = JSON.parse(configSink);
-
-    const config = {
-      ...configPartial
+    if (this.editMode.details && !this.editMode.config) {
+      payload = {
+        id,
+        backend,
+        ...details,
+      } as Sink;
     }
-    const payload = {
-      ...detailsPartial,
-      tags,
-      config,
-      
-    } as Sink;
+    else if (!this.editMode.details && this.editMode.config) {
+      payload = {
+        id,
+        backend,
+        config,
+      } as Sink;
+    }
+    else {
+      payload = {
+        id,
+        backend,
+        details,
+        config,
+      } as Sink;
+    }
 
+    console.log(payload);
     try {
       this.sinks.editSink(payload).subscribe((resp) => {
         this.discard();

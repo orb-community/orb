@@ -151,6 +151,7 @@
                          placeholder="Select backend type"
                          size="medium"
                          required
+                         (selectedChange)="onChangeConfigBackend($event)"
               >
                 <nb-option *ngFor="let type of sinkTypesList"
                            [value]="type">{{ type | titlecase }}</nb-option>
