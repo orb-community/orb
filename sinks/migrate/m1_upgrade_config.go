@@ -2,14 +2,12 @@ package migrate
 
 import (
 	"context"
-	"fmt"
+
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks"
 	"github.com/orb-community/orb/sinks/authentication_type"
 	"github.com/orb-community/orb/sinks/authentication_type/basicauth"
 	"go.uber.org/zap"
-	"net/url"
-	"strings"
 )
 
 type Plan1UpdateConfiguration struct {
@@ -56,12 +54,6 @@ func (p *Plan1UpdateConfiguration) Up(ctx context.Context) (mainErr error) {
 					continue
 				}
 				continue
-			}
-			if _, err := url.Parse(sinkRemoteHost.(string)); err != nil {
-				s := sinkRemoteHost.(string)
-				if !strings.HasPrefix("https://", s) && !strings.HasPrefix("http://", s) {
-					sinkRemoteHost = fmt.Sprintf("https://%s", s)
-				}
 			}
 			sinkUsername, ok := sink.Config["username"]
 			if !ok {

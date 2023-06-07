@@ -10,6 +10,8 @@ package http
 
 import (
 	"context"
+	"time"
+
 	"github.com/go-kit/kit/endpoint"
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
@@ -17,7 +19,6 @@ import (
 	"github.com/orb-community/orb/sinks/authentication_type"
 	"github.com/orb-community/orb/sinks/backend"
 	"go.uber.org/zap"
-	"time"
 )
 
 func omitSecretInformation(configSvc *sinks.Configuration, inputSink sinks.Sink) (returnSink sinks.Sink, err error) {
@@ -187,10 +188,16 @@ func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			svc.GetLogger().Error("error on updating sink", zap.Error(err))
 			return nil, err
 		}
-		omittedSink, err := omitSecretInformation(configSvc, sinkEdited)
-		if err != nil {
-			svc.GetLogger().Error("sink was created, but got error in the response build", zap.Error(err))
-			return nil, err
+		// partial update, without config information dont need be ommitted
+		var omittedSink sinks.Sink
+		if req.Config != nil || req.ConfigData != "" {
+			omittedSink, err = omitSecretInformation(configSvc, sinkEdited)
+			if err != nil {
+				svc.GetLogger().Error("sink was updated, but got error in the response build", zap.Error(err))
+				return nil, err
+			}
+		} else {
+			svc.GetLogger().Info("request sink partial update", zap.String("sinkID", req.id))
 		}
 		res := sinkRes{
 			ID:          sinkEdited.ID,
