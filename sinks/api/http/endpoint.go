@@ -129,107 +129,89 @@ func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			svc.GetLogger().Error("could not find sink with id", zap.String("sinkID", req.id), zap.Error(err))
 			return nil, err
 		}
-
 		if err := req.validate(); err != nil {
 			svc.GetLogger().Error("error validating request", zap.Error(err))
 			return nil, err
 		}
-		var config types.Metadata
-		var exporterConfig types.Metadata
-		var authConfig types.Metadata
-		var configSvc *sinks.Configuration
-		if req.Config != nil || req.ConfigData != "" {
-			if len(req.Format) > 0 && req.Format == "yaml" {
-				if len(req.ConfigData) > 0 {
-					configSvc, exporterConfig, authConfig, err = GetConfigurationAndMetadataFromYaml(currentSink.Backend, req.ConfigData)
-					if err != nil {
-						svc.GetLogger().Error("got error in parse and validate configuration", zap.Error(err))
-						return nil, errors.Wrap(errors.ErrMalformedEntity, err)
-					}
-				} else {
-					svc.GetLogger().Error("got error in parse and validate configuration", zap.Error(err))
-					return nil, errors.Wrap(errors.ErrMalformedEntity, errors.New("missing required field when format is sent, config_data must be sent also"))
-				}
-			} else if req.Config != nil {
-				configSvc, exporterConfig, authConfig, err = GetConfigurationAndMetadataFromMeta(req.Backend, req.Config)
-				if err != nil {
-					svc.GetLogger().Error("got error in parse and validate configuration", zap.Error(err))
-					return nil, errors.Wrap(errors.ErrMalformedEntity, err)
-				}
-			}
-			config = types.Metadata{
-				"exporter":                            exporterConfig,
-				authentication_type.AuthenticationKey: authConfig,
-			}
-		} else {
-			config = currentSink.Config
+		// Update only the fields in currentSink that are populated in req
+		if req.Tags != nil {
+			currentSink.Tags = req.Tags
 		}
-
-		sink := sinks.Sink{
-			ID:          req.id,
-			Tags:        req.Tags,
-			Config:      config,
-			ConfigData:  req.ConfigData,
-			Format:      req.Format,
-			Description: req.Description,
+		if req.ConfigData != "" {
+			currentSink.ConfigData = req.ConfigData
 		}
-
+		if req.Format != "" {
+			currentSink.Format = req.Format
+		}
+		if req.Description != nil {
+			currentSink.Description = req.Description
+		}
 		if req.Name != "" {
 			nameID, err := types.NewIdentifier(req.Name)
 			if err != nil {
 				svc.GetLogger().Error("error on getting new identifier", zap.Error(err))
 				return nil, errors.ErrConflict
 			}
-			sink.Name = nameID
+			currentSink.Name = nameID
+		}
+		var configSvc *sinks.Configuration
+		var exporterConfig types.Metadata
+		var authConfig types.Metadata
+
+		// Update the config if either req.Config or req.ConfigData is populated
+		if req.Config != nil || req.ConfigData != "" {
+			if req.Format == "yaml" {
+				configSvc, exporterConfig, authConfig, err = GetConfigurationAndMetadataFromYaml(currentSink.Backend, req.ConfigData)
+				if err != nil {
+					svc.GetLogger().Error("got error in parse and validate configuration", zap.Error(err))
+					return nil, errors.Wrap(errors.ErrMalformedEntity, err)
+				}
+			} else if req.Config != nil {
+				configSvc, exporterConfig, authConfig, err = GetConfigurationAndMetadataFromMeta(currentSink.Backend, req.Config)
+				if err != nil {
+					svc.GetLogger().Error("got error in parse and validate configuration", zap.Error(err))
+					return nil, errors.Wrap(errors.ErrMalformedEntity, err)
+				}
+			}
+
+			currentSink.Config = types.Metadata{
+				"exporter":                            exporterConfig,
+				authentication_type.AuthenticationKey: authConfig,
+			}
 		}
 
-		sinkEdited, err := svc.UpdateSink(ctx, req.token, sink)
+		if err := req.validate(); err != nil {
+			svc.GetLogger().Error("error validating request", zap.Error(err))
+			return nil, err
+		}
+
+		sinkEdited, err := svc.UpdateSink(ctx, req.token, currentSink)
 		if err != nil {
 			svc.GetLogger().Error("error on updating sink", zap.Error(err))
 			return nil, err
 		}
-		// partial update, without config information dont need be ommitted
-		var omittedSink sinks.Sink
-		if req.Config != nil || req.ConfigData != "" {
-			omittedSink, err = omitSecretInformation(configSvc, sinkEdited)
-			if err != nil {
-				svc.GetLogger().Error("sink was updated, but got error in the response build", zap.Error(err))
-				return nil, err
-			}
-		} else {
-			svc.GetLogger().Info("request sink partial update", zap.String("sinkID", req.id))
-		}
-		var res sinkRes
-		if req.Config != nil || req.ConfigData != "" {
-			res = sinkRes{
-				ID:          sinkEdited.ID,
-				Name:        sinkEdited.Name.String(),
-				Description: *sinkEdited.Description,
-				Tags:        sinkEdited.Tags,
-				State:       sinkEdited.State.String(),
-				Error:       sinkEdited.Error,
-				Backend:     sinkEdited.Backend,
-				Config:      omittedSink.Config,
-				ConfigData:  omittedSink.ConfigData,
-				Format:      sinkEdited.Format,
-				created:     false,
-			}
-		} else {
-			res = sinkRes{
-				ID:          sinkEdited.ID,
-				Name:        sinkEdited.Name.String(),
-				Description: *sinkEdited.Description,
-				Tags:        sinkEdited.Tags,
-				State:       sinkEdited.State.String(),
-				Error:       sinkEdited.Error,
-				Backend:     sinkEdited.Backend,
-				Config:      sinkEdited.Config,
-				ConfigData:  sinkEdited.ConfigData,
-				Format:      sinkEdited.Format,
-				created:     false,
-			}
 
+		var omittedSink sinks.Sink
+		omittedSink, err = omitSecretInformation(configSvc, sinkEdited)
+		if err != nil {
+			svc.GetLogger().Error("sink was updated, but got error in the response build", zap.Error(err))
+			return nil, err
 		}
+
+		res := sinkRes{
+			ID:          sinkEdited.ID,
+			Name:        sinkEdited.Name.String(),
+			Description: *sinkEdited.Description,
+			Tags:        sinkEdited.Tags,
+			State:       sinkEdited.State.String(),
+			Error:       sinkEdited.Error,
+			Backend:     sinkEdited.Backend,
+			Config:      omittedSink.Config,
+			ConfigData:  omittedSink.ConfigData,
+			Format:      sinkEdited.Format,
+			created:     false,
+		}
+
 		return res, nil
 	}
 }
