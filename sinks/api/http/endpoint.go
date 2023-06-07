@@ -139,6 +139,7 @@ func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 		var authConfig types.Metadata
 		var configSvc *sinks.Configuration
 		if req.Config != nil || req.ConfigData != "" {
+			// full sink update
 			if len(req.Format) > 0 && req.Format == "yaml" {
 				if len(req.ConfigData) > 0 {
 					configSvc, exporterConfig, authConfig, err = GetConfigurationAndMetadataFromYaml(currentSink.Backend, req.ConfigData)
@@ -162,7 +163,29 @@ func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 				authentication_type.AuthenticationKey: authConfig,
 			}
 		} else {
-			config = currentSink.Config
+			// partial sink update
+			if len(currentSink.Format) > 0 && currentSink.Format == "yaml" {
+				if len(currentSink.ConfigData) > 0 {
+					configSvc, exporterConfig, authConfig, err = GetConfigurationAndMetadataFromYaml(currentSink.Backend, currentSink.ConfigData)
+					if err != nil {
+						svc.GetLogger().Error("got error in parse and validate configuration", zap.Error(err))
+						return nil, errors.Wrap(errors.ErrMalformedEntity, err)
+					}
+				} else {
+					svc.GetLogger().Error("got error in parse and validate configuration", zap.Error(err))
+					return nil, errors.Wrap(errors.ErrMalformedEntity, errors.New("missing required field when format is sent, config_data must be sent also"))
+				}
+			} else if currentSink.Config != nil {
+				configSvc, exporterConfig, authConfig, err = GetConfigurationAndMetadataFromMeta(currentSink.Backend, currentSink.Config)
+				if err != nil {
+					svc.GetLogger().Error("got error in parse and validate configuration", zap.Error(err))
+					return nil, errors.Wrap(errors.ErrMalformedEntity, err)
+				}
+			}
+			config = types.Metadata{
+				"exporter":                            exporterConfig,
+				authentication_type.AuthenticationKey: authConfig,
+			}
 		}
 
 		sink := sinks.Sink{
@@ -188,48 +211,28 @@ func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			svc.GetLogger().Error("error on updating sink", zap.Error(err))
 			return nil, err
 		}
-		// partial update, without config information dont need be ommitted
-		var omittedSink sinks.Sink
-		if req.Config != nil || req.ConfigData != "" {
-			omittedSink, err = omitSecretInformation(configSvc, sinkEdited)
-			if err != nil {
-				svc.GetLogger().Error("sink was updated, but got error in the response build", zap.Error(err))
-				return nil, err
-			}
-		} else {
-			svc.GetLogger().Info("request sink partial update", zap.String("sinkID", req.id))
-		}
-		var res sinkRes
-		if req.Config != nil || req.ConfigData != "" {
-			res = sinkRes{
-				ID:          sinkEdited.ID,
-				Name:        sinkEdited.Name.String(),
-				Description: *sinkEdited.Description,
-				Tags:        sinkEdited.Tags,
-				State:       sinkEdited.State.String(),
-				Error:       sinkEdited.Error,
-				Backend:     sinkEdited.Backend,
-				Config:      omittedSink.Config,
-				ConfigData:  omittedSink.ConfigData,
-				Format:      sinkEdited.Format,
-				created:     false,
-			}
-		} else {
-			res = sinkRes{
-				ID:          sinkEdited.ID,
-				Name:        sinkEdited.Name.String(),
-				Description: *sinkEdited.Description,
-				Tags:        sinkEdited.Tags,
-				State:       sinkEdited.State.String(),
-				Error:       sinkEdited.Error,
-				Backend:     sinkEdited.Backend,
-				Config:      sinkEdited.Config,
-				ConfigData:  sinkEdited.ConfigData,
-				Format:      sinkEdited.Format,
-				created:     false,
-			}
 
+		var omittedSink sinks.Sink
+		omittedSink, err = omitSecretInformation(configSvc, sinkEdited)
+		if err != nil {
+			svc.GetLogger().Error("sink was updated, but got error in the response build", zap.Error(err))
+			return nil, err
 		}
+
+		res := sinkRes{
+			ID:          sinkEdited.ID,
+			Name:        sinkEdited.Name.String(),
+			Description: *sinkEdited.Description,
+			Tags:        sinkEdited.Tags,
+			State:       sinkEdited.State.String(),
+			Error:       sinkEdited.Error,
+			Backend:     sinkEdited.Backend,
+			Config:      omittedSink.Config,
+			ConfigData:  omittedSink.ConfigData,
+			Format:      sinkEdited.Format,
+			created:     false,
+		}
+
 		return res, nil
 	}
 }
