@@ -50,7 +50,6 @@ def create_sink(context, **kwargs):
         configuration_type = kwargs["configuration_type"].lower()
     else:
         configuration_type = ""
-
     if include_otel_env_var == "true":
         context.sink = create_new_sink(token, sink_label_name, endpoint, username, password,
                                        include_otel=include_otel_env_var, otel=otel_map[enable_otel],
@@ -96,6 +95,7 @@ def create_sink_with_conflict_name(context):
 def edit_sink_name_with_conflict(context):
     first_sink = get_sink(context.token, context.existent_sinks_id[0])
     context.sink['name'] = first_sink['name']
+    context.sink.pop("config")
     context.error_message = edit_sink(context.token, context.sink['id'], context.sink, expected_status_code=409)
 
 
@@ -197,7 +197,7 @@ def check_sink_status(context, status, time_to_wait):
 def edit_sink_field(context, otel):
     assert_that(otel, any_of("enabled", "disabled"))
     sink = get_sink(context.token, context.sink['id'])
-    sink['config']['password'] = configs.get('prometheus_key')
+    sink['config']['authentication']['password'] = configs.get('prometheus_key')
     sink['config']["opentelemetry"] = otel
     context.sink = edit_sink(context.token, context.sink['id'], sink)
 
@@ -224,26 +224,29 @@ def check_all_sinks_status(context):
 
 @step("the sink {field_to_edit} is edited and an {type_of_field} one is used")
 def edit_sink_field(context, field_to_edit, type_of_field):
-    assert_that(field_to_edit, any_of("remote host", "username", "password", "name", "description", "tags"),
+    assert_that(field_to_edit, any_of("remote host", "endpoint", "username", "password", "name", "description", "tags"),
                 "Unexpected field to be edited.")
     assert_that(type_of_field, any_of("valid", "invalid"), "Invalid type of sink field")
     sink = get_sink(context.token, context.sink['id'])
-    sink['config']['password'] = configs.get('prometheus_key')
-    if field_to_edit == "remote host":
+    sink['config']['authentication']['password'] = configs.get('prometheus_key')
+    if field_to_edit == "remote host" or field_to_edit == "endpoint":
+        exporter_key = {"prometheus": "remote_host", "otlphttp": "endpoint"}
+        sink_backend = context.sink.get("backend")
+        assert_that(sink_backend, any_of("prometheus", "otlphttp"), f"Invalid sink backend: '{sink_backend}'")
         if type_of_field == "invalid":
-            sink['config']['remote_host'] = context.remote_prometheus_endpoint[:-2]
+            sink['config']['exporter'][exporter_key[sink_backend]] = context.remote_prometheus_endpoint[:-2]
         else:
-            sink['config']['remote_host'] = configs.get('remote_prometheus_endpoint')
+            sink['config']['exporter'][exporter_key[sink_backend]] = configs.get('remote_prometheus_endpoint')
     if field_to_edit == "password":
         if type_of_field == "invalid":
-            sink['config']['password'] = context.prometheus_key[:-2]
+            sink['config']['authentication']['password'] = context.prometheus_key[:-2]
         else:
-            sink['config']['password'] = configs.get('prometheus_key')
+            sink['config']['authentication']['password'] = configs.get('prometheus_key')
     if field_to_edit == "username":
         if type_of_field == "invalid":
-            sink['config']['username'] = context.prometheus_username[:-2]
+            sink['config']['authentication']['username'] = context.prometheus_username[:-2]
         else:
-            sink['config']['username'] = configs.get('prometheus_username')
+            sink['config']['authentication']['username'] = configs.get('prometheus_username')
 
     context.sink = edit_sink(context.token, context.sink['id'], sink)
 
@@ -270,11 +273,16 @@ def sink_partial_update(context, sink_keys):
                                                               "partial update")
             assert_that(include_otel_env_var, any_of("true", "false"), "Unexpected value for 'include_otel_env_var' on "
                                                                        "sinks partial update")
+            exporter_key = {"prometheus": "remote_host", "otlphttp": "endpoint"}
+            sink_backend = context.sink.get("backend")
+            assert_that(sink_backend, any_of("prometheus", "otlphttp"), f"Invalid sink backend: '{sink_backend}'")
             if include_otel_env_var == "true":
-                sink_configs = {"remote_host": remote_host, "username": username, "password": password,
+                sink_configs = {"authentication": {"type": "basicauth", "password": password, "username": username},
+                                "exporter": {exporter_key[sink_backend]: remote_host},
                                 "opentelemetry": otel_map[enable_otel]}
             else:
-                sink_configs = {"remote_host": remote_host, "username": username, "password": password}
+                sink_configs = {"authentication": {"type": "basicauth", "password": password, "username": username},
+                                "exporter": {exporter_key[sink_backend]: remote_host}}
             context.values_to_use_to_update_sink = {"name": f"{context.sink['name']}_updated",
                                                     "description": "this sink has been updated",
                                                     "tags": {"sink": "updated", "new": "tag"}, "config": sink_configs}
@@ -317,7 +325,7 @@ def clean_sinks(context):
     delete_sinks(token, sinks_filtered_list)
 
 
-def create_new_sink(token, name_label, remote_host, username, password, description=None, tag_key='', tag_value=None,
+def create_new_sink(token, name_label, remote_host, username, password, description=None, tag_key=None, tag_value=None,
                     backend_type="prometheus", include_otel="false", otel="disabled", configuration_type="",
                     expected_status_code=201):
     """
@@ -340,22 +348,23 @@ def create_new_sink(token, name_label, remote_host, username, password, descript
     :return: (dict) a dictionary containing the created sink data
     """
     assert_that(include_otel, any_of("true", "false"), "Unexpected value for 'include_otel' on sinks creation")
+    exporter_key = {"prometheus": "remote_host", "otlphttp": "endpoint"}
     if include_otel == "true":
-        sink_configs = {"remote_host": remote_host, "username": username, "password": password, "opentelemetry": otel}
+        sink_configs = {"authentication": {"type": "basicauth", "password": password, "username": username},
+                        "exporter": {exporter_key[backend_type]: remote_host}, "opentelemetry": otel}
     else:
-        sink_configs = {"remote_host": remote_host, "username": username, "password": password}
+        sink_configs = {"authentication": {"type": "basicauth", "password": password, "username": username},
+                        "exporter": {exporter_key[backend_type]: remote_host}}
     if configuration_type == "yaml":
         sink_configs_yaml = yaml.dump(sink_configs)
         json_request = {"name": name_label, "description": description, "tags": {tag_key: tag_value},
-                        "backend": backend_type, "validate_only": False, "config_data": sink_configs_yaml,
-                        "format": configuration_type}
+                        "backend": backend_type, "config_data": sink_configs_yaml, "format": configuration_type}
     elif configuration_type == "json":
         json_request = {"name": name_label, "description": description, "tags": {tag_key: tag_value},
-                        "backend": backend_type, "validate_only": False, "config": sink_configs,
-                        "format": configuration_type}
+                        "backend": backend_type, "config": sink_configs, "format": configuration_type}
     else:
         json_request = {"name": name_label, "description": description, "tags": {tag_key: tag_value},
-                        "backend": backend_type, "validate_only": False, "config": sink_configs}
+                        "backend": backend_type, "config": sink_configs}
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
     json_request = remove_empty_from_json(json_request)
     response = requests.post(orb_url + '/api/v1/sinks', json=json_request, headers=headers_request,
@@ -366,7 +375,6 @@ def create_new_sink(token, name_label, remote_host, username, password, descript
         response_json = response.text
     assert_that(response.status_code, equal_to(expected_status_code),
                 'Request to create sink failed with status=' + str(response.status_code) + ': ' + str(response_json))
-
     return response_json
 
 
