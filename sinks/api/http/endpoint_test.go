@@ -1092,9 +1092,6 @@ func TestViewSink(t *testing.T) {
 		TsCreated:   sk.Created,
 	})
 
-	if data == "" {
-		return
-	}
 	cases := map[string]struct {
 		id          string
 		contentType string
@@ -1102,7 +1099,13 @@ func TestViewSink(t *testing.T) {
 		status      int
 		res         string
 	}{
-
+		"view existing sink": {
+			id:          sk.ID,
+			contentType: contentType,
+			auth:        token,
+			status:      http.StatusOK,
+			res:         data,
+		},
 		"view non-existing sink": {
 			id:          "logstash",
 			contentType: contentType,
