@@ -129,7 +129,10 @@ func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			svc.GetLogger().Error("could not find sink with id", zap.String("sinkID", req.id), zap.Error(err))
 			return nil, err
 		}
-
+		if err := req.validate(); err != nil {
+			svc.GetLogger().Error("error validating request", zap.Error(err))
+			return nil, err
+		}
 		// Update only the fields in currentSink that are populated in req
 		if req.Tags != nil {
 			currentSink.Tags = req.Tags
