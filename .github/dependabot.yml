@@ -40,3 +40,13 @@ updates:
     commit-message:
       prefix: "fix"
     open-pull-requests-limit: 50
+    
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    allow:
+      - dependency-type: "all"
+    commit-message:
+      prefix: "fix"
+    open-pull-requests-limit: 50
