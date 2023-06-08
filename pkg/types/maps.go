@@ -35,6 +35,29 @@ func (s *Metadata) Scan(src interface{}) error {
 	return errors.New("type assertion failed")
 }
 
+func FromMap(m map[string]interface{}) Metadata {
+	meta := make(Metadata, len(m))
+	for k, v := range m {
+		meta[k] = v
+	}
+	return meta
+}
+
+// GetSubMetadata gets the first substructure with the keyname or nil
+func (s *Metadata) GetSubMetadata(key string) Metadata {
+	v := (*s)[key]
+	if v == nil {
+		return nil
+	}
+	switch v.(type) {
+	case map[string]interface{}:
+		return FromMap(v.(map[string]interface{}))
+	case Metadata:
+		return v.(Metadata)
+	}
+	return nil
+}
+
 func (s *Metadata) RestrictKeys(predicate func(string) bool) {
 	for key, _ := range *s {
 		if predicate(key) {

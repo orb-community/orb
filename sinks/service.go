@@ -14,6 +14,9 @@ import (
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
+	"github.com/orb-community/orb/sinks/authentication_type"
+	"github.com/orb-community/orb/sinks/authentication_type/basicauth"
+	"github.com/orb-community/orb/sinks/backend/otlphttpexporter"
 	"github.com/orb-community/orb/sinks/backend/prometheus"
 	"go.uber.org/zap"
 	"time"
@@ -41,7 +44,7 @@ type sinkService struct {
 	// Sinks
 	sinkRepo SinkRepository
 	// passwordService
-	passwordService PasswordService
+	passwordService authentication_type.PasswordService
 }
 
 func (svc sinkService) identify(token string) (string, error) {
@@ -60,15 +63,16 @@ func (svc sinkService) GetLogger() *zap.Logger {
 	return svc.logger
 }
 
-func NewSinkService(logger *zap.Logger, auth mainflux.AuthServiceClient, sinkRepo SinkRepository, mfsdk mfsdk.SDK, services PasswordService) SinkService {
-
+func NewSinkService(logger *zap.Logger, auth mainflux.AuthServiceClient, sinkRepo SinkRepository, mfsdk mfsdk.SDK, passwordService authentication_type.PasswordService) SinkService {
+	otlphttpexporter.Register()
 	prometheus.Register()
-
+	basicauth.Register(passwordService)
+	// bearerauth.Register(passwordService)
 	return &sinkService{
 		logger:          logger,
 		auth:            auth,
 		sinkRepo:        sinkRepo,
 		mfsdk:           mfsdk,
-		passwordService: services,
+		passwordService: passwordService,
 	}
 }

@@ -187,3 +187,14 @@ mat-chip-list {
     animation-direction: alternate;
   }
 }
+.orb-service-{
+  &in {
+    color: #6fcf97;
+  }
+  &not {
+    color: #f2994a;
+  }
+}
+.scroll {
+  width: 1520px;
+}

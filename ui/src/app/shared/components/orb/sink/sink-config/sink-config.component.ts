@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { FormBuilder, FormControl, Validators } from '@angular/forms';
-import { Sink } from 'app/common/interfaces/orb/sink.interface';
+import { Sink, SinkBackends } from 'app/common/interfaces/orb/sink.interface';
 import IStandaloneEditorConstructionOptions = monaco.editor.IStandaloneEditorConstructionOptions;
 @Component({
   selector: 'ngx-sink-config',
@@ -15,6 +15,12 @@ export class SinkConfigComponent implements OnInit, OnChanges {
   @Input()
   editMode: boolean;
 
+  @Input()
+  createMode: boolean;
+
+  @Input()
+  sinkBackend: string;
+  
   @Output()
   editModeChange: EventEmitter<boolean>;
 
@@ -45,6 +51,10 @@ export class SinkConfigComponent implements OnInit, OnChanges {
 
   code = '';
 
+  sinkConfigSchemaPrometheus: any;
+
+  sinkConfigSchemaOtlp: any;
+
   formControl: FormControl;
 
   constructor(private fb: FormBuilder) { 
@@ -52,15 +62,51 @@ export class SinkConfigComponent implements OnInit, OnChanges {
     this.editMode = false;
     this.editModeChange = new EventEmitter<boolean>();
     this.updateForm();
+    this.sinkConfigSchemaPrometheus = {
+      "authentication" : {
+        "type": "basicauth", 
+        "password": "",
+        "username": "",
+      },
+      "exporter" : {
+        "remote_host": "",
+      },
+      "opentelemetry": "enabled",
+    }
+    this.sinkConfigSchemaOtlp = {
+      "authentication" : {
+        "type": "basicauth", 
+        "password": "",
+        "username": "",
+      },
+      "exporter" : {
+        "endpoint": "",
+      },
+      "opentelemetry": "enabled",
+    }
   }
 
   ngOnInit(): void {
-    this.code = JSON.stringify(this.sink.config, null, 2);
+    if (this.createMode) {
+      this.toggleEdit(true);
+      this.code = JSON.stringify(this.sinkConfigSchemaOtlp, null, 2);
+    }
+    else {
+      this.code = JSON.stringify(this.sink.config, null, 2);
+    }
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes?.editMode && !changes?.editMode.firstChange) {
       this.toggleEdit(changes.editMode.currentValue, false);
+    }
+    if (changes?.sinkBackend) {
+      if (this.sinkBackend === SinkBackends.prometheus) {
+        this.code = JSON.stringify(this.sinkConfigSchemaPrometheus, null, 2);
+      }
+      else {
+        this.code = JSON.stringify(this.sinkConfigSchemaOtlp, null, 2);
+      }
     }
   }
 
