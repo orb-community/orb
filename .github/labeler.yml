@@ -1,0 +1,73 @@
+documentation:
+  - docs/*
+  - docs/**/*
+  - mkdocs.yml
+
+github-actions:
+  - .github/workflows/*
+  - .github/workflows/**/*
+  - .github/dependabot.yml
+  - .github/boring-cyborg.yml
+  - .github/release-drafter.yml
+  - .github/semantic.yml
+  - .github/stale.yml
+  - .github/mergify.yml
+  - .github/labeler.yml
+
+github-templates:
+  - .github/ISSUE_TEMPLATE/*
+  - .github/PULL_REQUEST_TEMPLATE.md
+  - .github/.chglog/*
+  - .github/.chglog/**/*
+
+internal:
+  - .flake8
+  - .bandit.baseline
+  - .gitignore
+  - .pre-commit-config.yaml
+  - MANIFEST.in
+  - Makefile
+  - CONTRIBUTING.md
+  - MAINTAINERS.md
+  - CODE_OF_CONDUCT.md
+  - LICENSE
+  - THIRD-PARTY-LICENSES
+  - .dockerignore
+  - .editorconfig
+  - setup.cfg
+
+dependencies:
+  - pyproject.toml
+  - poetry.lock
+  - requirements.txt
+
+tests:
+  - automated_tests/*
+  - automated_tests/**/*
+  - tests/*
+  - tests/**/*
+
+build:
+  - Dockerfile
+
+golang:
+  - "**/*.go"
+
+javascript:
+  - "**/*.json"
+
+json:
+  - "**/*.json"
+
+markdown:
+  - "**/*.md"
+
+python:
+  - "**/*.py"
+
+sql:
+  - "**/*.py"
+
+typescript:
+  - "**/*.ts"
+  - "**/*.tsx"
