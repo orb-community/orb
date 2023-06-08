@@ -1,0 +1,32 @@
+version: 2
+
+updates:
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    allow:
+      - dependency-type: "all"
+    commit-message:
+      prefix: "fix"
+    open-pull-requests-limit: 50
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    allow:
+      - dependency-type: "all"
+    commit-message:
+      prefix: "fix"
+    open-pull-requests-limit: 50
+
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    allow:
+      - dependency-type: "all"
+    commit-message:
+      prefix: "fix"
+    open-pull-requests-limit: 50
