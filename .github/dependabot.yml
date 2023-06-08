@@ -10,6 +10,16 @@ updates:
     commit-message:
       prefix: "fix"
     open-pull-requests-limit: 50
+    
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    allow:
+      - dependency-type: "all"
+    commit-message:
+      prefix: "fix"
+    open-pull-requests-limit: 50
 
   - package-ecosystem: "github-actions"
     directory: "/"
