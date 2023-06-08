@@ -125,7 +125,7 @@ func (d *otelinfBackend) Version() (string, error) {
 	if err := d.request("status", &dConf, http.MethodGet, http.NoBody, "application/json", VersionTimeout); err != nil {
 		return "", err
 	}
-	return dConf.InfVersion, nil
+	return dConf.Version, nil
 }
 
 func (d *otelinfBackend) SetCommsClient(agentID string, client *mqtt.Client, baseTopic string) {
@@ -257,7 +257,7 @@ func (d *otelinfBackend) Start(ctx context.Context, cancelFunc context.CancelFun
 		var dConf dconf.Status
 		readinessError = d.request("status", &dConf, http.MethodGet, http.NoBody, "application/json", ReadinessTimeout)
 		if readinessError == nil {
-			d.logger.Info("otelinf-agent readiness ok, got version ", zap.String("otelinf_agent_version", dConf.InfVersion))
+			d.logger.Info("otelinf-agent readiness ok, got version ", zap.String("otelinf_agent_version", dConf.Version))
 			break
 		}
 		backoffDuration := time.Duration(backoff) * time.Second
