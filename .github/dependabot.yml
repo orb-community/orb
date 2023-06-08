@@ -9,7 +9,7 @@ updates:
       - dependency-type: "all"
     commit-message:
       prefix: "fix"
-    open-pull-requests-limit: 50
+    open-pull-requests-limit: 10
     
   - package-ecosystem: "pip"
     directory: "/"
@@ -19,7 +19,7 @@ updates:
       - dependency-type: "all"
     commit-message:
       prefix: "fix"
-    open-pull-requests-limit: 50
+    open-pull-requests-limit: 10
 
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -29,7 +29,7 @@ updates:
       - dependency-type: "all"
     commit-message:
       prefix: "fix"
-    open-pull-requests-limit: 50
+    open-pull-requests-limit: 10
 
   - package-ecosystem: "docker"
     directory: "/"
@@ -39,7 +39,7 @@ updates:
       - dependency-type: "all"
     commit-message:
       prefix: "fix"
-    open-pull-requests-limit: 50
+    open-pull-requests-limit: 10
     
   - package-ecosystem: "npm"
     directory: "/"
@@ -49,4 +49,4 @@ updates:
       - dependency-type: "all"
     commit-message:
       prefix: "fix"
-    open-pull-requests-limit: 50
+    open-pull-requests-limit: 10
