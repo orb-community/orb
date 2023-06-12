@@ -49,7 +49,6 @@
     "@nebular/eva-icons": "5.0.0",
     "@nebular/security": "5.0.0",
     "@nebular/theme": "5.0.0",
-    "@pactsafe/pactsafe-angular-sdk": "^2.0.0",
     "@swimlane/ngx-charts": "^13.0.2",
     "bootstrap": "4.3.1",
     "classlist.js": "1.1.20150312",

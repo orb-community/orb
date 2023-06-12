@@ -64,15 +64,7 @@ export const environment = {
   readerSuffix: 'messages',
   exportConfigFile: '/configs/export/config.toml',
 
-  // PACTSAFE
-  PS: {
-    // site id
-    SID: '',
-    // group key
-    GROUP_KEY: '',
-  },
-
-  // MAINTENANCE
+    // MAINTENANCE
   MAINTENANCE: '',
 
   // expose ORB routes and api versioning
