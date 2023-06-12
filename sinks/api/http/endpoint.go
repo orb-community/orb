@@ -138,6 +138,7 @@ func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 		if req.Tags != nil {
 			currentSink.Tags = req.Tags
 		}
+
 		if req.Format != "" {
 			currentSink.Format = req.Format
 		}
