@@ -49,6 +49,7 @@ import { AgentGroupAddComponent } from 'app/pages/fleet/groups/add/agent.group.a
 import { AgentGroupDeleteComponent } from 'app/pages/fleet/groups/delete/agent.group.delete.component';
 import { AgentGroupDetailsComponent } from 'app/pages/fleet/groups/details/agent.group.details.component';
 import { AgentGroupListComponent } from 'app/pages/fleet/groups/list/agent.group.list.component';
+import { AgentResetComponent } from 'app/pages/fleet/agents/reset/agent.reset.component';
 import { ShowcaseComponent } from 'app/pages/showcase/showcase.component';
 import { SinkAddComponent } from 'app/pages/sinks/add/sink-add.component';
 import { SinkDeleteComponent } from 'app/pages/sinks/delete/sink.delete.component';
@@ -124,6 +125,7 @@ import { SinkViewComponent } from './sinks/view/sink.view.component';
     AgentListComponent,
     AgentAddComponent,
     AgentDeleteComponent,
+    AgentResetComponent,
     AgentDetailsComponent,
     AgentKeyComponent,
     AgentMatchComponent,
