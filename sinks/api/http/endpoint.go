@@ -133,13 +133,12 @@ func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			svc.GetLogger().Error("error validating request", zap.Error(err))
 			return nil, err
 		}
+
 		// Update only the fields in currentSink that are populated in req
 		if req.Tags != nil {
 			currentSink.Tags = req.Tags
 		}
-		if req.ConfigData != "" {
-			currentSink.ConfigData = req.ConfigData
-		}
+
 		if req.Format != "" {
 			currentSink.Format = req.Format
 		}
@@ -173,16 +172,25 @@ func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 					return nil, errors.Wrap(errors.ErrMalformedEntity, err)
 				}
 			}
-
-			currentSink.Config = types.Metadata{
-				"exporter":                            exporterConfig,
-				authentication_type.AuthenticationKey: authConfig,
+		} else {
+			if currentSink.Format == "yaml" {
+				configSvc, exporterConfig, authConfig, err = GetConfigurationAndMetadataFromYaml(currentSink.Backend, currentSink.ConfigData)
+				if err != nil {
+					svc.GetLogger().Error("got error in parse and validate configuration", zap.Error(err))
+					return nil, errors.Wrap(errors.ErrMalformedEntity, err)
+				}
+			} else {
+				configSvc, exporterConfig, authConfig, err = GetConfigurationAndMetadataFromMeta(currentSink.Backend, currentSink.Config)
+				if err != nil {
+					svc.GetLogger().Error("got error in parse and validate configuration", zap.Error(err))
+					return nil, errors.Wrap(errors.ErrMalformedEntity, err)
+				}
 			}
 		}
 
-		if err := req.validate(); err != nil {
-			svc.GetLogger().Error("error validating request", zap.Error(err))
-			return nil, err
+		currentSink.Config = types.Metadata{
+			"exporter":                            exporterConfig,
+			authentication_type.AuthenticationKey: authConfig,
 		}
 
 		sinkEdited, err := svc.UpdateSink(ctx, req.token, currentSink)
