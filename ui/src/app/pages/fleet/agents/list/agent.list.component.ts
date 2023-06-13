@@ -30,6 +30,7 @@ import { AgentDeleteComponent } from 'app/pages/fleet/agents/delete/agent.delete
 import { AgentDetailsComponent } from 'app/pages/fleet/agents/details/agent.details.component';
 import { STRINGS } from 'assets/text/strings';
 import { Observable } from 'rxjs';
+import { AgentResetComponent } from '../reset/agent.reset.component';
 
 @Component({
   selector: 'ngx-agent-list-component',
@@ -45,6 +46,12 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
 
   loading = false;
 
+  selected: any[] = [];
+
+  canResetAgents: boolean;
+
+  isResetting: boolean;
+
   // templates
   @ViewChild('agentNameTemplateCell') agentNameTemplateCell: TemplateRef<any>;
 
@@ -55,6 +62,8 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
   @ViewChild('agentPolicyStateTemplateCell') agentPolicyStateTemplateRef: TemplateRef<any>;
 
   @ViewChild('actionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
+
+  @ViewChild('checkboxTemplateCell') checkboxTemplateCell: TemplateRef<any>;
 
   @ViewChild('agentLastActivityTemplateCell')
   agentLastActivityTemplateCell: TemplateRef<any>;
@@ -84,7 +93,11 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
     private router: Router,
     private orb: OrbService,
     private filters: FilterService,
+    protected agentsService: AgentsService,
+    protected notificationService: NotificationsService,
   ) {
+    this.isResetting = false;
+    this.selected = [];
     this.agents$ = this.orb.getAgentListView();
     this.columns = [];
 
@@ -148,6 +161,15 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
     this.orb.refreshNow();
     this.columns = [
       {
+        name: '',
+        prop: 'checkbox',
+        flexGrow: 1,
+        minWidth: 62,
+        canAutoResize: true,
+        sortable: false,
+        cellTemplate: this.checkboxTemplateCell,
+      },
+      {
         prop: 'name',
         flexGrow: 4,
         canAutoResize: true,
@@ -188,7 +210,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
       },
       {
         prop: 'ts_last_hb',
-        flexGrow: 2,
+        flexGrow: 3,
         minWidth: 150,
         canAutoResize: true,
         name: 'Last Activity',
@@ -205,6 +227,53 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
         cellTemplate: this.actionsTemplateCell,
       },
     ];
+  }
+
+
+  public onCheckboxChange(event: any, row: any): void { 
+    let selectedAgent = {
+      id: "",
+      resetable: true,
+    }
+    if (this.getChecked(row) === false) {
+      let resetable = true;
+      if (row.state === 'new' || row.state === 'offline') {
+        resetable = false;
+      }
+      selectedAgent.id = row.id;
+      selectedAgent.resetable = resetable;
+      this.selected.push(selectedAgent);
+    } else {
+      for (let i = 0; i < this.selected.length; i++) {
+        if (this.selected[i].id === row.id) {
+          this.selected.splice(i, 1);
+          break;
+        }
+      }
+    }
+    const reset = this.selected.filter((e) => e.resetable === false);
+    this.canResetAgents = reset.length > 0 ? true : false;
+  }
+
+
+
+  public getChecked(row: any): boolean {
+    const item = this.selected.filter((e) => e.id === row.id);
+    return item.length > 0 ? true : false;
+  }
+
+  resetAgents() {
+    if (!this.isResetting) {
+      this.isResetting = true;
+      this.selected.forEach((agent) => {
+        this.agentService.resetAgent(agent.id).subscribe();
+      })
+      this.notifyResetSuccess();
+      this.isResetting = false;
+    }
+  }
+  notifyResetSuccess() {
+    this.notificationService.success('All Agents Resets Requested', '');
   }
 
   onOpenView(agent: any) {
@@ -242,6 +311,22 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
           });
         }
       });
+  }
+
+  onOpenResetAgents() {
+    const size = this.selected.length;
+    this.dialogService
+      .open(AgentResetComponent, {
+        context: { size },
+        autoFocus: true,
+        closeOnEsc: true,
+      })
+      .onClose.subscribe((confirm) => {
+        if (confirm) {
+          this.resetAgents();
+          this.orb.refreshNow();
+        }
+      })
   }
 
   openDetailsModal(row: any) {
