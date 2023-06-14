@@ -245,7 +245,7 @@ export class AgentPolicyListComponent
       {
         name: '',
         prop: 'actions',
-        minWidth: 150,
+        minWidth: 200,
         resizeable: false,
         sortable: false,
         flexGrow: 1,
