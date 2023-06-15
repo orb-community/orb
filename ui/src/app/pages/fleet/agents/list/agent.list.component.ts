@@ -31,6 +31,7 @@ import { AgentDetailsComponent } from 'app/pages/fleet/agents/details/agent.deta
 import { DeleteSelectedComponent } from 'app/shared/components/delete/delete.selected.component';
 import { STRINGS } from 'assets/text/strings';
 import { Observable } from 'rxjs';
+import { map, tap } from 'rxjs/operators';
 import { AgentResetComponent } from '../reset/agent.reset.component';
 
 @Component({
@@ -69,6 +70,8 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
   @ViewChild('agentLastActivityTemplateCell')
   agentLastActivityTemplateCell: TemplateRef<any>;
 
+  @ViewChild('agentVersionTemplateCell') agentVersionTemplateCell: TemplateRef<any>;
+
   tableSorts = [
     {
       prop: 'name',
@@ -99,7 +102,23 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
   ) {
     this.isResetting = false;
     this.selected = [];
-    this.agents$ = this.orb.getAgentListView();
+    this.agents$ = this.orb.getAgentListView().pipe(
+      map(agents => {
+        return agents.map(agent => {
+          let version: string;
+          if (agent.state !== 'new') {
+            version = agent.agent_metadata.orb_agent.version;
+          } else {
+            version = '-';
+          }
+          return {
+            ...agent,
+            version,
+          };
+        });
+      })
+    );
+
     this.columns = [];
 
     this.filters$ = this.filters.getFilters();
@@ -172,7 +191,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
       },
       {
         prop: 'name',
-        flexGrow: 4,
+        flexGrow: 5,
         canAutoResize: true,
         minWidth: 150,
         name: 'Name',
@@ -208,6 +227,15 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
                 .map(([key, value]) => `${key}:${value}`)
                 .join(','),
             ),
+      },
+      {
+        prop: 'version',
+        flexGrow: 5,
+        minWidth: 150,
+        canAutoResize: true,
+        name: 'Version',
+        sortable: false,
+        cellTemplate: this.agentVersionTemplateCell,
       },
       {
         prop: 'ts_last_hb',
