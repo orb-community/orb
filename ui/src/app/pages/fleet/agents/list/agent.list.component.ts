@@ -28,6 +28,7 @@ import { NotificationsService } from 'app/common/services/notifications/notifica
 import { OrbService } from 'app/common/services/orb.service';
 import { AgentDeleteComponent } from 'app/pages/fleet/agents/delete/agent.delete.component';
 import { AgentDetailsComponent } from 'app/pages/fleet/agents/details/agent.details.component';
+import { DeleteSelectedComponent } from 'app/shared/components/delete/delete.selected.component';
 import { STRINGS } from 'assets/text/strings';
 import { Observable } from 'rxjs';
 import { AgentResetComponent } from '../reset/agent.reset.component';
@@ -179,7 +180,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
       },
       {
         prop: 'state',
-        flexGrow: 2,
+        flexGrow: 3,
         canAutoResize: true,
         name: 'Status',
         cellTemplate: this.agentStateTemplateRef,
@@ -194,7 +195,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
       },
       {
         prop: 'combined_tags',
-        flexGrow: 9,
+        flexGrow: 10,
         canAutoResize: true,
         name: 'Tags',
         cellTemplate: this.agentTagsTemplateCell,
@@ -210,7 +211,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
       },
       {
         prop: 'ts_last_hb',
-        flexGrow: 3,
+        flexGrow: 4,
         minWidth: 150,
         canAutoResize: true,
         name: 'Last Activity',
@@ -220,7 +221,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
       {
         name: '',
         prop: 'actions',
-        flexGrow: 3,
+        flexGrow: 2.5,
         minWidth: 150,
         canAutoResize: true,
         sortable: false,
@@ -262,16 +263,6 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
     return item.length > 0 ? true : false;
   }
 
-  resetAgents() {
-    if (!this.isResetting) {
-      this.isResetting = true;
-      this.selected.forEach((agent) => {
-        this.agentService.resetAgent(agent.id).subscribe();
-      })
-      this.notifyResetSuccess();
-      this.isResetting = false;
-    }
-  }
   notifyResetSuccess() {
     this.notificationService.success('All Agents Resets Requested', '');
   }
@@ -312,6 +303,29 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
         }
       });
   }
+  onOpenDeleteSelected() {
+    const size = this.selected.length;
+    const elementName = "Agents"
+    this.dialogService
+      .open(DeleteSelectedComponent, {
+        context: { size, elementName },
+        autoFocus: true,
+        closeOnEsc: true,
+      })
+      .onClose.subscribe((confirm) => {
+        if (confirm) {
+          this.deleteSelectedAgents();
+          this.orb.refreshNow();
+        }
+      });
+  }
+
+  deleteSelectedAgents() {
+    this.selected.forEach((agent) => {
+      this.agentService.deleteAgent(agent.id).subscribe();
+    })
+    this.notificationsService.success('All selected Agents delete requests succeeded', '');
+  }
 
   onOpenResetAgents() {
     const size = this.selected.length;
@@ -328,7 +342,16 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
         }
       })
   }
-
+  resetAgents() {
+    if (!this.isResetting) {
+      this.isResetting = true;
+      this.selected.forEach((agent) => {
+        this.agentService.resetAgent(agent.id).subscribe();
+      })
+      this.notifyResetSuccess();
+      this.isResetting = false;
+    }
+  }
   openDetailsModal(row: any) {
     this.dialogService
       .open(AgentDetailsComponent, {

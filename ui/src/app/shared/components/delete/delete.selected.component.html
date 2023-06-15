@@ -1,0 +1,34 @@
+<nb-card>
+  <nb-card-header>
+    Delete {{ elementName }} Confirmation
+    <button nbButton
+            ghost="true"
+            size="small"
+            class="orb-close-dialog align-content-end"
+            (click)="onClose()">
+      <span class="nb-close"></span>
+    </button>
+  </nb-card-header>
+  <nb-card-body>
+    <p>Are you sure you want to delete a total of {{ size }} {{ elementName }}? This action cannot be undone.</p>
+    <p class="ns1-red">*To confirm, type the amount of {{ elementName }} to be delete.</p>
+    <input type="text"
+           #autoInput
+           [nbAutocomplete]="auto"
+           nbInput
+           fullWidth
+           placeholder="{{size}}" [(ngModel)]="validationInput">
+    <nb-autocomplete #auto >
+      <nb-option [value]="size"> {{size}}</nb-option>
+    </nb-autocomplete>
+  </nb-card-body>
+  <nb-card-footer>
+    <button nbButton
+            shape="round"
+            class="orb-sink-delete-warning-button"
+            [disabled]="!isEnabled()"
+            (click)="onDelete()">
+            I Understand, Delete All {{ size }} {{ elementName }} Selected.
+    </button>
+  </nb-card-footer>
+</nb-card>

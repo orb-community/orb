@@ -29,6 +29,7 @@ import { OrbService } from 'app/common/services/orb.service';
 import { AgentMatchComponent } from 'app/pages/fleet/agents/match/agent.match.component';
 import { AgentGroupDeleteComponent } from 'app/pages/fleet/groups/delete/agent.group.delete.component';
 import { AgentGroupDetailsComponent } from 'app/pages/fleet/groups/details/agent.group.details.component';
+import { DeleteSelectedComponent } from 'app/shared/components/delete/delete.selected.component';
 import { STRINGS } from 'assets/text/strings';
 import { Observable } from 'rxjs';
 
@@ -49,6 +50,8 @@ export class AgentGroupListComponent
 
   searchPlaceholder = 'Search by name';
 
+  selected: any[] = [];
+
   // templates
   @ViewChild('agentGroupNameTemplateCell')
   agentGroupNameTemplateCell: TemplateRef<any>;
@@ -60,6 +63,8 @@ export class AgentGroupListComponent
   agentGroupTagsTemplateCell: TemplateRef<any>;
 
   @ViewChild('actionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
+
+  @ViewChild('checkboxTemplateCell') checkboxTemplateCell: TemplateRef<any>;
 
   filterValue = null;
 
@@ -91,6 +96,8 @@ export class AgentGroupListComponent
     private orb: OrbService,
     private filters: FilterService,
   ) {
+    this.selected = [];
+
     this.groups$ = this.orb.getGroupListView();
 
     this.filters$ = this.filters.getFilters();
@@ -152,9 +159,18 @@ export class AgentGroupListComponent
     this.orb.refreshNow();
     this.columns = [
       {
+        name: '',
+        prop: 'checkbox',
+        flexGrow: 0.5,
+        minWidth: 62,
+        canAutoResize: true,
+        sortable: false,
+        cellTemplate: this.checkboxTemplateCell,
+      },
+      {
         prop: 'name',
         name: 'Name',
-        flexGrow: 1,
+        flexGrow: 4,
         canAutoResize: true,
         resizeable: false,
         minWidth: 150,
@@ -163,7 +179,7 @@ export class AgentGroupListComponent
       {
         prop: 'description',
         name: 'Description',
-        flexGrow: 2,
+        flexGrow: 6,
         canAutoResize: true,
         resizeable: false,
         minWidth: 180,
@@ -172,7 +188,7 @@ export class AgentGroupListComponent
       {
         prop: 'matching_agents',
         name: 'Agents',
-        flexGrow: 1,
+        flexGrow: 3,
         canAutoResize: true,
         resizeable: false,
         minWidth: 80,
@@ -182,7 +198,7 @@ export class AgentGroupListComponent
       {
         prop: 'tags',
         name: 'Tags',
-        flexGrow: 3,
+        flexGrow: 10,
         canAutoResize: true,
         resizeable: false,
         cellTemplate: this.agentGroupTagsTemplateCell,
@@ -199,8 +215,8 @@ export class AgentGroupListComponent
       {
         name: '',
         prop: 'actions',
-        flexGrow: 2,
-        canAutoResize: true,
+        flexGrow: 2.5,
+        resizeable: false,
         minWidth: 150,
         sortable: false,
         cellTemplate: this.actionsTemplateCell,
@@ -241,7 +257,29 @@ export class AgentGroupListComponent
         }
       });
   }
+  onOpenDeleteSelected() {
+    const size = this.selected.length;
+    const elementName = "Agent Groups"
+    this.dialogService
+      .open(DeleteSelectedComponent, {
+        context: { size, elementName },
+        autoFocus: true,
+        closeOnEsc: true,
+      })
+      .onClose.subscribe((confirm) => {
+        if (confirm) {
+          this.deleteSelectedAgentGroups();
+          this.orb.refreshNow();
+        }
+      });
+  }
 
+  deleteSelectedAgentGroups() {
+    this.selected.forEach((groupId) => {
+      this.agentGroupsService.deleteAgentGroup(groupId).subscribe();
+    })
+    this.notificationsService.success('All selected Groups delete requests succeeded', '');
+  }
   openDetailsModal(row: any) {
     this.dialogService
       .open(AgentGroupDetailsComponent, {
@@ -262,5 +300,24 @@ export class AgentGroupListComponent
       autoFocus: true,
       closeOnEsc: true,
     });
+  }
+  public onCheckboxChange(event: any, row: any): void { 
+
+    if (this.getChecked(row) === false) {
+      this.selected.push(row.id);
+    } 
+    else {
+      for (let i = 0; i < this.selected.length; i++) {
+        if (this.selected[i] === row.id) {
+          this.selected.splice(i, 1);
+          break;
+        }
+      }
+    }
+  }
+
+  public getChecked(row: any): boolean {
+    const item = this.selected.filter((e) => e === row.id);
+    return item.length > 0 ? true : false;
   }
 }

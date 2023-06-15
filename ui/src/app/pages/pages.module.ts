@@ -70,6 +70,7 @@ import { AgentViewComponent } from './fleet/agents/view/agent.view.component';
 import { PagesRoutingModule } from './pages-routing.module';
 import { PagesComponent } from './pages.component';
 import { SinkViewComponent } from './sinks/view/sink.view.component';
+import { DeleteSelectedComponent } from 'app/shared/components/delete/delete.selected.component';
 
 @NgModule({
   imports: [
@@ -156,6 +157,8 @@ import { SinkViewComponent } from './sinks/view/sink.view.component';
     SinkViewComponent,
     // DEV SHOWCASE
     ShowcaseComponent,
+    // Delete Selected
+    DeleteSelectedComponent,
   ],
   providers: [NbDialogService, NbWindowService, SortPipe],
   entryComponents: [ConfirmationComponent],
