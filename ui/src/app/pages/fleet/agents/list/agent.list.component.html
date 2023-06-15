@@ -15,8 +15,15 @@
   </div>
 </header>
 <div #tableWrapper class="tableWrapper">
-  <div class="agent-options">
+  <div class="options">
     <ngx-filter [availableFilters]="filterOptions"></ngx-filter>
+    <button (click)="onOpenDeleteSelected()"
+      *ngIf="selected.length > 0"
+      class="delete-selected"
+      nbButton
+      shape="round">
+      Delete
+    </button>
     <button (click)="onOpenResetAgents()"      
       class="agent-reset"
       data-orb-qa-id="button#reset"

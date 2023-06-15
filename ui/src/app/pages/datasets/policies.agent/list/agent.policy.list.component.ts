@@ -27,6 +27,7 @@ import { FilterService } from 'app/common/services/filter.service';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { OrbService } from 'app/common/services/orb.service';
 import { AgentPolicyDeleteComponent } from 'app/pages/datasets/policies.agent/delete/agent.policy.delete.component';
+import { DeleteSelectedComponent } from 'app/shared/components/delete/delete.selected.component';
 import { combineLatest, Observable } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
 import { STRINGS } from '../../../../../assets/text/strings';
@@ -47,6 +48,8 @@ export class AgentPolicyListComponent
 
   loading = false;
 
+  selected: any[] = [];
+
   @ViewChild('nameTemplateCell') nameTemplateCell: TemplateRef<any>;
 
   @ViewChild('versionTemplateCell') versionTemplateCell: TemplateRef<any>;
@@ -54,6 +57,8 @@ export class AgentPolicyListComponent
   @ViewChild('actionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
 
   @ViewChild('usageStateTemplateCell') usageStateTemplateCell: TemplateRef<any>;
+
+  @ViewChild('checkboxTemplateCell') checkboxTemplateCell: TemplateRef<any>;
 
   tableSorts = [
     {
@@ -181,11 +186,20 @@ export class AgentPolicyListComponent
     this.orb.refreshNow();
     this.columns = [
       {
+        name: '',
+        prop: 'checkbox',
+        flexGrow: 0.5,
+        minWidth: 62,
+        canAutoResize: true,
+        sortable: false,
+        cellTemplate: this.checkboxTemplateCell,
+      },
+      {
         prop: 'name',
         name: 'Policy Name',
         resizeable: false,
         canAutoResize: true,
-        flexGrow: 1.5,
+        flexGrow: 4,
         minWidth: 100,
         cellTemplate: this.nameTemplateCell,
       },
@@ -194,7 +208,7 @@ export class AgentPolicyListComponent
         name: 'Usage',
         resizeable: false,
         canAutoResize: true,
-        flexGrow: 1,
+        flexGrow: 3,
         minWidth: 100,
         cellTemplate: this.usageStateTemplateCell,
       },
@@ -202,13 +216,13 @@ export class AgentPolicyListComponent
         prop: 'description',
         name: 'Description',
         resizeable: false,
-        flexGrow: 1,
+        flexGrow: 4,
         minWidth: 100,
         cellTemplate: this.nameTemplateCell,
       },
       {
         prop: 'tags',
-        flexGrow: 1,
+        flexGrow: 3,
         canAutoResize: true,
         name: 'Tags',
         minWidth: 150,
@@ -227,7 +241,7 @@ export class AgentPolicyListComponent
         prop: 'version',
         name: 'Version',
         resizeable: false,
-        flexGrow: 1,
+        flexGrow: 2,
         minWidth: 50,
         cellTemplate: this.versionTemplateCell,
       },
@@ -239,7 +253,7 @@ export class AgentPolicyListComponent
         },
         name: 'Last Modified',
         minWidth: 110,
-        flexGrow: 1,
+        flexGrow: 3,
         resizeable: false,
       },
       {
@@ -248,7 +262,7 @@ export class AgentPolicyListComponent
         minWidth: 200,
         resizeable: false,
         sortable: false,
-        flexGrow: 1,
+        flexGrow: 2,
         cellTemplate: this.actionsTemplateCell,
       },
     ];
@@ -295,4 +309,48 @@ export class AgentPolicyListComponent
         }
       });
   }
+  onOpenDeleteSelected() {
+    const size = this.selected.length;
+    const elementName = "Policies"
+    this.dialogService
+      .open(DeleteSelectedComponent, {
+        context: { size, elementName },
+        autoFocus: true,
+        closeOnEsc: true,
+      })
+      .onClose.subscribe((confirm) => {
+        if (confirm) {
+          this.deleteSelectedAgentsPolicy();
+          this.orb.refreshNow();
+        }
+      });
+  }
+
+  deleteSelectedAgentsPolicy() {
+    this.selected.forEach((policyId) => {
+      this.agentPoliciesService.deleteAgentPolicy(policyId).subscribe();
+    })
+    this.notificationsService.success('All selected Policies delete requests succeeded', '');
+  }
+  public onCheckboxChange(event: any, row: any): void { 
+
+    if (this.getChecked(row) === false) {
+      this.selected.push(row.id);
+    } 
+    else {
+      for (let i = 0; i < this.selected.length; i++) {
+        if (this.selected[i] === row.id) {
+          this.selected.splice(i, 1);
+          break;
+        }
+      }
+    }
+    console.log(this.selected);
+  }
+
+  public getChecked(row: any): boolean {
+    const item = this.selected.filter((e) => e === row.id);
+    return item.length > 0 ? true : false;
+  }
 }
+
