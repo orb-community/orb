@@ -263,11 +263,11 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
       });
   }
   onOpenDeleteSelected() {
-    const size = this.selected.length;
+    const selected = this.selected;
     const elementName = "Sinks"
     this.dialogService
       .open(DeleteSelectedComponent, {
-        context: { size, elementName },
+        context: { selected, elementName },
         autoFocus: true,
         closeOnEsc: true,
       })
@@ -280,8 +280,8 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
   }
 
   deleteSelectedSinks() {
-    this.selected.forEach((sinkId) => {
-      this.sinkService.deleteSink(sinkId).subscribe();
+    this.selected.forEach((sink) => {
+      this.sinkService.deleteSink(sink.id).subscribe();
     })
     this.notificationsService.success('All selected Sinks delete requests succeeded', '');
   }
@@ -302,22 +302,27 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
   filterByInactive = (sink) => sink.state === 'inactive';
 
   public onCheckboxChange(event: any, row: any): void { 
-
+    const sinkSelected = {
+      id: row.id,
+      name: row.name,
+      state: row.state,
+    }
     if (this.getChecked(row) === false) {
-      this.selected.push(row.id);
+      this.selected.push(sinkSelected);
     } 
     else {
       for (let i = 0; i < this.selected.length; i++) {
-        if (this.selected[i] === row.id) {
+        if (this.selected[i].id === row.id) {
           this.selected.splice(i, 1);
           break;
         }
       }
     }
+    console.log(this.selected);
   }
 
   public getChecked(row: any): boolean {
-    const item = this.selected.filter((e) => e === row.id);
+    const item = this.selected.filter((e) => e.id === row.id);
     return item.length > 0 ? true : false;
   }
 }

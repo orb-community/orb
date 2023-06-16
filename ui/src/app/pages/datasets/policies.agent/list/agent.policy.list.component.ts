@@ -310,11 +310,11 @@ export class AgentPolicyListComponent
       });
   }
   onOpenDeleteSelected() {
-    const size = this.selected.length;
     const elementName = "Policies"
+    const selected = this.selected;
     this.dialogService
       .open(DeleteSelectedComponent, {
-        context: { size, elementName },
+        context: { selected, elementName },
         autoFocus: true,
         closeOnEsc: true,
       })
@@ -327,19 +327,23 @@ export class AgentPolicyListComponent
   }
 
   deleteSelectedAgentsPolicy() {
-    this.selected.forEach((policyId) => {
-      this.agentPoliciesService.deleteAgentPolicy(policyId).subscribe();
+    this.selected.forEach((policy) => {
+      this.agentPoliciesService.deleteAgentPolicy(policy.id).subscribe();
     })
     this.notificationsService.success('All selected Policies delete requests succeeded', '');
   }
   public onCheckboxChange(event: any, row: any): void { 
-
+    const policySelected = {
+      id: row.id,
+      name: row.name,
+      usage: row.policy_usage,
+    }
     if (this.getChecked(row) === false) {
-      this.selected.push(row.id);
+      this.selected.push(policySelected);
     } 
     else {
       for (let i = 0; i < this.selected.length; i++) {
-        if (this.selected[i] === row.id) {
+        if (this.selected[i].id === row.id) {
           this.selected.splice(i, 1);
           break;
         }
@@ -349,7 +353,7 @@ export class AgentPolicyListComponent
   }
 
   public getChecked(row: any): boolean {
-    const item = this.selected.filter((e) => e === row.id);
+    const item = this.selected.filter((e) => e.id === row.id);
     return item.length > 0 ? true : false;
   }
 }
