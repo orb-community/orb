@@ -8,6 +8,10 @@ import (
 	"net/url"
 )
 
+var invalidCustomHeaders = []string{
+	"Content-Encoding", "Content-Type", "X-Prometheus-Remote-Write-Version", "User-Agent",
+}
+
 func (p *Backend) ConfigToFormat(format string, metadata types.Metadata) (string, error) {
 	if format == "yaml" {
 		remoteHost := metadata[RemoteHostURLConfigFeature].(string)
@@ -49,6 +53,16 @@ func (p *Backend) ValidateConfiguration(config types.Metadata) error {
 	_, err := url.ParseRequestURI(remoteUrl.(string))
 	if err != nil {
 		return errors.New("must send valid URL for Remote Write")
+	}
+	// check for custom http headers
+	customHeaders, customHeadersOk := config[CustomHeadersConfigFeature]
+	if customHeadersOk {
+		headersAsMap := customHeaders.(map[string]interface{})
+		for _, header := range invalidCustomHeaders {
+			if _, ok := headersAsMap[header]; !ok {
+				return errors.New("invalid custom headers")
+			}
+		}
 	}
 	return nil
 }

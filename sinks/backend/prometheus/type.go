@@ -13,6 +13,7 @@ var _ backend.Backend = (*Backend)(nil)
 const (
 	RemoteHostURLConfigFeature = "remote_host"
 	ApiTokenConfigFeature      = "api_token"
+	CustomHeadersConfigFeature = "custom_headers"
 )
 
 //type PrometheusConfigMetadata = types.Metadata
