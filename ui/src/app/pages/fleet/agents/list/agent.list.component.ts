@@ -151,6 +151,12 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
         type: FilterTypes.MultiSelect,
         options: Object.values(AgentPolicyAggStates).map((value) => value as string),
       },
+      {
+        name: 'Version',
+        prop: 'version',
+        filter: filterString,
+        type: FilterTypes.Input,
+      },
     ];
 
     this.filteredAgents$ = this.filters.createFilteredList()(
