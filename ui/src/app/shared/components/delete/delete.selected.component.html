@@ -10,16 +10,19 @@
     </button>
   </nb-card-header>
   <nb-card-body>
-    <p>Are you sure you want to delete a total of {{ size }} {{ elementName }}? This action cannot be undone.</p>
-    <p class="ns1-red">*To confirm, type the amount of {{ elementName }} to be delete.</p>
+    <p>Are you sure you want to delete a total of {{ selected?.length }} {{ elementName }}? This action cannot be undone.</p>
+    <div *ngFor="let item of selected">
+      {{ item.name }} <span class="orb-service-{{ item.state }} orb-service-{{ item.usage }}"> {{ item.state }} {{ item.usage }} </span>
+    </div>
+    <p class style="color: #df316f; margin-top: 15px;">*To confirm, type the amount of {{ elementName }} to be delete.</p>
     <input type="text"
            #autoInput
            [nbAutocomplete]="auto"
            nbInput
            fullWidth
-           placeholder="{{size}}" [(ngModel)]="validationInput">
+           placeholder="{{selected?.length }}" [(ngModel)]="validationInput">
     <nb-autocomplete #auto >
-      <nb-option [value]="size"> {{size}}</nb-option>
+      <nb-option [value]="selected?.length "> {{selected?.length}}</nb-option>
     </nb-autocomplete>
   </nb-card-body>
   <nb-card-footer>
@@ -28,7 +31,7 @@
             class="orb-sink-delete-warning-button"
             [disabled]="!isEnabled()"
             (click)="onDelete()">
-            I Understand, Delete All {{ size }} {{ elementName }} Selected.
+            I Understand, Delete All {{ selected?.length }} {{ elementName }} Selected.
     </button>
   </nb-card-footer>
 </nb-card>

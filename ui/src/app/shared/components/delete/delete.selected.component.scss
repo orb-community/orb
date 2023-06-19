@@ -14,9 +14,7 @@ nb-card {
         color: #969fb9;
       }
     
-      .ns1-red {
-        color: #df316f;
-      }
+
     }
     
     nb-card-footer {
@@ -46,6 +44,23 @@ nb-card {
       color: #ffffff !important;
     }
   }
-  .ns1red {
-    color: #df316f;
+  .orb-service- {
+    &new {
+      color: #9b51e0;
+    }
+    &online, &healthy, &in, &active {
+      color: #6fcf97;
+    }
+    &stale, &none, &unknown, &not {
+      color: #f2994a;
+    }
+    &error, &failure {
+      color: #df316f;
+    }
+    &offline {
+      color: #969fb9;
+    }
+    &warning {
+      color: #f2dc4a; 
+    }
   }

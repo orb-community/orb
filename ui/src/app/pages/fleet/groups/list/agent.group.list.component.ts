@@ -258,11 +258,11 @@ export class AgentGroupListComponent
       });
   }
   onOpenDeleteSelected() {
-    const size = this.selected.length;
+    const selected = this.selected;
     const elementName = "Agent Groups"
     this.dialogService
       .open(DeleteSelectedComponent, {
-        context: { size, elementName },
+        context: { selected, elementName },
         autoFocus: true,
         closeOnEsc: true,
       })
@@ -275,8 +275,8 @@ export class AgentGroupListComponent
   }
 
   deleteSelectedAgentGroups() {
-    this.selected.forEach((groupId) => {
-      this.agentGroupsService.deleteAgentGroup(groupId).subscribe();
+    this.selected.forEach((group) => {
+      this.agentGroupsService.deleteAgentGroup(group.id).subscribe();
     })
     this.notificationsService.success('All selected Groups delete requests succeeded', '');
   }
@@ -302,22 +302,26 @@ export class AgentGroupListComponent
     });
   }
   public onCheckboxChange(event: any, row: any): void { 
-
+    let selectedGroup = {
+      id: row.id,
+      name: row.name,
+    }
     if (this.getChecked(row) === false) {
-      this.selected.push(row.id);
+      this.selected.push(selectedGroup);
     } 
     else {
       for (let i = 0; i < this.selected.length; i++) {
-        if (this.selected[i] === row.id) {
+        if (this.selected[i].id === row.id) {
           this.selected.splice(i, 1);
           break;
         }
       }
     }
+    console.log(this.selected);
   }
 
   public getChecked(row: any): boolean {
-    const item = this.selected.filter((e) => e === row.id);
+    const item = this.selected.filter((e) => e.id === row.id);
     return item.length > 0 ? true : false;
   }
 }

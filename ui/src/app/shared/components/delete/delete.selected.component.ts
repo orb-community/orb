@@ -10,7 +10,7 @@ import { STRINGS } from 'assets/text/strings';
 
 export class DeleteSelectedComponent {
   strings = STRINGS.agents;
-  @Input() size: Number;
+  @Input() selected: any[] = [];
   @Input() elementName: String;
 
   validationInput: Number;
@@ -29,6 +29,6 @@ export class DeleteSelectedComponent {
   }
 
   isEnabled(): boolean {
-    return this.validationInput === this.size;
+    return this.validationInput === this.selected.length;
   }
 }

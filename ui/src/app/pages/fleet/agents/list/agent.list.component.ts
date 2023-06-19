@@ -261,15 +261,16 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
 
   public onCheckboxChange(event: any, row: any): void { 
     let selectedAgent = {
-      id: "",
+      id: row.id,
       resetable: true,
+      name: row.name,
+      state: row.state,
     }
     if (this.getChecked(row) === false) {
       let resetable = true;
       if (row.state === 'new' || row.state === 'offline') {
         resetable = false;
       }
-      selectedAgent.id = row.id;
       selectedAgent.resetable = resetable;
       this.selected.push(selectedAgent);
     } else {
@@ -282,6 +283,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
     }
     const reset = this.selected.filter((e) => e.resetable === false);
     this.canResetAgents = reset.length > 0 ? true : false;
+    console.log(this.selected);
   }
 
 
@@ -332,11 +334,11 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
       });
   }
   onOpenDeleteSelected() {
-    const size = this.selected.length;
+    const selected = this.selected;
     const elementName = "Agents"
     this.dialogService
       .open(DeleteSelectedComponent, {
-        context: { size, elementName },
+        context: { selected, elementName },
         autoFocus: true,
         closeOnEsc: true,
       })
