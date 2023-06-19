@@ -283,7 +283,6 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
     }
     const reset = this.selected.filter((e) => e.resetable === false);
     this.canResetAgents = reset.length > 0 ? true : false;
-    console.log(this.selected);
   }
 
 
@@ -345,6 +344,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
       .onClose.subscribe((confirm) => {
         if (confirm) {
           this.deleteSelectedAgents();
+          this.selected = [];
           this.orb.refreshNow();
         }
       });
@@ -379,6 +379,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
         this.agentService.resetAgent(agent.id).subscribe();
       })
       this.notifyResetSuccess();
+      this.selected = [];
       this.isResetting = false;
     }
   }
