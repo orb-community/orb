@@ -31,7 +31,7 @@ import { AgentGroupDeleteComponent } from 'app/pages/fleet/groups/delete/agent.g
 import { AgentGroupDetailsComponent } from 'app/pages/fleet/groups/details/agent.group.details.component';
 import { DeleteSelectedComponent } from 'app/shared/components/delete/delete.selected.component';
 import { STRINGS } from 'assets/text/strings';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 
 @Component({
   selector: 'ngx-agent-group-list-component',
@@ -52,6 +52,8 @@ export class AgentGroupListComponent
 
   selected: any[] = [];
 
+  private groupsSubscription: Subscription;
+
   // templates
   @ViewChild('agentGroupNameTemplateCell')
   agentGroupNameTemplateCell: TemplateRef<any>;
@@ -65,6 +67,8 @@ export class AgentGroupListComponent
   @ViewChild('actionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
 
   @ViewChild('checkboxTemplateCell') checkboxTemplateCell: TemplateRef<any>;
+
+  @ViewChild('checkboxTemplateHeader') checkboxTemplateHeader: TemplateRef<any>;
 
   filterValue = null;
 
@@ -139,6 +143,9 @@ export class AgentGroupListComponent
   }
 
   ngOnDestroy(): void {
+    if (this.groupsSubscription) {
+      this.groupsSubscription.unsubscribe();
+    }
     this.orb.killPolling.next();
   }
 
@@ -166,6 +173,7 @@ export class AgentGroupListComponent
         canAutoResize: true,
         sortable: false,
         cellTemplate: this.checkboxTemplateCell,
+        headerTemplate: this.checkboxTemplateHeader,
       },
       {
         prop: 'name',
@@ -317,11 +325,30 @@ export class AgentGroupListComponent
         }
       }
     }
-    console.log(this.selected);
   }
 
   public getChecked(row: any): boolean {
     const item = this.selected.filter((e) => e.id === row.id);
     return item.length > 0 ? true : false;
+  }
+
+  onHeaderCheckboxChange(event: any) {
+    if (event.target.checked && this.filteredGroups$) {
+      this.groupsSubscription = this.filteredGroups$.subscribe(rows => {
+        this.selected = [];
+        rows.forEach(row => {
+          const policySelected = {
+            id: row.id,
+            name: row.name,
+          }
+          this.selected.push(policySelected);
+        });
+      });
+    } else {
+      if (this.groupsSubscription) {
+        this.groupsSubscription.unsubscribe();
+      }
+      this.selected = [];
+    }
   }
 }
