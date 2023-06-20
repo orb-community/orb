@@ -18,12 +18,18 @@ var idProvider = uuid.New()
 
 func TestSinkerConfigSave(t *testing.T) {
 	sinkerCache := redis.NewSinkerCache(redisClient, logger)
+	authentication := config2.Authentication{
+		Username: "user",
+		Password: "password",
+	}
+	exporter := config2.Exporter{
+		RemoteHost: "localhost",
+	}
 	config := config2.SinkConfig{
 		SinkID:          "123",
 		OwnerID:         "test",
-		Url:             "localhost",
-		User:            "user",
-		Password:        "password",
+		Exporter:        exporter,
+		Authentication:  authentication,
 		State:           0,
 		Msg:             "",
 		LastRemoteWrite: time.Time{},
@@ -40,9 +46,8 @@ func TestSinkerConfigSave(t *testing.T) {
 			config: config2.SinkConfig{
 				SinkID:          "124",
 				OwnerID:         "test",
-				Url:             "localhost",
-				User:            "user",
-				Password:        "password",
+				Exporter:        exporter,
+				Authentication:  authentication,
 				State:           0,
 				Msg:             "",
 				LastRemoteWrite: time.Time{},
@@ -65,12 +70,18 @@ func TestSinkerConfigSave(t *testing.T) {
 
 func TestGetSinkerConfig(t *testing.T) {
 	sinkerCache := redis.NewSinkerCache(redisClient, logger)
+	authentication := config2.Authentication{
+		Username: "user",
+		Password: "password",
+	}
+	exporter := config2.Exporter{
+		RemoteHost: "localhost",
+	}
 	config := config2.SinkConfig{
 		SinkID:          "123",
 		OwnerID:         "test",
-		Url:             "localhost",
-		User:            "user",
-		Password:        "password",
+		Exporter:        exporter,
+		Authentication:  authentication,
 		State:           0,
 		Msg:             "",
 		LastRemoteWrite: time.Time{},
@@ -107,7 +118,13 @@ func TestGetSinkerConfig(t *testing.T) {
 
 func TestGetAllSinkerConfig(t *testing.T) {
 	sinkerCache := redis.NewSinkerCache(redisClient, logger)
-
+	authentication := config2.Authentication{
+		Username: "user",
+		Password: "password",
+	}
+	exporter := config2.Exporter{
+		RemoteHost: "localhost",
+	}
 	sinksConfig := map[string]struct {
 		config config2.SinkConfig
 	}{
@@ -115,9 +132,8 @@ func TestGetAllSinkerConfig(t *testing.T) {
 			config: config2.SinkConfig{
 				SinkID:          "123",
 				OwnerID:         "test",
-				Url:             "localhost",
-				User:            "user",
-				Password:        "password",
+				Exporter:        exporter,
+				Authentication:  authentication,
 				State:           0,
 				Msg:             "",
 				LastRemoteWrite: time.Time{},
@@ -127,9 +143,8 @@ func TestGetAllSinkerConfig(t *testing.T) {
 			config: config2.SinkConfig{
 				SinkID:          "134",
 				OwnerID:         "test",
-				Url:             "localhost",
-				User:            "user",
-				Password:        "password",
+				Exporter:        exporter,
+				Authentication:  authentication,
 				State:           0,
 				Msg:             "",
 				LastRemoteWrite: time.Time{},
