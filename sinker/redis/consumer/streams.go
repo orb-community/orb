@@ -161,8 +161,9 @@ func (es eventStore) handleSinksUpdate(_ context.Context, e updateSinkEvent) err
 	if err != nil {
 		return err
 	}
+	var cfgParser config.SinkConfigParser
 	var cfg config.SinkConfig
-	if err := json.Unmarshal(data, &cfg); err != nil {
+	if err := json.Unmarshal(data, &cfgParser); err != nil {
 		return err
 	}
 
@@ -171,13 +172,17 @@ func (es eventStore) handleSinksUpdate(_ context.Context, e updateSinkEvent) err
 		if err != nil {
 			return err
 		}
-		sinkConfig.Url = cfg.Url
-		sinkConfig.User = cfg.User
-		sinkConfig.Password = cfg.Password
+		sinkConfig.AuthType = cfgParser.Authentication.Type
+		sinkConfig.User = cfgParser.Authentication.Username
+		sinkConfig.Password = cfgParser.Authentication.Password
+		sinkConfig.Url = cfgParser.Exporter.RemoteHost
+		sinkConfig.Opentelemetry = cfgParser.OpenTelemetry
 		if sinkConfig.OwnerID == "" {
 			sinkConfig.OwnerID = e.owner
 		}
-
+		if sinkConfig.SinkID == "" {
+			sinkConfig.SinkID = e.sinkID
+		}
 		err = es.configRepo.Edit(sinkConfig)
 		if err != nil {
 			return err
@@ -185,6 +190,11 @@ func (es eventStore) handleSinksUpdate(_ context.Context, e updateSinkEvent) err
 	} else {
 		cfg.SinkID = e.sinkID
 		cfg.OwnerID = e.owner
+		cfg.AuthType = cfgParser.Authentication.Type
+		cfg.User = cfgParser.Authentication.Username
+		cfg.Password = cfgParser.Authentication.Password
+		cfg.Url = cfgParser.Exporter.RemoteHost
+		cfg.Opentelemetry = cfgParser.OpenTelemetry
 		err = es.configRepo.Add(cfg)
 		if err != nil {
 			return err
@@ -198,13 +208,19 @@ func (es eventStore) handleSinksCreate(_ context.Context, e updateSinkEvent) err
 	if err != nil {
 		return err
 	}
+	var cfgParser config.SinkConfigParser
 	var cfg config.SinkConfig
-	if err := json.Unmarshal(data, &cfg); err != nil {
+	if err := json.Unmarshal(data, &cfgParser); err != nil {
 		return err
 	}
 	cfg.SinkID = e.sinkID
 	cfg.OwnerID = e.owner
 	cfg.State = config.Unknown
+	cfg.AuthType = cfgParser.Authentication.Type
+	cfg.User = cfgParser.Authentication.Username
+	cfg.Password = cfgParser.Authentication.Password
+	cfg.Url = cfgParser.Exporter.RemoteHost
+	cfg.Opentelemetry = cfgParser.OpenTelemetry
 	err = es.configRepo.Add(cfg)
 	if err != nil {
 		return err
