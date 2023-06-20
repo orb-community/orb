@@ -198,13 +198,18 @@ func (es eventStore) handleSinksCreate(_ context.Context, e updateSinkEvent) err
 	if err != nil {
 		return err
 	}
+	var cfgParser config.SinkConfigParser
 	var cfg config.SinkConfig
-	if err := json.Unmarshal(data, &cfg); err != nil {
+	if err := json.Unmarshal(data, &cfgParser); err != nil {
 		return err
 	}
 	cfg.SinkID = e.sinkID
 	cfg.OwnerID = e.owner
 	cfg.State = config.Unknown
+	cfg.Type = cfgParser.Authentication.Type
+	cfg.User = cfgParser.Authentication.Username
+	cfg.Password = cfgParser.Authentication.Password
+	cfg.Url = cfgParser.Exporter.RemoteHost
 	err = es.configRepo.Add(cfg)
 	if err != nil {
 		return err
