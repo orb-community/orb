@@ -9,30 +9,22 @@ import (
 	"time"
 )
 
-type SinkConfig struct {
-	SinkID          string          `json:"sink_id"`
-	OwnerID         string          `json:"owner_id"`
-	Url             string          `json:"remote_host"`
-	AuthType        string          `json:"type"`
-	User            string          `json:"username"`
-	Password        string          `json:"password"`
-	Opentelemetry   string          `json:"opentelemetry"`
-	State           PrometheusState `json:"state,omitempty"`
-	Msg             string          `json:"msg,omitempty"`
-	LastRemoteWrite time.Time       `json:"last_remote_write,omitempty"`
-}
-
 // SinkConfigParser to be compatible with new sinks config is coming from eventbus
-type SinkConfigParser struct {
+type SinkConfig struct {
+	SinkID         string `json:"sink_id"`
+	OwnerID        string `json:"owner_id"`
 	Authentication struct {
-		Password string `json:"password"`
 		Type     string `json:"type"`
+		Password string `json:"password"`
 		Username string `json:"username"`
 	} `json:"authentication"`
 	Exporter struct {
 		RemoteHost string `json:"remote_host"`
 	} `json:"exporter"`
-	OpenTelemetry string `json:"opentelemetry"`
+	OpenTelemetry   string          `json:"opentelemetry"`
+	State           PrometheusState `json:"state,omitempty"`
+	Msg             string          `json:"msg,omitempty"`
+	LastRemoteWrite time.Time       `json:"last_remote_write,omitempty"`
 }
 
 const (

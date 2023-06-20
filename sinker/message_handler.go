@@ -29,12 +29,12 @@ func (svc SinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, owner
 		return err
 	}
 	ctx := context.Background()
-	if cfgRepo.Opentelemetry == "enabled" {
+	if cfgRepo.OpenTelemetry == "enabled" {
 		svc.logger.Info("deprecate warning opentelemetry sink scraping legacy agent", zap.String("sink-ID", cfgRepo.SinkID))
 		ctx = context.WithValue(ctx, "deprecation", "opentelemetry")
 	}
 	cfg := prometheus.NewConfig(
-		prometheus.WriteURLOption(cfgRepo.Url),
+		prometheus.WriteURLOption(cfgRepo.Exporter.RemoteHost),
 	)
 
 	promClient, err := prometheus.NewClient(cfg)
@@ -44,7 +44,7 @@ func (svc SinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, owner
 	}
 
 	var headers = make(map[string]string)
-	headers["Authorization"] = svc.encodeBase64(cfgRepo.User, cfgRepo.Password)
+	headers["Authorization"] = svc.encodeBase64(cfgRepo.Authentication.Username, cfgRepo.Authentication.Password)
 	result, writeErr := promClient.WriteTimeSeries(ctx, tsList, prometheus.WriteOptions{Headers: headers})
 	if err := error(writeErr); err != nil {
 		if cfgRepo.Msg != fmt.Sprint(err) {
@@ -62,7 +62,7 @@ func (svc SinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, owner
 		return err
 	}
 
-	svc.logger.Debug("successful sink", zap.Int("payload_size_b", result.PayloadSize), zap.String("sink_id", sinkID), zap.String("url", cfgRepo.Url), zap.String("user", cfgRepo.User))
+	svc.logger.Debug("successful sink", zap.Int("payload_size_b", result.PayloadSize), zap.String("sink_id", sinkID), zap.String("url", cfgRepo.Exporter.RemoteHost), zap.String("user", cfgRepo.Authentication.Username))
 
 	if cfgRepo.State != config.Active {
 		cfgRepo.State = config.Active
