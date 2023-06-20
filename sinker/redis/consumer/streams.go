@@ -206,10 +206,11 @@ func (es eventStore) handleSinksCreate(_ context.Context, e updateSinkEvent) err
 	cfg.SinkID = e.sinkID
 	cfg.OwnerID = e.owner
 	cfg.State = config.Unknown
-	cfg.Type = cfgParser.Authentication.Type
+	cfg.AuthType = cfgParser.Authentication.Type
 	cfg.User = cfgParser.Authentication.Username
 	cfg.Password = cfgParser.Authentication.Password
 	cfg.Url = cfgParser.Exporter.RemoteHost
+	cfg.Opentelemetry = cfgParser.OpenTelemetry
 	err = es.configRepo.Add(cfg)
 	if err != nil {
 		return err

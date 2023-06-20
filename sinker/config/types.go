@@ -13,7 +13,7 @@ type SinkConfig struct {
 	SinkID          string          `json:"sink_id"`
 	OwnerID         string          `json:"owner_id"`
 	Url             string          `json:"remote_host"`
-	Type            string          `json:"type"`
+	AuthType        string          `json:"type"`
 	User            string          `json:"username"`
 	Password        string          `json:"password"`
 	Opentelemetry   string          `json:"opentelemetry"`
