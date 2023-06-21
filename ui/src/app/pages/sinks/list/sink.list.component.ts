@@ -33,7 +33,7 @@ import { SinksService } from 'app/common/services/sinks/sinks.service';
 import { SinkDeleteComponent } from 'app/pages/sinks/delete/sink.delete.component';
 import { SinkDetailsComponent } from 'app/pages/sinks/details/sink.details.component';
 import { STRINGS } from 'assets/text/strings';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { DeleteSelectedComponent } from 'app/shared/components/delete/delete.selected.component';
 
 @Component({
@@ -52,6 +52,8 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
 
   selected: any[] = [];
 
+  private sinksSubscription: Subscription;
+
   // templates
   @ViewChild('sinkNameTemplateCell') sinkNameTemplateCell: TemplateRef<any>;
 
@@ -62,6 +64,8 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
   @ViewChild('sinkActionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
 
   @ViewChild('checkboxTemplateCell') checkboxTemplateCell: TemplateRef<any>;
+
+  @ViewChild('checkboxTemplateHeader') checkboxTemplateHeader: TemplateRef<any>;
 
   tableSorts = [
     {
@@ -139,6 +143,9 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
   }
 
   ngOnDestroy(): void {
+    if (this.sinksSubscription) {
+      this.sinksSubscription.unsubscribe();
+    }
     this.orb.killPolling.next();
   }
 
@@ -166,6 +173,7 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
         canAutoResize: true,
         sortable: false,
         cellTemplate: this.checkboxTemplateCell,
+        headerTemplate: this.checkboxTemplateHeader,
       },
       {
         prop: 'name',
@@ -324,5 +332,25 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
   public getChecked(row: any): boolean {
     const item = this.selected.filter((e) => e.id === row.id);
     return item.length > 0 ? true : false;
+  }
+  onHeaderCheckboxChange(event: any) {
+    if (event.target.checked && this.filteredSinks$)  {
+      this.sinksSubscription = this.filteredSinks$.subscribe(rows => {
+        this.selected = [];
+        rows.forEach(row => {
+          const sinkSelected = {
+            id: row.id,
+            name: row.name,
+            state: row.state,
+          }
+          this.selected.push(sinkSelected);
+        });
+      });
+    } else {
+      if (this.sinksSubscription) {
+        this.sinksSubscription.unsubscribe();
+      }
+      this.selected = [];
+    }
   }
 }

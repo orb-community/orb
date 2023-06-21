@@ -30,7 +30,7 @@ import { AgentDeleteComponent } from 'app/pages/fleet/agents/delete/agent.delete
 import { AgentDetailsComponent } from 'app/pages/fleet/agents/details/agent.details.component';
 import { DeleteSelectedComponent } from 'app/shared/components/delete/delete.selected.component';
 import { STRINGS } from 'assets/text/strings';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { AgentResetComponent } from '../reset/agent.reset.component';
 
@@ -53,6 +53,9 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
   canResetAgents: boolean;
 
   isResetting: boolean;
+  
+  private agentsSubscription: Subscription;
+
 
   // templates
   @ViewChild('agentNameTemplateCell') agentNameTemplateCell: TemplateRef<any>;
@@ -71,6 +74,8 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
   agentLastActivityTemplateCell: TemplateRef<any>;
 
   @ViewChild('agentVersionTemplateCell') agentVersionTemplateCell: TemplateRef<any>;
+
+  @ViewChild('checkboxTemplateHeader') checkboxTemplateHeader: TemplateRef<any>;
 
   tableSorts = [
     {
@@ -167,6 +172,9 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
   }
 
   ngOnDestroy() {
+    if (this.agentsSubscription) {
+      this.agentsSubscription.unsubscribe();
+    }
     this.orb.killPolling.next();
   }
 
@@ -194,6 +202,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
         canAutoResize: true,
         sortable: false,
         cellTemplate: this.checkboxTemplateCell,
+        headerTemplate: this.checkboxTemplateHeader,
       },
       {
         prop: 'name',
@@ -389,6 +398,31 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
       this.isResetting = false;
     }
   }
+
+  onHeaderCheckboxChange(event: any) {
+    if (event.target.checked && this.filteredAgents$) {
+      this.agentsSubscription = this.filteredAgents$.subscribe(rows => {
+        this.selected = [];
+        rows.forEach(row => {
+          const policySelected = {
+            id: row.id,
+            name: row.name,
+            state: row.state,
+            resetable: row.state === 'new' || row.state === 'offline' ? false : true,
+          }
+          this.selected.push(policySelected);
+        });
+      });
+    } else {
+      if (this.agentsSubscription) {
+        this.agentsSubscription.unsubscribe();
+      }
+      this.selected = [];
+    }
+    const reset = this.selected.filter((e) => e.resetable === false);
+    this.canResetAgents = reset.length > 0 ? true : false;
+  }
+
   openDetailsModal(row: any) {
     this.dialogService
       .open(AgentDetailsComponent, {
