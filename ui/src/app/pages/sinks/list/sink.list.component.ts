@@ -180,7 +180,7 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
         name: 'Name',
         canAutoResize: true,
         resizeable: false,
-        flexGrow: 3,
+        flexGrow: 4,
         minWidth: 150,
         cellTemplate: this.sinkNameTemplateCell,
       },
