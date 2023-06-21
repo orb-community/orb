@@ -559,7 +559,7 @@ jobs:
           IMAGE_NAME: orbcommunity/orb-agent:latest
           IMAGE_NAME_2: orbcommunity/orb-agent:${{ env.VERSION }}-${{ steps.commit_hash.outputs.sha_short }}
 
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           builder: ${{ steps.buildx.outputs.name }}
           context: .
