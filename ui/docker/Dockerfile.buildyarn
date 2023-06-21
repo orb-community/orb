@@ -1,5 +1,5 @@
 # Stage 0, based on Node.js, install all dependencies
-FROM node:13-alpine as node
+FROM node:13-alpine
 
 WORKDIR /app
 COPY package.json /app/
