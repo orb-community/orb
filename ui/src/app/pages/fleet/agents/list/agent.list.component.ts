@@ -249,7 +249,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
         minWidth: 150,
         canAutoResize: true,
         name: 'Version',
-        sortable: false,
+        sortable: true,
         cellTemplate: this.agentVersionTemplateCell,
       },
       {
@@ -258,7 +258,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
         minWidth: 150,
         canAutoResize: true,
         name: 'Last Activity',
-        sortable: false,
+        sortable: true,
         cellTemplate: this.agentLastActivityTemplateCell,
       },
       {
