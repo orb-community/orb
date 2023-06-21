@@ -103,7 +103,7 @@ export class PolicyDatasetsComponent
         name: 'Agent Group',
         resizeable: true,
         canAutoResize: true,
-        flexGrow: 1,
+        flexGrow: 1.2,
         cellTemplate: this.groupTemplateCell,
       },
       {
@@ -120,7 +120,7 @@ export class PolicyDatasetsComponent
         name: 'Sinks',
         resizeable: true,
         canAutoResize: true,
-        flexGrow: 1,
+        flexGrow: 2,
         cellTemplate: this.sinksTemplateCell,
       },
       {
@@ -197,11 +197,10 @@ export class PolicyDatasetsComponent
   onOpenSinkDetails(sink) {
     this.dialogService
       .open(SinkDetailsComponent, {
-        autoFocus: true,
+        autoFocus: false,
         closeOnEsc: true,
         context: { sink },
         hasScroll: false,
-        hasBackdrop: false,
       })
       .onClose.subscribe((resp) => {
         if (resp) {
