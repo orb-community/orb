@@ -277,8 +277,6 @@ ui-modules:
 
 ui:
 	cd ui/ && docker build \
-		--build-arg ENV_PS_SID=${PS_SID} \
-		--build-arg ENV_PS_GROUP_KEY=${PS_GROUP_KEY} \
 		--build-arg ENV=${ENVIRONMENT} \
 		--tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-ui:$(REF_TAG) \
 		--tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-ui:$(ORB_VERSION) \

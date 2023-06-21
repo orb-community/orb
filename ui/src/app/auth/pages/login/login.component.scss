@@ -53,6 +53,15 @@
   top: 0;
   width: 600px;
 
+  input[type="checkbox"] {
+    height: 2rem;
+    padding: 0 1rem;
+    margin-top: 0.5rem;
+    margin-right: 0.5rem;
+    vertical-align: bottom !important;
+    position: relative;
+  }
+
   a {
     color: #62d9ff;
     font-family: 'Montserrat', serif;

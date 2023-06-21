@@ -189,15 +189,21 @@
           </ng-container>
         </div>
 
-        <ps-click-wrap
-          *ngIf="_psEnabled"
-          [accessId]="_sid"
-          [confirmationEmail]="true"
-          [groupKey]="_groupKey"
-          [testMode]="!_isProduction"
-          signerIdSelector="input-email"
-        >
-        </ps-click-wrap>
+        <div class="form-control-group accept-group" *ngIf="getConfigValue('forms.register.terms')">
+          <input type="checkbox" name="terms" id="input-terms" #terms="ngModel" [(ngModel)]="user.terms"
+            [required]="getConfigValue('forms.register.terms')" />
+          <label class="label" for="input-terms">
+            I agree to the NetBox Labs 
+            <a href="https://netboxlabs.com/terms-of-service" target="_blank">
+              <strong>Terms & Conditions</strong>
+            </a>
+          </label>
+          <ng-container *ngIf="terms.invalid && terms.touched">
+            <p *ngIf="terms.errors?.required" class="caption status-danger mb-1">
+              You must agree to the terms of service!
+            </p>
+          </ng-container>
+        </div>
 
         <button [class.btn-pulse]="submitted"
                 [disabled]="!form.valid || user.email === repeatedEmail"
