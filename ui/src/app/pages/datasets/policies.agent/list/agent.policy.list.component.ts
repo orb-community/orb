@@ -321,6 +321,7 @@ export class AgentPolicyListComponent
       .onClose.subscribe((confirm) => {
         if (confirm) {
           this.deleteSelectedAgentsPolicy();
+          this.selected = [];
           this.orb.refreshNow();
         }
       });
@@ -349,7 +350,6 @@ export class AgentPolicyListComponent
         }
       }
     }
-    console.log(this.selected);
   }
 
   public getChecked(row: any): boolean {

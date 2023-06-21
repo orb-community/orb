@@ -269,6 +269,7 @@ export class AgentGroupListComponent
       .onClose.subscribe((confirm) => {
         if (confirm) {
           this.deleteSelectedAgentGroups();
+          this.selected = [];
           this.orb.refreshNow();
         }
       });
@@ -317,7 +318,6 @@ export class AgentGroupListComponent
         }
       }
     }
-    console.log(this.selected);
   }
 
   public getChecked(row: any): boolean {

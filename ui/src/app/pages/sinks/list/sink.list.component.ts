@@ -274,6 +274,7 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
       .onClose.subscribe((confirm) => {
         if (confirm) {
           this.deleteSelectedSinks();
+          this.selected = [];
           this.orb.refreshNow();
         }
       });
@@ -318,7 +319,6 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
         }
       }
     }
-    console.log(this.selected);
   }
 
   public getChecked(row: any): boolean {
