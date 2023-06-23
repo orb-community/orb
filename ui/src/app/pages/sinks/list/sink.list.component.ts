@@ -33,7 +33,8 @@ import { SinksService } from 'app/common/services/sinks/sinks.service';
 import { SinkDeleteComponent } from 'app/pages/sinks/delete/sink.delete.component';
 import { SinkDetailsComponent } from 'app/pages/sinks/details/sink.details.component';
 import { STRINGS } from 'assets/text/strings';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
+import { DeleteSelectedComponent } from 'app/shared/components/delete/delete.selected.component';
 
 @Component({
   selector: 'ngx-sink-list-component',
@@ -49,6 +50,10 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
 
   loading = false;
 
+  selected: any[] = [];
+
+  private sinksSubscription: Subscription;
+
   // templates
   @ViewChild('sinkNameTemplateCell') sinkNameTemplateCell: TemplateRef<any>;
 
@@ -57,6 +62,10 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
   @ViewChild('sinkTagsTemplateCell') sinkTagsTemplateCell: TemplateRef<any>;
 
   @ViewChild('sinkActionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
+
+  @ViewChild('checkboxTemplateCell') checkboxTemplateCell: TemplateRef<any>;
+
+  @ViewChild('checkboxTemplateHeader') checkboxTemplateHeader: TemplateRef<any>;
 
   tableSorts = [
     {
@@ -86,6 +95,7 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
     private orb: OrbService,
     private filters: FilterService,
   ) {
+    this.selected = [];
     this.sinks$ = this.orb.getSinkListView();
     this.filters$ = this.filters.getFilters();
 
@@ -133,6 +143,9 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
   }
 
   ngOnDestroy(): void {
+    if (this.sinksSubscription) {
+      this.sinksSubscription.unsubscribe();
+    }
     this.orb.killPolling.next();
   }
 
@@ -153,12 +166,37 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
     this.orb.refreshNow();
     this.columns = [
       {
+        name: '',
+        prop: 'checkbox',
+        flexGrow: 0.5,
+        minWidth: 62,
+        canAutoResize: true,
+        sortable: false,
+        cellTemplate: this.checkboxTemplateCell,
+        headerTemplate: this.checkboxTemplateHeader,
+      },
+      {
         prop: 'name',
         name: 'Name',
         canAutoResize: true,
         resizeable: false,
-        flexGrow: 2,
+        flexGrow: 4,
         minWidth: 150,
+        cellTemplate: this.sinkNameTemplateCell,
+      },
+      {
+        prop: 'state',
+        name: 'Status',
+        resizeable: false,
+        flexGrow: 2,
+        cellTemplate: this.sinkStateTemplateCell,
+      },
+      {
+        prop: 'backend',
+        name: 'Backend',
+        resizeable: false,
+        minWidth: 120,
+        flexGrow: 2,
         cellTemplate: this.sinkNameTemplateCell,
       },
       {
@@ -166,28 +204,13 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
         name: 'Description',
         resizeable: false,
         minWidth: 150,
-        flexGrow: 2,
+        flexGrow: 5,
         cellTemplate: this.sinkNameTemplateCell,
-      },
-      {
-        prop: 'backend',
-        name: 'Backend',
-        resizeable: false,
-        minWidth: 120,
-        flexGrow: 1,
-        cellTemplate: this.sinkNameTemplateCell,
-      },
-      {
-        prop: 'state',
-        name: 'Status',
-        resizeable: false,
-        flexGrow: 1,
-        cellTemplate: this.sinkStateTemplateCell,
       },
       {
         prop: 'tags',
         name: 'Tags',
-        flexGrow: 2,
+        flexGrow: 5,
         resizeable: false,
         cellTemplate: this.sinkTagsTemplateCell,
         comparator: (a, b) =>
@@ -206,7 +229,7 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
         minWidth: 150,
         resizeable: false,
         sortable: false,
-        flexGrow: 2,
+        flexGrow: 1.75,
         cellTemplate: this.actionsTemplateCell,
       },
     ];
@@ -247,7 +270,30 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
         }
       });
   }
+  onOpenDeleteSelected() {
+    const selected = this.selected;
+    const elementName = "Sinks"
+    this.dialogService
+      .open(DeleteSelectedComponent, {
+        context: { selected, elementName },
+        autoFocus: true,
+        closeOnEsc: true,
+      })
+      .onClose.subscribe((confirm) => {
+        if (confirm) {
+          this.deleteSelectedSinks();
+          this.selected = [];
+          this.orb.refreshNow();
+        }
+      });
+  }
 
+  deleteSelectedSinks() {
+    this.selected.forEach((sink) => {
+      this.sinkService.deleteSink(sink.id).subscribe();
+    })
+    this.notificationsService.success('All selected Sinks delete requests succeeded', '');
+  }
   openDetailsModal(row: any) {
     this.dialogService
       .open(SinkDetailsComponent, {
@@ -263,4 +309,48 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
   }
 
   filterByInactive = (sink) => sink.state === 'inactive';
+
+  public onCheckboxChange(event: any, row: any): void { 
+    const sinkSelected = {
+      id: row.id,
+      name: row.name,
+      state: row.state,
+    }
+    if (this.getChecked(row) === false) {
+      this.selected.push(sinkSelected);
+    } 
+    else {
+      for (let i = 0; i < this.selected.length; i++) {
+        if (this.selected[i].id === row.id) {
+          this.selected.splice(i, 1);
+          break;
+        }
+      }
+    }
+  }
+
+  public getChecked(row: any): boolean {
+    const item = this.selected.filter((e) => e.id === row.id);
+    return item.length > 0 ? true : false;
+  }
+  onHeaderCheckboxChange(event: any) {
+    if (event.target.checked && this.filteredSinks$)  {
+      this.sinksSubscription = this.filteredSinks$.subscribe(rows => {
+        this.selected = [];
+        rows.forEach(row => {
+          const sinkSelected = {
+            id: row.id,
+            name: row.name,
+            state: row.state,
+          }
+          this.selected.push(sinkSelected);
+        });
+      });
+    } else {
+      if (this.sinksSubscription) {
+        this.sinksSubscription.unsubscribe();
+      }
+      this.selected = [];
+    }
+  }
 }

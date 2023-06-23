@@ -61,7 +61,7 @@ export const NB_CORE_PROVIDERS = [
         },
       },
       register: {
-        terms: false,
+        terms: true,
         redirectDelay: 0,
         showMessages: {
           success: true,
@@ -88,6 +88,9 @@ export const NB_CORE_PROVIDERS = [
           minLength: 1,
           maxLength: 30,
         },
+        tos: {
+          required: true,
+        }
       },
     },
   }).providers,

@@ -15,19 +15,23 @@ import {
   DatatableComponent,
   TableColumn,
 } from '@swimlane/ngx-datatable';
-import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
+import { AgentPolicy, AgentPolicyUsage } from 'app/common/interfaces/orb/agent.policy.interface';
 import {
   filterNumber,
   FilterOption, filterString, filterTags,
   FilterTypes,
+  filterMultiSelect,
 } from 'app/common/interfaces/orb/filter-option';
 import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
 import { FilterService } from 'app/common/services/filter.service';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { OrbService } from 'app/common/services/orb.service';
 import { AgentPolicyDeleteComponent } from 'app/pages/datasets/policies.agent/delete/agent.policy.delete.component';
-import { Observable } from 'rxjs';
+import { DeleteSelectedComponent } from 'app/shared/components/delete/delete.selected.component';
+import { combineLatest, Observable, Subscription } from 'rxjs';
+import { filter, map } from 'rxjs/operators';
 import { STRINGS } from '../../../../../assets/text/strings';
+
 
 @Component({
   selector: 'ngx-agent-policy-list-component',
@@ -44,11 +48,21 @@ export class AgentPolicyListComponent
 
   loading = false;
 
+  selected: any[] = [];
+
+  private policiesSubscription: Subscription;
+
   @ViewChild('nameTemplateCell') nameTemplateCell: TemplateRef<any>;
 
   @ViewChild('versionTemplateCell') versionTemplateCell: TemplateRef<any>;
 
   @ViewChild('actionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
+
+  @ViewChild('usageStateTemplateCell') usageStateTemplateCell: TemplateRef<any>;
+
+  @ViewChild('checkboxTemplateCell') checkboxTemplateCell: TemplateRef<any>;
+
+  @ViewChild('checkboxTemplateHeader') checkboxTemplateHeader: TemplateRef<any>;
 
   tableSorts = [
     {
@@ -81,8 +95,20 @@ export class AgentPolicyListComponent
     private orb: OrbService,
     private filters: FilterService,
   ) {
-    this.policies$ = this.orb.getPolicyListView();
     this.filters$ = this.filters.getFilters();
+    this.selected = [];
+    this.policies$ = combineLatest([
+      this.orb.getPolicyListView(),
+      this.orb.getDatasetListView()
+    ]).pipe(
+      filter(([policies, datasets]) => policies !== undefined && policies !== null && datasets !== undefined && datasets !== null),
+      map(([policies, datasets]) => {
+        return policies.map((policy) => {
+          const dataset = datasets.filter((d) => d.valid && d.agent_policy_id === policy.id);
+          return { ...policy, policy_usage: dataset.length > 0 ? AgentPolicyUsage.inUse : AgentPolicyUsage.notInUse };
+        });
+      })
+    );
 
     this.filterOptions = [
       {
@@ -108,6 +134,13 @@ export class AgentPolicyListComponent
         prop: 'description',
         filter: filterString,
         type: FilterTypes.Input,
+      },
+      {
+        name: 'Usage',
+        prop: 'policy_usage',
+        filter: filterMultiSelect,
+        type: FilterTypes.MultiSelect,
+        options: Object.values(AgentPolicyUsage).map((value) => value as string),
       },
     ];
 
@@ -136,6 +169,9 @@ export class AgentPolicyListComponent
   }
 
   ngOnDestroy(): void {
+    if (this.policiesSubscription) {
+      this.policiesSubscription.unsubscribe();
+    }
     this.orb.killPolling.next();
   }
 
@@ -153,28 +189,48 @@ export class AgentPolicyListComponent
   }
 
   ngAfterViewInit() {
+
     this.orb.refreshNow();
     this.columns = [
+      {
+        name: '',
+        prop: 'checkbox',
+        flexGrow: 0.5,
+        minWidth: 62,
+        canAutoResize: true,
+        sortable: false,
+        cellTemplate: this.checkboxTemplateCell,
+        headerTemplate: this.checkboxTemplateHeader,
+      },
       {
         prop: 'name',
         name: 'Policy Name',
         resizeable: false,
         canAutoResize: true,
-        flexGrow: 2,
+        flexGrow: 4,
         minWidth: 100,
         cellTemplate: this.nameTemplateCell,
+      },
+      {
+        prop: 'policy_usage',
+        name: 'Usage',
+        resizeable: false,
+        canAutoResize: true,
+        flexGrow: 3,
+        minWidth: 100,
+        cellTemplate: this.usageStateTemplateCell,
       },
       {
         prop: 'description',
         name: 'Description',
         resizeable: false,
-        flexGrow: 1,
+        flexGrow: 4,
         minWidth: 100,
         cellTemplate: this.nameTemplateCell,
       },
       {
         prop: 'tags',
-        flexGrow: 1,
+        flexGrow: 3,
         canAutoResize: true,
         name: 'Tags',
         minWidth: 150,
@@ -193,7 +249,7 @@ export class AgentPolicyListComponent
         prop: 'version',
         name: 'Version',
         resizeable: false,
-        flexGrow: 1,
+        flexGrow: 2,
         minWidth: 50,
         cellTemplate: this.versionTemplateCell,
       },
@@ -205,16 +261,16 @@ export class AgentPolicyListComponent
         },
         name: 'Last Modified',
         minWidth: 110,
-        flexGrow: 1,
+        flexGrow: 3,
         resizeable: false,
       },
       {
         name: '',
         prop: 'actions',
-        minWidth: 150,
+        minWidth: 200,
         resizeable: false,
         sortable: false,
-        flexGrow: 1,
+        flexGrow: 2,
         cellTemplate: this.actionsTemplateCell,
       },
     ];
@@ -260,5 +316,73 @@ export class AgentPolicyListComponent
           });
         }
       });
+  }
+  onOpenDeleteSelected() {
+    const elementName = "Policies"
+    const selected = this.selected;
+    this.dialogService
+      .open(DeleteSelectedComponent, {
+        context: { selected, elementName },
+        autoFocus: true,
+        closeOnEsc: true,
+      })
+      .onClose.subscribe((confirm) => {
+        if (confirm) {
+          this.deleteSelectedAgentsPolicy();
+          this.selected = [];
+          this.orb.refreshNow();
+        }
+      });
+  }
+
+  deleteSelectedAgentsPolicy() {
+    this.selected.forEach((policy) => {
+      this.agentPoliciesService.deleteAgentPolicy(policy.id).subscribe();
+    })
+    this.notificationsService.success('All selected Policies delete requests succeeded', '');
+  }
+  public onCheckboxChange(event: any, row: any): void { 
+    const policySelected = {
+      id: row.id,
+      name: row.name,
+      usage: row.policy_usage,
+    }
+    if (this.getChecked(row) === false) {
+      this.selected.push(policySelected);
+    } 
+    else {
+      for (let i = 0; i < this.selected.length; i++) {
+        if (this.selected[i].id === row.id) {
+          this.selected.splice(i, 1);
+          break;
+        }
+      }
+    }
+  }
+
+  public getChecked(row: any): boolean {
+    const item = this.selected.filter((e) => e.id === row.id);
+    return item.length > 0 ? true : false;
+  }
+
+  onHeaderCheckboxChange(event: any) {
+    if (event.target.checked && this.filteredPolicies$) {
+      this.policiesSubscription = this.filteredPolicies$.subscribe(rows => {
+        this.selected = [];
+        rows.forEach(row => {
+          const policySelected = {
+            id: row.id,
+            name: row.name,
+            usage: row.policy_usage,
+          }
+          this.selected.push(policySelected);
+        });
+      });
+    } else {
+      if (this.policiesSubscription) {
+        this.policiesSubscription.unsubscribe();
+      }
+      this.selected = [];
+    }
   }
 }

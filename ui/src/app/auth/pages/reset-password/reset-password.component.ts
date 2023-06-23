@@ -7,6 +7,7 @@ import {
   NbAuthService,
   NbResetPasswordComponent,
 } from '@nebular/auth';
+import { STRINGS } from 'assets/text/strings';
 
 @Component({
   selector: 'ngx-reset-password-page',
@@ -15,6 +16,7 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ResetPasswordComponent extends NbResetPasswordComponent {
+  strings = STRINGS.login;
 
   redirectDelay: number = 0;
 

@@ -52,10 +52,13 @@
 </ng-template>
 
 <ng-template #sinksTemplateCell let-i="index" let-row="row" let-value="value">
-    <ng-container *ngFor="let sink of value; last as isLast" class="d-inline-flex">
-        <button (click)="onOpenSinkDetails(sink)"
-                class="edit-dataset-button">{{ sink?.name }}{{ isLast ? '' : ', '}}</button>
-    </ng-container>
+    <mat-nav-list>
+        <mat-list-item *ngFor="let sink of value; last as isLast">
+            <button (click)="onOpenSinkDetails(sink)"
+                class="edit-dataset-button">{{ sink?.name }}{{ isLast ? '' : ', '}}
+            </button>
+        </mat-list-item>
+    </mat-nav-list>
 </ng-template>
 
 <ng-template #actionsTemplateCell let-i="index" let-row="row" let-value="value">

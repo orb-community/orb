@@ -126,7 +126,7 @@ func (req addReq) validate() (err error) {
 
 	_, err = types.NewIdentifier(req.Name)
 	if err != nil {
-		return errors.Wrap(errors.ErrMalformedEntity, errors.New("identifier duplicated"))
+		return errors.Wrap(errors.ErrConflict, errors.New("identifier duplicated"))
 	}
 	return nil
 }

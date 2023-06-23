@@ -16,7 +16,16 @@
     </div>
   </header>
   <div #tableWrapper class="tableWrapper">
-    <ngx-filter [availableFilters]="filterOptions"></ngx-filter>
+    <div class="options">
+      <ngx-filter [availableFilters]="filterOptions"></ngx-filter>
+      <button (click)="onOpenDeleteSelected()"
+        *ngIf="selected.length > 0"
+        class="delete-selected"
+        nbButton
+        shape="round">
+        Delete
+      </button>
+    </div>
     <div class="add-sink-container">
       <button
         (click)="onOpenAdd()"
@@ -38,9 +47,12 @@
       [rowHeight]="50"
       [rows]="filteredSinks$ | async"
       [scrollbarV]="true"
+      [scrollbarH]="true"
       [sorts]="tableSorts"
       class="orb"
       style="height: calc(62vh);"
+      [selected]="selected"
+      [selectionType]="'checkbox'"
     >
     </ngx-datatable>
   </div>
@@ -113,4 +125,13 @@
       <nb-icon icon="trash-2-outline"></nb-icon>
     </button>
   </div>
+</ng-template>
+
+<ng-template #checkboxTemplateCell let-i="index" let-row="row" let-value="value">
+  <input type="checkbox" [checked]="getChecked(row)" 
+  (change)="onCheckboxChange($event, row)">
+</ng-template>
+
+<ng-template #checkboxTemplateHeader>
+  <input type="checkbox" (change)="onHeaderCheckboxChange($event)">
 </ng-template>

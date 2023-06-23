@@ -15,7 +15,26 @@
   </div>
 </header>
 <div #tableWrapper class="tableWrapper">
-  <ngx-filter [availableFilters]="filterOptions"></ngx-filter>
+  <div class="options">
+    <ngx-filter [availableFilters]="filterOptions"></ngx-filter>
+    <button (click)="onOpenDeleteSelected()"
+      *ngIf="selected.length > 0"
+      class="delete-selected"
+      nbButton
+      shape="round">
+      Delete
+    </button>
+    <button (click)="onOpenResetAgents()"      
+      class="agent-reset"
+      data-orb-qa-id="button#reset"
+      nbButton
+      shape="round"
+      *ngIf="selected.length > 0"
+      [disabled]="canResetAgents || isResetting">
+      Reset Agents
+    </button>
+  </div>
+  
   <div class="add-agent-container">
     <button
       (click)="onOpenAdd()"
@@ -40,6 +59,8 @@
     [scrollbarV]="true"
     [sorts]="tableSorts"
     class="orb orb-table"
+    [selected]="selected"
+    [selectionType]="'checkbox'"
   >
   </ngx-datatable>
 </div>
@@ -143,4 +164,23 @@
       <nb-icon icon="trash-2-outline"></nb-icon>
     </button>
   </div>
+</ng-template>
+
+<ng-template #checkboxTemplateCell let-i="index" let-row="row" let-value="value">
+  <input type="checkbox" [checked]="getChecked(row)" 
+  (change)="onCheckboxChange($event, row)">
+</ng-template>
+
+<ng-template #checkboxTemplateHeader>
+  <input type="checkbox" (change)="onHeaderCheckboxChange($event)">
+</ng-template>
+
+<ng-template
+        #agentVersionTemplateCell
+        let-i="index"
+        let-row="row"
+        let-value="value"
+>
+  <span [nbTooltip]="value">
+    {{ value }}</span>
 </ng-template>

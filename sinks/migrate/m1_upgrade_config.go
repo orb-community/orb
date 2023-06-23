@@ -2,6 +2,7 @@ package migrate
 
 import (
 	"context"
+
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks"
 	"github.com/orb-community/orb/sinks/authentication_type"

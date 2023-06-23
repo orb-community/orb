@@ -1,9 +1,10 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Sink, SinkStates } from 'app/common/interfaces/orb/sink.interface';
+import { Sink, SinkBackends, SinkStates } from 'app/common/interfaces/orb/sink.interface';
 import { SinkFeature } from 'app/common/interfaces/orb/sink/sink.feature.interface';
 import { Tags } from 'app/common/interfaces/orb/tag';
 import { SinksService } from 'app/common/services/sinks/sinks.service';
+import { SinkConfigComponent } from '../sink-config/sink-config.component';
 
 
 @Component({
@@ -13,6 +14,10 @@ import { SinksService } from 'app/common/services/sinks/sinks.service';
 })
 
 export class SinkDetailsComponent implements OnInit, OnChanges {
+
+  @Output()
+  sinkBackend: EventEmitter<string>;
+
   @Input()
   sink: Sink;
 
@@ -43,6 +48,7 @@ export class SinkDetailsComponent implements OnInit, OnChanges {
     this.createMode = false;
     this.editMode = false;
     this.mode = 'read';
+    this.sinkBackend = new EventEmitter<string>();
     this.editModeChange = new EventEmitter<boolean>();
     this.updateForm();
     Promise.all([this.getSinkBackends()]).then((responses) => {
@@ -127,5 +133,9 @@ export class SinkDetailsComponent implements OnInit, OnChanges {
         resolve(backends);
       });
     });
+  }
+
+  onChangeConfigBackend(backend: any) {
+    this.sinkBackend.emit(backend);
   }
 }

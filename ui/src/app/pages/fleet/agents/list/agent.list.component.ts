@@ -28,8 +28,11 @@ import { NotificationsService } from 'app/common/services/notifications/notifica
 import { OrbService } from 'app/common/services/orb.service';
 import { AgentDeleteComponent } from 'app/pages/fleet/agents/delete/agent.delete.component';
 import { AgentDetailsComponent } from 'app/pages/fleet/agents/details/agent.details.component';
+import { DeleteSelectedComponent } from 'app/shared/components/delete/delete.selected.component';
 import { STRINGS } from 'assets/text/strings';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
+import { map, tap } from 'rxjs/operators';
+import { AgentResetComponent } from '../reset/agent.reset.component';
 
 @Component({
   selector: 'ngx-agent-list-component',
@@ -45,6 +48,15 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
 
   loading = false;
 
+  selected: any[] = [];
+
+  canResetAgents: boolean;
+
+  isResetting: boolean;
+  
+  private agentsSubscription: Subscription;
+
+
   // templates
   @ViewChild('agentNameTemplateCell') agentNameTemplateCell: TemplateRef<any>;
 
@@ -56,8 +68,14 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
 
   @ViewChild('actionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
 
+  @ViewChild('checkboxTemplateCell') checkboxTemplateCell: TemplateRef<any>;
+
   @ViewChild('agentLastActivityTemplateCell')
   agentLastActivityTemplateCell: TemplateRef<any>;
+
+  @ViewChild('agentVersionTemplateCell') agentVersionTemplateCell: TemplateRef<any>;
+
+  @ViewChild('checkboxTemplateHeader') checkboxTemplateHeader: TemplateRef<any>;
 
   tableSorts = [
     {
@@ -84,8 +102,28 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
     private router: Router,
     private orb: OrbService,
     private filters: FilterService,
+    protected agentsService: AgentsService,
+    protected notificationService: NotificationsService,
   ) {
-    this.agents$ = this.orb.getAgentListView();
+    this.isResetting = false;
+    this.selected = [];
+    this.agents$ = this.orb.getAgentListView().pipe(
+      map(agents => {
+        return agents.map(agent => {
+          let version: string;
+          if (agent.state !== 'new') {
+            version = agent.agent_metadata.orb_agent.version;
+          } else {
+            version = '-';
+          }
+          return {
+            ...agent,
+            version,
+          };
+        });
+      })
+    );
+
     this.columns = [];
 
     this.filters$ = this.filters.getFilters();
@@ -118,6 +156,12 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
         type: FilterTypes.MultiSelect,
         options: Object.values(AgentPolicyAggStates).map((value) => value as string),
       },
+      {
+        name: 'Version',
+        prop: 'version',
+        filter: filterString,
+        type: FilterTypes.Input,
+      },
     ];
 
     this.filteredAgents$ = this.filters.createFilteredList()(
@@ -128,6 +172,9 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
   }
 
   ngOnDestroy() {
+    if (this.agentsSubscription) {
+      this.agentsSubscription.unsubscribe();
+    }
     this.orb.killPolling.next();
   }
 
@@ -148,8 +195,18 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
     this.orb.refreshNow();
     this.columns = [
       {
+        name: '',
+        prop: 'checkbox',
+        flexGrow: 1,
+        minWidth: 62,
+        canAutoResize: true,
+        sortable: false,
+        cellTemplate: this.checkboxTemplateCell,
+        headerTemplate: this.checkboxTemplateHeader,
+      },
+      {
         prop: 'name',
-        flexGrow: 4,
+        flexGrow: 5,
         canAutoResize: true,
         minWidth: 150,
         name: 'Name',
@@ -157,7 +214,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
       },
       {
         prop: 'state',
-        flexGrow: 2,
+        flexGrow: 3,
         canAutoResize: true,
         name: 'Status',
         cellTemplate: this.agentStateTemplateRef,
@@ -172,7 +229,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
       },
       {
         prop: 'combined_tags',
-        flexGrow: 9,
+        flexGrow: 10,
         canAutoResize: true,
         name: 'Tags',
         cellTemplate: this.agentTagsTemplateCell,
@@ -187,24 +244,71 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
             ),
       },
       {
+        prop: 'version',
+        flexGrow: 5,
+        minWidth: 150,
+        canAutoResize: true,
+        name: 'Version',
+        sortable: true,
+        cellTemplate: this.agentVersionTemplateCell,
+      },
+      {
         prop: 'ts_last_hb',
-        flexGrow: 2,
+        flexGrow: 4,
         minWidth: 150,
         canAutoResize: true,
         name: 'Last Activity',
-        sortable: false,
+        sortable: true,
         cellTemplate: this.agentLastActivityTemplateCell,
       },
       {
         name: '',
         prop: 'actions',
-        flexGrow: 3,
+        flexGrow: 2.5,
         minWidth: 150,
         canAutoResize: true,
         sortable: false,
         cellTemplate: this.actionsTemplateCell,
       },
     ];
+  }
+
+
+  public onCheckboxChange(event: any, row: any): void { 
+    let selectedAgent = {
+      id: row.id,
+      resetable: true,
+      name: row.name,
+      state: row.state,
+    }
+    if (this.getChecked(row) === false) {
+      let resetable = true;
+      if (row.state === 'new' || row.state === 'offline') {
+        resetable = false;
+      }
+      selectedAgent.resetable = resetable;
+      this.selected.push(selectedAgent);
+    } else {
+      for (let i = 0; i < this.selected.length; i++) {
+        if (this.selected[i].id === row.id) {
+          this.selected.splice(i, 1);
+          break;
+        }
+      }
+    }
+    const reset = this.selected.filter((e) => e.resetable === false);
+    this.canResetAgents = reset.length > 0 ? true : false;
+  }
+
+
+
+  public getChecked(row: any): boolean {
+    const item = this.selected.filter((e) => e.id === row.id);
+    return item.length > 0 ? true : false;
+  }
+
+  notifyResetSuccess() {
+    this.notificationService.success('All Agents Resets Requested', '');
   }
 
   onOpenView(agent: any) {
@@ -242,6 +346,81 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
           });
         }
       });
+  }
+  onOpenDeleteSelected() {
+    const selected = this.selected;
+    const elementName = "Agents"
+    this.dialogService
+      .open(DeleteSelectedComponent, {
+        context: { selected, elementName },
+        autoFocus: true,
+        closeOnEsc: true,
+      })
+      .onClose.subscribe((confirm) => {
+        if (confirm) {
+          this.deleteSelectedAgents();
+          this.selected = [];
+          this.orb.refreshNow();
+        }
+      });
+  }
+
+  deleteSelectedAgents() {
+    this.selected.forEach((agent) => {
+      this.agentService.deleteAgent(agent.id).subscribe();
+    })
+    this.notificationsService.success('All selected Agents delete requests succeeded', '');
+  }
+
+  onOpenResetAgents() {
+    const size = this.selected.length;
+    this.dialogService
+      .open(AgentResetComponent, {
+        context: { size },
+        autoFocus: true,
+        closeOnEsc: true,
+      })
+      .onClose.subscribe((confirm) => {
+        if (confirm) {
+          this.resetAgents();
+          this.orb.refreshNow();
+        }
+      })
+  }
+  resetAgents() {
+    if (!this.isResetting) {
+      this.isResetting = true;
+      this.selected.forEach((agent) => {
+        this.agentService.resetAgent(agent.id).subscribe();
+      })
+      this.notifyResetSuccess();
+      this.selected = [];
+      this.isResetting = false;
+    }
+  }
+
+  onHeaderCheckboxChange(event: any) {
+    if (event.target.checked && this.filteredAgents$) {
+      this.agentsSubscription = this.filteredAgents$.subscribe(rows => {
+        this.selected = [];
+        rows.forEach(row => {
+          const policySelected = {
+            id: row.id,
+            name: row.name,
+            state: row.state,
+            resetable: row.state === 'new' || row.state === 'offline' ? false : true,
+          }
+          this.selected.push(policySelected);
+        });
+      });
+    } else {
+      if (this.agentsSubscription) {
+        this.agentsSubscription.unsubscribe();
+      }
+      this.selected = [];
+    }
+    const reset = this.selected.filter((e) => e.resetable === false);
+    this.canResetAgents = reset.length > 0 ? true : false;
   }
 
   openDetailsModal(row: any) {

@@ -18,16 +18,16 @@ var idProvider = uuid.New()
 
 func TestSinkerConfigSave(t *testing.T) {
 	sinkerCache := redis.NewSinkerCache(redisClient, logger)
-	config := config2.SinkConfig{
-		SinkID:          "123",
-		OwnerID:         "test",
-		Url:             "localhost",
-		User:            "user",
-		Password:        "password",
-		State:           0,
-		Msg:             "",
-		LastRemoteWrite: time.Time{},
-	}
+	var config config2.SinkConfig
+	config.SinkID = "123"
+	config.OwnerID = "test"
+	config.Authentication.Type = "basic_auth"
+	config.Authentication.Username = "user"
+	config.Authentication.Password = "password"
+	config.Exporter.RemoteHost = "localhost"
+	config.State = 0
+	config.Msg = ""
+	config.LastRemoteWrite = time.Time{}
 
 	err := sinkerCache.Add(config)
 	require.Nil(t, err, fmt.Sprintf("save sinker config to cache: expected nil got %s", err))
@@ -40,9 +40,8 @@ func TestSinkerConfigSave(t *testing.T) {
 			config: config2.SinkConfig{
 				SinkID:          "124",
 				OwnerID:         "test",
-				Url:             "localhost",
-				User:            "user",
-				Password:        "password",
+				Exporter:        config.Exporter,
+				Authentication:  config.Authentication,
 				State:           0,
 				Msg:             "",
 				LastRemoteWrite: time.Time{},
@@ -65,16 +64,16 @@ func TestSinkerConfigSave(t *testing.T) {
 
 func TestGetSinkerConfig(t *testing.T) {
 	sinkerCache := redis.NewSinkerCache(redisClient, logger)
-	config := config2.SinkConfig{
-		SinkID:          "123",
-		OwnerID:         "test",
-		Url:             "localhost",
-		User:            "user",
-		Password:        "password",
-		State:           0,
-		Msg:             "",
-		LastRemoteWrite: time.Time{},
-	}
+	var config config2.SinkConfig
+	config.SinkID = "123"
+	config.OwnerID = "test"
+	config.Authentication.Type = "basic_auth"
+	config.Authentication.Username = "user"
+	config.Authentication.Password = "password"
+	config.Exporter.RemoteHost = "localhost"
+	config.State = 0
+	config.Msg = ""
+	config.LastRemoteWrite = time.Time{}
 
 	err := sinkerCache.Add(config)
 	require.Nil(t, err, fmt.Sprintf("save sinker config to cache: expected nil got %s", err))
@@ -107,7 +106,16 @@ func TestGetSinkerConfig(t *testing.T) {
 
 func TestGetAllSinkerConfig(t *testing.T) {
 	sinkerCache := redis.NewSinkerCache(redisClient, logger)
-
+	var config config2.SinkConfig
+	config.SinkID = "123"
+	config.OwnerID = "test"
+	config.Authentication.Type = "basic_auth"
+	config.Authentication.Username = "user"
+	config.Authentication.Password = "password"
+	config.Exporter.RemoteHost = "localhost"
+	config.State = 0
+	config.Msg = ""
+	config.LastRemoteWrite = time.Time{}
 	sinksConfig := map[string]struct {
 		config config2.SinkConfig
 	}{
@@ -115,9 +123,8 @@ func TestGetAllSinkerConfig(t *testing.T) {
 			config: config2.SinkConfig{
 				SinkID:          "123",
 				OwnerID:         "test",
-				Url:             "localhost",
-				User:            "user",
-				Password:        "password",
+				Exporter:        config.Exporter,
+				Authentication:  config.Authentication,
 				State:           0,
 				Msg:             "",
 				LastRemoteWrite: time.Time{},
@@ -127,9 +134,8 @@ func TestGetAllSinkerConfig(t *testing.T) {
 			config: config2.SinkConfig{
 				SinkID:          "134",
 				OwnerID:         "test",
-				Url:             "localhost",
-				User:            "user",
-				Password:        "password",
+				Exporter:        config.Exporter,
+				Authentication:  config.Authentication,
 				State:           0,
 				Msg:             "",
 				LastRemoteWrite: time.Time{},
