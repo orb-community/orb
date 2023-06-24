@@ -404,7 +404,7 @@ func ReturnConfigYamlFromSink(ctx context.Context, kafkaURL string, sink SinkDat
     headerConfig := HeaderConfig{
       Action: "insert",
       Key: "X-Scope-OrgID",
-      FromContext: headerStr,
+      Value: headerStr,
     }
 
     extensions.HeadersSetter = &HeadersSetterExtension{

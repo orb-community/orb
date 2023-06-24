@@ -132,7 +132,7 @@ type HeadersSetterExtension struct {
 type HeaderConfig struct {
     Action       string `json:"action"`
     Key          string `json:"key"`
-    FromContext  string `json:"from_context"`
+    Value  string `json:"value"`
 }
 
 type ClientAuth struct {
