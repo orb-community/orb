@@ -11,6 +11,7 @@ configs = TestConfig.configs()
 sink_name_prefix = "test_sink_label_name_"
 orb_url = configs.get('orb_url')
 verify_ssl_bool = eval(configs.get('verify_ssl').title())
+backend_type = configs.get('backend_type')
 
 
 @given("that the user has the prometheus/grafana credentials")
@@ -51,14 +52,15 @@ def create_sink(context, **kwargs):
     else:
         configuration_type = ""
     if include_otel_env_var == "true":
-        context.sink = create_new_sink(token, sink_label_name, endpoint, username, password,
+        context.sink = create_new_sink(token, sink_label_name, endpoint, username, password, backend_type=backend_type,
                                        include_otel=include_otel_env_var, otel=otel_map[enable_otel],
                                        configuration_type=configuration_type)
     else:
-        context.sink = create_new_sink(token, sink_label_name, endpoint, username, password,
+        context.sink = create_new_sink(token, sink_label_name, endpoint, username, password, backend_type=backend_type,
                                        configuration_type=configuration_type)
     local_orb_path = configs.get("local_orb_path")
-    sink_schema_path = local_orb_path + "/python-test/features/steps/schemas/sink_schema.json"
+    schema_map = {"prometheus": "/sink_schema.json", "otlphttp": "/sink_otlphttp_schema.json"}
+    sink_schema_path = f"{local_orb_path}/python-test/features/steps/schemas{schema_map[backend_type]}"
     is_schema_valid = validate_json(context.sink, sink_schema_path)
     assert_that(is_schema_valid, equal_to(True), f"Invalid sink json. \n Sink = {context.sink}")
     sink_get_response = get_sink(context.token, context.sink['id'])
@@ -84,11 +86,11 @@ def create_sink_with_conflict_name(context):
     otel_map = {"true": "enabled", "false": "disabled"}
     if include_otel_env_var == "true":
         context.error_message = create_new_sink(token, context.sink['name'], endpoint, username, password,
-                                                include_otel=include_otel_env_var, otel=otel_map[enable_otel],
-                                                expected_status_code=409)
+                                                backend_type=backend_type, include_otel=include_otel_env_var,
+                                                otel=otel_map[enable_otel], expected_status_code=409)
     else:
         context.error_message = create_new_sink(token, context.sink['name'], endpoint, username, password,
-                                                expected_status_code=409)
+                                                backend_type=backend_type, expected_status_code=409)
 
 
 @step("the name of last Sink is edited using an already existent one")
@@ -162,10 +164,12 @@ def create_invalid_sink(context, credential):
     if include_otel_env_var == "true":
         context.sink = create_new_sink(token, sink_label_name, prometheus_credentials['endpoint'],
                                        prometheus_credentials['username'], prometheus_credentials['password'],
-                                       include_otel=include_otel_env_var, otel=otel_map[enable_otel])
+                                       backend_type=backend_type, include_otel=include_otel_env_var,
+                                       otel=otel_map[enable_otel])
     else:
         context.sink = create_new_sink(token, sink_label_name, prometheus_credentials['endpoint'],
-                                       prometheus_credentials['username'], prometheus_credentials['password'])
+                                       prometheus_credentials['username'], prometheus_credentials['password'],
+                                       backend_type=backend_type)
     local_orb_path = configs.get("local_orb_path")
     sink_schema_path = local_orb_path + "/python-test/features/steps/schemas/sink_schema.json"
     is_schema_valid = validate_json(context.sink, sink_schema_path)
@@ -325,9 +329,9 @@ def clean_sinks(context):
     delete_sinks(token, sinks_filtered_list)
 
 
-def create_new_sink(token, name_label, remote_host, username, password, description=None, tag_key=None, tag_value=None,
-                    backend_type="prometheus", include_otel="false", otel="disabled", configuration_type="",
-                    expected_status_code=201):
+def create_new_sink(token, name_label, remote_host, username, password, backend_type=None,
+                    description=None, tag_key=None, tag_value=None, include_otel="false", otel="disabled",
+                    configuration_type="", expected_status_code=201):
     """
 
     Creates a new sink in Orb control plane
@@ -337,10 +341,10 @@ def create_new_sink(token, name_label, remote_host, username, password, descript
     :param (str) remote_host: base url to send metrics to a dashboard
     :param (str) username: user that enables access to the dashboard
     :param (str) password: key that enables access to the dashboard
+    :param (str) backend_type: type of backend used to send metrics.
     :param (str) description: description of sink
     :param (str) tag_key: the key of the tag to be added to this sink. Default: ''
     :param (str) tag_value: the value of the tag to be added to this sink. Default: None
-    :param (str) backend_type: type of backend used to send metrics. Default: prometheus
     :param (str) include_otel: if true it include 'opentelemetry' on sink's configs
     :param (str) otel: the value to be used on 'opentelemetry' config
     :param (str) configuration_type: define in which type the configuration will be written
@@ -348,6 +352,7 @@ def create_new_sink(token, name_label, remote_host, username, password, descript
     :return: (dict) a dictionary containing the created sink data
     """
     assert_that(include_otel, any_of("true", "false"), "Unexpected value for 'include_otel' on sinks creation")
+    assert_that(backend_type, any_of("prometheus", equal_to("otlphttp")), f"Unexpected type of backend.")
     exporter_key = {"prometheus": "remote_host", "otlphttp": "endpoint"}
     if include_otel == "true":
         sink_configs = {"authentication": {"type": "basicauth", "password": password, "username": username},

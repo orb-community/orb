@@ -12,7 +12,7 @@
   <nb-card-body>
     <p>Are you sure you want to delete a total of {{ selected?.length }} {{ elementName }}? This action cannot be undone.</p>
     <div *ngFor="let item of selected">
-      {{ item.name }} <span class="orb-service-{{ item.state }} orb-service-{{ item.usage }}"> {{ item.state }} {{ item.usage }} </span>
+      {{ item.name }} <span class="orb-service-{{ item.state }} orb-service-{{ item.usage }}"> {{ item.state | titlecase }} {{ item.usage | titlecase }} </span>
     </div>
     <p class style="color: #df316f; margin-top: 15px;">*To confirm, type the amount of {{ elementName }} to be delete.</p>
     <input type="text"

@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "$id": "http://example.com/example.json",
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "description",
+    "state",
+    "backend",
+    "config",
+    "ts_created"
+  ],
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string"
+    },
+    "backend": {
+      "type": "string"
+    },
+    "config": {
+      "type": "object",
+      "required": [
+        "authentication",
+        "exporter",
+        "opentelemetry"
+      ],
+      "properties": {
+        "authentication": {
+          "type": "object",
+          "required": [
+            "password",
+            "type",
+            "username"
+          ],
+          "properties": {
+            "password": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string"
+            },
+            "username": {
+              "type": "string"
+            }
+          }
+        },
+        "exporter": {
+          "type": "object",
+          "required": [
+            "endpoint"
+          ],
+          "properties": {
+            "endpoint": {
+              "type": "string"
+            }
+          }
+        },
+        "opentelemetry": {
+          "type": "string"
+        }
+      }
+    },
+    "ts_created": {
+      "type": "string"
+    }
+  }
+}

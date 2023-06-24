@@ -28,7 +28,7 @@ import { NotificationsService } from 'app/common/services/notifications/notifica
 import { OrbService } from 'app/common/services/orb.service';
 import { AgentPolicyDeleteComponent } from 'app/pages/datasets/policies.agent/delete/agent.policy.delete.component';
 import { DeleteSelectedComponent } from 'app/shared/components/delete/delete.selected.component';
-import { combineLatest, Observable } from 'rxjs';
+import { combineLatest, Observable, Subscription } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
 import { STRINGS } from '../../../../../assets/text/strings';
 
@@ -50,6 +50,8 @@ export class AgentPolicyListComponent
 
   selected: any[] = [];
 
+  private policiesSubscription: Subscription;
+
   @ViewChild('nameTemplateCell') nameTemplateCell: TemplateRef<any>;
 
   @ViewChild('versionTemplateCell') versionTemplateCell: TemplateRef<any>;
@@ -59,6 +61,8 @@ export class AgentPolicyListComponent
   @ViewChild('usageStateTemplateCell') usageStateTemplateCell: TemplateRef<any>;
 
   @ViewChild('checkboxTemplateCell') checkboxTemplateCell: TemplateRef<any>;
+
+  @ViewChild('checkboxTemplateHeader') checkboxTemplateHeader: TemplateRef<any>;
 
   tableSorts = [
     {
@@ -92,7 +96,7 @@ export class AgentPolicyListComponent
     private filters: FilterService,
   ) {
     this.filters$ = this.filters.getFilters();
-  
+    this.selected = [];
     this.policies$ = combineLatest([
       this.orb.getPolicyListView(),
       this.orb.getDatasetListView()
@@ -165,6 +169,9 @@ export class AgentPolicyListComponent
   }
 
   ngOnDestroy(): void {
+    if (this.policiesSubscription) {
+      this.policiesSubscription.unsubscribe();
+    }
     this.orb.killPolling.next();
   }
 
@@ -193,6 +200,7 @@ export class AgentPolicyListComponent
         canAutoResize: true,
         sortable: false,
         cellTemplate: this.checkboxTemplateCell,
+        headerTemplate: this.checkboxTemplateHeader,
       },
       {
         prop: 'name',
@@ -321,6 +329,7 @@ export class AgentPolicyListComponent
       .onClose.subscribe((confirm) => {
         if (confirm) {
           this.deleteSelectedAgentsPolicy();
+          this.selected = [];
           this.orb.refreshNow();
         }
       });
@@ -349,12 +358,31 @@ export class AgentPolicyListComponent
         }
       }
     }
-    console.log(this.selected);
   }
 
   public getChecked(row: any): boolean {
     const item = this.selected.filter((e) => e.id === row.id);
     return item.length > 0 ? true : false;
   }
-}
 
+  onHeaderCheckboxChange(event: any) {
+    if (event.target.checked && this.filteredPolicies$) {
+      this.policiesSubscription = this.filteredPolicies$.subscribe(rows => {
+        this.selected = [];
+        rows.forEach(row => {
+          const policySelected = {
+            id: row.id,
+            name: row.name,
+            usage: row.policy_usage,
+          }
+          this.selected.push(policySelected);
+        });
+      });
+    } else {
+      if (this.policiesSubscription) {
+        this.policiesSubscription.unsubscribe();
+      }
+      this.selected = [];
+    }
+  }
+}

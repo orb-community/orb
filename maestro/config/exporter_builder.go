@@ -44,7 +44,7 @@ func (p *PrometheusExporterConfig) GetExportersFromMetadata(config types.Metadat
     exporters.PrometheusRemoteWrite.Endpoint = endpointCfg
     exporters.PrometheusRemoteWrite.Auth.Authenticator = authenticationExtensionName
 
-    return exporters, "prometheus"
+    return exporters, "prometheusremotewrite"
 }
 
 

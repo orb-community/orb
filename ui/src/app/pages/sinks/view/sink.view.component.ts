@@ -112,7 +112,6 @@ export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
       } as Sink;
     }
 
-    console.log(payload);
     try {
       this.sinks.editSink(payload).subscribe((resp) => {
         this.discard();

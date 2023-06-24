@@ -171,6 +171,10 @@
   (change)="onCheckboxChange($event, row)">
 </ng-template>
 
+<ng-template #checkboxTemplateHeader>
+  <input type="checkbox" (change)="onHeaderCheckboxChange($event)">
+</ng-template>
+
 <ng-template
         #agentVersionTemplateCell
         let-i="index"
