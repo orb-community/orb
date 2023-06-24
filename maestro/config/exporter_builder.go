@@ -25,12 +25,7 @@ type PrometheusExporterConfig struct {
 }
 
 func (p *PrometheusExporterConfig) GetExportersFromMetadata(config types.Metadata, authenticationExtensionName string) (Exporters, string) {
-    exporters := Exporters{
-        PrometheusRemoteWrite: &PrometheusRemoteWriteExporterConfig{
-            Endpoint: "",
-            Auth:     Auth{Authenticator: ""},
-        },
-    }
+    exporters := Exporters{}
     exporterMetadata := config.GetSubMetadata("exporter")
     if exporterMetadata == nil {
         log.Println("exporter metadata is missing")
@@ -41,9 +36,10 @@ func (p *PrometheusExporterConfig) GetExportersFromMetadata(config types.Metadat
         log.Println("remote_host metadata is missing or not a string")
         return exporters, ""
     }
-    exporters.PrometheusRemoteWrite.Endpoint = endpointCfg
-    exporters.PrometheusRemoteWrite.Auth.Authenticator = authenticationExtensionName
-
+	exporters.PrometheusRemoteWrite = &PrometheusRemoteWriteExporterConfig{
+		Endpoint: endpointCfg,
+		Auth:     Auth{Authenticator: authenticationExtensionName},
+	}
     return exporters, "prometheusremotewrite"
 }
 
