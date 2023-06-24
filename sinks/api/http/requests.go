@@ -15,6 +15,8 @@ import (
 	"github.com/orb-community/orb/sinks/authentication_type"
 	"github.com/orb-community/orb/sinks/authentication_type/basicauth"
 	"github.com/orb-community/orb/sinks/backend"
+	"github.com/orb-community/orb/sinks/headers_type"
+	"github.com/orb-community/orb/sinks/headers_type/scope"
 	"gopkg.in/yaml.v3"
 )
 
@@ -38,9 +40,9 @@ type addReq struct {
 	token       string
 }
 
-func GetConfigurationAndMetadataFromMeta(backendName string, config types.Metadata) (configSvc *sinks.Configuration, exporter types.Metadata, authentication types.Metadata, err error) {
+func GetConfigurationAndMetadataFromMeta(backendName string, config types.Metadata) (configSvc *sinks.Configuration, exporter types.Metadata, authentication types.Metadata, headers types.Metadata, err error) {
 	if backendName == "" || !backend.HaveBackend(backendName) {
-		return nil, nil, nil, errors.Wrap(errors.ErrMalformedEntity, errors.New("backend not found: "+backendName))
+		return nil, nil, nil, nil , errors.Wrap(errors.ErrMalformedEntity, errors.New("backend not found: "+backendName))
 	}
 
 	configSvc = &sinks.Configuration{
@@ -69,14 +71,28 @@ func GetConfigurationAndMetadataFromMeta(backendName string, config types.Metada
 		err = errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid required field authentication type"))
 		return
 	}
+	headers = config.GetSubMetadata("headers")
+	if headers != nil {
+		headerData, ok := headers[scope.HeaderType]
+		if !ok || headerData == nil {
+			err = errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid required field X-Scope-OrgID"))
+			return
+		}
+		headersSvc, ok := headers_type.GetHeadersType(scope.HeaderType)
+		if !ok {
+			err = errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid required field header type"))
+			return
+		}
+		configSvc.Headers = headersSvc
+	}
 	configSvc.Authentication = authTypeSvc
 	err = configSvc.Authentication.ValidateConfiguration("object", authentication)
 	return
 }
 
-func GetConfigurationAndMetadataFromYaml(backendName string, config string) (configSvc *sinks.Configuration, exporter types.Metadata, authentication types.Metadata, err error) {
+func GetConfigurationAndMetadataFromYaml(backendName string, config string) (configSvc *sinks.Configuration, exporter types.Metadata, authentication types.Metadata, headers types.Metadata, err error) {
 	if backendName == "" || !backend.HaveBackend(backendName) {
-		return nil, nil, nil, errors.Wrap(errors.ErrMalformedEntity, errors.New("backend not found"))
+		return nil, nil, nil, nil, errors.Wrap(errors.ErrMalformedEntity, errors.New("backend not found"))
 	}
 
 	configSvc = &sinks.Configuration{
@@ -109,6 +125,20 @@ func GetConfigurationAndMetadataFromYaml(backendName string, config string) (con
 	if !ok {
 		err = errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid required field authentication type"))
 		return
+	}
+	headers = configStr.GetSubMetadata("headers")
+	if headers != nil {
+		headerData, ok := headers[scope.HeaderType]
+		if !ok || headerData == nil {
+			err = errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid required field header"))
+			return
+		}
+		headersSvc, ok := headers_type.GetHeadersType(scope.HeaderType)
+		if !ok {
+			err = errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid required field header type"))
+			return
+		}
+		configSvc.Headers = headersSvc
 	}
 	configSvc.Authentication = authTypeSvc
 	err = configSvc.Authentication.ValidateConfiguration("object", authentication)

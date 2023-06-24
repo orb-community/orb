@@ -375,64 +375,60 @@ func GetDeploymentJson(kafkaUrl string, sink SinkData) (string, error) {
 }
 
 // ReturnConfigYamlFromSink this is the main method, which will generate the YAML file from the
-func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig string, sink SinkData) (string, error) {
-	authType := sink.Config.GetSubMetadata(AuthenticationKey)["type"]
-	var authTypeStr string
-	switch authType.(type) {
-	case string:
-		authTypeStr = authType.(string)
-	default:
-		return "", errors.New("failed to create config invalid authentication type")
-	}
-	authBuilder := GetAuthService(authTypeStr)
-	if authBuilder == nil {
-		return "", errors.New("invalid authentication type")
-	}
-	exporterBuilder := FromStrategy(sink.Backend)
-	extensions, extensionName := authBuilder.GetExtensionsFromMetadata(sink.Config)
-	exporters, exporterName := exporterBuilder.GetExportersFromMetadata(sink.Config, extensionName)
-
-	// Add prometheus extension for metrics
-	extensions.PProf = &PProfExtension{
-		Endpoint: "0.0.0.0:1888", // Leaving default for now, will need to change with more processes
-	}
-	serviceConfig := ServiceConfig{
-		Extensions: []string{"pprof", extensionName},
-		Pipelines: struct {
-			Metrics struct {
-				Receivers  []string `json:"receivers" yaml:"receivers"`
-				Processors []string `json:"processors,omitempty" yaml:"processors,omitempty"`
-				Exporters  []string `json:"exporters" yaml:"exporters"`
-			} `json:"metrics" yaml:"metrics"`
-		}{
-			Metrics: struct {
-				Receivers  []string `json:"receivers" yaml:"receivers"`
-				Processors []string `json:"processors,omitempty" yaml:"processors,omitempty"`
-				Exporters  []string `json:"exporters" yaml:"exporters"`
-			}{
-				Receivers: []string{"kafka"},
-				Exporters: []string{exporterName},
-			},
-		},
-	}
-	config := OtelConfigFile{
-		Receivers: Receivers{
-			Kafka: KafkaReceiver{
-				Brokers:         []string{kafkaUrlConfig},
-				Topic:           fmt.Sprintf("otlp_metrics-%s", sink.SinkID),
-				ProtocolVersion: "2.0.0", // Leaving default of over 2.0.0
-			},
-		},
-		Extensions: &extensions,
-		Exporters:  exporters,
-		Service:    serviceConfig,
-	}
-	marshal, err := yaml.Marshal(&config)
-	if err != nil {
-		return "", err
-	}
-	returnedString := "---\n" + string(marshal)
-	s := strings.ReplaceAll(returnedString, "\"", "")
-	s = strings.ReplaceAll(s, "\n", `\n`)
-	return s, nil
+func ReturnConfigYamlFromSink(ctx context.Context, kafkaURL string, sink SinkData) (string, error) {
+  authType := sink.Config.GetSubMetadata(AuthenticationKey)["type"]
+  authTypeStr, ok := authType.(string)
+  if !ok {
+      return "", errors.New("failed to create config invalid authentication type")
+  }
+  authBuilder := GetAuthService(authTypeStr)
+  if authBuilder == nil {
+      return "", errors.New("invalid authentication type")
+  }
+  exporterBuilder := FromStrategy(sink.Backend)
+  extensions, extensionName := authBuilder.GetExtensionsFromMetadata(sink.Config)
+  exporters, exporterName := exporterBuilder.GetExportersFromMetadata(sink.Config, extensionName)
+  extensions.PProf = &PProfExtension{
+      Endpoint: "0.0.0.0:1888",
+  }
+  serviceConfig := ServiceConfig{
+      Extensions: []string{"pprof", extensionName},
+      Pipelines: struct {
+          Metrics struct {
+              Receivers  []string `json:"receivers" yaml:"receivers"`
+              Processors []string `json:"processors,omitempty" yaml:"processors,omitempty"`
+              Exporters  []string `json:"exporters" yaml:"exporters"`
+          } `json:"metrics" yaml:"metrics"`
+      }{
+          Metrics: struct {
+              Receivers  []string `json:"receivers" yaml:"receivers"`
+              Processors []string `json:"processors,omitempty" yaml:"processors,omitempty"`
+              Exporters  []string `json:"exporters" yaml:"exporters"`
+          }{
+              Receivers: []string{"kafka"},
+              Exporters: []string{exporterName},
+          },
+      },
+  }
+  config := OtelConfigFile{
+      Receivers: Receivers{
+          Kafka: KafkaReceiver{
+              Brokers:         []string{kafkaURL},
+              Topic:           fmt.Sprintf("otlp_metrics-%s", sink.SinkID),
+              ProtocolVersion: "2.0.0",
+          },
+      },
+      Extensions: &extensions,
+      Exporters:  exporters,
+      Service:    serviceConfig,
+  }
+  marshal, err := yaml.Marshal(&config)
+  if err != nil {
+      return "", err
+  }
+  returnedString := "---\n" + string(marshal)
+  returnedString = strings.ReplaceAll(returnedString, "\"", "")
+  returnedString = strings.ReplaceAll(returnedString, "\n", `\n`)
+  return returnedString, nil
 }
+

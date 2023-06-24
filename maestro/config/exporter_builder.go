@@ -1,6 +1,10 @@
 package config
 
-import "github.com/orb-community/orb/pkg/types"
+import (
+	"log"
+
+	"github.com/orb-community/orb/pkg/types"
+)
 
 type ExporterConfigService interface {
 	GetExportersFromMetadata(config types.Metadata, authenticationExtensionName string) (Exporters, string)
@@ -21,24 +25,49 @@ type PrometheusExporterConfig struct {
 }
 
 func (p *PrometheusExporterConfig) GetExportersFromMetadata(config types.Metadata, authenticationExtensionName string) (Exporters, string) {
-	endpointCfg := config.GetSubMetadata("exporter")["remote_host"].(string)
-	return Exporters{
-		PrometheusRemoteWrite: &PrometheusRemoteWriteExporterConfig{
-			Endpoint: endpointCfg,
-			Auth:     Auth{Authenticator: authenticationExtensionName},
-		},
-	}, "prometheusremotewrite"
+    exporters := Exporters{
+        PrometheusRemoteWrite: &PrometheusRemoteWriteExporterConfig{
+            Endpoint: "",
+            Auth:     Auth{Authenticator: ""},
+        },
+    }
+    exporterMetadata := config.GetSubMetadata("exporter")
+    if exporterMetadata == nil {
+        log.Println("exporter metadata is missing")
+        return exporters, ""
+    }
+    endpointCfg, ok := exporterMetadata["remote_host"].(string)
+    if !ok {
+        log.Println("remote_host metadata is missing or not a string")
+        return exporters, ""
+    }
+    exporters.PrometheusRemoteWrite.Endpoint = endpointCfg
+    exporters.PrometheusRemoteWrite.Auth.Authenticator = authenticationExtensionName
+
+    return exporters, "prometheus"
 }
+
+
+
 
 type OTLPHTTPExporterBuilder struct {
 }
 
 func (O *OTLPHTTPExporterBuilder) GetExportersFromMetadata(config types.Metadata, authenticationExtensionName string) (Exporters, string) {
-	endpointCfg := config.GetSubMetadata("exporter")["endpoint"].(string)
-	return Exporters{
-		OTLPExporter: &OTLPExporterConfig{
-			Endpoint: endpointCfg,
-			Auth:     Auth{Authenticator: authenticationExtensionName},
-		},
-	}, "otlphttp"
+    exporters := Exporters{}
+    exporterMetadata := config.GetSubMetadata("exporter")
+    if exporterMetadata == nil {
+        log.Println("exporter metadata is missing")
+        return exporters, ""
+    }
+    endpointCfg, ok := exporterMetadata["endpoint"].(string)
+    if !ok {
+        log.Println("endpoint metadata is missing or not a string")
+        return exporters, ""
+    }
+    exporters.OTLPExporter = &OTLPExporterConfig{
+        Endpoint: endpointCfg,
+        Auth:     Auth{Authenticator: authenticationExtensionName},
+    }
+    return exporters, "otlphttp"
 }

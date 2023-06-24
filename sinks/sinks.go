@@ -7,13 +7,15 @@ package sinks
 import (
 	"context"
 	"database/sql/driver"
+	"time"
+
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks/authentication_type"
 	"github.com/orb-community/orb/sinks/authentication_type/basicauth"
 	"github.com/orb-community/orb/sinks/backend"
+	"github.com/orb-community/orb/sinks/headers_type"
 	"go.uber.org/zap"
-	"time"
 )
 
 var (
@@ -107,6 +109,7 @@ func NewConfigBackends(e backend.Backend, a authentication_type.AuthenticationTy
 type Configuration struct {
 	Exporter       backend.Backend                        `json:"exporter" ,yaml:"exporter"`
 	Authentication authentication_type.AuthenticationType `json:"authentication" ,yaml:"authentication"`
+	Headers headers_type.HeadersType `json:"headers" ,yaml:"headers"`
 }
 
 type Sink struct {

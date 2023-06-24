@@ -10,6 +10,8 @@ package sinks
 
 import (
 	"context"
+	"time"
+
 	"github.com/mainflux/mainflux"
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
 	"github.com/orb-community/orb/pkg/errors"
@@ -18,8 +20,8 @@ import (
 	"github.com/orb-community/orb/sinks/authentication_type/basicauth"
 	"github.com/orb-community/orb/sinks/backend/otlphttpexporter"
 	"github.com/orb-community/orb/sinks/backend/prometheus"
+	"github.com/orb-community/orb/sinks/headers_type/scope"
 	"go.uber.org/zap"
-	"time"
 )
 
 // PageMetadata contains page metadata that helps navigation
@@ -66,7 +68,8 @@ func (svc sinkService) GetLogger() *zap.Logger {
 func NewSinkService(logger *zap.Logger, auth mainflux.AuthServiceClient, sinkRepo SinkRepository, mfsdk mfsdk.SDK, passwordService authentication_type.PasswordService) SinkService {
 	otlphttpexporter.Register()
 	prometheus.Register()
-	basicauth.Register(passwordService)
+	basicauth.Register(passwordService) // basic authentication
+	scope.Register() // X-Scope-OrgID header
 	// bearerauth.Register(passwordService)
 	return &sinkService{
 		logger:          logger,

@@ -2,8 +2,9 @@ package config
 
 import (
 	"database/sql/driver"
-	"github.com/orb-community/orb/pkg/types"
 	"time"
+
+	"github.com/orb-community/orb/pkg/types"
 )
 
 type SinkData struct {
@@ -15,6 +16,22 @@ type SinkData struct {
 	Msg             string          `json:"msg,omitempty"`
 	LastRemoteWrite time.Time       `json:"last_remote_write,omitempty"`
 }
+
+type SinkConfigData struct {
+	Authentication struct {
+		Type     string `json:"type"`
+		Username string `json:"username"`
+		Password string `json:"password"`
+	} `json:"authentication"`
+	Exporter struct {
+		Endpoint string `json:"endpoint"`
+	} `json:"exporter"`
+	Headers struct {
+		OrgID string `json:"X-Scope-OrgID"`
+	} `json:"headers"`
+	Opentelemetry string `json:"opentelemetry"`
+}
+
 
 const (
 	Unknown PrometheusState = iota
@@ -160,4 +177,12 @@ type ServiceConfig struct {
 			Exporters  []string `json:"exporters" yaml:"exporters"`
 		} `json:"metrics" yaml:"metrics"`
 	} `json:"pipelines" yaml:"pipelines"`
+	Telemetry struct {
+		Logs struct {
+			Level            string   `json:"level,omitempty" yaml:"level,omitempty"`
+			Encoding         string   `json:"encoding,omitempty" yaml:"encoding,omitempty"`
+			OutputPaths      []string `json:"output_paths,omitempty" yaml:"output_paths,omitempty"`
+			ErrorOutputPaths []string `json:"error_output_paths,omitempty" yaml:"error_output_paths,omitempty"`
+		} `json:"logs" yaml:"logs,omitempty"`
+	} `json:"telemetry,omitempty" yaml:"telemetry,omitempty"`
 }
