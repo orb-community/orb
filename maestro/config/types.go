@@ -101,6 +101,8 @@ type Extensions struct {
 	// Exporters Authentication
 	BasicAuth *BasicAuthenticationExtension `json:"basicauth/exporter,omitempty" yaml:"basicauth/exporter,omitempty" :"basic_auth"`
 	//BearerAuth *BearerAuthExtension          `json:"bearerauth/exporter,omitempty" yaml:"bearerauth/exporter,omitempty" :"bearer_auth"`
+	// Exporters Headers
+	HeadersSetter *HeadersSetterExtension `json:"headers_setter,omitempty" yaml:"headers_setter,omitempty" :"headers_setter"`
 }
 
 type HealthCheckExtension struct {
@@ -121,6 +123,16 @@ type PProfExtension struct {
 
 type ZPagesExtension struct {
 	Endpoint string `json:"endpoint" yaml:"endpoint"`
+}
+
+type HeadersSetterExtension struct {
+    Headers []HeaderConfig `json:"headers"`
+}
+
+type HeaderConfig struct {
+    Action       string `json:"action"`
+    Key          string `json:"key"`
+    FromContext  string `json:"from_context"`
 }
 
 type ClientAuth struct {
@@ -183,6 +195,6 @@ type ServiceConfig struct {
 			Encoding         string   `json:"encoding,omitempty" yaml:"encoding,omitempty"`
 			OutputPaths      []string `json:"output_paths,omitempty" yaml:"output_paths,omitempty"`
 			ErrorOutputPaths []string `json:"error_output_paths,omitempty" yaml:"error_output_paths,omitempty"`
-		} `json:"logs" yaml:"logs,omitempty"`
+		} `json:"logs,omitempty" yaml:"logs,omitempty"`
 	} `json:"telemetry,omitempty" yaml:"telemetry,omitempty"`
 }
