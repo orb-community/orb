@@ -59,25 +59,26 @@ func (p *PrometheusExporterConfig) GetExportersFromMetadata(config types.Metadat
     return exporters, "prometheusremotewrite"
 }
 
-
-
-
-
 type OTLPHTTPExporterBuilder struct {
 }
 
 func (o *OTLPHTTPExporterBuilder) GetExportersFromMetadata(config types.Metadata, authenticationExtensionName string) (Exporters, string) {
     exporters := Exporters{}
+	// Check if exporter metadata is present
     exporterMetadata := config.GetSubMetadata("exporter")
     if exporterMetadata == nil {
         log.Println("exporter metadata is missing")
         return exporters, ""
     }
+	
+    // Retrieve the otlp endpoint configuration
     endpointCfg, ok := exporterMetadata["endpoint"].(string)
     if !ok {
         log.Printf("endpoint metadata is missing or not a string %v", exporterMetadata)
         return exporters, ""
     }
+	
+	// Create OTLPExporterConfig with endpoint and authentication
     exporters.OTLPExporter = &OTLPExporterConfig{
         Endpoint: endpointCfg,
         Auth:     Auth{Authenticator: authenticationExtensionName},
