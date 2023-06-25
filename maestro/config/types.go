@@ -24,15 +24,14 @@ type SinkConfigData struct {
 		Password string `json:"password"`
 	} `json:"authentication"`
 	Exporter struct {
-		Endpoint string `json:"endpoint,omitempty"`
-		RemoteHost   string `json:"remote_host,omitempty"`
+		Endpoint   string `json:"endpoint,omitempty"`
+		RemoteHost string `json:"remote_host,omitempty"`
 	} `json:"exporter"`
 	Headers struct {
 		OrgID string `json:"X-Scope-OrgID,omitempty"`
 	} `json:"headers,omitempty"`
 	Opentelemetry string `json:"opentelemetry"`
 }
-
 
 const (
 	Unknown PrometheusState = iota
@@ -157,7 +156,6 @@ type OTLPExporterConfig struct {
 		Authenticator string `json:"authenticator" yaml:"authenticator"`
 	}
 	Headers map[string]string `json:"headers,omitempty" yaml:"headers,omitempty"`
-
 }
 
 type Auth struct {

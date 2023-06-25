@@ -109,7 +109,7 @@ func NewConfigBackends(e backend.Backend, a authentication_type.AuthenticationTy
 type Configuration struct {
 	Exporter       backend.Backend                        `json:"exporter" ,yaml:"exporter"`
 	Authentication authentication_type.AuthenticationType `json:"authentication" ,yaml:"authentication"`
-	Headers headers_type.HeadersType `json:"headers" ,yaml:"headers"`
+	Headers        headers_type.HeadersType               `json:"headers" ,yaml:"headers"`
 }
 
 type Sink struct {

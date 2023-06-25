@@ -25,73 +25,73 @@ type PrometheusExporterConfig struct {
 }
 
 func (p *PrometheusExporterConfig) GetExportersFromMetadata(config types.Metadata, authenticationExtensionName string) (Exporters, string) {
-    // Check if exporter metadata is present
-    exporterMetadata := config.GetSubMetadata("exporter")
-    if exporterMetadata == nil {
-        log.Println("exporter metadata is missing")
-        return Exporters{}, ""
-    }
+	// Check if exporter metadata is present
+	exporterMetadata := config.GetSubMetadata("exporter")
+	if exporterMetadata == nil {
+		log.Println("exporter metadata is missing")
+		return Exporters{}, ""
+	}
 
-    // Retrieve the remote_host endpoint configuration
-    endpointCfg, ok := exporterMetadata["remote_host"].(string)
-    if !ok {
-        log.Printf("remote_host metadata is missing or not a string %v", exporterMetadata)
-        return Exporters{}, ""
-    }
+	// Retrieve the remote_host endpoint configuration
+	endpointCfg, ok := exporterMetadata["remote_host"].(string)
+	if !ok {
+		log.Printf("remote_host metadata is missing or not a string %v", exporterMetadata)
+		return Exporters{}, ""
+	}
 
-    // Create PrometheusRemoteWriteExporterConfig with endpoint and authentication
-    exporters := Exporters{
-        PrometheusRemoteWrite: &PrometheusRemoteWriteExporterConfig{
-            Endpoint: endpointCfg,
-            Auth:     Auth{Authenticator: authenticationExtensionName},
-        },
-    }
+	// Create PrometheusRemoteWriteExporterConfig with endpoint and authentication
+	exporters := Exporters{
+		PrometheusRemoteWrite: &PrometheusRemoteWriteExporterConfig{
+			Endpoint: endpointCfg,
+			Auth:     Auth{Authenticator: authenticationExtensionName},
+		},
+	}
 
-    // Check to add X-Scope-OrgID header
-    headersMetadata := config.GetSubMetadata("headers")
-    if headersMetadata != nil {
-        if headerStr, ok := headersMetadata["X-Scope-OrgID"].(string); ok && headerStr != "" {
+	// Check to add X-Scope-OrgID header
+	headersMetadata := config.GetSubMetadata("headers")
+	if headersMetadata != nil {
+		if headerStr, ok := headersMetadata["X-Scope-OrgID"].(string); ok && headerStr != "" {
 			exporters.PrometheusRemoteWrite.Headers = make(map[string]string)
-            exporters.PrometheusRemoteWrite.Headers["X-Scope-OrgID"] = headerStr
-        }
-    }
+			exporters.PrometheusRemoteWrite.Headers["X-Scope-OrgID"] = headerStr
+		}
+	}
 
-    return exporters, "prometheusremotewrite"
+	return exporters, "prometheusremotewrite"
 }
 
 type OTLPHTTPExporterBuilder struct {
 }
 
 func (o *OTLPHTTPExporterBuilder) GetExportersFromMetadata(config types.Metadata, authenticationExtensionName string) (Exporters, string) {
-    exporters := Exporters{}
+	exporters := Exporters{}
 	// Check if exporter metadata is present
-    exporterMetadata := config.GetSubMetadata("exporter")
-    if exporterMetadata == nil {
-        log.Println("exporter metadata is missing")
-        return exporters, ""
-    }
-	
-    // Retrieve the otlp endpoint configuration
-    endpointCfg, ok := exporterMetadata["endpoint"].(string)
-    if !ok {
-        log.Printf("endpoint metadata is missing or not a string %v", exporterMetadata)
-        return exporters, ""
-    }
-	
+	exporterMetadata := config.GetSubMetadata("exporter")
+	if exporterMetadata == nil {
+		log.Println("exporter metadata is missing")
+		return exporters, ""
+	}
+
+	// Retrieve the otlp endpoint configuration
+	endpointCfg, ok := exporterMetadata["endpoint"].(string)
+	if !ok {
+		log.Printf("endpoint metadata is missing or not a string %v", exporterMetadata)
+		return exporters, ""
+	}
+
 	// Create OTLPExporterConfig with endpoint and authentication
-    exporters.OTLPExporter = &OTLPExporterConfig{
-        Endpoint: endpointCfg,
-        Auth:     Auth{Authenticator: authenticationExtensionName},
-    }
+	exporters.OTLPExporter = &OTLPExporterConfig{
+		Endpoint: endpointCfg,
+		Auth:     Auth{Authenticator: authenticationExtensionName},
+	}
 
-    // Check to add X-Scope-OrgID header
-    headersMetadata := config.GetSubMetadata("headers")
-    if headersMetadata != nil {
-        if headerStr, ok := headersMetadata["X-Scope-OrgID"].(string); ok && headerStr != "" {
-            exporters.OTLPExporter.Headers = make(map[string]string)
-            exporters.OTLPExporter.Headers["X-Scope-OrgID"] = headerStr
-        }
-    }
+	// Check to add X-Scope-OrgID header
+	headersMetadata := config.GetSubMetadata("headers")
+	if headersMetadata != nil {
+		if headerStr, ok := headersMetadata["X-Scope-OrgID"].(string); ok && headerStr != "" {
+			exporters.OTLPExporter.Headers = make(map[string]string)
+			exporters.OTLPExporter.Headers["X-Scope-OrgID"] = headerStr
+		}
+	}
 
-    return exporters, "otlphttp"
+	return exporters, "otlphttp"
 }

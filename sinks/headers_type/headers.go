@@ -5,8 +5,6 @@ type HeadersType interface {
 	GetFeatureConfig() []ConfigFeature
 	ValidateConfiguration(inputFormat string, input interface{}) error
 	ConfigToFormat(outputFormat string, input interface{}) (interface{}, error)
-
-
 }
 
 const HeadersKey = "headers"

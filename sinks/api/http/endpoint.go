@@ -77,9 +77,9 @@ func addEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			}
 		}
 		config := types.Metadata{
-			"exporter": exporterConfig,
+			"exporter":                            exporterConfig,
 			authentication_type.AuthenticationKey: authConfig,
-			headers_type.HeadersKey: headersConfig,
+			headers_type.HeadersKey:               headersConfig,
 		}
 		sink := sinks.Sink{
 			Name:        nID,
@@ -192,14 +192,14 @@ func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 		}
 		if headersConfig == nil {
 			currentSink.Config = types.Metadata{
-				"exporter": exporterConfig,
+				"exporter":                            exporterConfig,
 				authentication_type.AuthenticationKey: authConfig,
 			}
 		} else {
 			currentSink.Config = types.Metadata{
-				"exporter": exporterConfig,
+				"exporter":                            exporterConfig,
 				authentication_type.AuthenticationKey: authConfig,
-				headers_type.HeadersKey: headersConfig,
+				headers_type.HeadersKey:               headersConfig,
 			}
 		}
 

@@ -27,7 +27,7 @@ var (
 const HeaderType = "X-Scope-OrgID"
 
 type HeaderConfig struct {
-	Header          string `json:"X-Scope-OrgID" ,yaml:"X-Scope-OrgID"`
+	Header string `json:"X-Scope-OrgID" ,yaml:"X-Scope-OrgID"`
 }
 
 func (a *HeaderConfig) Metadata() headers_type.HeadersTypeConfig {
@@ -61,7 +61,7 @@ func (a *HeaderConfig) ValidateConfiguration(inputFormat string, input interface
 		}
 		if len(a.Header) == 0 {
 			return errors.New("header cannot be empty")
-		} 
+		}
 	}
 	return nil
 }

@@ -54,23 +54,23 @@ func (es eventStore) handleSinksCreateCollector(ctx context.Context, event redis
 		SinkID:  event.SinkID,
 		OwnerID: event.Owner,
 	})
-    if err != nil {
-        es.logger.Error("could not fetch info for sink", zap.String("sink-id", event.SinkID), zap.Error(err))
-        return err
-    }
-    sinkData.OwnerID = event.Owner
+	if err != nil {
+		es.logger.Error("could not fetch info for sink", zap.String("sink-id", event.SinkID), zap.Error(err))
+		return err
+	}
+	sinkData.OwnerID = event.Owner
 	var dataConfig config.SinkConfigData
 	if err := json.Unmarshal(sinkData.Config, &dataConfig); err != nil {
 		return err
 	}
 	configJsonBytes, err := json.Marshal(dataConfig)
-    if err != nil {
-        return err
-    }
-    var configMetadata types.Metadata
-    if err := json.Unmarshal(configJsonBytes, &configMetadata); err != nil {
-        return err
-    }
+	if err != nil {
+		return err
+	}
+	var configMetadata types.Metadata
+	if err := json.Unmarshal(configJsonBytes, &configMetadata); err != nil {
+		return err
+	}
 	data := config.SinkData{
 		SinkID:  sinkData.Id,
 		OwnerID: sinkData.OwnerID,
@@ -99,60 +99,59 @@ func (es eventStore) CreateDeploymentEntry(ctx context.Context, sink config.Sink
 
 // handleSinksUpdateCollector will update Deployment Entry in Redis and force update otel collector
 func (es eventStore) handleSinksUpdateCollector(ctx context.Context, event redis.SinksUpdateEvent) error {
-    es.logger.Info("Received event to Update DeploymentEntry from sinks ID", zap.String("sinkID", event.SinkID), zap.String("owner", event.Owner))
-    sinkData, err := es.sinksClient.RetrieveSink(ctx, &sinkspb.SinkByIDReq{
-        SinkID:  event.SinkID,
-        OwnerID: event.Owner,
-    })
-    if err != nil {
-        es.logger.Error("could not fetch info for sink", zap.String("sink-id", event.SinkID), zap.Error(err))
-        return err
-    }
-    sinkData.OwnerID = event.Owner
-    var dataConfig config.SinkConfigData
-    if err := json.Unmarshal(sinkData.Config, &dataConfig); err != nil {
-        return err
-    }
-    configJsonBytes, err := json.Marshal(dataConfig)
-    if err != nil {
-        return err
-    }
-    var configMetadata types.Metadata
-    if err := json.Unmarshal(configJsonBytes, &configMetadata); err != nil {
-        return err
-    }
-    var data config.SinkData
-    data.Config = configMetadata
-    data.SinkID = sinkData.Id
-    data.OwnerID = sinkData.OwnerID
+	es.logger.Info("Received event to Update DeploymentEntry from sinks ID", zap.String("sinkID", event.SinkID), zap.String("owner", event.Owner))
+	sinkData, err := es.sinksClient.RetrieveSink(ctx, &sinkspb.SinkByIDReq{
+		SinkID:  event.SinkID,
+		OwnerID: event.Owner,
+	})
+	if err != nil {
+		es.logger.Error("could not fetch info for sink", zap.String("sink-id", event.SinkID), zap.Error(err))
+		return err
+	}
+	sinkData.OwnerID = event.Owner
+	var dataConfig config.SinkConfigData
+	if err := json.Unmarshal(sinkData.Config, &dataConfig); err != nil {
+		return err
+	}
+	configJsonBytes, err := json.Marshal(dataConfig)
+	if err != nil {
+		return err
+	}
+	var configMetadata types.Metadata
+	if err := json.Unmarshal(configJsonBytes, &configMetadata); err != nil {
+		return err
+	}
+	var data config.SinkData
+	data.Config = configMetadata
+	data.SinkID = sinkData.Id
+	data.OwnerID = sinkData.OwnerID
 	data.Backend = sinkData.Backend
-    data.State.SetFromString("unknown")
+	data.State.SetFromString("unknown")
 
-    deploy, err := config.GetDeploymentJson(es.kafkaUrl, data)
-    if err != nil {
-        es.logger.Error("error trying to get deployment json for sink ID", zap.String("sinkId", event.SinkID), zap.Error(err))
-        return err
-    }
-    es.sinkerKeyRedisClient.HSet(ctx, deploymentKey, event.SinkID, deploy)
-    err = es.kubecontrol.UpdateOtelCollector(ctx, event.Owner, event.SinkID, deploy)
-    if err != nil {
-        es.logger.Error("error trying to update otel collector", zap.String("sinkId", event.SinkID), zap.String("owner", event.Owner), zap.Error(err))
-        return err
-    }
-    // changing state on updated sink to unknown
-    es.PublishSinkStateChange(sinkData, "unknown", err, err)
-    if err != nil {
-        es.logger.Error("error setting state as unknown", zap.Error(err))
-        return err
-    }
-    err = es.UpdateSinkStateCache(ctx, data)
-    if err != nil {
-        es.logger.Error("error updating sink cache state as unknown", zap.Error(err))
-        return err
-    }
-    return nil
+	deploy, err := config.GetDeploymentJson(es.kafkaUrl, data)
+	if err != nil {
+		es.logger.Error("error trying to get deployment json for sink ID", zap.String("sinkId", event.SinkID), zap.Error(err))
+		return err
+	}
+	es.sinkerKeyRedisClient.HSet(ctx, deploymentKey, event.SinkID, deploy)
+	err = es.kubecontrol.UpdateOtelCollector(ctx, event.Owner, event.SinkID, deploy)
+	if err != nil {
+		es.logger.Error("error trying to update otel collector", zap.String("sinkId", event.SinkID), zap.String("owner", event.Owner), zap.Error(err))
+		return err
+	}
+	// changing state on updated sink to unknown
+	es.PublishSinkStateChange(sinkData, "unknown", err, err)
+	if err != nil {
+		es.logger.Error("error setting state as unknown", zap.Error(err))
+		return err
+	}
+	err = es.UpdateSinkStateCache(ctx, data)
+	if err != nil {
+		es.logger.Error("error updating sink cache state as unknown", zap.Error(err))
+		return err
+	}
+	return nil
 }
-
 
 func (es eventStore) UpdateSinkCache(ctx context.Context, data config.SinkData) (err error) {
 	data.State = config.Unknown
