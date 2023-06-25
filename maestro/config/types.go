@@ -101,8 +101,6 @@ type Extensions struct {
 	// Exporters Authentication
 	BasicAuth *BasicAuthenticationExtension `json:"basicauth/exporter,omitempty" yaml:"basicauth/exporter,omitempty" :"basic_auth"`
 	//BearerAuth *BearerAuthExtension          `json:"bearerauth/exporter,omitempty" yaml:"bearerauth/exporter,omitempty" :"bearer_auth"`
-	// Exporters Headers
-	HeadersSetter *HeadersSetterExtension `json:"headers_setter,omitempty" yaml:"headers_setter,omitempty" :"headers_setter"`
 }
 
 type HealthCheckExtension struct {
@@ -123,16 +121,6 @@ type PProfExtension struct {
 
 type ZPagesExtension struct {
 	Endpoint string `json:"endpoint" yaml:"endpoint"`
-}
-
-type HeadersSetterExtension struct {
-    Headers []HeaderConfig `json:"headers"`
-}
-
-type HeaderConfig struct {
-    Action       string `json:"action"`
-    Key          string `json:"key"`
-    Value  string `json:"value"`
 }
 
 type ClientAuth struct {
@@ -167,6 +155,8 @@ type OTLPExporterConfig struct {
 	Auth     struct {
 		Authenticator string `json:"authenticator" yaml:"authenticator"`
 	}
+	Headers map[string]string `json:"headers,omitempty" yaml:"headers,omitempty"`
+
 }
 
 type Auth struct {
@@ -178,6 +168,7 @@ type PrometheusRemoteWriteExporterConfig struct {
 	Auth     struct {
 		Authenticator string `json:"authenticator" yaml:"authenticator"`
 	}
+	Headers map[string]string `json:"headers, omitempty" yaml:"headers, omitempty"`
 }
 
 type ServiceConfig struct {

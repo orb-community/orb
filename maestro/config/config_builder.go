@@ -391,29 +391,8 @@ func ReturnConfigYamlFromSink(ctx context.Context, kafkaURL string, sink SinkDat
   extensions.PProf = &PProfExtension{
       Endpoint: "0.0.0.0:1888",
   }
-  var extensionNames []string
 
-  // Check to add X-Scope-OrgID header
-  header := sink.Config.GetSubMetadata("headers")["X-Scope-OrgID"]
-  headerStr := header.(string)
-  if headerStr == "" {
-    extensionNames = []string{"pprof", extensionName}
-  } else {
-    extensionNames = []string{"pprof", extensionName, "headers_setter"}
-
-    headerConfig := HeaderConfig{
-      Action: "insert",
-      Key: "X-Scope-OrgID",
-      Value: headerStr,
-    }
-
-    extensions.HeadersSetter = &HeadersSetterExtension{
-      Headers: []HeaderConfig{
-        headerConfig,
-      },
-    }
-  }
-
+  extensionNames := []string{"pprof", extensionName}
   serviceConfig := ServiceConfig{
       Extensions: extensionNames,
       Pipelines: struct {
