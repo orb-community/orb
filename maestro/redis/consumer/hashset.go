@@ -49,17 +49,13 @@ func (es eventStore) handleSinksDeleteCollector(ctx context.Context, event redis
 
 // handleSinksCreateCollector will create Deployment Entry in Redis
 func (es eventStore) handleSinksCreateCollector(ctx context.Context, event redis.SinksUpdateEvent) error {
-	es.logger.Info("Received event to Create DeploymentEntry from sinks ID",
-		zap.String("sinkID", event.SinkID),
-		zap.String("owner", event.Owner))
+	es.logger.Info("Received event to Create DeploymentEntry from sinks ID", zap.String("sinkID", event.SinkID), zap.String("owner", event.Owner))
 	sinkData, err := es.sinksClient.RetrieveSink(ctx, &sinkspb.SinkByIDReq{
 		SinkID:  event.SinkID,
 		OwnerID: event.Owner,
 	})
     if err != nil {
-        es.logger.Error("could not fetch info for sink",
-            zap.String("sink-id", event.SinkID),
-            zap.Error(err))
+        es.logger.Error("could not fetch info for sink", zap.String("sink-id", event.SinkID), zap.Error(err))
         return err
     }
     sinkData.OwnerID = event.Owner
@@ -101,20 +97,15 @@ func (es eventStore) CreateDeploymentEntry(ctx context.Context, sink config.Sink
 	return nil
 }
 
-// handleSinksUpdateCollector will update Deployment Entry in Redis and force
-// update otel collector
+// handleSinksUpdateCollector will update Deployment Entry in Redis and force update otel collector
 func (es eventStore) handleSinksUpdateCollector(ctx context.Context, event redis.SinksUpdateEvent) error {
-    es.logger.Info("Received event to Update DeploymentEntry from sinks ID",
-        zap.String("sinkID", event.SinkID),
-        zap.String("owner", event.Owner))
+    es.logger.Info("Received event to Update DeploymentEntry from sinks ID", zap.String("sinkID", event.SinkID), zap.String("owner", event.Owner))
     sinkData, err := es.sinksClient.RetrieveSink(ctx, &sinkspb.SinkByIDReq{
         SinkID:  event.SinkID,
         OwnerID: event.Owner,
     })
     if err != nil {
-        es.logger.Error("could not fetch info for sink",
-            zap.String("sink-id", event.SinkID),
-            zap.Error(err))
+        es.logger.Error("could not fetch info for sink", zap.String("sink-id", event.SinkID), zap.Error(err))
         return err
     }
     sinkData.OwnerID = event.Owner
@@ -139,18 +130,13 @@ func (es eventStore) handleSinksUpdateCollector(ctx context.Context, event redis
 
     deploy, err := config.GetDeploymentJson(es.kafkaUrl, data)
     if err != nil {
-        es.logger.Error("error trying to get deployment json for sink ID",
-            zap.String("sinkId", event.SinkID),
-            zap.Error(err))
+        es.logger.Error("error trying to get deployment json for sink ID", zap.String("sinkId", event.SinkID), zap.Error(err))
         return err
     }
     es.sinkerKeyRedisClient.HSet(ctx, deploymentKey, event.SinkID, deploy)
     err = es.kubecontrol.UpdateOtelCollector(ctx, event.Owner, event.SinkID, deploy)
     if err != nil {
-        es.logger.Error("error trying to update otel collector",
-            zap.String("sinkId", event.SinkID),
-            zap.String("owner", event.Owner),
-            zap.Error(err))
+        es.logger.Error("error trying to update otel collector", zap.String("sinkId", event.SinkID), zap.String("owner", event.Owner), zap.Error(err))
         return err
     }
     // changing state on updated sink to unknown
