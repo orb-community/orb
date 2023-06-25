@@ -84,9 +84,9 @@ func TestReturnConfigYamlFromSink(t *testing.T) {
 			return
 		}
 		fmt.Printf("%s\n", got)
-	// 		if got != tt.want {
-	// 			t.Errorf("ReturnConfigYamlFromSink() got = \n%v\n, want \n%v", got, tt.want)
-	// 		}
+			if got != tt.want {
+				t.Errorf("ReturnConfigYamlFromSink() got = \n%v\n, want \n%v", got, tt.want)
+			}
 		})
 	}
 }
