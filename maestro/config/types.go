@@ -28,8 +28,8 @@ type SinkConfigData struct {
 		RemoteHost   string `json:"remote_host,omitempty"`
 	} `json:"exporter"`
 	Headers struct {
-		OrgID string `json:"X-Scope-OrgID"`
-	} `json:"headers"`
+		OrgID string `json:"X-Scope-OrgID,omitempty"`
+	} `json:"headers,omitempty"`
 	Opentelemetry string `json:"opentelemetry"`
 }
 
