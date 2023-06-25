@@ -41,11 +41,13 @@ func (p *PrometheusExporterConfig) GetExportersFromMetadata(config types.Metadat
 		Auth:     Auth{Authenticator: authenticationExtensionName},
 	}
 	// Check to add X-Scope-OrgID header
-	header := config.GetSubMetadata("headers")["X-Scope-OrgID"]
-	headerStr := header.(string)
-	if headerStr != "" {
-		exporters.PrometheusRemoteWrite.Headers = map[string]string{
-			"X-Scope-OrgID": headerStr,
+	header := config.GetSubMetadata("headers")
+	if header != nil {
+		headerStr := header["X-Scope-OrgID"].(string)
+		if headerStr != "" {
+			exporters.OTLPExporter.Headers = map[string]string{
+				"X-Scope-OrgID": headerStr,
+			}
 		}
 	}
 
@@ -75,12 +77,13 @@ func (O *OTLPHTTPExporterBuilder) GetExportersFromMetadata(config types.Metadata
         Auth:     Auth{Authenticator: authenticationExtensionName},
     }
 	// Check to add X-Scope-OrgID header
-	header := config.GetSubMetadata("headers")["X-Scope-OrgID"]
-	headerStr := header.(string)
-	if headerStr != "" {
-		log.Println("adding x-scope-orgid header")
-		exporters.OTLPExporter.Headers = map[string]string{
-			"X-Scope-OrgID": headerStr,
+	header := config.GetSubMetadata("headers")
+	if header != nil {
+		headerStr := header["X-Scope-OrgID"].(string)
+		if headerStr != "" {
+			exporters.OTLPExporter.Headers = map[string]string{
+				"X-Scope-OrgID": headerStr,
+			}
 		}
 	}
     return exporters, "otlphttp"

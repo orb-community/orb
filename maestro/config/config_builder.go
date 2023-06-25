@@ -391,10 +391,8 @@ func ReturnConfigYamlFromSink(ctx context.Context, kafkaURL string, sink SinkDat
   extensions.PProf = &PProfExtension{
       Endpoint: "0.0.0.0:1888",
   }
-
-  extensionNames := []string{"pprof", extensionName}
   serviceConfig := ServiceConfig{
-      Extensions: extensionNames,
+      Extensions: []string{"pprof", extensionName},
       Pipelines: struct {
           Metrics struct {
               Receivers  []string `json:"receivers" yaml:"receivers"`
