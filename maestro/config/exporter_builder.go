@@ -33,7 +33,7 @@ func (p *PrometheusExporterConfig) GetExportersFromMetadata(config types.Metadat
     }
     endpointCfg, ok := exporterMetadata["remote_host"].(string)
     if !ok {
-        log.Println("remote_host metadata is missing or not a string")
+		log.Printf("remote_host metadata is missing or not a string %v", exporterMetadata)
         return exporters, ""
     }
 	exporters.PrometheusRemoteWrite = &PrometheusRemoteWriteExporterConfig{
@@ -44,7 +44,6 @@ func (p *PrometheusExporterConfig) GetExportersFromMetadata(config types.Metadat
 	header := config.GetSubMetadata("headers")["X-Scope-OrgID"]
 	headerStr := header.(string)
 	if headerStr != "" {
-		log.Println("adding x-scope-orgid header")
 		exporters.PrometheusRemoteWrite.Headers = map[string]string{
 			"X-Scope-OrgID": headerStr,
 		}
@@ -68,7 +67,7 @@ func (O *OTLPHTTPExporterBuilder) GetExportersFromMetadata(config types.Metadata
     }
     endpointCfg, ok := exporterMetadata["endpoint"].(string)
     if !ok {
-        log.Println("endpoint metadata is missing or not a string")
+		log.Printf("endpoint metadata is missing or not a string %v", exporterMetadata)
         return exporters, ""
     }
     exporters.OTLPExporter = &OTLPExporterConfig{
