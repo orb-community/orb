@@ -10,6 +10,6 @@ deepdiff==5.8.1
 jsonschema==4.17.3
 mkdocs==1.4.3
 mkdocs-material==9.1.17
-prometheus-client==0.15.0
+prometheus-client==0.17.0
 psutil==5.9.2
 webdriver-manager==3.8.3
