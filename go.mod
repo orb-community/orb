@@ -19,7 +19,7 @@ require (
 	github.com/golang/snappy v0.0.4
 	github.com/hashicorp/go-version v1.6.0
 	github.com/jmoiron/sqlx v1.3.4
-	github.com/lib/pq v1.10.4
+	github.com/lib/pq v1.10.7
 	github.com/mainflux/mainflux v0.0.0-20220415135135-92d8fb99bf82
 	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/mitchellh/mapstructure v1.5.0
@@ -81,7 +81,7 @@ require (
 	github.com/felixge/fgprof v0.9.3 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.4.0 // indirect
-	github.com/go-gorp/gorp/v3 v3.0.2 // indirect
+	github.com/go-gorp/gorp/v3 v3.1.0 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
