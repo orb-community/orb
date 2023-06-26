@@ -377,11 +377,8 @@ func GetDeploymentJson(kafkaUrl string, sink SinkData) (string, error) {
 // ReturnConfigYamlFromSink this is the main method, which will generate the YAML file from the
 func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig string, sink SinkData) (string, error) {
 	authType := sink.Config.GetSubMetadata(AuthenticationKey)["type"]
-	var authTypeStr string
-	switch authType.(type) {
-	case string:
-		authTypeStr = authType.(string)
-	default:
+	authTypeStr, ok := authType.(string)
+	if !ok {
 		return "", errors.New("failed to create config invalid authentication type")
 	}
 	authBuilder := GetAuthService(authTypeStr)
@@ -394,7 +391,7 @@ func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig string, sink Sin
 
 	// Add prometheus extension for metrics
 	extensions.PProf = &PProfExtension{
-		Endpoint: "0.0.0.0:1888", // Leaving default for now, will need to change with more processes
+		Endpoint: "0.0.0.0:1888",
 	}
 	serviceConfig := ServiceConfig{
 		Extensions: []string{"pprof", extensionName},
@@ -420,7 +417,7 @@ func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig string, sink Sin
 			Kafka: KafkaReceiver{
 				Brokers:         []string{kafkaUrlConfig},
 				Topic:           fmt.Sprintf("otlp_metrics-%s", sink.SinkID),
-				ProtocolVersion: "2.0.0", // Leaving default of over 2.0.0
+				ProtocolVersion: "2.0.0",
 			},
 		},
 		Extensions: &extensions,
