@@ -81,7 +81,7 @@
         {{tag | tagchip}}
       </mat-chip>
       <mat-chip
-        *ngIf="(row?.tags | json) === '{}'"
+        *ngIf="!row?.tags"
         [style.background-color]="'notag' | tagcolor"
         class="orb-tag-chip ">
         No tags were created
