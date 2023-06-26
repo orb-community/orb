@@ -9,7 +9,7 @@ import (
 )
 
 var invalidCustomHeaders = []string{
-	"Content-Encoding", "Content-Type", "X-Prometheus-Remote-Write-Version", "User-Agent",
+	"Content-Encoding", "Content-Type", "X-Prometheus-Remote-Write-Version", "User-Agent", "Authorization",
 }
 
 func (p *Backend) ConfigToFormat(format string, metadata types.Metadata) (string, error) {
