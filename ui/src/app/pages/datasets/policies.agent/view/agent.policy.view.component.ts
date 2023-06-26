@@ -141,12 +141,12 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy, OnChanges {
       } as AgentPolicy;
 
       this.policiesService.editAgentPolicy(payload).subscribe((resp) => {
+        this.notifications.success('Agent Policy updated successfully', '');
         this.discard();
         this.policy = resp;
         this.fetchData();
       });
 
-      this.notifications.success('Agent Policy updated successfully', '');
     } catch (err) {
       this.notifications.error(
         'Failed to edit Agent Policy',
