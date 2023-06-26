@@ -22,6 +22,9 @@ type PrometheusExporterConfig struct {
 
 func (p *PrometheusExporterConfig) GetExportersFromMetadata(config types.Metadata, authenticationExtensionName string) (Exporters, string) {
 	exporterSubMeta := config.GetSubMetadata("exporter")
+	if exporterSubMeta == nil {
+		return Exporters{}, ""
+	}
 	endpointCfg := exporterSubMeta["remote_host"].(string)
 	customHeaders := exporterSubMeta["headers"]
 	if customHeaders == nil {

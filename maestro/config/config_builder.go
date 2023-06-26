@@ -388,6 +388,9 @@ func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig string, sink Sin
 	exporterBuilder := FromStrategy(sink.Backend)
 	extensions, extensionName := authBuilder.GetExtensionsFromMetadata(sink.Config)
 	exporters, exporterName := exporterBuilder.GetExportersFromMetadata(sink.Config, extensionName)
+	if exporterName == "" {
+		return "", errors.New("failed to build exporter")
+	}
 
 	// Add prometheus extension for metrics
 	extensions.PProf = &PProfExtension{
