@@ -307,16 +307,6 @@ var JsonDeployment = `
                     "protocol": "TCP"
                   }
                 ],
-                "resources": {
-                  "limits": {
-                    "cpu": "100m",
-                    "memory": "200Mi"
-                  },
-                  "requests": {
-                    "cpu": "100m",
-                    "memory": "200Mi"
-                  }
-                },
                 "volumeMounts": [
                   {
                     "name": "varlog",
