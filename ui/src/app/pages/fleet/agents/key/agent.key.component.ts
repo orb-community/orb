@@ -19,6 +19,7 @@ export class AgentKeyComponent implements OnInit {
 
   key2copy: string;
   copyKeyIcon: string;
+  saveKeyIcon: string;
 
   @Input() agent: Agent = {};
 
@@ -34,6 +35,7 @@ export class AgentKeyComponent implements OnInit {
     this.key2copy = this.agent.key;
     this.copyCommandIcon = 'copy-outline';
     this.copyKeyIcon = 'copy-outline';
+    this.saveKeyIcon = 'save-outline';
   }
 
   makeCommand2Copy() {
@@ -64,5 +66,14 @@ orbcommunity/orb-agent`;
 
   onClose() {
     this.dialogRef.close(false);
+  }
+  downloadCommand() {
+    const blob = new Blob([this.command2copy], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${this.agent.id}.txt`;
+    a.click();
+    window.URL.revokeObjectURL(url);
   }
 }

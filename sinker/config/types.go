@@ -9,13 +9,19 @@ import (
 	"time"
 )
 
+// SinkConfigParser to be compatible with new sinks config is coming from eventbus
 type SinkConfig struct {
-	SinkID          string          `json:"sink_id"`
-	OwnerID         string          `json:"owner_id"`
-	Url             string          `json:"remote_host"`
-	User            string          `json:"username"`
-	Password        string          `json:"password"`
-	Opentelemetry   string          `json:"opentelemetry"`
+	SinkID         string `json:"sink_id"`
+	OwnerID        string `json:"owner_id"`
+	Authentication struct {
+		Type     string `json:"type"`
+		Password string `json:"password"`
+		Username string `json:"username"`
+	} `json:"authentication"`
+	Exporter struct {
+		RemoteHost string `json:"remote_host"`
+	} `json:"exporter"`
+	OpenTelemetry   string          `json:"opentelemetry"`
 	State           PrometheusState `json:"state,omitempty"`
 	Msg             string          `json:"msg,omitempty"`
 	LastRemoteWrite time.Time       `json:"last_remote_write,omitempty"`

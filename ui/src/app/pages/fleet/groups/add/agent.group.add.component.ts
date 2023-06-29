@@ -279,7 +279,6 @@ export class AgentGroupAddComponent
     const payload = this.wrapPayload(false);
 
     // // remove line bellow
-    // console.log(payload)
     if (this.isEdit) {
       this.agentGroupsService
         .editAgentGroup({ ...payload, id: this.agentGroupID })

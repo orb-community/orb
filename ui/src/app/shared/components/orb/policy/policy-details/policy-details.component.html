@@ -76,6 +76,12 @@
           <div *ngIf="formGroup.controls?.name.errors?.pattern">
             Name does not match the pattern.
           </div>
+          <div *ngIf="formGroup?.controls.name.errors?.maxlength">
+            Name must not exceed 64 characters.
+          </div>
+          <div *ngIf="formGroup?.controls.name.errors?.minlength">
+            Name too short.
+          </div>
         </div>
       </div>
     </nb-form-field>

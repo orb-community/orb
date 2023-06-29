@@ -90,10 +90,12 @@ export class FilterService {
               const filterDef = filterOptions.find(
                 (_item) => _item.name === _filter.name,
               );
-              const {filter: filterFn, prop, exact} = filterDef;
-              const result =
+              if (filterDef) {
+                const {filter: filterFn, prop, exact} = filterDef;
+                const result =
                 !!filterFn && filterFn(value, prop, paramValue, exact);
-              return result;
+                return result;
+              }
             });
           });
 

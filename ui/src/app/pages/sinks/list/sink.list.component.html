@@ -81,7 +81,7 @@
         {{tag | tagchip}}
       </mat-chip>
       <mat-chip
-        *ngIf="(row?.tags | json) === '{}'"
+        *ngIf="!row?.tags"
         [style.background-color]="'notag' | tagcolor"
         class="orb-tag-chip ">
         No tags were created
@@ -130,4 +130,8 @@
 <ng-template #checkboxTemplateCell let-i="index" let-row="row" let-value="value">
   <input type="checkbox" [checked]="getChecked(row)" 
   (change)="onCheckboxChange($event, row)">
+</ng-template>
+
+<ng-template #checkboxTemplateHeader>
+  <input type="checkbox" (change)="onHeaderCheckboxChange($event)">
 </ng-template>
