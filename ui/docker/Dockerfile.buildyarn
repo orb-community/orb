@@ -1,5 +1,5 @@
 # Stage 0, based on Node.js, install all dependencies
-FROM node:12.14.1-stretch
+FROM node:14.14
 
 WORKDIR /app
 COPY package.json /app/
