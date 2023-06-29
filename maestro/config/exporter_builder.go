@@ -25,9 +25,12 @@ func (p *PrometheusExporterConfig) GetExportersFromMetadata(config types.Metadat
 	if exporterSubMeta == nil {
 		return Exporters{}, ""
 	}
-	endpointCfg := exporterSubMeta["remote_host"].(string)
-	customHeaders := exporterSubMeta["headers"]
-	if customHeaders == nil {
+	endpointCfg, ok := exporterSubMeta["remote_host"].(string)
+	if !ok {
+		return Exporters{}, ""
+	}
+	customHeaders, ok := exporterSubMeta["headers"]
+	if !ok || customHeaders == nil {
 		return Exporters{
 			PrometheusRemoteWrite: &PrometheusRemoteWriteExporterConfig{
 				Endpoint: endpointCfg,
