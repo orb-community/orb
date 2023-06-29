@@ -48,6 +48,36 @@ func TestReturnConfigYamlFromSink(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "prometheus, basicauth, with headers",
+			args: args{
+				in0:            context.Background(),
+				kafkaUrlConfig: "kafka:9092",
+				sink: SinkData{
+					SinkID:  "sink-id-11",
+					OwnerID: "11",
+					Backend: "prometheus",
+					Config: types.Metadata{
+						"exporter": types.Metadata{
+							"remote_host": "https://acme.com/prom/push",
+							"headers": map[string]interface{}{
+								"X-Scope-OrgID": "TENANT_1",
+							},
+						},
+						"authentication": types.Metadata{
+							"type":     "basicauth",
+							"username": "prom-user",
+							"password": "dbpass",
+						},
+					},
+					State:           0,
+					Msg:             "",
+					LastRemoteWrite: time.Time{},
+				},
+			},
+			want:    `---\nreceivers:\n  kafka:\n    brokers:\n    - kafka:9092\n    topic: otlp_metrics-sink-id-11\n    protocol_version: 2.0.0\nextensions:\n  pprof:\n    endpoint: 0.0.0.0:1888\n  basicauth/exporter:\n    client_auth:\n      username: prom-user\n      password: dbpass\nexporters:\n  prometheusremotewrite:\n    endpoint: https://acme.com/prom/push\n    headers:\n      X-Scope-OrgID: TENANT_1\n    auth:\n      authenticator: basicauth/exporter\nservice:\n  extensions:\n  - pprof\n  - basicauth/exporter\n  pipelines:\n    metrics:\n      receivers:\n      - kafka\n      exporters:\n      - prometheusremotewrite\n`,
+			wantErr: false,
+		},
+		{
 			name: "otlp, basicauth",
 			args: args{
 				in0:            context.Background(),
