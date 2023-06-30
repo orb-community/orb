@@ -1,14 +1,21 @@
-<header class="row" data-orb-qa-id="agent#view">
-  <div class="col-5">
+<header data-orb-qa-id="agent#view">
+  <div class="left-content">
     <xng-breadcrumb class="orb-breadcrumb" data-orb-qa-id="breadcrumb">
     </xng-breadcrumb>
     <div><h4>Agent View</h4></div>
   </div>
-  <div *ngIf="!isLoading" class="col-7">
-    <span class="float-right">
-      <span class="agent-{{ agent?.state }}"
-        >{{ agent?.state | ngxCapitalize }}.</span
-      >
+  <div class="right-content" style="margin-right: 10px;">
+    <button nbButton ghost [className]="'refresh-button'" shape="round" (click)="refreshAgent()">
+      <i class="fa fa-redo" [ngClass]="isLoading == true ? 'rotate' : 'paused'" style="color: #3089fc;"></i>
+    </button>
+
+    <span class="last-update" *ngIf="lastUpdate !== null">
+      Last Update: {{ lastUpdate | date: 'HH:mm:ss a' }}
+    </span>
+  </div>
+  <div *ngIf="!isLoading">
+    <span class="right-content last-update">
+      <span class="agent-{{ agent?.state }}">{{ agent?.state | ngxCapitalize }}. &nbsp;</span>
       <span *ngIf="agent?.state !== agentStates.new">
         Last activity
         <span *ngIf="isToday()">
@@ -23,6 +30,7 @@
       </span>
     </span>
   </div>
+  
 </header>
 
 <div *ngIf="!isLoading" class="row">

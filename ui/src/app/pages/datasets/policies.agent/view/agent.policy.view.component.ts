@@ -50,6 +50,8 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy, OnChanges {
     interface: false,
   };
 
+  lastUpdate: Date | null = null;
+
   @ViewChild(PolicyDetailsComponent) detailsComponent: PolicyDetailsComponent;
 
   @ViewChild(PolicyInterfaceComponent)
@@ -72,6 +74,7 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy, OnChanges {
     this.isLoading = true;
     this.policyId = this.route.snapshot.paramMap.get('id');
     this.retrievePolicy();
+    this.lastUpdate = new Date();
   }
 
   ngOnChanges(): void {

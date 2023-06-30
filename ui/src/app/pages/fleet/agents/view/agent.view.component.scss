@@ -1,3 +1,18 @@
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.left-content {
+  flex: 1;
+}
+
+.right-content {
+  display: flex;
+  align-items: center;
+}
+
 h4 {
   font-family: 'Montserrat', sans-serif;
   font-size: 1.5rem;
@@ -141,4 +156,45 @@ nb-card {
     background: #1c2339 !important;
     color: #df316f !important;
   }
+}
+.refresh-button {
+  border: none !important;
+  box-sizing: border-box;
+  box-shadow: none !important;
+  margin-right: 0.3rem;
+
+  &:active, &:focus {
+    background-color: unset !important;
+  }
+
+  &:hover {
+    background-color: rgba(143, 155, 179, 0.16);
+  }
+}
+
+.paused {
+  animation: rotation 750ms linear infinite;
+  animation-play-state: paused;
+}
+
+.rotate {
+  animation: rotation 750ms linear infinite;
+  animation-play-state: running;
+
+  &:hover {
+    background: unset !important;
+  }
+}
+
+@keyframes rotation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(359deg);
+  }
+}
+.last-update {
+  color: #969fb9;
+  font-size: 14px;
 }
