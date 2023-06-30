@@ -64,6 +64,7 @@ type diodeBackend struct {
 	adminAPIProtocol string
 
 	// added for Strings
+	agentName string
 	agentTags map[string]string
 
 	// OpenTelemetry management
@@ -149,6 +150,9 @@ func (d *diodeBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo, c
 	}
 	if agentTags, ok := otelConfig["agent_tags"]; ok {
 		d.agentTags = agentTags.(map[string]string)
+	}
+	if agentName, ok := config["agent_name"]; ok {
+		d.agentName = agentName
 	}
 	return nil
 }

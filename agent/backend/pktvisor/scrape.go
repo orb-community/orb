@@ -37,26 +37,26 @@ func (p *pktvisorBackend) scrapeMetrics(period uint) (map[string]interface{}, er
 
 func (p *pktvisorBackend) createOtlpMqttExporter(ctx context.Context, cancelFunc context.CancelFunc) (exporter.Metrics, error) {
 
-	bridgeService := otel.NewBridgeService(ctx, &p.policyRepo, p.agentTags)
+	bridgeService := otel.NewBridgeService(ctx, p.agentName, &p.policyRepo, p.agentTags)
 	if p.mqttClient != nil {
 		cfg := otlpmqttexporter.CreateConfigClient(p.mqttClient, p.otlpMetricsTopic, p.pktvisorVersion, bridgeService)
 		set := otlpmqttexporter.CreateDefaultSettings(p.logger)
-		// Create the OTLP metrics exporter that'll receive and verify the metrics produced.
-		exporter, err := otlpmqttexporter.CreateMetricsExporter(ctx, set, cfg)
+		// Create the OTLP metrics metricsExporter that'll receive and verify the metrics produced.
+		metricsExporter, err := otlpmqttexporter.CreateMetricsExporter(ctx, set, cfg)
 		if err != nil {
 			return nil, err
 		}
-		return exporter, nil
+		return metricsExporter, nil
 	} else {
 		cfg := otlpmqttexporter.CreateConfig(p.mqttConfig.Address, p.mqttConfig.Id, p.mqttConfig.Key,
 			p.mqttConfig.ChannelID, p.pktvisorVersion, p.otlpMetricsTopic, bridgeService)
 		set := otlpmqttexporter.CreateDefaultSettings(p.logger)
-		// Create the OTLP metrics exporter that'll receive and verify the metrics produced.
-		exporter, err := otlpmqttexporter.CreateMetricsExporter(ctx, set, cfg)
+		// Create the OTLP metrics metricsExporter that'll receive and verify the metrics produced.
+		metricsExporter, err := otlpmqttexporter.CreateMetricsExporter(ctx, set, cfg)
 		if err != nil {
 			return nil, err
 		}
-		return exporter, nil
+		return metricsExporter, nil
 	}
 
 }

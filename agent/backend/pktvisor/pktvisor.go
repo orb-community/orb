@@ -72,6 +72,7 @@ type pktvisorBackend struct {
 	adminAPIProtocol string
 
 	// added for Strings
+	agentName string
 	agentTags map[string]string
 
 	// OpenTelemetry management
@@ -301,6 +302,9 @@ func (p *pktvisorBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo
 	}
 	if agentTags, ok := otelConfig["agent_tags"]; ok {
 		p.agentTags = agentTags.(map[string]string)
+	}
+	if agentName, ok := config["agent_name"]; ok {
+		p.agentName = agentName
 	}
 
 	for k, v := range otelConfig {

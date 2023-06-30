@@ -164,6 +164,7 @@ func (e *baseExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) erro
 			scope = e.injectScopeMetricsAttribute(scope, key, value)
 		}
 		// injecting policyID and datasetIDs attributes
+		scope.Scope().Attributes().PutStr("agent", agentData.AgentName)
 		scope.Scope().Attributes().PutStr("policy_id", agentData.PolicyID)
 		scope.Scope().Attributes().PutStr("dataset_ids", datasets)
 		scope.CopyTo(ref.ScopeMetrics().AppendEmpty())

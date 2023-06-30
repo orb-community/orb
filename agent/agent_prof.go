@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"runtime"
 	"time"
 
@@ -111,6 +112,7 @@ func (a *orbAgent) startBackends(agentCtx context.Context) error {
 		be := backend.GetBackend(name)
 		configuration := structs.Map(a.config.OrbAgent.Otel)
 		configuration["agent_tags"] = a.config.OrbAgent.Tags
+		configuration["agent_name"] = a
 		if err := be.Configure(a.logger, a.policyManager.GetRepo(), configurationEntry, configuration); err != nil {
 			return err
 		}
@@ -244,6 +246,15 @@ func (a *orbAgent) RestartBackend(ctx context.Context, name string, reason strin
 	}
 	configuration := structs.Map(a.config.OrbAgent.Otel)
 	configuration["agent_tags"] = a.config.OrbAgent.Tags
+	agentName := a.config.OrbAgent.Cloud.Config.AgentName
+	if agentName == "" {
+		hostname, err := os.Hostname()
+		if err != nil {
+			return err
+		}
+		agentName = hostname
+	}
+	a.config.OrbAgent.Backends[name]["agent_name"] = agentName
 	if err := be.Configure(a.logger, a.policyManager.GetRepo(), a.config.OrbAgent.Backends[name], configuration); err != nil {
 		return err
 	}

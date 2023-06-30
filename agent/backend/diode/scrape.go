@@ -25,8 +25,7 @@ const (
 )
 
 func (d *diodeBackend) createOtlpMqttExporter(ctx context.Context, cancelFunc context.CancelFunc) (exporter.Logs, error) {
-
-	bridgeService := otel.NewBridgeService(ctx, &d.policyRepo, d.agentTags)
+	bridgeService := otel.NewBridgeService(ctx, d.agentName, &d.policyRepo, d.agentTags)
 	if d.mqttClient != nil {
 		cfg := otlpmqttexporter.CreateConfigClient(d.mqttClient, d.logTopic, d.version, bridgeService)
 		set := otlpmqttexporter.CreateDefaultSettings(d.logger)
