@@ -94,6 +94,7 @@ func (r *OrbReceiver) ProccessMetricsContext(scope pmetric.ScopeMetrics, channel
 	for k, v := range agentPb.OrbTags {
 		scope = r.injectScopeMetricsAttribute(scope, k, v)
 	}
+	r.injectScopeMetricsAttribute(scope, "agent", agentPb.AgentName)
 
 	scope = r.replaceScopeMetricsTimestamp(scope, pcommon.NewTimestampFromTime(time.Now()))
 	sinkIds, err := r.sinkerService.GetSinkIdsFromDatasetIDs(execCtx, agentPb.OwnerID, datasetIDs)
