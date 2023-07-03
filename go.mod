@@ -193,8 +193,8 @@ require (
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/rs/cors v1.8.3 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
-	github.com/xdg-go/scram v1.1.1
-	github.com/xdg-go/stringprep v1.0.3 // indirect
+	github.com/xdg-go/scram v1.1.2
+	github.com/xdg-go/stringprep v1.0.4 // indirect
 	go.opentelemetry.io/collector/receiver/otlpreceiver v0.75.0
 	go.opentelemetry.io/collector/semconv v0.75.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.40.0 // indirect
