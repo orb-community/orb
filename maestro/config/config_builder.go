@@ -358,7 +358,7 @@ func GetDeploymentJson(kafkaUrl string, sink SinkData) (string, error) {
 	manifest := strings.Replace(k8sOtelCollector, "SINK_ID", sink.SinkID, -1)
 	config, err := ReturnConfigYamlFromSink(context.Background(), kafkaUrl, sink)
 	if err != nil {
-		return "", errors.Wrap(errors.New("failed to build YAML"), err)
+		return "", errors.Wrap(errors.New(fmt.Sprintf("failed to build YAML, sink: %s", sink.SinkID)), err)
 	}
 	manifest = strings.Replace(manifest, "SINK_CONFIG", config, -1)
 	return manifest, nil
