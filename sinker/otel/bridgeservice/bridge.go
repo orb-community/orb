@@ -14,6 +14,7 @@ import (
 
 type BridgeService interface {
 	ExtractAgent(ctx context.Context, channelID string) (*fleetpb.AgentInfoRes, error)
+	GetPolicyName(ctx context.Context, policyId string) (*policiespb.PolicyRes, error)
 	GetDataSetsFromAgentGroups(ctx context.Context, mfOwnerId string, agentGroupIds []string) (map[string]string, error)
 	NotifyActiveSink(ctx context.Context, mfOwnerId, sinkId, state, message string) error
 	GetSinkIdsFromPolicyID(ctx context.Context, mfOwnerId string, policyID string) (map[string]string, error)
@@ -109,6 +110,14 @@ func (bs *SinkerOtelBridgeService) ExtractAgent(ctx context.Context, channelID s
 		return nil, err
 	}
 	return agentPb, nil
+}
+
+func (bs *SinkerOtelBridgeService) GetPolicyName(ctx context.Context, policyId string) (*policiespb.PolicyRes, error) {
+	policyPb, err := bs.policiesClient.RetrievePolicy(ctx, &policiespb.PolicyByIDReq{PolicyID: policyId})
+	if err != nil {
+		return nil, err
+	}
+	return policyPb, nil
 }
 
 func (bs *SinkerOtelBridgeService) GetSinkIdsFromDatasetIDs(ctx context.Context, mfOwnerId string, datasetIDs []string) (map[string]string, error) {

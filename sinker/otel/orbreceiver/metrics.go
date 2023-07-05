@@ -94,7 +94,16 @@ func (r *OrbReceiver) ProccessMetricsContext(scope pmetric.ScopeMetrics, channel
 	for k, v := range agentPb.OrbTags {
 		scope = r.injectScopeMetricsAttribute(scope, k, v)
 	}
+
+	policyData, err := r.sinkerService.GetPolicyName(r.ctx, polID)
+	if err != nil {
+		execCancelF()
+		r.cfg.Logger.Info("policy was not found with the following id", zap.String("policy_id", polID))
+		return
+	}
 	r.injectScopeMetricsAttribute(scope, "agent", agentPb.AgentName)
+	r.injectScopeMetricsAttribute(scope, "policy_id", polID)
+	r.injectScopeMetricsAttribute(scope, "policy_name", policyData.Name)
 
 	scope = r.replaceScopeMetricsTimestamp(scope, pcommon.NewTimestampFromTime(time.Now()))
 	sinkIds, err := r.sinkerService.GetSinkIdsFromDatasetIDs(execCtx, agentPb.OwnerID, datasetIDs)
