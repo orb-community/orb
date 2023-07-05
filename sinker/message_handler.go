@@ -117,13 +117,15 @@ func (svc SinkerService) handleMetrics(ctx context.Context, agentID string, chan
 		return fleet.ErrSchemaMalformed
 	}
 
-	agentPb, err2 := svc.ExtractAgent(ctx, channelID)
-	if err2 != nil {
-		return err2
+	agentPb, err := svc.ExtractAgent(ctx, channelID)
+	if err != nil {
+		return err
 	}
 
-	agentName, _ := types.NewIdentifier(agentPb.AgentName)
-
+	agentName, err := types.NewIdentifier(agentPb.AgentName)
+	if err != nil {
+		return err
+	}
 	agent := fleet.Agent{
 		Name:        agentName,
 		MFOwnerID:   agentPb.OwnerID,
@@ -138,9 +140,9 @@ func (svc SinkerService) handleMetrics(ctx context.Context, agentID string, chan
 		// however, per policy, we want a unique set of sink IDs as we don't want to send the same metrics twice to the same sink for the same policy
 		datasetSinkIDs := make(map[string]bool)
 		// first go through the datasets and gather the unique set of sinks we need for this particular policy
-		err2 := svc.GetSinks(agent, metricsPayload, datasetSinkIDs)
-		if err2 != nil {
-			return err2
+		err = svc.GetSinks(agent, metricsPayload, datasetSinkIDs)
+		if err != nil {
+			return err
 		}
 
 		// ensure there are sinks
