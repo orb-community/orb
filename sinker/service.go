@@ -49,9 +49,10 @@ type SinkerService struct {
 	otelLogsCancelFunct    context.CancelFunc
 	otelKafkaUrl           string
 
-	sinkerCache config.ConfigRepo
-	esclient    *redis.Client
-	logger      *zap.Logger
+	sinkerCache             config.ConfigRepo
+	inMemoryCacheExpiration time.Duration
+	esclient                *redis.Client
+	logger                  *zap.Logger
 
 	hbTicker *time.Ticker
 	hbDone   chan bool
@@ -71,7 +72,9 @@ type SinkerService struct {
 }
 
 func (svc SinkerService) Start() error {
-	svc.asyncContext, svc.cancelAsyncContext = context.WithCancel(context.WithValue(context.Background(), "routine", "async"))
+	ctx := context.WithValue(context.Background(), "routine", "async")
+	ctx = context.WithValue(ctx, "cache_expiry", svc.inMemoryCacheExpiration)
+	svc.asyncContext, svc.cancelAsyncContext = context.WithCancel(ctx)
 	if !svc.otel {
 		topic := fmt.Sprintf("channels.*.%s", BackendMetricsTopic)
 		if err := svc.pubSub.Subscribe(topic, svc.handleMsgFromAgent); err != nil {
@@ -96,13 +99,12 @@ func (svc SinkerService) Start() error {
 func (svc SinkerService) startOtel(ctx context.Context) error {
 	if svc.otel {
 		var err error
-		// starting Otel Metrics components
-		bridgeServiceMetrics := bridgeservice.NewBridgeService(svc.logger, svc.sinkerCache, svc.policiesClient, svc.fleetClient, svc.messageInputCounter)
-		svc.otelMetricsCancelFunct, err = otel.StartOtelMetricsComponents(ctx, &bridgeServiceMetrics, svc.logger, svc.otelKafkaUrl, svc.pubSub)
+
+		bridgeService := bridgeservice.NewBridgeService(svc.logger, svc.inMemoryCacheExpiration, svc.sinkerCache, svc.policiesClient, svc.fleetClient, svc.messageInputCounter)
+		svc.otelMetricsCancelFunct, err = otel.StartOtelMetricsComponents(ctx, &bridgeService, svc.logger, svc.otelKafkaUrl, svc.pubSub)
 
 		// starting Otel Logs components
-		bridgeServiceLogs := bridgeservice.NewBridgeService(svc.logger, svc.sinkerCache, svc.policiesClient, svc.fleetClient, svc.messageInputCounter)
-		svc.otelLogsCancelFunct, err = otel.StartOtelLogsComponents(ctx, &bridgeServiceLogs, svc.logger, svc.otelKafkaUrl, svc.pubSub)
+		svc.otelLogsCancelFunct, err = otel.StartOtelLogsComponents(ctx, &bridgeService, svc.logger, svc.otelKafkaUrl, svc.pubSub)
 
 		if err != nil {
 			svc.logger.Error("error during StartOtelComponents", zap.Error(err))
@@ -147,21 +149,23 @@ func New(logger *zap.Logger,
 	requestGauge metrics.Gauge,
 	requestCounter metrics.Counter,
 	inputCounter metrics.Counter,
+	defaultCacheExpiration time.Duration,
 ) Service {
 
 	pktvisor.Register(logger)
 	return &SinkerService{
-		logger:              logger,
-		pubSub:              pubSub,
-		esclient:            esclient,
-		sinkerCache:         configRepo,
-		policiesClient:      policiesClient,
-		fleetClient:         fleetClient,
-		sinksClient:         sinksClient,
-		requestGauge:        requestGauge,
-		requestCounter:      requestCounter,
-		messageInputCounter: inputCounter,
-		otel:                enableOtel,
-		otelKafkaUrl:        otelKafkaUrl,
+		inMemoryCacheExpiration: defaultCacheExpiration,
+		logger:                  logger,
+		pubSub:                  pubSub,
+		esclient:                esclient,
+		sinkerCache:             configRepo,
+		policiesClient:          policiesClient,
+		fleetClient:             fleetClient,
+		sinksClient:             sinksClient,
+		requestGauge:            requestGauge,
+		requestCounter:          requestCounter,
+		messageInputCounter:     inputCounter,
+		otel:                    enableOtel,
+		otelKafkaUrl:            otelKafkaUrl,
 	}
 }

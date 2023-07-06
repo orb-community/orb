@@ -38,7 +38,7 @@ func (r *OrbReceiver) MessageLogsInbound(msg messaging.Message) error {
 			return
 		}
 
-		r.sinkerService.IncreamentMessageCounter(msg.Publisher, msg.Subtopic, msg.Channel, msg.Protocol)
+		r.sinkerService.IncrementMessageCounter(msg.Publisher, msg.Subtopic, msg.Channel, msg.Protocol)
 
 		if lr.Logs().ResourceLogs().Len() == 0 || lr.Logs().ResourceLogs().At(0).ScopeLogs().Len() == 0 {
 			r.cfg.Logger.Info("No data information from logs request")

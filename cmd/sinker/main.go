@@ -65,6 +65,7 @@ func main() {
 	policiesGRPCCfg := config.LoadGRPCConfig("orb", "policies")
 	sinksGRPCCfg := config.LoadGRPCConfig("orb", "sinks")
 	otelCfg := config.LoadOtelConfig(envPrefix)
+	inMemoryCacheConfig := config.LoadInMemoryCacheConfig(envPrefix)
 
 	// main logger
 	var logger *zap.Logger
@@ -191,7 +192,8 @@ func main() {
 	otelEnabled := otelCfg.Enable == "true"
 	otelKafkaUrl := otelCfg.KafkaUrl
 
-	svc := sinker.New(logger, pubSub, esClient, configRepo, policiesGRPCClient, fleetGRPCClient, sinksGRPCClient, otelKafkaUrl, otelEnabled, gauge, counter, inputCounter)
+	svc := sinker.New(logger, pubSub, esClient, configRepo, policiesGRPCClient, fleetGRPCClient, sinksGRPCClient,
+		otelKafkaUrl, otelEnabled, gauge, counter, inputCounter, inMemoryCacheConfig.DefaultExpiration)
 	defer func(svc sinker.Service) {
 		err := svc.Stop()
 		if err != nil {
