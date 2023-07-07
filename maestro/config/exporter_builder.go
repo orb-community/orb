@@ -21,11 +21,28 @@ type PrometheusExporterConfig struct {
 }
 
 func (p *PrometheusExporterConfig) GetExportersFromMetadata(config types.Metadata, authenticationExtensionName string) (Exporters, string) {
-	endpointCfg := config.GetSubMetadata("exporter")["remote_host"].(string)
+	exporterSubMeta := config.GetSubMetadata("exporter")
+	if exporterSubMeta == nil {
+		return Exporters{}, ""
+	}
+	endpointCfg, ok := exporterSubMeta["remote_host"].(string)
+	if !ok {
+		return Exporters{}, ""
+	}
+	customHeaders, ok := exporterSubMeta["headers"]
+	if !ok || customHeaders == nil {
+		return Exporters{
+			PrometheusRemoteWrite: &PrometheusRemoteWriteExporterConfig{
+				Endpoint: endpointCfg,
+				Auth:     Auth{Authenticator: authenticationExtensionName},
+			},
+		}, "prometheusremotewrite"
+	}
 	return Exporters{
 		PrometheusRemoteWrite: &PrometheusRemoteWriteExporterConfig{
 			Endpoint: endpointCfg,
 			Auth:     Auth{Authenticator: authenticationExtensionName},
+			Headers:  customHeaders.(map[string]interface{}),
 		},
 	}, "prometheusremotewrite"
 }

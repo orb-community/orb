@@ -96,6 +96,10 @@ Then fill in the correct values:
   - Bool
   - If true, uses orb_address as base to api and mqtt address using orb.live pattern. If false, requires you to add the corresponding addresses.
   - Default value: `true`
+- **backend_type**:
+  - Str
+  - Sink backend type
+  - Default value: `prometheus`
 - **orb_cloud_api_address**:
   - Required if `use_orb_live_address_pattern` is false
   - URL of the Orb deployment API. Obs: You MUST include the protocol.

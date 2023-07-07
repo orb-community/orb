@@ -358,15 +358,24 @@
               </form>
             </div>
           </div>
-          <div
-            *ngIf="!isWizard"
-            class="code-editor-wrapper">
-            <ngx-monaco-editor
-                #editorComponent
-                [(ngModel)]="code"
-                [options]="editorOptions"
-                class="code-editor">
-            </ngx-monaco-editor>
+          <div *ngIf="!isWizard">
+              <div style="display: flex; margin-top: 10px; margin-bottom: 10px; gap: 60px;">
+                <p class="summary-accent align">Paste or Upload your YAML configuration</p>
+                <button class="upload-button align" (click)="fileInput.click()">
+                  <nb-icon [icon]="uploadIconKey" pack="eva">
+                  </nb-icon>
+                  Upload file
+                </button>
+                <input type="file" (change)="onFileSelected($event)" #fileInput style="display: none">
+              </div>
+              <div class="code-editor-wrapper">
+                <ngx-monaco-editor
+                  #editorComponent
+                  [(ngModel)]="code"
+                  [options]="editorOptions"
+                  class="code-editor">
+                </ngx-monaco-editor>
+              </div>
           </div>
           <hr/>
           <div class="d-flex justify-content-end">

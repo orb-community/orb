@@ -130,6 +130,8 @@ kind: collection`;
 
   selectedTags: Tags;
 
+  uploadIconKey = 'upload-outline'
+
   constructor(
     private agentPoliciesService: AgentPoliciesService,
     private notificationsService: NotificationsService,
@@ -453,7 +455,16 @@ kind: collection`;
   viewPolicy(id) {
     this.router.navigateByUrl(`/pages/datasets/policies/view/${id}`);
   }
-
+  onFileSelected(event: any) {
+    const file: File = event.target.files[0];
+    const reader: FileReader = new FileReader();
+  
+    reader.onload = (e: any) => {
+      this.code = e.target.result;
+    };
+  
+    reader.readAsText(file);
+  }
   onYAMLSubmit() {
     const payload = {
       name: this.detailsFG.controls.name.value,

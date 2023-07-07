@@ -59,6 +59,8 @@ export class PolicyDetailsComponent implements OnInit, OnChanges {
           [
             Validators.required,
             Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$'),
+            Validators.maxLength(64),
+            Validators.minLength(2),
           ],
         ],
         description: [description],
