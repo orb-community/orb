@@ -97,10 +97,17 @@ func (es eventStore) handleSinksUpdateCollector(ctx context.Context, event redis
 	if err != nil {
 		es.logger.Error("could not fetch info for sink", zap.String("sink-id", event.SinkID), zap.Error(err))
 	}
-	var data config.SinkData
-	if err := json.Unmarshal(sinkData.Config, &data); err != nil {
+	var cfg types.Metadata
+	if err := json.Unmarshal(sinkData.Config, &cfg); err != nil {
 		return err
 	}
+	data := config.SinkData{
+		SinkID:  sinkData.Id,
+		OwnerID: sinkData.OwnerID,
+		Backend: sinkData.Backend,
+		Config:  cfg,
+	}
+	_ = data.State.SetFromString(sinkData.State)
 
 	deploy, err := config.GetDeploymentJson(es.kafkaUrl, data)
 	if err != nil {
