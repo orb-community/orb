@@ -295,6 +295,14 @@ components:
         type: http
         format: JWT
       required: true
+    AuthenticationTypeId:
+      name: id
+      description: Unique Sink auth identifier.
+      in: path
+      schema:
+        type: string
+        format: string
+      required: true
     SinkId:
       name: id
       description: Unique Sink identifier.
@@ -337,6 +345,12 @@ components:
           schema:
             type: string
             format: byte
+    SinkAuthTypeObjRes:
+      description: Authentication object.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/SinkAuthTypeResSchema"
     SinkBackendObjRes:
       description: Backend object
       content:
