@@ -47,7 +47,6 @@ func addEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 			svc.GetLogger().Error("got error in validating request", zap.Error(err))
 			return nil, err
 		}
-
 		nID, err := types.NewIdentifier(req.Name)
 		if err != nil {
 			svc.GetLogger().Error("got error in creating new identifier", zap.Error(err))
@@ -68,10 +67,13 @@ func addEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 				return nil, errors.Wrap(errors.ErrMalformedEntity, errors.New("missing required field when format is sent, config_data must be sent also"))
 			}
 		} else {
+			if req.Backend == "" {
+				return nil, errors.New("malformed entity specification. backend field is expected")
+			}
 			configSvc, exporterConfig, authConfig, err = GetConfigurationAndMetadataFromMeta(req.Backend, req.Config)
 			if err != nil {
 				svc.GetLogger().Error("got error in parse and validate configuration", zap.Error(err))
-				return nil, errors.Wrap(errors.ErrMalformedEntity, err)
+				return nil, err
 			}
 		}
 		config := types.Metadata{

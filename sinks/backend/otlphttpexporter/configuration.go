@@ -77,9 +77,11 @@ func (b *OTLPHTTPBackend) CreateFeatureConfig() []backend.ConfigFeature {
 }
 
 func (b *OTLPHTTPBackend) ValidateConfiguration(config types.Metadata) error {
-
+	if config[EndpointFieldName] == "" {
+		return errors.New("malformed entity specification. endpoint must not be empty")
+	}
 	if _, ok := config[EndpointFieldName]; !ok {
-		return errors.New("endpoint is required")
+		return errors.New("malformed entity specification. endpoint field is expected on exporter field")
 	}
 	return nil
 }
