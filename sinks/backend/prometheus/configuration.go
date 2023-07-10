@@ -47,7 +47,7 @@ func (p *Backend) ParseConfig(format string, config string) (configReturn types.
 
 func (p *Backend) ValidateConfiguration(config types.Metadata) error {
 	if config[RemoteHostURLConfigFeature] == nil {
-		return errors.New("malformed entity specification. remote host is expected on exporter field")
+		return errors.ErrRemoteHostNotFound
 	}
 	remoteUrl, remoteHostOk := config[RemoteHostURLConfigFeature]
 	if !remoteHostOk {

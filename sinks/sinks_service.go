@@ -91,11 +91,16 @@ func validateAuthType(s *Sink) (authentication_type.AuthenticationType, error) {
 	}
 	authTypeStr, ok := authMetadata["type"]
 	if !ok {
-		return nil, errors.New("malformed entity specification: authentication type field is expected on configuration field") 
+		return nil, errors.Wrap(errors.ErrAuthTypeNotFound, errors.New("authentication type not found")) 
 	}
+
+	if _, ok := authTypeStr.(string); !ok {
+		return nil, errors.Wrap(errors.ErrInvalidAuthType, errors.New("invalid authentication type"))
+	}
+
 	authType, ok := authentication_type.GetAuthType(authTypeStr.(string))
 	if !ok {
-		return nil, errors.New("malformed entity specification: authentication type is invalid")
+		return nil, errors.Wrap(errors.ErrInvalidAuthType, errors.New("invalid authentication type"))
 	}
 
 	err := authType.ValidateConfiguration("object", authMetadata)

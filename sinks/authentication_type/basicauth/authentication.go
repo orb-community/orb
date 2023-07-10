@@ -58,8 +58,16 @@ func (a *AuthConfig) ValidateConfiguration(inputFormat string, input interface{}
 	case "object":
 		for key, value := range input.(types.Metadata) {
 			if _, ok := value.(string); !ok {
-
-				return errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid format"))
+				if key == "password" {
+					return errors.Wrap(errors.ErrInvalidPasswordType, errors.New("invalid auth type for field: " + key))
+				}
+				if key == "type" {
+					return errors.Wrap(errors.ErrInvalidAuthType, errors.New("invalid auth type for field: " + key))
+				}
+				if key == "username" {
+					return errors.Wrap(errors.ErrInvalidUsernameType, errors.New("invalid auth type for field: " + key))
+				}
+				
 			}
 			vs := value.(string)
 			if key == UsernameConfigFeature {
@@ -149,7 +157,7 @@ func (a *AuthConfig) EncodeInformation(outputFormat string, input interface{}) (
 		inputMeta := input.(types.Metadata)
 		authMeta := inputMeta.GetSubMetadata(authentication_type.AuthenticationKey)
 		if _, ok := authMeta[PasswordConfigFeature].(string); !ok {
-			return nil, errors.New("malformed entity specification. password field is expected on configuration field")
+			return nil, errors.Wrap(errors.ErrPasswordNotFound, errors.New("password field was not found"))
 		}
 		encoded, err := a.encryptionService.EncodePassword(authMeta[PasswordConfigFeature].(string))
 		if err != nil {

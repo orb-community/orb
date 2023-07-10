@@ -60,15 +60,15 @@ func addEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 				configSvc, exporterConfig, authConfig, err = GetConfigurationAndMetadataFromYaml(req.Backend, req.ConfigData)
 				if err != nil {
 					svc.GetLogger().Error("got error in parse and validate configuration", zap.Error(err))
-					return nil, errors.Wrap(errors.ErrMalformedEntity, err)
+					return nil, err
 				}
 			} else {
-				svc.GetLogger().Error("got error in parse and validate configuration", zap.Error(err))
-				return nil, errors.Wrap(errors.ErrMalformedEntity, errors.New("missing required field when format is sent, config_data must be sent also"))
+				svc.GetLogger().Error("got error in parse and validate configuration. config_data field is expected", zap.Error(err))
+				return nil, errors.New("malformed entity specification. configuration field is expected")
 			}
 		} else {
 			if req.Backend == "" {
-				return nil, errors.New("malformed entity specification. backend field is expected")
+				return nil, errors.Wrap(errors.ErrBackendNotFound, errors.New("backend not found"))
 			}
 			configSvc, exporterConfig, authConfig, err = GetConfigurationAndMetadataFromMeta(req.Backend, req.Config)
 			if err != nil {

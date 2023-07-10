@@ -236,6 +236,28 @@ func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 		case errors.Contains(errorVal, errors.ErrUnsupportedContentType):
 			w.WriteHeader(http.StatusUnsupportedMediaType)
 
+		case errors.Contains(errorVal, errors.ErrPasswordNotFound):
+			w.WriteHeader(http.StatusBadRequest)
+		case errors.Contains(errorVal, errors.ErrAuthTypeNotFound):
+			w.WriteHeader(http.StatusBadRequest)
+		case errors.Contains(errorVal, errors.ErrInvalidUsernameType):
+			w.WriteHeader(http.StatusBadRequest)
+		case errors.Contains(errorVal, errors.ErrInvalidPasswordType):
+			w.WriteHeader(http.StatusBadRequest)
+		case errors.Contains(errorVal, errors.ErrInvalidAuthType):
+			w.WriteHeader(http.StatusBadRequest)	
+		case errors.Contains(errorVal, errors.ErrRemoteHostNotFound):
+			w.WriteHeader(http.StatusBadRequest)
+		case errors.Contains(errorVal, errors.ErrAuthFieldNotFound):
+			w.WriteHeader(http.StatusBadRequest)
+		case errors.Contains(errorVal, errors.ErrConfigFieldNotFound):
+			w.WriteHeader(http.StatusBadRequest)
+		case errors.Contains(errorVal, errors.ErrExporterFieldNotFound):
+			w.WriteHeader(http.StatusBadRequest)
+		case errors.Contains(errorVal, errors.ErrInvalidBackend):
+			w.WriteHeader(http.StatusBadRequest)	
+		case errors.Contains(errorVal, errors.ErrEntityNameNotFound):
+			w.WriteHeader(http.StatusBadRequest)
 		case errors.Contains(errorVal, errors.ErrMalformedEntity):
 			w.WriteHeader(http.StatusBadRequest)
 		case errors.Contains(errorVal, errors.ErrNotFound):
