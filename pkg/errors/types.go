@@ -51,6 +51,9 @@ var (
 	// ErrEndPointNotFound indicates that endpoint field was not found on exporter field for otlp backend
 	ErrEndpointNotFound = New("malformed entity specification. endpoint field is expected on exporter field")
 
+	// ErrInvalidEndpoint indicates that endpoint field is not valid
+	ErrInvalidEndpoint = New("malformed entity specification. endpoint field is invalid")
+
 	// ErrInvalidPasswordType indicates invalid password key on authentication field
 	ErrInvalidPasswordType = New("malformed entity specification. password key on authentication field is invalid")
 
@@ -59,6 +62,9 @@ var (
 
 	// ErrRemoteHostNotFound indicates that remote host field was not found
 	ErrRemoteHostNotFound = New("malformed entity specification. remote host is expected on exporter field")
+
+	// ErrInvalidRemoteHost indicates that remote host field is invalid
+	ErrInvalidRemoteHost = New("malformed entity specification. remote host type is invalid")
 
 	// ErrNotFound indicates a non-existent entity request.
 	ErrNotFound = New("non-existent entity")

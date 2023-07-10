@@ -46,17 +46,15 @@ func (p *Backend) ParseConfig(format string, config string) (configReturn types.
 }
 
 func (p *Backend) ValidateConfiguration(config types.Metadata) error {
-	if config[RemoteHostURLConfigFeature] == nil {
-		return errors.ErrRemoteHostNotFound
-	}
+
 	remoteUrl, remoteHostOk := config[RemoteHostURLConfigFeature]
 	if !remoteHostOk {
-		return errors.New("must send valid URL for Remote Write")
+		return errors.ErrRemoteHostNotFound
 	}
 	// Validate remote_host
 	_, err := url.ParseRequestURI(remoteUrl.(string))
 	if err != nil {
-		return errors.New("must send valid URL for Remote Write")
+		return errors.ErrInvalidRemoteHost
 	}
 	// check for custom http headers
 	customHeaders, customHeadersOk := config[CustomHeadersConfigFeature]

@@ -236,7 +236,9 @@ func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 		case errors.Contains(errorVal, errors.ErrUnsupportedContentType):
 			w.WriteHeader(http.StatusUnsupportedMediaType)
 
-
+			
+		case errors.Contains(errorVal, errors.ErrInvalidEndpoint):
+			w.WriteHeader(http.StatusBadRequest)
 		case errors.Contains(errorVal, errors.ErrEndpointNotFound):
 			w.WriteHeader(http.StatusBadRequest)
 		case errors.Contains(errorVal, errors.ErrBackendNotFound):
