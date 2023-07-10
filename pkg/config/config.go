@@ -6,6 +6,7 @@ package config
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/spf13/viper"
 )
@@ -39,6 +40,11 @@ type CacheConfig struct {
 	Pass string `mapstructure:"pass"`
 	DB   string `mapstructure:"db"`
 }
+
+type InMemoryCacheConfig struct {
+	DefaultExpiration time.Duration `mapstructure:"default_expiration"`
+}
+
 type EsConfig struct {
 	URL      string `mapstructure:"url"`
 	Pass     string `mapstructure:"pass"`
@@ -231,4 +237,14 @@ func LoadGRPCConfig(prefix string, svc string) GRPCConfig {
 	aC.Service = svc
 	cfg.Unmarshal(&aC)
 	return aC
+}
+
+func LoadInMemoryCacheConfig(prefix string) InMemoryCacheConfig {
+	cfg := viper.New()
+	cfg.SetEnvPrefix(fmt.Sprintf("%s_cache", prefix))
+	cfg.SetDefault("default_expiration", 2*time.Minute)
+	cfg.AutomaticEnv()
+	var icC InMemoryCacheConfig
+	cfg.Unmarshal(&icC)
+	return icC
 }
