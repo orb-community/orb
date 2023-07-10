@@ -81,7 +81,7 @@ func (b *OTLPHTTPBackend) ValidateConfiguration(config types.Metadata) error {
 		return errors.New("malformed entity specification. endpoint must not be empty")
 	}
 	if _, ok := config[EndpointFieldName]; !ok {
-		return errors.New("malformed entity specification. endpoint field is expected on exporter field")
+		return errors.Wrap(errors.ErrEndpointNotFound, errors.New("endpoint not found"))
 	}
 	return nil
 }

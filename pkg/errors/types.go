@@ -48,6 +48,9 @@ var (
 	// ErrPasswordNotFound indicates that password key was not found
 	ErrPasswordNotFound = New("malformed entity specification. password key is expected on authentication field")
 
+	// ErrEndPointNotFound indicates that endpoint field was not found on exporter field for otlp backend
+	ErrEndpointNotFound = New("malformed entity specification. endpoint field is expected on exporter field")
+
 	// ErrInvalidPasswordType indicates invalid password key on authentication field
 	ErrInvalidPasswordType = New("malformed entity specification. password key on authentication field is invalid")
 

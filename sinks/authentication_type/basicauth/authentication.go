@@ -67,7 +67,6 @@ func (a *AuthConfig) ValidateConfiguration(inputFormat string, input interface{}
 				if key == "username" {
 					return errors.Wrap(errors.ErrInvalidUsernameType, errors.New("invalid auth type for field: " + key))
 				}
-				
 			}
 			vs := value.(string)
 			if key == UsernameConfigFeature {

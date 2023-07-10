@@ -86,8 +86,8 @@ func GetConfigurationAndMetadataFromMeta(backendName string, config types.Metada
 
 func GetConfigurationAndMetadataFromYaml(backendName string, config string) (configSvc *sinks.Configuration, exporter types.Metadata, authentication types.Metadata, err error) {
 	
-	if !backend.HaveBackend(backendName) || backendName == "" {
-		return nil, nil, nil, errors.New("malformed entity specification. backend field is expected and must not be empty")
+	if !backend.HaveBackend(backendName) {
+		return nil, nil, nil, errors.Wrap(errors.ErrInvalidBackend, errors.New("invalid backend"))
 	}
 
 	configSvc = &sinks.Configuration{
@@ -119,7 +119,7 @@ func GetConfigurationAndMetadataFromYaml(backendName string, config string) (con
 	case string:
 		break
 	default:
-		err = errors.New("malformed entity specification. authentication type is expected on authentication field")
+		err = errors.ErrInvalidAuthType
 		return
 	}
 	authTypeSvc, ok := authentication_type.GetAuthType(authtype.(string))

@@ -57,6 +57,9 @@ func addEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 		var configSvc *sinks.Configuration
 		if len(req.Format) > 0 && req.Format == "yaml" {
 			if len(req.ConfigData) > 0 {
+				if req.Backend == "" {
+					return nil, errors.Wrap(errors.ErrBackendNotFound, errors.New("backend not found"))
+				}
 				configSvc, exporterConfig, authConfig, err = GetConfigurationAndMetadataFromYaml(req.Backend, req.ConfigData)
 				if err != nil {
 					svc.GetLogger().Error("got error in parse and validate configuration", zap.Error(err))
