@@ -95,7 +95,7 @@ func (r *OrbReceiver) ProccessMetricsContext(scope pmetric.ScopeMetrics, channel
 		scope = r.injectScopeMetricsAttribute(scope, k, v)
 	}
 
-	policyData, err := r.sinkerService.GetPolicyName(r.ctx, polID)
+	policyData, err := r.sinkerService.GetPolicyName(r.ctx, polID, agentPb.OwnerID)
 	if err != nil {
 		execCancelF()
 		r.cfg.Logger.Info("policy was not found with the following id", zap.String("policy_id", polID))

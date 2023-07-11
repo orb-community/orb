@@ -16,7 +16,7 @@ import (
 
 type BridgeService interface {
 	ExtractAgent(ctx context.Context, channelID string) (*fleetpb.AgentInfoRes, error)
-	GetPolicyName(ctx context.Context, policyId string) (*policiespb.PolicyRes, error)
+	GetPolicyName(ctx context.Context, policyId, ownerId string) (*policiespb.PolicyRes, error)
 	GetDataSetsFromAgentGroups(ctx context.Context, mfOwnerId string, agentGroupIds []string) (map[string]string, error)
 	NotifyActiveSink(ctx context.Context, mfOwnerId, sinkId, state, message string) error
 	GetSinkIdsFromPolicyID(ctx context.Context, mfOwnerId string, policyID string) (map[string]string, error)
@@ -125,11 +125,11 @@ func (bs *SinkerOtelBridgeService) ExtractAgent(ctx context.Context, channelID s
 	return value.(*fleetpb.AgentInfoRes), nil
 }
 
-func (bs *SinkerOtelBridgeService) GetPolicyName(ctx context.Context, policyId string) (*policiespb.PolicyRes, error) {
+func (bs *SinkerOtelBridgeService) GetPolicyName(ctx context.Context, policyId, ownerID string) (*policiespb.PolicyRes, error) {
 	cacheKey := fmt.Sprintf("policy-%s", policyId)
 	value, found := bs.inMemoryCache.Get(cacheKey)
 	if !found {
-		policyPb, err := bs.policiesClient.RetrievePolicy(ctx, &policiespb.PolicyByIDReq{PolicyID: policyId})
+		policyPb, err := bs.policiesClient.RetrievePolicy(ctx, &policiespb.PolicyByIDReq{PolicyID: policyId, OwnerID: ownerID})
 		if err != nil {
 			return nil, err
 		}
