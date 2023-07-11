@@ -92,6 +92,8 @@ func (r *OrbReceiver) ProccessLogsContext(scope plog.ScopeLogs, channel string) 
 	for k, v := range agentPb.OrbTags {
 		scope = r.injectScopeLogsAttribute(scope, k, v)
 	}
+	r.injectScopeLogsAttribute(scope, "agent", agentPb.AgentName)
+	r.injectScopeLogsAttribute(scope, "policy_id", polID)
 
 	sinkIds, err := r.sinkerService.GetSinkIdsFromDatasetIDs(execCtx, agentPb.OwnerID, datasetIDs)
 	if err != nil {
