@@ -39,20 +39,31 @@ type addReq struct {
 }
 
 func GetConfigurationAndMetadataFromMeta(backendName string, config types.Metadata) (configSvc *sinks.Configuration, exporter types.Metadata, authentication types.Metadata, err error) {
-	if backendName == "" || !backend.HaveBackend(backendName) {
-		return nil, nil, nil, errors.Wrap(errors.ErrMalformedEntity, errors.New("backend not found: "+backendName))
+
+	if !backend.HaveBackend(backendName) {
+		return nil, nil, nil, errors.Wrap(errors.ErrInvalidBackend, errors.New("invalid backend"))
+	}
+
+	if config == nil {
+		return nil, nil, nil, errors.Wrap(errors.ErrConfigFieldNotFound, errors.New("backend must not be nil"))
 	}
 
 	configSvc = &sinks.Configuration{
 		Exporter: backend.GetBackend(backendName),
 	}
 	exporter = config.GetSubMetadata("exporter")
+	if exporter == nil {
+		return nil, nil, nil, errors.Wrap(errors.ErrExporterFieldNotFound, errors.New("exporter field must not be nil"))
+	}
 	err = configSvc.Exporter.ValidateConfiguration(exporter)
 	if err != nil {
 		return
 	}
 
 	authentication = config.GetSubMetadata(authentication_type.AuthenticationKey)
+	if authentication == nil {
+		return nil, nil, nil, errors.Wrap(errors.ErrAuthFieldNotFound, errors.New("authentication field must not be nil"))
+	}
 	authtype, ok := authentication["type"]
 	if !ok {
 		authtype = basicauth.AuthType
@@ -61,12 +72,11 @@ func GetConfigurationAndMetadataFromMeta(backendName string, config types.Metada
 	case string:
 		break
 	default:
-		err = errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
 		return
 	}
 	authTypeSvc, ok := authentication_type.GetAuthType(authtype.(string))
 	if !ok {
-		err = errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid required field authentication type"))
+		err = errors.Wrap(errors.ErrInvalidAuthType, errors.New("invalid required field authentication type"))
 		return
 	}
 	configSvc.Authentication = authTypeSvc
@@ -75,8 +85,9 @@ func GetConfigurationAndMetadataFromMeta(backendName string, config types.Metada
 }
 
 func GetConfigurationAndMetadataFromYaml(backendName string, config string) (configSvc *sinks.Configuration, exporter types.Metadata, authentication types.Metadata, err error) {
-	if backendName == "" || !backend.HaveBackend(backendName) {
-		return nil, nil, nil, errors.Wrap(errors.ErrMalformedEntity, errors.New("backend not found"))
+	
+	if !backend.HaveBackend(backendName) {
+		return nil, nil, nil, errors.Wrap(errors.ErrInvalidBackend, errors.New("invalid backend"))
 	}
 
 	configSvc = &sinks.Configuration{
@@ -88,12 +99,18 @@ func GetConfigurationAndMetadataFromYaml(backendName string, config string) (con
 		return
 	}
 	exporter = configStr.GetSubMetadata("exporter")
+	if exporter == nil {
+		return nil, nil, nil, errors.New("malformed entity specification. exporter field is expected on configuration field")
+	}
 	err = configSvc.Exporter.ValidateConfiguration(exporter)
 	if err != nil {
 		return
 	}
 
 	authentication = configStr.GetSubMetadata(authentication_type.AuthenticationKey)
+	if authentication == nil {
+		return nil, nil, nil, errors.New("malformed entity specification. authentication fields are expected on configuration field")
+	}
 	authtype, ok := authentication["type"]
 	if !ok {
 		authtype = basicauth.AuthType
@@ -102,12 +119,12 @@ func GetConfigurationAndMetadataFromYaml(backendName string, config string) (con
 	case string:
 		break
 	default:
-		err = errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid config"))
+		err = errors.ErrInvalidAuthType
 		return
 	}
 	authTypeSvc, ok := authentication_type.GetAuthType(authtype.(string))
 	if !ok {
-		err = errors.Wrap(errors.ErrMalformedEntity, errors.New("invalid required field authentication type"))
+		err = errors.Wrap(errors.ErrInvalidAuthType, errors.New("invalid required field authentication type"))
 		return
 	}
 	configSvc.Authentication = authTypeSvc
@@ -121,7 +138,7 @@ func (req addReq) validate() (err error) {
 	}
 
 	if req.Name == "" {
-		return errors.Wrap(errors.ErrMalformedEntity, errors.New("name not found"))
+		return errors.Wrap(errors.ErrEntityNameNotFound, errors.New("name not found"))
 	}
 
 	_, err = types.NewIdentifier(req.Name)

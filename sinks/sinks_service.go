@@ -41,7 +41,7 @@ func (svc sinkService) CreateSink(ctx context.Context, token string, sink Sink) 
 	}
 	at, err := validateAuthType(&sink)
 	if err != nil {
-		return Sink{}, errors.Wrap(ErrCreateSink, err)
+		return Sink{}, err
 	}
 	cfg := Configuration{
 		Authentication: at,
@@ -51,7 +51,7 @@ func (svc sinkService) CreateSink(ctx context.Context, token string, sink Sink) 
 	// encrypt data for the password
 	sink, err = svc.encryptMetadata(cfg, sink)
 	if err != nil {
-		return Sink{}, errors.Wrap(ErrCreateSink, err)
+		return Sink{}, err
 	}
 
 	//// add default values
@@ -91,11 +91,16 @@ func validateAuthType(s *Sink) (authentication_type.AuthenticationType, error) {
 	}
 	authTypeStr, ok := authMetadata["type"]
 	if !ok {
-		return nil, errors.New("authentication type not found")
+		return nil, errors.Wrap(errors.ErrAuthTypeNotFound, errors.New("authentication type not found")) 
 	}
+
+	if _, ok := authTypeStr.(string); !ok {
+		return nil, errors.Wrap(errors.ErrInvalidAuthType, errors.New("invalid authentication type"))
+	}
+
 	authType, ok := authentication_type.GetAuthType(authTypeStr.(string))
 	if !ok {
-		return nil, errors.New("authentication type not found")
+		return nil, errors.Wrap(errors.ErrInvalidAuthType, errors.New("invalid authentication type"))
 	}
 
 	err := authType.ValidateConfiguration("object", authMetadata)

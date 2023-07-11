@@ -1,6 +1,8 @@
 package otlphttpexporter
 
 import (
+	"net/url"
+
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks/backend"
@@ -77,9 +79,15 @@ func (b *OTLPHTTPBackend) CreateFeatureConfig() []backend.ConfigFeature {
 }
 
 func (b *OTLPHTTPBackend) ValidateConfiguration(config types.Metadata) error {
-
-	if _, ok := config[EndpointFieldName]; !ok {
-		return errors.New("endpoint is required")
+	if config[EndpointFieldName] == "" {
+		return errors.New("malformed entity specification. endpoint must not be empty")
+	}
+	endpointUrl, endpointOk := config[EndpointFieldName]
+	if !endpointOk {
+		return errors.Wrap(errors.ErrEndpointNotFound, errors.New("endpoint not found"))
+	}
+	if _, err := url.ParseRequestURI(endpointUrl.(string)); err != nil {
+		return errors.Wrap(errors.ErrInvalidEndpoint, err)
 	}
 	return nil
 }

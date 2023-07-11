@@ -6,6 +6,7 @@ package types
 
 import (
 	"encoding/json"
+
 	"github.com/orb-community/orb/pkg/errors"
 )
 
@@ -55,6 +56,7 @@ func (s *Metadata) GetSubMetadata(key string) Metadata {
 	case Metadata:
 		return v.(Metadata)
 	}
+
 	return nil
 }
 

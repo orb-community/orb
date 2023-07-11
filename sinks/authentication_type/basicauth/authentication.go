@@ -57,6 +57,17 @@ func (a *AuthConfig) ValidateConfiguration(inputFormat string, input interface{}
 	switch inputFormat {
 	case "object":
 		for key, value := range input.(types.Metadata) {
+			if _, ok := value.(string); !ok {
+				if key == "password" {
+					return errors.Wrap(errors.ErrInvalidPasswordType, errors.New("invalid auth type for field: " + key))
+				}
+				if key == "type" {
+					return errors.Wrap(errors.ErrInvalidAuthType, errors.New("invalid auth type for field: " + key))
+				}
+				if key == "username" {
+					return errors.Wrap(errors.ErrInvalidUsernameType, errors.New("invalid auth type for field: " + key))
+				}
+			}
 			vs := value.(string)
 			if key == UsernameConfigFeature {
 				if len(vs) == 0 {
@@ -144,6 +155,9 @@ func (a *AuthConfig) EncodeInformation(outputFormat string, input interface{}) (
 	case types.Metadata:
 		inputMeta := input.(types.Metadata)
 		authMeta := inputMeta.GetSubMetadata(authentication_type.AuthenticationKey)
+		if _, ok := authMeta[PasswordConfigFeature].(string); !ok {
+			return nil, errors.Wrap(errors.ErrPasswordNotFound, errors.New("password field was not found"))
+		}
 		encoded, err := a.encryptionService.EncodePassword(authMeta[PasswordConfigFeature].(string))
 		if err != nil {
 			return nil, err

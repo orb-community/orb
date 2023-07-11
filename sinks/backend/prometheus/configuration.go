@@ -1,11 +1,12 @@
 package prometheus
 
 import (
+	"net/url"
+
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks/backend"
 	"gopkg.in/yaml.v3"
-	"net/url"
 )
 
 var invalidCustomHeaders = []string{
@@ -45,14 +46,15 @@ func (p *Backend) ParseConfig(format string, config string) (configReturn types.
 }
 
 func (p *Backend) ValidateConfiguration(config types.Metadata) error {
+
 	remoteUrl, remoteHostOk := config[RemoteHostURLConfigFeature]
 	if !remoteHostOk {
-		return errors.New("must send valid URL for Remote Write")
+		return errors.ErrRemoteHostNotFound
 	}
 	// Validate remote_host
 	_, err := url.ParseRequestURI(remoteUrl.(string))
 	if err != nil {
-		return errors.New("must send valid URL for Remote Write")
+		return errors.ErrInvalidRemoteHost
 	}
 	// check for custom http headers
 	customHeaders, customHeadersOk := config[CustomHeadersConfigFeature]
