@@ -163,8 +163,6 @@ func (es eventStore) handleSinksRemove(_ context.Context, e UpdateSinkEvent) err
 func (es eventStore) handleSinksUpdate(_ context.Context, e UpdateSinkEvent) error {
 	var cfg config.SinkConfig
 	cfg.Config = types.FromMap(e.Config)
-	es.logger.Info("metadata", zap.Any("metadata", cfg.Config))
-	es.logger.Info("metadata", zap.Any("incoming", e.Config))
 	cfg.SinkID = e.SinkID
 	cfg.OwnerID = e.Owner
 	cfg.State = config.Unknown

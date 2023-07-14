@@ -98,7 +98,6 @@ func (svc *maestroService) Start(ctx context.Context, cancelFunction context.Can
 				svc.logger.Warn("failed to create deploymentEntry for sink, skipping", zap.String("sink-id", sinkRes.Id))
 				continue
 			}
-			svc.logger.Info("metadata", zap.Any("metadata", metadata))
 			err = svc.eventStore.UpdateSinkCache(ctx, data)
 			if err != nil {
 				svc.logger.Warn("failed to update cache for sink", zap.String("sink-id", sinkRes.Id))

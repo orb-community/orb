@@ -105,7 +105,6 @@ func (es eventStore) handleSinksUpdateCollector(ctx context.Context, event redis
 	if err := json.Unmarshal(sinkData.Config, &metadata); err != nil {
 		return err
 	}
-	es.logger.Info("metadata", zap.Any("metadata", metadata))
 	data := config.SinkData{
 		SinkID:  sinkData.Id,
 		OwnerID: sinkData.OwnerID,
