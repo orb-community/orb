@@ -134,7 +134,8 @@ type LoggingExporterConfig struct {
 }
 
 type OTLPExporterConfig struct {
-	Endpoint string `json:"endpoint" yaml:"endpoint"`
+	Endpoint string                 `json:"endpoint" yaml:"endpoint"`
+	Headers  map[string]interface{} `json:"headers,omitempty" yaml:"headers,omitempty"`
 	Auth     struct {
 		Authenticator string `json:"authenticator" yaml:"authenticator"`
 	}

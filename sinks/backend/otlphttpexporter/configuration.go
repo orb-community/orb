@@ -31,6 +31,11 @@ import (
 //      insecure_skip_verify: true
 
 const EndpointFieldName = "endpoint"
+const CustomHeadersConfigFeature = "headers"
+
+var invalidCustomHeaders = []string{
+	"Content-Encoding", "Content-Type", "User-Agent", "Authorization",
+}
 
 type OTLPHTTPBackend struct {
 	Endpoint string `yaml:"endpoint"`
@@ -88,6 +93,16 @@ func (b *OTLPHTTPBackend) ValidateConfiguration(config types.Metadata) error {
 	}
 	if _, err := url.ParseRequestURI(endpointUrl.(string)); err != nil {
 		return errors.Wrap(errors.ErrInvalidEndpoint, err)
+	}
+	// check for custom http headers
+	customHeaders, customHeadersOk := config[CustomHeadersConfigFeature]
+	if customHeadersOk {
+		headersAsMap := customHeaders.(map[string]interface{})
+		for _, header := range invalidCustomHeaders {
+			if _, ok := headersAsMap[header]; ok {
+				return errors.New("invalid custom headers")
+			}
+		}
 	}
 	return nil
 }
