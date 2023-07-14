@@ -91,7 +91,7 @@ func validateAuthType(s *Sink) (authentication_type.AuthenticationType, error) {
 	}
 	authTypeStr, ok := authMetadata["type"]
 	if !ok {
-		return nil, errors.Wrap(errors.ErrAuthTypeNotFound, errors.New("authentication type not found")) 
+		return nil, errors.Wrap(errors.ErrAuthTypeNotFound, errors.New("authentication type not found"))
 	}
 
 	if _, ok := authTypeStr.(string); !ok {
@@ -341,11 +341,11 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 	}
 	err = svc.sinkRepo.Update(ctx, sink)
 	if err != nil {
-		return Sink{}, errors.Wrap(ErrUpdateEntity, err)
+		return Sink{}, err
 	}
 	sinkEdited, err := svc.sinkRepo.RetrieveById(ctx, sink.ID)
 	if err != nil {
-		return Sink{}, errors.Wrap(ErrUpdateEntity, err)
+		return Sink{}, err
 	}
 	sinkEdited, err = svc.decryptMetadata(cfg, sinkEdited)
 	if err != nil {
