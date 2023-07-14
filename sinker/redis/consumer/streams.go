@@ -110,7 +110,7 @@ func decodeSinksCreate(event map[string]interface{}) (UpdateSinkEvent, error) {
 		SinkID:    read(event, "sink_id", ""),
 		Owner:     read(event, "owner", ""),
 		Config:    readMetadata(event, "config"),
-		Timestamp: time.Time{},
+		Timestamp: time.Now(),
 	}
 	return val, nil
 }
@@ -120,7 +120,7 @@ func decodeSinksUpdate(event map[string]interface{}) (UpdateSinkEvent, error) {
 		SinkID:    read(event, "sink_id", ""),
 		Owner:     read(event, "owner", ""),
 		Config:    readMetadata(event, "config"),
-		Timestamp: time.Time{},
+		Timestamp: time.Now(),
 	}
 	return val, nil
 }
@@ -129,7 +129,7 @@ func decodeSinksRemove(event map[string]interface{}) (UpdateSinkEvent, error) {
 	val := UpdateSinkEvent{
 		SinkID:    read(event, "sink_id", ""),
 		Owner:     read(event, "owner", ""),
-		Timestamp: time.Time{},
+		Timestamp: time.Now(),
 	}
 	return val, nil
 }
