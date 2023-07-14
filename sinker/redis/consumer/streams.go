@@ -2,7 +2,6 @@ package consumer
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/orb-community/orb/pkg/errors"
 	"time"
@@ -152,15 +151,11 @@ func (es eventStore) handleSinksRemove(_ context.Context, e updateSinkEvent) err
 }
 
 func (es eventStore) handleSinksUpdate(_ context.Context, e updateSinkEvent) error {
-	data, err := json.Marshal(e.config)
-	if err != nil {
-		return err
-	}
 	var cfg config.SinkConfig
-	if err := json.Unmarshal(data, &cfg); err != nil {
-		return err
-	}
-
+	cfg.Config = types.FromMap(e.config)
+	cfg.SinkID = e.sinkID
+	cfg.OwnerID = e.owner
+	cfg.State = config.Unknown
 	if ok := es.configRepo.Exists(e.owner, e.sinkID); ok {
 		sinkConfig, err := es.configRepo.Get(e.owner, e.sinkID)
 		if err != nil {
@@ -180,10 +175,7 @@ func (es eventStore) handleSinksUpdate(_ context.Context, e updateSinkEvent) err
 			return err
 		}
 	} else {
-		cfg.State = config.Unknown
-		cfg.SinkID = e.sinkID
-		cfg.OwnerID = e.owner
-		err = es.configRepo.Add(cfg)
+		err := es.configRepo.Add(cfg)
 		if err != nil {
 			return err
 		}
