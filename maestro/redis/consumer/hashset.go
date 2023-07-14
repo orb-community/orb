@@ -114,7 +114,7 @@ func (es eventStore) handleSinksUpdateCollector(ctx context.Context, event redis
 	_ = data.State.SetFromString(sinkData.State)
 
 	deploy, err := config.GetDeploymentJson(es.kafkaUrl, data)
-	es.logger.Info("deploy", zap.Any("deploy", deploy))
+
 	if err != nil {
 		es.logger.Error("error trying to get deployment json for sink ID", zap.String("sinkId", event.SinkID), zap.Error(err))
 		return err
