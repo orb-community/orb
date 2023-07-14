@@ -6,24 +6,15 @@ package config
 
 import (
 	"database/sql/driver"
+	"github.com/orb-community/orb/pkg/types"
 	"time"
 )
 
 // SinkConfigParser to be compatible with new sinks config is coming from eventbus
 type SinkConfig struct {
-	SinkID         string `json:"sink_id"`
-	OwnerID        string `json:"owner_id"`
-	Authentication struct {
-		Type     string `json:"type"`
-		Password string `json:"password"`
-		Username string `json:"username"`
-	} `json:"authentication"`
-	Exporter struct {
-		RemoteHost *string           `json:"remote_host",omitempty`
-		Endpoint   *string           `json:"endpoint",omitempty`
-		Headers    map[string]string `json:"headers",omitempty`
-	} `json:"exporter"`
-	OpenTelemetry   string          `json:"opentelemetry"`
+	SinkID          string          `json:"sink_id"`
+	OwnerID         string          `json:"owner_id"`
+	Config          types.Metadata  `json:"config"`
 	State           PrometheusState `json:"state,omitempty"`
 	Msg             string          `json:"msg,omitempty"`
 	LastRemoteWrite time.Time       `json:"last_remote_write,omitempty"`

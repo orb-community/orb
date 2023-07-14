@@ -172,11 +172,9 @@ func (es eventStore) handleSinksUpdate(_ context.Context, e updateSinkEvent) err
 		if err != nil {
 			return err
 		}
-		sinkConfig.Authentication.Type = cfg.Authentication.Type
-		sinkConfig.Authentication.Username = cfg.Authentication.Username
-		sinkConfig.Authentication.Password = cfg.Authentication.Password
-		sinkConfig.Exporter.RemoteHost = cfg.Exporter.RemoteHost
-		sinkConfig.OpenTelemetry = cfg.OpenTelemetry
+		if sinkConfig.Config == nil {
+			sinkConfig.Config = cfg.Config
+		}
 		if sinkConfig.OwnerID == "" {
 			sinkConfig.OwnerID = e.owner
 		}
