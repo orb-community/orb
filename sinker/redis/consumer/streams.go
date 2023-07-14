@@ -125,7 +125,6 @@ func decodeSinksUpdate(event map[string]interface{}) (UpdateSinkEvent, error) {
 	val := UpdateSinkEvent{
 		SinkID:    read(event, "sink_id", ""),
 		Owner:     read(event, "owner", ""),
-		Config:    readMetadata(event, "config"),
 		Timestamp: time.Now(),
 	}
 	var metadata types.Metadata
