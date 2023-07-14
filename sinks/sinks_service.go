@@ -91,7 +91,7 @@ func validateAuthType(s *Sink) (authentication_type.AuthenticationType, error) {
 	}
 	authTypeStr, ok := authMetadata["type"]
 	if !ok {
-		return nil, errors.Wrap(errors.ErrAuthTypeNotFound, errors.New("authentication type not found")) 
+		return nil, errors.Wrap(errors.ErrAuthTypeNotFound, errors.New("authentication type not found"))
 	}
 
 	if _, ok := authTypeStr.(string); !ok {
@@ -295,11 +295,11 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 		sink.Backend = currentSink.Backend
 		be, err := validateBackend(&sink)
 		if err != nil {
-			return Sink{}, errors.Wrap(ErrMalformedEntity, err)
+			return Sink{}, errors.Wrap(errors.New("incorrect backend and exporter configuration"), err)
 		}
 		at, err := validateAuthType(&sink)
 		if err != nil {
-			return Sink{}, errors.Wrap(ErrMalformedEntity, err)
+			return Sink{}, errors.Wrap(errors.New("incorrect authentication configuration"), err)
 		}
 		cfg = Configuration{
 			Authentication: at,
@@ -313,7 +313,8 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 		if sink.Format == "yaml" {
 			configDataByte, err := yaml.Marshal(sink.Config)
 			if err != nil {
-				return Sink{}, errors.Wrap(ErrMalformedEntity, err)
+				svc.logger.Error("failed to marshal config data", zap.Error(err))
+				return Sink{}, errors.Wrap(errors.New("configuration is invalid for yaml format"), err)
 			}
 			sink.ConfigData = string(configDataByte)
 		}
@@ -341,11 +342,11 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 	}
 	err = svc.sinkRepo.Update(ctx, sink)
 	if err != nil {
-		return Sink{}, errors.Wrap(ErrUpdateEntity, err)
+		return Sink{}, err
 	}
 	sinkEdited, err := svc.sinkRepo.RetrieveById(ctx, sink.ID)
 	if err != nil {
-		return Sink{}, errors.Wrap(ErrUpdateEntity, err)
+		return Sink{}, err
 	}
 	sinkEdited, err = svc.decryptMetadata(cfg, sinkEdited)
 	if err != nil {

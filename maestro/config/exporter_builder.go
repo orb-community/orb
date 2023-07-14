@@ -51,11 +51,23 @@ type OTLPHTTPExporterBuilder struct {
 }
 
 func (O *OTLPHTTPExporterBuilder) GetExportersFromMetadata(config types.Metadata, authenticationExtensionName string) (Exporters, string) {
-	endpointCfg := config.GetSubMetadata("exporter")["endpoint"].(string)
-	return Exporters{
-		OTLPExporter: &OTLPExporterConfig{
-			Endpoint: endpointCfg,
-			Auth:     Auth{Authenticator: authenticationExtensionName},
-		},
-	}, "otlphttp"
+	exporterSubMeta := config.GetSubMetadata("exporter")
+	endpointCfg := exporterSubMeta["endpoint"].(string)
+	customHeaders, ok := exporterSubMeta["headers"]
+	if !ok || customHeaders == nil {
+		return Exporters{
+			OTLPExporter: &OTLPExporterConfig{
+				Endpoint: endpointCfg,
+				Auth:     Auth{Authenticator: authenticationExtensionName},
+			},
+		}, "otlphttp"
+	} else {
+		return Exporters{
+			OTLPExporter: &OTLPExporterConfig{
+				Endpoint: endpointCfg,
+				Auth:     Auth{Authenticator: authenticationExtensionName},
+				Headers:  customHeaders.(map[string]interface{}),
+			},
+		}, "otlphttp"
+	}
 }

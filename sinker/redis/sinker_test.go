@@ -2,7 +2,7 @@ package redis_test
 
 import (
 	"fmt"
-	"reflect"
+	"github.com/orb-community/orb/pkg/types"
 	"testing"
 	"time"
 
@@ -21,10 +21,21 @@ func TestSinkerConfigSave(t *testing.T) {
 	var config config2.SinkConfig
 	config.SinkID = "123"
 	config.OwnerID = "test"
-	config.Authentication.Type = "basic_auth"
-	config.Authentication.Username = "user"
-	config.Authentication.Password = "password"
-	config.Exporter.RemoteHost = "localhost"
+	config.Config = types.Metadata{
+		"authentication": types.Metadata{
+			"password": "password",
+			"type":     "basicauth",
+			"username": "user",
+		},
+		"exporter": types.Metadata{
+			"headers": map[string]string{
+				"X-Tenant": "MY_TENANT_1",
+			},
+			"remote_host": "localhost",
+		},
+		"opentelemetry": "enabled",
+	}
+
 	config.State = 0
 	config.Msg = ""
 	config.LastRemoteWrite = time.Time{}
@@ -40,8 +51,7 @@ func TestSinkerConfigSave(t *testing.T) {
 			config: config2.SinkConfig{
 				SinkID:          "124",
 				OwnerID:         "test",
-				Exporter:        config.Exporter,
-				Authentication:  config.Authentication,
+				Config:          config.Config,
 				State:           0,
 				Msg:             "",
 				LastRemoteWrite: time.Time{},
@@ -67,10 +77,20 @@ func TestGetSinkerConfig(t *testing.T) {
 	var config config2.SinkConfig
 	config.SinkID = "123"
 	config.OwnerID = "test"
-	config.Authentication.Type = "basic_auth"
-	config.Authentication.Username = "user"
-	config.Authentication.Password = "password"
-	config.Exporter.RemoteHost = "localhost"
+	config.Config = types.Metadata{
+		"authentication": types.Metadata{
+			"password": "password",
+			"type":     "basicauth",
+			"username": "user",
+		},
+		"exporter": types.Metadata{
+			"headers": map[string]string{
+				"X-Tenant": "MY_TENANT_1",
+			},
+			"remote_host": "localhost",
+		},
+		"opentelemetry": "enabled",
+	}
 	config.State = 0
 	config.Msg = ""
 	config.LastRemoteWrite = time.Time{}
@@ -98,7 +118,17 @@ func TestGetSinkerConfig(t *testing.T) {
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
 			sinkConfig, err := sinkerCache.Get(tc.config.OwnerID, tc.sinkID)
-			assert.True(t, reflect.DeepEqual(tc.config, sinkConfig), fmt.Sprintf("%s: expected %v got %v", desc, tc.config, sinkConfig))
+			assert.Equal(t, tc.config.SinkID, sinkConfig.SinkID, fmt.Sprintf("%s: expected %s got %s", desc, tc.config.SinkID, sinkConfig.SinkID))
+			assert.Equal(t, tc.config.State, sinkConfig.State, fmt.Sprintf("%s: expected %s got %s", desc, tc.config.State, sinkConfig.State))
+			assert.Equal(t, tc.config.OwnerID, sinkConfig.OwnerID, fmt.Sprintf("%s: expected %s got %s", desc, tc.config.OwnerID, sinkConfig.OwnerID))
+			assert.Equal(t, tc.config.Msg, sinkConfig.Msg, fmt.Sprintf("%s: expected %s got %s", desc, tc.config.Msg, sinkConfig.Msg))
+			assert.Equal(t, tc.config.LastRemoteWrite, sinkConfig.LastRemoteWrite, fmt.Sprintf("%s: expected %s got %s", desc, tc.config.LastRemoteWrite, sinkConfig.LastRemoteWrite))
+			if tc.config.Config != nil {
+				_, ok := sinkConfig.Config["authentication"]
+				assert.True(t, ok, fmt.Sprintf("%s: should contain authentication metadata", desc))
+				_, ok = sinkConfig.Config["exporter"]
+				assert.True(t, ok, fmt.Sprintf("%s: should contain exporter metadata", desc))
+			}
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s", desc, tc.err, err))
 		})
 	}
@@ -109,12 +139,22 @@ func TestGetAllSinkerConfig(t *testing.T) {
 	var config config2.SinkConfig
 	config.SinkID = "123"
 	config.OwnerID = "test"
-	config.Authentication.Type = "basic_auth"
-	config.Authentication.Username = "user"
-	config.Authentication.Password = "password"
-	config.Exporter.RemoteHost = "localhost"
 	config.State = 0
 	config.Msg = ""
+	config.Config = types.Metadata{
+		"authentication": types.Metadata{
+			"password": "password",
+			"type":     "basicauth",
+			"username": "user",
+		},
+		"exporter": types.Metadata{
+			"headers": map[string]string{
+				"X-Tenant": "MY_TENANT_1",
+			},
+			"remote_host": "localhost",
+		},
+		"opentelemetry": "enabled",
+	}
 	config.LastRemoteWrite = time.Time{}
 	sinksConfig := map[string]struct {
 		config config2.SinkConfig
@@ -123,8 +163,7 @@ func TestGetAllSinkerConfig(t *testing.T) {
 			config: config2.SinkConfig{
 				SinkID:          "123",
 				OwnerID:         "test",
-				Exporter:        config.Exporter,
-				Authentication:  config.Authentication,
+				Config:          config.Config,
 				State:           0,
 				Msg:             "",
 				LastRemoteWrite: time.Time{},
@@ -134,8 +173,7 @@ func TestGetAllSinkerConfig(t *testing.T) {
 			config: config2.SinkConfig{
 				SinkID:          "134",
 				OwnerID:         "test",
-				Exporter:        config.Exporter,
-				Authentication:  config.Authentication,
+				Config:          config.Config,
 				State:           0,
 				Msg:             "",
 				LastRemoteWrite: time.Time{},

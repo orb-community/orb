@@ -29,12 +29,18 @@ func (svc SinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, owner
 		return err
 	}
 	ctx := context.Background()
-	if cfgRepo.OpenTelemetry == "enabled" {
+	otelMetadata, ok := cfgRepo.Config["opentelemetry"]
+	if ok && otelMetadata == "enabled" {
 		svc.logger.Info("deprecate warning opentelemetry sink scraping legacy agent", zap.String("sink-ID", cfgRepo.SinkID))
 		ctx = context.WithValue(ctx, "deprecation", "opentelemetry")
 	}
+	configMetadata := cfgRepo.Config.GetSubMetadata("exporter")
+	if configMetadata == nil {
+		svc.logger.Error("unable to find prometheus remote host", zap.Error(err))
+		return err
+	}
 	cfg := prometheus.NewConfig(
-		prometheus.WriteURLOption(cfgRepo.Exporter.RemoteHost),
+		prometheus.WriteURLOption(configMetadata["remote_host"].(string)),
 	)
 
 	promClient, err := prometheus.NewClient(cfg)
@@ -42,9 +48,13 @@ func (svc SinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, owner
 		svc.logger.Error("unable to construct client", zap.Error(err))
 		return err
 	}
-
+	authMetadata := cfgRepo.Config.GetSubMetadata("authentication")
+	if authMetadata == nil {
+		svc.logger.Error("unable to find prometheus remote host", zap.Error(err))
+		return err
+	}
 	var headers = make(map[string]string)
-	headers["Authorization"] = svc.encodeBase64(cfgRepo.Authentication.Username, cfgRepo.Authentication.Password)
+	headers["Authorization"] = svc.encodeBase64(authMetadata["username"].(string), authMetadata["password"].(string))
 	result, writeErr := promClient.WriteTimeSeries(ctx, tsList, prometheus.WriteOptions{Headers: headers})
 	if err := error(writeErr); err != nil {
 		if cfgRepo.Msg != fmt.Sprint(err) {
@@ -62,7 +72,8 @@ func (svc SinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, owner
 		return err
 	}
 
-	svc.logger.Debug("successful sink", zap.Int("payload_size_b", result.PayloadSize), zap.String("sink_id", sinkID), zap.String("url", cfgRepo.Exporter.RemoteHost), zap.String("user", cfgRepo.Authentication.Username))
+	svc.logger.Debug("successful sink", zap.Int("payload_size_b", result.PayloadSize),
+		zap.String("sink_id", sinkID))
 
 	if cfgRepo.State != config.Active {
 		cfgRepo.State = config.Active

@@ -61,7 +61,7 @@ func (p *Backend) ValidateConfiguration(config types.Metadata) error {
 	if customHeadersOk {
 		headersAsMap := customHeaders.(map[string]interface{})
 		for _, header := range invalidCustomHeaders {
-			if _, ok := headersAsMap[header]; !ok {
+			if _, ok := headersAsMap[header]; ok {
 				return errors.New("invalid custom headers")
 			}
 		}

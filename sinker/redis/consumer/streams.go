@@ -150,6 +150,7 @@ func (es eventStore) handleSinksRemove(_ context.Context, e updateSinkEvent) err
 	if ok := es.configRepo.Exists(e.owner, e.sinkID); ok {
 		err := es.configRepo.Remove(e.owner, e.sinkID)
 		if err != nil {
+			es.logger.Error("error during remove sinker cache entry", zap.Error(err))
 			return err
 		}
 	}
@@ -171,11 +172,9 @@ func (es eventStore) handleSinksUpdate(_ context.Context, e updateSinkEvent) err
 		if err != nil {
 			return err
 		}
-		sinkConfig.Authentication.Type = cfg.Authentication.Type
-		sinkConfig.Authentication.Username = cfg.Authentication.Username
-		sinkConfig.Authentication.Password = cfg.Authentication.Password
-		sinkConfig.Exporter.RemoteHost = cfg.Exporter.RemoteHost
-		sinkConfig.OpenTelemetry = cfg.OpenTelemetry
+		if sinkConfig.Config == nil {
+			sinkConfig.Config = cfg.Config
+		}
 		if sinkConfig.OwnerID == "" {
 			sinkConfig.OwnerID = e.owner
 		}
