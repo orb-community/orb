@@ -44,6 +44,10 @@ func (es eventStore) handleSinksDeleteCollector(ctx context.Context, event redis
 	if err != nil {
 		return err
 	}
+	err = es.sinkerKeyRedisClient.HDel(ctx, deploymentKey, event.SinkID).Err()
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
