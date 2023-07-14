@@ -3,6 +3,8 @@ package consumer
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"github.com/orb-community/orb/pkg/errors"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -141,6 +143,10 @@ func (es eventStore) handleSinksRemove(_ context.Context, e updateSinkEvent) err
 			es.logger.Error("error during remove sinker cache entry", zap.Error(err))
 			return err
 		}
+	} else {
+		es.logger.Error("did not found any sinker cache entry for removal",
+			zap.String("key", fmt.Sprintf("sinker_key-%s-%s", e.owner, e.sinkID)))
+		return errors.New("did not found any sinker cache entry for removal")
 	}
 	return nil
 }
