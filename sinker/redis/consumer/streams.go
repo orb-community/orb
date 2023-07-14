@@ -2,6 +2,7 @@ package consumer
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/orb-community/orb/pkg/errors"
 	"time"
@@ -112,6 +113,11 @@ func decodeSinksCreate(event map[string]interface{}) (UpdateSinkEvent, error) {
 		Config:    readMetadata(event, "config"),
 		Timestamp: time.Now(),
 	}
+	var metadata types.Metadata
+	if err := json.Unmarshal([]byte(read(event, "config", "")), &metadata); err != nil {
+		return UpdateSinkEvent{}, err
+	}
+	val.Config = metadata
 	return val, nil
 }
 
@@ -122,6 +128,11 @@ func decodeSinksUpdate(event map[string]interface{}) (UpdateSinkEvent, error) {
 		Config:    readMetadata(event, "config"),
 		Timestamp: time.Now(),
 	}
+	var metadata types.Metadata
+	if err := json.Unmarshal([]byte(read(event, "config", "")), &metadata); err != nil {
+		return UpdateSinkEvent{}, err
+	}
+	val.Config = metadata
 	return val, nil
 }
 
@@ -204,10 +215,10 @@ func read(event map[string]interface{}, key, def string) string {
 	return val
 }
 
-func readMetadata(event map[string]interface{}, key string) map[string]interface{} {
-	val, ok := event[key].(map[string]interface{})
+func readMetadata(event map[string]interface{}, key string) types.Metadata {
+	val, ok := event[key].(types.Metadata)
 	if !ok {
-		return map[string]interface{}{}
+		return types.Metadata{}
 	}
 
 	return val
