@@ -19,7 +19,9 @@ type SinkConfig struct {
 		Username string `json:"username"`
 	} `json:"authentication"`
 	Exporter struct {
-		RemoteHost string `json:"remote_host"`
+		RemoteHost *string           `json:"remote_host",omitempty`
+		Endpoint   *string           `json:"endpoint",omitempty`
+		Headers    map[string]string `json:"headers",omitempty`
 	} `json:"exporter"`
 	OpenTelemetry   string          `json:"opentelemetry"`
 	State           PrometheusState `json:"state,omitempty"`

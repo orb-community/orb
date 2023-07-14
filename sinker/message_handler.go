@@ -34,7 +34,7 @@ func (svc SinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, owner
 		ctx = context.WithValue(ctx, "deprecation", "opentelemetry")
 	}
 	cfg := prometheus.NewConfig(
-		prometheus.WriteURLOption(cfgRepo.Exporter.RemoteHost),
+		prometheus.WriteURLOption(*cfgRepo.Exporter.RemoteHost),
 	)
 
 	promClient, err := prometheus.NewClient(cfg)
@@ -62,7 +62,8 @@ func (svc SinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, owner
 		return err
 	}
 
-	svc.logger.Debug("successful sink", zap.Int("payload_size_b", result.PayloadSize), zap.String("sink_id", sinkID), zap.String("url", cfgRepo.Exporter.RemoteHost), zap.String("user", cfgRepo.Authentication.Username))
+	svc.logger.Debug("successful sink", zap.Int("payload_size_b", result.PayloadSize),
+		zap.String("sink_id", sinkID))
 
 	if cfgRepo.State != config.Active {
 		cfgRepo.State = config.Active
