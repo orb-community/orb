@@ -105,70 +105,69 @@ func NewEventStore(sinkerService sinker.Service, configRepo config.ConfigRepo, c
 	}
 }
 
-func decodeSinksCreate(event map[string]interface{}) (updateSinkEvent, error) {
-	val := updateSinkEvent{
-		sinkID:    read(event, "sink_id", ""),
-		owner:     read(event, "owner", ""),
-		config:    readMetadata(event, "config"),
-		timestamp: time.Time{},
+func decodeSinksCreate(event map[string]interface{}) (UpdateSinkEvent, error) {
+	val := UpdateSinkEvent{
+		SinkID:    read(event, "sink_id", ""),
+		Owner:     read(event, "owner", ""),
+		Config:    readMetadata(event, "config"),
+		Timestamp: time.Time{},
 	}
 	return val, nil
 }
 
-func decodeSinksUpdate(event map[string]interface{}) (updateSinkEvent, error) {
-	val := updateSinkEvent{
-		sinkID:    read(event, "sink_id", ""),
-		owner:     read(event, "owner", ""),
-		config:    readMetadata(event, "config"),
-		timestamp: time.Time{},
+func decodeSinksUpdate(event map[string]interface{}) (UpdateSinkEvent, error) {
+	val := UpdateSinkEvent{
+		SinkID:    read(event, "sink_id", ""),
+		Owner:     read(event, "owner", ""),
+		Config:    readMetadata(event, "config"),
+		Timestamp: time.Time{},
 	}
 	return val, nil
 }
 
-func decodeSinksRemove(event map[string]interface{}) (updateSinkEvent, error) {
-	val := updateSinkEvent{
-		sinkID:    read(event, "sink_id", ""),
-		owner:     read(event, "owner", ""),
-		config:    readMetadata(event, "config"),
-		timestamp: time.Time{},
+func decodeSinksRemove(event map[string]interface{}) (UpdateSinkEvent, error) {
+	val := UpdateSinkEvent{
+		SinkID:    read(event, "sink_id", ""),
+		Owner:     read(event, "owner", ""),
+		Timestamp: time.Time{},
 	}
 	return val, nil
 }
 
-func (es eventStore) handleSinksRemove(_ context.Context, e updateSinkEvent) error {
-	if ok := es.configRepo.Exists(e.owner, e.sinkID); ok {
-		err := es.configRepo.Remove(e.owner, e.sinkID)
+func (es eventStore) handleSinksRemove(_ context.Context, e UpdateSinkEvent) error {
+	if ok := es.configRepo.Exists(e.Owner, e.SinkID); ok {
+		err := es.configRepo.Remove(e.Owner, e.SinkID)
 		if err != nil {
 			es.logger.Error("error during remove sinker cache entry", zap.Error(err))
 			return err
 		}
 	} else {
 		es.logger.Error("did not found any sinker cache entry for removal",
-			zap.String("key", fmt.Sprintf("sinker_key-%s-%s", e.owner, e.sinkID)))
+			zap.String("key", fmt.Sprintf("sinker_key-%s-%s", e.Owner, e.SinkID)))
 		return errors.New("did not found any sinker cache entry for removal")
 	}
 	return nil
 }
 
-func (es eventStore) handleSinksUpdate(_ context.Context, e updateSinkEvent) error {
+func (es eventStore) handleSinksUpdate(_ context.Context, e UpdateSinkEvent) error {
 	var cfg config.SinkConfig
-	cfg.Config = types.FromMap(e.config)
-	cfg.SinkID = e.sinkID
-	cfg.OwnerID = e.owner
+	cfg.Config = types.FromMap(e.Config)
+	es.logger.Info("metadata", zap.Any("metadata", cfg.Config))
+	es.logger.Info("metadata", zap.Any("incoming", e.Config))
+	cfg.SinkID = e.SinkID
+	cfg.OwnerID = e.Owner
 	cfg.State = config.Unknown
-	if ok := es.configRepo.Exists(e.owner, e.sinkID); ok {
-		sinkConfig, err := es.configRepo.Get(e.owner, e.sinkID)
+	if ok := es.configRepo.Exists(e.Owner, e.SinkID); ok {
+		sinkConfig, err := es.configRepo.Get(e.Owner, e.SinkID)
 		if err != nil {
 			return err
 		}
-		if sinkConfig.Config == nil {
-			sinkConfig.Config = cfg.Config
-		}
+		sinkConfig.Config = cfg.Config
 		if sinkConfig.OwnerID == "" {
-			sinkConfig.OwnerID = e.owner
+			sinkConfig.OwnerID = e.Owner
 		}
 		if sinkConfig.SinkID == "" {
-			sinkConfig.SinkID = e.sinkID
+			sinkConfig.SinkID = e.SinkID
 		}
 		err = es.configRepo.Edit(sinkConfig)
 		if err != nil {
@@ -183,11 +182,11 @@ func (es eventStore) handleSinksUpdate(_ context.Context, e updateSinkEvent) err
 	return nil
 }
 
-func (es eventStore) handleSinksCreate(_ context.Context, e updateSinkEvent) error {
+func (es eventStore) handleSinksCreate(_ context.Context, e UpdateSinkEvent) error {
 	var cfg config.SinkConfig
-	cfg.Config = types.FromMap(e.config)
-	cfg.SinkID = e.sinkID
-	cfg.OwnerID = e.owner
+	cfg.Config = types.FromMap(e.Config)
+	cfg.SinkID = e.SinkID
+	cfg.OwnerID = e.Owner
 	cfg.State = config.Unknown
 	err := es.configRepo.Add(cfg)
 	if err != nil {
@@ -205,10 +204,10 @@ func read(event map[string]interface{}, key, def string) string {
 	return val
 }
 
-func readMetadata(event map[string]interface{}, key string) types.Metadata {
-	val, ok := event[key].(types.Metadata)
+func readMetadata(event map[string]interface{}, key string) map[string]interface{} {
+	val, ok := event[key].(map[string]interface{})
 	if !ok {
-		return types.Metadata{}
+		return map[string]interface{}{}
 	}
 
 	return val

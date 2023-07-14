@@ -101,48 +101,38 @@ func (es eventStore) handleSinksUpdateCollector(ctx context.Context, event redis
 	if err != nil {
 		es.logger.Error("could not fetch info for sink", zap.String("sink-id", event.SinkID), zap.Error(err))
 	}
-	var cfg types.Metadata
-	if err := json.Unmarshal(sinkData.Config, &cfg); err != nil {
+	var metadata types.Metadata
+	if err := json.Unmarshal(sinkData.Config, &metadata); err != nil {
 		return err
 	}
+	es.logger.Info("metadata", zap.Any("metadata", metadata))
 	data := config.SinkData{
 		SinkID:  sinkData.Id,
 		OwnerID: sinkData.OwnerID,
 		Backend: sinkData.Backend,
-		Config:  cfg,
+		Config:  metadata,
 	}
 	_ = data.State.SetFromString(sinkData.State)
 
 	deploy, err := config.GetDeploymentJson(es.kafkaUrl, data)
+	es.logger.Info("deploy", zap.Any("deploy", deploy))
 	if err != nil {
 		es.logger.Error("error trying to get deployment json for sink ID", zap.String("sinkId", event.SinkID), zap.Error(err))
 		return err
 	}
-	es.sinkerKeyRedisClient.HSet(ctx, deploymentKey, event.SinkID, deploy)
+	err = es.sinkerKeyRedisClient.HSet(ctx, deploymentKey, event.SinkID, deploy).Err()
+	if err != nil {
+		es.logger.Error("error trying to update deployment json for sink ID", zap.String("sinkId", event.SinkID), zap.Error(err))
+		return err
+	}
 	err = es.kubecontrol.UpdateOtelCollector(ctx, event.Owner, event.SinkID, deploy)
 	if err != nil {
-		return err
-	}
-	// changing state on updated sink to unknown
-	sinkData.OwnerID = event.Owner
-	es.PublishSinkStateChange(sinkData, "unknown", err, err)
-	data.SinkID = sinkData.Id
-	data.OwnerID = sinkData.OwnerID
-	err = data.State.SetFromString("unknown")
-	if err != nil {
-		es.logger.Error("error setting state as unknown", zap.Error(err))
-		return err
-	}
-	err = es.UpdateSinkStateCache(ctx, data)
-	if err != nil {
-		es.logger.Error("error update sink cache state as unknown", zap.Error(err))
 		return err
 	}
 	return nil
 }
 
 func (es eventStore) UpdateSinkCache(ctx context.Context, data config.SinkData) (err error) {
-	data.State = config.Unknown
 	keyPrefix := "sinker_key"
 	skey := fmt.Sprintf("%s-%s:%s", keyPrefix, data.OwnerID, data.SinkID)
 	bytes, err := json.Marshal(data)

@@ -283,7 +283,7 @@ func (svc *monitorService) analyzeLogs(logEntry []string) (status string, err er
 			if strings.Contains(logLine, "400 Bad Request") {
 				errorMessage := "error: remote write returned HTTP status 400 Bad Request"
 				return "warning", errors.New(errorMessage)
-			}		
+			}
 			// other generic errors
 			if strings.Contains(logLine, "error") {
 				errStringLog := strings.TrimRight(logLine, "error")
