@@ -113,6 +113,7 @@ func decodeSinksCreate(event map[string]interface{}) (updateSinkEvent, error) {
 	val := updateSinkEvent{
 		sinkID:    read(event, "sink_id", ""),
 		owner:     read(event, "owner", ""),
+		config:    readMetadata(event, "config"),
 		timestamp: time.Time{},
 	}
 	var metadata types.Metadata
@@ -127,6 +128,7 @@ func decodeSinksUpdate(event map[string]interface{}) (updateSinkEvent, error) {
 	val := updateSinkEvent{
 		sinkID:    read(event, "sink_id", ""),
 		owner:     read(event, "owner", ""),
+		config:    readMetadata(event, "config"),
 		timestamp: time.Time{},
 	}
 	var metadata types.Metadata
@@ -141,6 +143,7 @@ func decodeSinksRemove(event map[string]interface{}) (updateSinkEvent, error) {
 	val := updateSinkEvent{
 		sinkID:    read(event, "sink_id", ""),
 		owner:     read(event, "owner", ""),
+		config:    readMetadata(event, "config"),
 		timestamp: time.Time{},
 	}
 	return val, nil
@@ -198,18 +201,12 @@ func (es eventStore) handleSinksUpdate(_ context.Context, e updateSinkEvent) err
 }
 
 func (es eventStore) handleSinksCreate(_ context.Context, e updateSinkEvent) error {
-	data, err := json.Marshal(e.config)
-	if err != nil {
-		return err
-	}
 	var cfg config.SinkConfig
-	if err := json.Unmarshal(data, &cfg); err != nil {
-		return err
-	}
+	cfg.Config = types.FromMap(e.config)
 	cfg.SinkID = e.sinkID
 	cfg.OwnerID = e.owner
 	cfg.State = config.Unknown
-	err = es.configRepo.Add(cfg)
+	err := es.configRepo.Add(cfg)
 	if err != nil {
 		return err
 	}
@@ -222,5 +219,14 @@ func read(event map[string]interface{}, key, def string) string {
 	if !ok {
 		return def
 	}
+	return val
+}
+
+func readMetadata(event map[string]interface{}, key string) types.Metadata {
+	val, ok := event[key].(types.Metadata)
+	if !ok {
+		return types.Metadata{}
+	}
+
 	return val
 }
