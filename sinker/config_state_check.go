@@ -15,7 +15,7 @@ const (
 	streamID       = "orb.sinker"
 	streamLen      = 1000
 	CheckerFreq    = 5 * time.Minute
-	DefaultTimeout = 30 * time.Minute
+	DefaultTimeout = 5 * time.Minute
 )
 
 func (svc *SinkerService) checkState(_ time.Time) {

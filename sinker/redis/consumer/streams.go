@@ -150,6 +150,7 @@ func (es eventStore) handleSinksRemove(_ context.Context, e updateSinkEvent) err
 	if ok := es.configRepo.Exists(e.owner, e.sinkID); ok {
 		err := es.configRepo.Remove(e.owner, e.sinkID)
 		if err != nil {
+			es.logger.Error("error during remove sinker cache entry", zap.Error(err))
 			return err
 		}
 	}
