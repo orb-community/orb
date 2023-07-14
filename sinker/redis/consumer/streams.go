@@ -69,11 +69,6 @@ func (es eventStore) Subscribe(context context.Context) error {
 					break
 				}
 				err = es.handleSinksCreate(context, rte)
-				if err != nil {
-					es.logger.Error("Failed to handle event", zap.String("operation", event["operation"].(string)), zap.Error(err))
-					break
-				}
-				es.client.XAck(context, stream, subGroup, msg.ID)
 			case sinksUpdate:
 				rte, derr := decodeSinksUpdate(event)
 				if derr != nil {
@@ -116,11 +111,6 @@ func decodeSinksCreate(event map[string]interface{}) (updateSinkEvent, error) {
 		config:    readMetadata(event, "config"),
 		timestamp: time.Time{},
 	}
-	var metadata types.Metadata
-	if err := json.Unmarshal([]byte(read(event, "config", "")), &metadata); err != nil {
-		return updateSinkEvent{}, err
-	}
-	val.config = metadata
 	return val, nil
 }
 
@@ -131,11 +121,6 @@ func decodeSinksUpdate(event map[string]interface{}) (updateSinkEvent, error) {
 		config:    readMetadata(event, "config"),
 		timestamp: time.Time{},
 	}
-	var metadata types.Metadata
-	if err := json.Unmarshal([]byte(read(event, "config", "")), &metadata); err != nil {
-		return updateSinkEvent{}, err
-	}
-	val.config = metadata
 	return val, nil
 }
 
