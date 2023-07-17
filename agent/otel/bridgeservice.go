@@ -2,8 +2,9 @@ package otel
 
 import (
 	"context"
-	"github.com/orb-community/orb/agent/policies"
 	"strings"
+
+	"github.com/orb-community/orb/agent/policies"
 )
 
 type AgentBridgeService interface {
@@ -21,13 +22,15 @@ var _ AgentBridgeService = (*BridgeService)(nil)
 
 type BridgeService struct {
 	bridgeContext context.Context
+	cancelFunc    context.CancelFunc
 	policyRepo    policies.PolicyRepo
 	AgentTags     map[string]string
 }
 
-func NewBridgeService(ctx context.Context, policyRepo *policies.PolicyRepo, agentTags map[string]string) *BridgeService {
+func NewBridgeService(ctx context.Context, cancelFunc context.CancelFunc, policyRepo *policies.PolicyRepo, agentTags map[string]string) *BridgeService {
 	return &BridgeService{
 		bridgeContext: ctx,
+		cancelFunc:    cancelFunc,
 		policyRepo:    *policyRepo,
 		AgentTags:     agentTags,
 	}
@@ -47,5 +50,5 @@ func (b *BridgeService) RetrieveAgentInfoByPolicyName(policyName string) (*Agent
 
 func (b *BridgeService) NotifyAgentDisconnection(ctx context.Context, err error) {
 	ctx.Done()
-	b.bridgeContext.Done()
+	b.cancelFunc()
 }
