@@ -140,7 +140,32 @@ func (svc *monitorService) getRunningPods(ctx context.Context) ([]k8scorev1.Pod,
 	return pods.Items, err
 }
 
+func (svc *monitorService) getDeploymentName(ctx context.Context, sinkID string) (string, error) {
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		svc.logger.Error("error on get cluster config", zap.Error(err))
+		return "", err
+	}
+	clientSet, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		svc.logger.Error("error on get client", zap.Error(err))
+		return "", err
+	}
+	deployments, err := clientSet.AppsV1().Deployments(namespace).List(ctx, k8smetav1.ListOptions{})
+	if err != nil {
+		svc.logger.Error("error on get deployments", zap.Error(err))
+		return "", err
+	}
+	for _, deployment := range deployments.Items {
+		if strings.Contains(deployment.Name, sinkID) {
+			return deployment.Name, nil
+		}
+	}
+	return "", errors.New("not found deployment for this sink-id")
+}
+
 func (svc *monitorService) monitorSinks(ctx context.Context) {
+
 	runningCollectors, err := svc.getRunningPods(ctx)
 	if err != nil {
 		svc.logger.Error("error getting running pods on namespace", zap.Error(err))
@@ -160,7 +185,6 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 		var sink *sinkspb.SinkRes
 		for _, sinkRes := range sinksRes.Sinks {
 			if strings.Contains(collector.Name, sinkRes.Id) {
-				svc.logger.Warn("collector found for sink", zap.String("collector name", collector.Name), zap.String("sink", sinkRes.Id))
 				sink = sinkRes
 				break
 			}
@@ -171,6 +195,15 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			deploymentEntry, err := svc.eventStore.GetDeploymentEntryFromSinkId(ctx, sinkId)
 			if err != nil {
 				svc.logger.Error("did not find collector entry for sink", zap.String("sink-id", sinkId))
+				deploymentName, err := svc.getDeploymentName(ctx, sinkId)
+				if err != nil {
+					svc.logger.Error("error getting deployment name", zap.Error(err))
+					continue
+				}
+				err = svc.kubecontrol.KillOtelCollector(ctx, deploymentName, sinkId)
+				if err != nil {
+					svc.logger.Error("error removing otel collector, manual intervention required", zap.Error(err))
+				}
 				continue
 			}
 			err = svc.kubecontrol.DeleteOtelCollector(ctx, "", sinkId, deploymentEntry)

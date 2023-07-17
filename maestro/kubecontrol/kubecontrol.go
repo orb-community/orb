@@ -49,6 +49,9 @@ type Service interface {
 
 	// UpdateOtelCollector - update an existing collector by id
 	UpdateOtelCollector(ctx context.Context, ownerID, sinkID, deploymentEntry string) error
+
+	// KillOtelCollector - kill an existing collector by id, terminating by the ownerID, sinkID without the file
+	KillOtelCollector(ctx context.Context, ownerID, sinkID string) error
 }
 
 func (svc *deployService) collectorDeploy(ctx context.Context, operation, ownerID, sinkId, manifest string) error {
@@ -155,5 +158,25 @@ func (svc *deployService) DeleteOtelCollector(ctx context.Context, ownerID, sink
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (svc *deployService) KillOtelCollector(ctx context.Context, deploymentName string, sinkId string) error {
+	stdOutListenFunction := func(out *bufio.Scanner, err *bufio.Scanner) {
+		for out.Scan() {
+			svc.logger.Info("Deploy Info: " + out.Text())
+		}
+		for err.Scan() {
+			svc.logger.Info("Deploy Error: " + err.Text())
+		}
+	}
+
+	// execute action
+	cmd := exec.Command("kubectl", "delete", deploymentName, "-n", namespace)
+	_, _, err := execCmd(ctx, cmd, svc.logger, stdOutListenFunction)
+	if err == nil {
+		svc.logger.Info(fmt.Sprintf("successfully killed the otel-collector for sink-id: %s", sinkId))
+	}
+
 	return nil
 }
