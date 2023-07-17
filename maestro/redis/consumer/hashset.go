@@ -48,6 +48,10 @@ func (es eventStore) handleSinksDeleteCollector(ctx context.Context, event redis
 	if err != nil {
 		return err
 	}
+	err = es.RemoveSinkActivity(ctx, event.SinkID)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
