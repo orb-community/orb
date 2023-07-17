@@ -140,32 +140,6 @@ func (svc *monitorService) getRunningPods(ctx context.Context) ([]k8scorev1.Pod,
 	return pods.Items, err
 }
 
-func (svc *monitorService) getDeploymentName(ctx context.Context, sinkID string) (string, error) {
-	config, err := rest.InClusterConfig()
-	if err != nil {
-		svc.logger.Error("error on get cluster config", zap.Error(err))
-		return "", err
-	}
-	clientSet, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		svc.logger.Error("error on get client", zap.Error(err))
-		return "", err
-	}
-	deployments, err := clientSet.AppsV1().Deployments(namespace).List(ctx, k8smetav1.ListOptions{})
-	if err != nil {
-		svc.logger.Error("error on get deployments", zap.Error(err))
-		return "", err
-	}
-	svc.logger.Info("sinkID", zap.String("sinkID", sinkID))
-	for _, deployment := range deployments.Items {
-		svc.logger.Info("deployment name", zap.String("name", deployment.Name))
-		if deployment.Name == "otel-"+sinkID {
-			return deployment.Name, nil
-		}
-	}
-	return "", errors.New("not found deployment for this sink-id")
-}
-
 func (svc *monitorService) monitorSinks(ctx context.Context) {
 
 	runningCollectors, err := svc.getRunningPods(ctx)
@@ -197,7 +171,7 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			deploymentEntry, err := svc.eventStore.GetDeploymentEntryFromSinkId(ctx, sinkId)
 			if err != nil {
 				svc.logger.Error("did not find collector entry for sink", zap.String("sink-id", sinkId))
-				deploymentName, err := svc.getDeploymentName(ctx, sinkId)
+				deploymentName := "otel-" + sinkId
 				if err != nil {
 					svc.logger.Error("error getting deployment name", zap.Error(err))
 					continue
