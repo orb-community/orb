@@ -219,3 +219,13 @@ mat-chip-list {
 input[type=checkbox] {
   margin-left: 10px;
 }
+.view-sink-button {
+  background-color: transparent !important;
+  background-repeat: no-repeat !important;
+  border: none !important;
+  cursor: pointer !important;
+  outline: none !important;
+  overflow: hidden !important;
+  color: #ffffff;
+  text-align: left;
+}
