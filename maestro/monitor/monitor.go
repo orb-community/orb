@@ -172,10 +172,6 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			if err != nil {
 				svc.logger.Error("did not find collector entry for sink", zap.String("sink-id", sinkId))
 				deploymentName := "otel-" + sinkId
-				if err != nil {
-					svc.logger.Error("error getting deployment name", zap.Error(err))
-					continue
-				}
 				err = svc.kubecontrol.KillOtelCollector(ctx, deploymentName, sinkId)
 				if err != nil {
 					svc.logger.Error("error removing otel collector, manual intervention required", zap.Error(err))
