@@ -172,7 +172,7 @@ func (svc *deployService) KillOtelCollector(ctx context.Context, deploymentName 
 	}
 
 	// execute action
-	cmd := exec.Command("kubectl", "delete", deploymentName, "-n", namespace)
+	cmd := exec.Command("kubectl", "delete deployment", deploymentName, "-n", namespace)
 	_, _, err := execCmd(ctx, cmd, svc.logger, stdOutListenFunction)
 	if err == nil {
 		svc.logger.Info(fmt.Sprintf("successfully killed the otel-collector for sink-id: %s", sinkId))
