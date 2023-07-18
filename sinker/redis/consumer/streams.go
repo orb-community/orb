@@ -152,9 +152,9 @@ func (es eventStore) handleSinksRemove(_ context.Context, e UpdateSinkEvent) err
 			return err
 		}
 	} else {
-		es.logger.Error("did not found any sinker cache entry for removal",
+		es.logger.Error("did not find any sinker cache entry for removal",
 			zap.String("key", fmt.Sprintf("sinker_key-%s-%s", e.Owner, e.SinkID)))
-		return errors.New("did not found any sinker cache entry for removal")
+		return errors.New("did not find any sinker cache entry for removal")
 	}
 	return nil
 }
