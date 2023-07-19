@@ -105,7 +105,6 @@ func (svc *monitorService) getPodLogs(ctx context.Context, pod k8scorev1.Pod) ([
 	}
 	str := buf.String()
 	splitLogs := strings.Split(str, "\n")
-	svc.logger.Info("logs length", zap.Int("amount line logs", len(splitLogs)))
 	return splitLogs, nil
 }
 
