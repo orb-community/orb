@@ -111,9 +111,10 @@ func (s *sinkerCache) AddActivity(ownerID string, sinkID string) error {
 	if ownerID == "" || sinkID == "" {
 		return errors.New("invalid parameters")
 	}
+	defaultExpiration := time.Duration(10) * time.Minute
 	skey := fmt.Sprintf("%s:%s", activityPrefix, sinkID)
 	lastActivity := strconv.FormatInt(time.Now().Unix(), 10)
-	if err := s.client.Set(context.Background(), skey, lastActivity, 0).Err(); err != nil {
+	if err := s.client.Set(context.Background(), skey, lastActivity, defaultExpiration).Err(); err != nil {
 		return err
 	}
 	s.logger.Info("added activity for owner and sink ids", zap.String("owner", ownerID), zap.String("sinkID", sinkID))

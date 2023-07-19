@@ -14,9 +14,9 @@ import (
 	"github.com/orb-community/orb/pkg/types"
 )
 
-type updateSinkEvent struct {
-	sinkID    string
-	owner     string
-	config    types.Metadata
-	timestamp time.Time
+type UpdateSinkEvent struct {
+	SinkID    string
+	Owner     string
+	Config    types.Metadata
+	Timestamp time.Time
 }

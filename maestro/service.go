@@ -12,6 +12,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/orb-community/orb/maestro/monitor"
+	"github.com/orb-community/orb/pkg/types"
 	"strings"
 
 	"github.com/go-redis/redis/v8"
@@ -81,15 +82,17 @@ func (svc *maestroService) Start(ctx context.Context, cancelFunction context.Can
 
 	for _, sinkRes := range sinksRes.Sinks {
 		sinkContext := context.WithValue(loadCtx, "sink-id", sinkRes.Id)
-		var data maestroconfig.SinkData
-		if err := json.Unmarshal(sinkRes.Config, &data); err != nil {
+		var metadata types.Metadata
+		if err := json.Unmarshal(sinkRes.Config, &metadata); err != nil {
 			svc.logger.Warn("failed to unmarshal sink, skipping", zap.String("sink-id", sinkRes.Id))
 			continue
 		}
 		if val, _ := svc.eventStore.GetDeploymentEntryFromSinkId(ctx, sinkRes.Id); val != "" {
 			svc.logger.Info("Skipping deploymentEntry because it is already created")
 		} else {
+			var data maestroconfig.SinkData
 			data.SinkID = sinkRes.Id
+			data.Config = metadata
 			err := svc.eventStore.CreateDeploymentEntry(sinkContext, data)
 			if err != nil {
 				svc.logger.Warn("failed to create deploymentEntry for sink, skipping", zap.String("sink-id", sinkRes.Id))

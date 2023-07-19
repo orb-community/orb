@@ -41,7 +41,7 @@ func (p *pktvisorBackend) createOtlpMqttExporter(ctx context.Context, cancelFunc
 	if p.mqttClient != nil {
 		cfg := otlpmqttexporter.CreateConfigClient(p.mqttClient, p.otlpMetricsTopic, p.pktvisorVersion, bridgeService)
 		set := otlpmqttexporter.CreateDefaultSettings(p.logger)
-		// Create the OTLP metrics exporter that'll receive and verify the metrics produced.
+		// Create the OTLP metrics metricsExporter that'll receive and verify the metrics produced.
 		metricsExporter, err := otlpmqttexporter.CreateMetricsExporter(ctx, set, cfg)
 		if err != nil {
 			return nil, err

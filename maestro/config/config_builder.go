@@ -376,6 +376,9 @@ func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig string, sink Sin
 		return "", errors.New("invalid authentication type")
 	}
 	exporterBuilder := FromStrategy(sink.Backend)
+	if exporterBuilder == nil {
+		return "", errors.New("invalid backend")
+	}
 	extensions, extensionName := authBuilder.GetExtensionsFromMetadata(sink.Config)
 	exporters, exporterName := exporterBuilder.GetExportersFromMetadata(sink.Config, extensionName)
 	if exporterName == "" {
