@@ -189,6 +189,9 @@ nb-list-item {
   outline: none !important;
   overflow: hidden !important;
   line-height: 1;
+  max-width: 360px !important;
+  text-align: left !important;
+  word-wrap: break-word !important;
 }
 
 .scroll {
