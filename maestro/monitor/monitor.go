@@ -203,17 +203,10 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			svc.logger.Error("error during analyze logs", zap.Error(logsErr))
 			continue
 		}
-		var lastActivity int64
-		var activityErr error
-		lastActivity, activityErr = svc.eventStore.GetActivity(sink.Id)
+		lastActivity, activityErr := svc.eventStore.GetActivity(sink.Id)
 		// if logs reported 'active' status
 		// here we should check if LastActivity is up-to-date, otherwise we need to set sink as idle
-		var idleLimit int64 = 0
-		if activityErr != nil || lastActivity == 0 {
-			idleLimit = time.Now().Unix() - 900 // forces to idle if no activity in 15 minutes
-		} else {
-			idleLimit = time.Now().Unix() - idleTimeSeconds // within 10 minutes
-		}
+		idleLimit := time.Now().Unix() - idleTimeSeconds // within 10 minutes
 		if idleLimit >= lastActivity {
 			//changing state on sinks
 			svc.eventStore.PublishSinkStateChange(sink, "idle", logsErr, err)
