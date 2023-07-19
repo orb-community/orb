@@ -191,51 +191,45 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 		}
 		data.SinkID = sink.Id
 		data.OwnerID = sink.OwnerID
-		// only analyze logs if current status is "active" or "warning"
 		var logsErr error
 		var status string
-		if sink.GetState() == "active" || sink.GetState() == "warning" {
-			logs, err := svc.getPodLogs(ctx, collector)
-			if err != nil {
-				svc.logger.Error("error on getting logs, skipping", zap.Error(err))
-				continue
-			}
-			status, logsErr = svc.analyzeLogs(logs)
-			if status == "fail" {
-				svc.logger.Error("error during analyze logs", zap.Error(logsErr))
-				continue
-			}
+		logs, err := svc.getPodLogs(ctx, collector)
+		if err != nil {
+			svc.logger.Error("error on getting logs, skipping", zap.Error(err))
+			continue
+		}
+		status, logsErr = svc.analyzeLogs(logs)
+		if status == "fail" {
+			svc.logger.Error("error during analyze logs", zap.Error(logsErr))
+			continue
 		}
 		var lastActivity int64
 		var activityErr error
-		// if log analysis return active or warning we should check if have activity on collector
-		if status == "active" || status == "warning" {
-			lastActivity, activityErr = svc.eventStore.GetActivity(sink.Id)
-			// if logs reported 'active' status
-			// here we should check if LastActivity is up-to-date, otherwise we need to set sink as idle
-			var idleLimit int64 = 0
-			if activityErr != nil || lastActivity == 0 {
-				idleLimit = time.Now().Unix() - 900 // forces to idle if no activity in 15 minutes
-			} else {
-				idleLimit = time.Now().Unix() - idleTimeSeconds // within 10 minutes
-			}
-			if idleLimit >= lastActivity {
-				//changing state on sinks
-				svc.eventStore.PublishSinkStateChange(sink, "idle", logsErr, err)
-				//changing state on redis sinker
-				data.State.SetFromString("idle")
-				svc.eventStore.UpdateSinkStateCache(ctx, data)
-				deploymentEntry, errDeploy := svc.eventStore.GetDeploymentEntryFromSinkId(ctx, sink.Id)
-				if errDeploy != nil {
-					svc.logger.Error("Remove collector: error on getting collector deployment from redis", zap.Error(activityErr))
-					continue
-				}
-				err = svc.kubecontrol.DeleteOtelCollector(ctx, sink.OwnerID, sink.Id, deploymentEntry)
-				if err != nil {
-					svc.logger.Error("error removing otel collector", zap.Error(err))
-				}
+		lastActivity, activityErr = svc.eventStore.GetActivity(sink.Id)
+		// if logs reported 'active' status
+		// here we should check if LastActivity is up-to-date, otherwise we need to set sink as idle
+		var idleLimit int64 = 0
+		if activityErr != nil || lastActivity == 0 {
+			idleLimit = time.Now().Unix() - 900 // forces to idle if no activity in 15 minutes
+		} else {
+			idleLimit = time.Now().Unix() - idleTimeSeconds // within 10 minutes
+		}
+		if idleLimit >= lastActivity {
+			//changing state on sinks
+			svc.eventStore.PublishSinkStateChange(sink, "idle", logsErr, err)
+			//changing state on redis sinker
+			data.State.SetFromString("idle")
+			svc.eventStore.UpdateSinkStateCache(ctx, data)
+			deploymentEntry, errDeploy := svc.eventStore.GetDeploymentEntryFromSinkId(ctx, sink.Id)
+			if errDeploy != nil {
+				svc.logger.Error("Remove collector: error on getting collector deployment from redis", zap.Error(activityErr))
 				continue
 			}
+			err = svc.kubecontrol.DeleteOtelCollector(ctx, sink.OwnerID, sink.Id, deploymentEntry)
+			if err != nil {
+				svc.logger.Error("error removing otel collector", zap.Error(err))
+			}
+			continue
 		}
 		//set the new sink status if changed during checks
 		if sink.GetState() != status && status != "" {
