@@ -58,10 +58,14 @@
   </div>
 </div>
 
-<ng-template #sinkNameTemplateCell let-value="value">
-  <span nbTooltip="{{ value }}">
+<ng-template #sinkNameTemplateCell let-i="index" let-row="row" let-value="value">
+  <button
+    (click)="onOpenView(row)"
+    class="view-sink-button"
+    nbTooltip="{{ value }}"
+  >
     {{ value }}
-  </span>
+  </button>
 </ng-template>
 
 <ng-template #sinkStateTemplateCell let-value="value">
