@@ -2,8 +2,9 @@ package otel
 
 import (
 	"context"
-	"github.com/orb-community/orb/agent/policies"
 	"strings"
+
+	"github.com/orb-community/orb/agent/policies"
 )
 
 type AgentBridgeService interface {
