@@ -187,3 +187,31 @@ mat-chip-list {
     animation-direction: alternate;
   }
 }
+.orb-service-{
+  &in {
+    color: #6fcf97;
+  }
+  &not {
+    color: #f2994a;
+  }
+}
+.scroll {
+  width: 1520px;
+}
+.options {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+.delete-selected {
+  color: #ffffff !important; 
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  text-transform: none !important;
+  width: 90px;
+  background-color: #df316f !important;
+}
+input[type=checkbox] {
+  margin-left: 10px;
+}

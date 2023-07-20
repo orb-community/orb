@@ -7,6 +7,10 @@ package http
 import (
 	"context"
 	"encoding/json"
+	"io"
+	"net/http"
+	"strings"
+
 	kitot "github.com/go-kit/kit/tracing/opentracing"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/go-zoo/bone"
@@ -19,9 +23,6 @@ import (
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"io"
-	"net/http"
-	"strings"
 )
 
 const (
@@ -281,6 +282,7 @@ func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 			w.WriteHeader(http.StatusBadRequest)
 		case errors.Contains(errorVal, errors.ErrUnsupportedContentType):
 			w.WriteHeader(http.StatusUnsupportedMediaType)
+
 
 		case errors.Contains(errorVal, errors.ErrMalformedEntity):
 			w.WriteHeader(http.StatusBadRequest)

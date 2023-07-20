@@ -1,0 +1,36 @@
+<nb-card>
+    <nb-card-header>
+      Reset Agents Confirmation
+      <button nbButton
+              ghost="true"
+              size="small"
+              class="orb-close-dialog align-content-end"
+              (click)="onClose()"
+              data-orb-qa-id="button#close">
+        <span class="nb-close"></span>
+      </button>
+    </nb-card-header>
+    <nb-card-body>
+      <p>Are you sure you want to reset a total of {{ size }} Agents?</p>
+      <p class="ns1-red">*To confirm, type the amount of agents to be reset.</p>
+      <input type="text"
+             #autoInput
+             [nbAutocomplete]="auto"
+             nbInput
+             fullWidth
+             placeholder="{{size}}" [(ngModel)]="validationInput"
+             data-orb-qa-id="input#size">
+      <nb-autocomplete #auto >
+        <nb-option [value]="size"> {{size}}</nb-option>
+      </nb-autocomplete>
+    </nb-card-body>
+    <nb-card-footer>
+      <button nbButton
+              shape="round"
+              class="orb-sink-delete-warning-button"
+              [disabled]="!isEnabled()"
+              (click)="onDelete()"
+              data-orb-qa-id="button#delete">Reset All Agents
+      </button>
+    </nb-card-footer>
+  </nb-card>

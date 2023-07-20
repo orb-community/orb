@@ -22,15 +22,6 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
   // TODO
   orbErrors = {};
 
-  /**
-   * Pactsafe
-   */
-  _sid = environment.PS.SID;
-
-  _groupKey = environment.PS.GROUP_KEY;
-
-  _psEnabled = !!this._sid && !!this._groupKey;
-
   showPassword = false;
 
   repeatedEmail = null;
@@ -63,81 +54,40 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
     this.showPassword = !this.showPassword;
   }
 
-  // Return whether to block the submission or not.
-  blockSubmission() {
-    const _ps = window['_ps'];
-    if (!this._psEnabled) return false;
-    // Check to ensure we're able to get the Group successfully.
-    if (_ps.getByKey(this._groupKey)) {
-      // Return if we should block the submission using the .block() method
-      // provided by the Group object.
-      return _ps.getByKey(this._groupKey).block();
-    } else {
-      // We weren't able to get the group,
-      // so blocking form submission may be needed.
-      return true;
-    }
-  }
-
   register(event?: any) {
     this.orbErrors = {};
-    // Prevent the form from automatically submitting without
-    // checking PactSafe acceptance first.
     this.errors = this.messages = [];
     this.submitted = true;
     this.repeatedEmail = null;
+    
+    const { email, password, company } = this.user;
+    this.authService
+      .register(this.strategy, {
+        email,
+        password,
+        metadata: {
+          company: company,
+          fullName: this.user.fullName,
+        },
+      })
+      .subscribe((respReg) => {
+        const first_name = this.user.fullName.split(' ')[0];
+        const last_name = this.user.fullName.replace(`${first_name} `, '');
 
-    const _ps = !!window['_ps'] && window['_ps'];
+        this.submitted = false;
 
-    event?.preventDefault();
-    if (!this.blockSubmission()) {
-      // We don't need to block the form submission,
-      // so submit the form.
-      const { email, password, company } = this.user;
-      this.authService
-        .register(this.strategy, {
-          email,
-          password,
-          metadata: {
-            company: company,
-            fullName: this.user.fullName,
-          },
-        })
-        .subscribe((respReg) => {
-          const first_name = this.user.fullName.split(' ')[0];
-          const last_name = this.user.fullName.replace(`${first_name} `, '');
-          !!_ps &&
-            _ps
-              .getByKey(this._groupKey)
-              .send('updated', { custom_data: { first_name, last_name } });
+        if (respReg.isSuccess()) {
+          this.messages = respReg.getMessages();
 
-          this.submitted = false;
-
-          if (respReg.isSuccess()) {
-            this.messages = respReg.getMessages();
-
-            this.authenticateAndRedirect(email, password);
-          } else {
-            if (respReg.getResponse().status === 409) {
-              this.repeatedEmail = email;
-              this.errors = [respReg.getResponse().error.error];
-            }
+          this.authenticateAndRedirect(email, password);
+        } else {
+          if (respReg.getResponse().status === 409) {
+            this.repeatedEmail = email;
+            this.errors = [respReg.getResponse().error.error];
           }
-        });
-    } else {
-      // We can get the alert message if set on the group
-      // or define our own if it's not.
-      if (_ps) {
-        const acceptanceAlertLanguage =
-          _ps.getByKey(this._groupKey) &&
-          _ps.getByKey(this._groupKey).get('alert_message')
-            ? _ps.getByKey(this._groupKey).get('alert_message')
-            : 'Please accept our Terms and Conditions.';
-
-        // Alert the user that the Terms need to be accepted before continuing.
-        alert(acceptanceAlertLanguage);
-      }
-    }
+        }
+      });
+    
   }
 
   authenticateAndRedirect(email, password) {

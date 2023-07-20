@@ -77,6 +77,18 @@ func MakeHandler(tracer opentracing.Tracer, svcName string, svc sinks.SinkServic
 		types.EncodeResponse,
 		opts...,
 	))
+	r.Get("/features/authenticationtypes", kithttp.NewServer(
+		kitot.TraceServer(tracer, "list_authentication_types")(listAuthenticationTypes(svc)),
+		decodeListBackends,
+		types.EncodeResponse,
+		opts...,
+	))
+	r.Get("/features/authenticationtypes/:id", kithttp.NewServer(
+		kitot.TraceServer(tracer, "view_authentication_type")(viewAuthenticationType(svc)),
+		decodeView,
+		types.EncodeResponse,
+		opts...,
+	))
 	r.Get("/sinks/:id", kithttp.NewServer(
 		kitot.TraceServer(tracer, "view_sink")(viewSinkEndpoint(svc)),
 		decodeView,
@@ -224,6 +236,35 @@ func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 		case errors.Contains(errorVal, errors.ErrUnsupportedContentType):
 			w.WriteHeader(http.StatusUnsupportedMediaType)
 
+			
+		case errors.Contains(errorVal, errors.ErrInvalidEndpoint):
+			w.WriteHeader(http.StatusBadRequest)
+		case errors.Contains(errorVal, errors.ErrEndpointNotFound):
+			w.WriteHeader(http.StatusBadRequest)
+		case errors.Contains(errorVal, errors.ErrBackendNotFound):
+			w.WriteHeader(http.StatusBadRequest)
+		case errors.Contains(errorVal, errors.ErrPasswordNotFound):
+			w.WriteHeader(http.StatusBadRequest)
+		case errors.Contains(errorVal, errors.ErrAuthTypeNotFound):
+			w.WriteHeader(http.StatusBadRequest)
+		case errors.Contains(errorVal, errors.ErrInvalidUsernameType):
+			w.WriteHeader(http.StatusBadRequest)
+		case errors.Contains(errorVal, errors.ErrInvalidPasswordType):
+			w.WriteHeader(http.StatusBadRequest)
+		case errors.Contains(errorVal, errors.ErrInvalidAuthType):
+			w.WriteHeader(http.StatusBadRequest)	
+		case errors.Contains(errorVal, errors.ErrRemoteHostNotFound):
+			w.WriteHeader(http.StatusBadRequest)
+		case errors.Contains(errorVal, errors.ErrAuthFieldNotFound):
+			w.WriteHeader(http.StatusBadRequest)
+		case errors.Contains(errorVal, errors.ErrConfigFieldNotFound):
+			w.WriteHeader(http.StatusBadRequest)
+		case errors.Contains(errorVal, errors.ErrExporterFieldNotFound):
+			w.WriteHeader(http.StatusBadRequest)
+		case errors.Contains(errorVal, errors.ErrInvalidBackend):
+			w.WriteHeader(http.StatusBadRequest)	
+		case errors.Contains(errorVal, errors.ErrEntityNameNotFound):
+			w.WriteHeader(http.StatusBadRequest)
 		case errors.Contains(errorVal, errors.ErrMalformedEntity):
 			w.WriteHeader(http.StatusBadRequest)
 		case errors.Contains(errorVal, errors.ErrNotFound):

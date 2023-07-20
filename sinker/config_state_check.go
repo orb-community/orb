@@ -15,7 +15,7 @@ const (
 	streamID       = "orb.sinker"
 	streamLen      = 1000
 	CheckerFreq    = 5 * time.Minute
-	DefaultTimeout = 30 * time.Minute
+	DefaultTimeout = 5 * time.Minute
 )
 
 func (svc *SinkerService) checkState(_ time.Time) {
@@ -35,7 +35,7 @@ func (svc *SinkerService) checkState(_ time.Time) {
 			// Set idle if the sinker is more than 30 minutes not sending metrics (Remove from Redis)
 			if cfg.LastRemoteWrite.Add(DefaultTimeout).Before(time.Now()) {
 				if cfg.State == config.Active {
-					if cfg.Opentelemetry != "enabled" {
+					if v, ok := cfg.Config["opentelemetry"]; !ok || v != "enabled" {
 						if err := svc.sinkerCache.Remove(cfg.OwnerID, cfg.SinkID); err != nil {
 							svc.logger.Error("error updating sink config cache", zap.Error(err))
 							return

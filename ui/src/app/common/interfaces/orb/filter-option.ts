@@ -43,6 +43,9 @@ export function filterNumber(item: any, prop: any, value: any) {
 }
 
 export function filterTags(item: any, prop: any, value: any, exact?: any) {
+  if (!item || typeof item[prop] !== 'object') {
+    return false;
+  }
   // tag values
   const values = Object.entries(item[prop]).map(
     (entry) => `${entry[0]}:${entry[1]}`,

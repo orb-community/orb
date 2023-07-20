@@ -18,6 +18,8 @@ import (
 	"github.com/orb-community/orb/sinks"
 	sinksgrpc "github.com/orb-community/orb/sinks/api/grpc"
 	sinkshttp "github.com/orb-community/orb/sinks/api/http"
+	"github.com/orb-community/orb/sinks/authentication_type"
+	"github.com/orb-community/orb/sinks/migrate"
 	"github.com/orb-community/orb/sinks/pb"
 	"github.com/orb-community/orb/sinks/postgres"
 	rediscons "github.com/orb-community/orb/sinks/redis/consumer"
@@ -110,9 +112,16 @@ func main() {
 	auth := authapi.NewClient(tracer, authConn, authTimeout)
 
 	sinkRepo := postgres.NewSinksRepository(db, logger)
-
-	svc := newSinkService(auth, logger, esClient, sdkCfg, sinkRepo, encryptionKey)
+	pwdSvc := authentication_type.NewPasswordService(logger, encryptionKey.Key)
+	svc := newSinkService(auth, logger, esClient, sdkCfg, sinkRepo, pwdSvc)
 	errs := make(chan error, 2)
+
+	plan1 := migrate.NewPlan1(logger, svc, sinkRepo, pwdSvc)
+	migrateService := migrate.NewService(logger, sinkRepo)
+	err = migrateService.Migrate(plan1)
+	if err != nil {
+		log.Fatalf("Migration failed with error %e", err)
+	}
 
 	go startHTTPServer(tracer, svc, svcCfg, logger, errs)
 	go startGRPCServer(svc, tracer, sinksGRPCCfg, logger, errs)
@@ -175,15 +184,15 @@ func initJaeger(svcName, url string, logger *zap.Logger) (opentracing.Tracer, io
 	return tracer, closer
 }
 
-func newSinkService(auth mainflux.AuthServiceClient, logger *zap.Logger, esClient *r.Client, sdkCfg config.MFSDKConfig, repoSink sinks.SinkRepository, encriptionKey config.EncryptionKey) sinks.SinkService {
+func newSinkService(auth mainflux.AuthServiceClient, logger *zap.Logger, esClient *r.Client, sdkCfg config.MFSDKConfig, repoSink sinks.SinkRepository, passwordService authentication_type.PasswordService) sinks.SinkService {
 
 	config := mfsdk.Config{
 		ThingsURL: sdkCfg.ThingsURL,
 	}
 
 	mfsdk := mfsdk.NewSDK(config)
-	pwdSvc := sinks.NewPasswordService(logger, encriptionKey.Key)
-	svc := sinks.NewSinkService(logger, auth, repoSink, mfsdk, pwdSvc)
+
+	svc := sinks.NewSinkService(logger, auth, repoSink, mfsdk, passwordService)
 	svc = redisprod.NewEventStoreMiddleware(svc, esClient)
 	svc = sinkshttp.NewLoggingMiddleware(svc, logger)
 	svc = sinkshttp.MetricsMiddleware(

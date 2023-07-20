@@ -128,7 +128,7 @@ func Test_updateSinkReq_validate(t *testing.T) {
 				id:          tt.fields.id,
 				token:       tt.fields.token,
 			}
-			tt.wantErr(t, req.validate(&promBe), fmt.Sprintf("validate(%v)", promBe))
+			tt.wantErr(t, req.validate(), fmt.Sprintf("validate(%v)", promBe))
 		})
 	}
 }
