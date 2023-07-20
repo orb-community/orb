@@ -131,7 +131,7 @@ func decodeAgentGroupRemove(event map[string]interface{}) removeAgentGroupEvent 
 func decodeSinkRemove(event map[string]interface{}) removeSinkEvent {
 	return removeSinkEvent{
 		sinkID:  read(event, "sink_id", ""),
-		ownerID: read(event, "owner_id", ""),
+		ownerID: read(event, "owner", ""),
 	}
 }
 
