@@ -35,17 +35,17 @@ func (es eventStore) GetDeploymentEntryFromSinkId(ctx context.Context, sinkId st
 // handleSinksDeleteCollector will delete Deployment Entry and force delete otel collector
 func (es eventStore) handleSinksDeleteCollector(ctx context.Context, event redis.SinksUpdateEvent) error {
 	es.logger.Info("Received maestro DELETE event from sinks ID", zap.String("sinkID", event.SinkID), zap.String("owner", event.Owner))
-	err := es.sinkerKeyRedisClient.HDel(ctx, deploymentKey, event.SinkID).Err()
-	if err != nil {
-		return err
-	}
-	err = es.RemoveSinkActivity(ctx, event.SinkID)
+	err := es.RemoveSinkActivity(ctx, event.SinkID)
 	if err != nil {
 		return err
 	}
 	deploymentEntry, err := es.GetDeploymentEntryFromSinkId(ctx, event.SinkID)
 	if err != nil {
 		es.logger.Error("did not find collector entry for sink", zap.String("sink-id", event.SinkID))
+		return err
+	}
+	err = es.sinkerKeyRedisClient.HDel(ctx, deploymentKey, event.SinkID).Err()
+	if err != nil {
 		return err
 	}
 	err = es.kubecontrol.DeleteOtelCollector(ctx, event.Owner, event.SinkID, deploymentEntry)

@@ -93,6 +93,7 @@ func (svc *maestroService) Start(ctx context.Context, cancelFunction context.Can
 			var data maestroconfig.SinkData
 			data.SinkID = sinkRes.Id
 			data.Config = metadata
+			data.Backend = sinkRes.Backend
 			err := svc.eventStore.CreateDeploymentEntry(sinkContext, data)
 			if err != nil {
 				svc.logger.Warn("failed to create deploymentEntry for sink, skipping", zap.String("sink-id", sinkRes.Id))
