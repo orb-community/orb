@@ -5,5 +5,11 @@ ngx-monaco-editor {
     color: #969fb9 !important;
 }
 nb-card {
-    width: 70em;
+    width: 50vw;
+    min-width: 340px;
+}
+@media (max-width: 1500px) {
+    nb-card {
+      width: 35vw; 
+    }
 }
