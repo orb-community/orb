@@ -52,7 +52,7 @@ export class AgentPoliciesDatasetsComponent implements OnInit, OnChanges {
   }
 
   ngOnInit(): void { 
-    this.getAmountRunningPolicies() 
+    this.getAmountRunningPolicies();
   }
   
   getAmountRunningPolicies() {
@@ -113,7 +113,7 @@ export class AgentPoliciesDatasetsComponent implements OnInit, OnChanges {
         closeOnBackdropClick: true,
       })
       .onClose.subscribe((resp) => {
-        if (resp === DATASET_RESPONSE.EDITED) {
+        if (resp === DATASET_RESPONSE.EDITED || resp === DATASET_RESPONSE.DELETED) {
           this.refreshAgent.emit('refresh-from-dataset');
         }
       });
