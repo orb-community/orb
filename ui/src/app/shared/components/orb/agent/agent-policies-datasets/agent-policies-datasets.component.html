@@ -10,15 +10,18 @@
         <nb-accordion-item>
           <nb-accordion-item-header>
             <span class="summary-accent">Policy:&nbsp;</span>
-            <button class="agent-policy-button" (click)="onOpenViewPolicy(policy)">
+            <button class="agent-policy-button" (click)="onOpenViewPolicy(policy)"
+            nbTooltip="{{policy?.name}}">
               {{ policy?.name }}
             </button>
-            <span class="summary-accent">&nbsp;&nbsp;Status:&nbsp;</span>
-            <span class="policy-{{ policy?.state }}">{{ policy?.state }}</span>
-            <span class="summary-accent">&nbsp;&nbsp;&nbsp;Version:&nbsp;</span>
+            <span class="summary-accent">&nbsp;Status:&nbsp;</span>
+            <span class="policy-{{ policy?.state }} field"
+            nbTooltip="{{policy?.state}}">{{ policy?.state }}</span>
+            <span class="summary-accent">&nbsp;&nbsp;Version:&nbsp;</span>
             <span class="">{{ policy?.version }}</span>
-            <span class="summary-accent">&nbsp;&nbsp;&nbsp;Backend:&nbsp;</span>
-            <span class=""> {{ policy?.backend }}</span>
+            <span class="summary-accent">&nbsp;&nbsp;Backend:&nbsp;</span>
+            <span class="field" nbTooltip="{{ policy?.backend }}"> 
+              {{ policy?.backend }}</span>
           </nb-accordion-item-header>
           <nb-accordion-item-body>
             <nb-list>
