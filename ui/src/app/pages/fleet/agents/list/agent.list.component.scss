@@ -168,13 +168,13 @@ tr div p {
   &online, &healthy {
     color: #6fcf97;
   }
-  &stale {
+  &stale, &none {
     color: #f2994a;
   }
   &error, &failure {
     color: #df316f;
   }
-  &offline, &none{
+  &offline {
     color: #969fb9;
   }
 }
