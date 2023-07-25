@@ -2,7 +2,10 @@ package bridgeservice
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"github.com/orb-community/orb/pkg/types"
+	sinkspb "github.com/orb-community/orb/sinks/pb"
 	"sort"
 	"time"
 
@@ -27,6 +30,7 @@ func NewBridgeService(logger *zap.Logger,
 	defaultCacheExpiration time.Duration,
 	sinkerCache config.ConfigRepo,
 	policiesClient policiespb.PolicyServiceClient,
+	sinksClient sinkspb.SinkServiceClient,
 	fleetClient fleetpb.FleetServiceClient, messageInputCounter metrics.Counter) SinkerOtelBridgeService {
 	return SinkerOtelBridgeService{
 		defaultCacheExpiration: defaultCacheExpiration,
@@ -35,6 +39,7 @@ func NewBridgeService(logger *zap.Logger,
 		sinkerCache:            sinkerCache,
 		policiesClient:         policiesClient,
 		fleetClient:            fleetClient,
+		sinksClient:            sinksClient,
 		messageInputCounter:    messageInputCounter,
 	}
 }
@@ -46,6 +51,7 @@ type SinkerOtelBridgeService struct {
 	sinkerCache            config.ConfigRepo
 	policiesClient         policiespb.PolicyServiceClient
 	fleetClient            fleetpb.FleetServiceClient
+	sinksClient            sinkspb.SinkServiceClient
 	messageInputCounter    metrics.Counter
 }
 
@@ -65,7 +71,24 @@ func (bs *SinkerOtelBridgeService) NotifyActiveSink(ctx context.Context, mfOwner
 	cfgRepo, err := bs.sinkerCache.Get(mfOwnerId, sinkId)
 	if err != nil {
 		bs.logger.Error("unable to retrieve the sink config", zap.Error(err))
-		return err
+		sinkData, _ := bs.sinksClient.RetrieveSink(ctx, &sinkspb.SinkByIDReq{
+			SinkID:  sinkId,
+			OwnerID: mfOwnerId,
+		})
+		var metadata types.Metadata
+		_ = json.Unmarshal(sinkData.Config, &metadata)
+		cfgRepo = config.SinkConfig{
+			SinkID:  sinkId,
+			OwnerID: mfOwnerId,
+			Config:  metadata,
+			State:   config.Active,
+			Msg:     "",
+		}
+		err = bs.sinkerCache.DeployCollector(ctx, cfgRepo)
+		if err != nil {
+			bs.logger.Error("error during update sink cache", zap.String("sinkId", sinkId), zap.Error(err))
+			return err
+		}
 	}
 
 	// only updates sink state if status Idle or Unknown
