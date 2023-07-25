@@ -1,0 +1,25 @@
+<nb-card>
+    <nb-card-header>
+      Duplicate Policy Confirmation
+      <button nbButton
+              ghost="true"
+              size="small"
+              class="orb-close-dialog align-content-end"
+              (click)="onClose()"
+              data-orb-qa-id="button#close">
+        <span class="nb-close"></span>
+      </button>
+    </nb-card-header>
+    <nb-card-body>
+      <p>Are you sure you want to duplicate <span>{{ policy }}</span>?</p>
+      <p class="ns1-red">*Please press the button to confirm. You will be redirected to the view page of the newly created policy.</p>
+    </nb-card-body>
+    <nb-card-footer>
+      <button nbButton
+              shape="round"
+              class="duplicate-button"
+              (click)="onDuplicate()"
+              >Duplicate Policy
+      </button>
+    </nb-card-footer>
+  </nb-card>
