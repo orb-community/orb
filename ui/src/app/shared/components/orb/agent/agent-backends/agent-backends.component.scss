@@ -64,6 +64,20 @@ nb-card {
     }
   }
 }
+.orb-service- {
+  &running {
+    color: #6fcf97;
+  }
+  &unknown {
+    color: #f2994a;
+  }
+  &backend_error, &agent_error {
+    color: #df316f;
+  }
+  &offline {
+    color: #969fb9;
+  }
+}
 
 ::ng-deep {
 
