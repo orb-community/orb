@@ -17,7 +17,7 @@
         Last Update: {{ lastUpdate | date: 'HH:mm:ss a' }}
       </span>
   
-      <button (click)="duplicatePolicy()" class="policy-duplicate" data-orb-qa-id="button#reset" nbButton shape="round">
+      <button (click)="onOpenDuplicatePolicy()" class="policy-duplicate" data-orb-qa-id="button#reset" nbButton shape="round">
         Duplicate Policy
       </button>
       <button (click)="save()" [disabled]="!canSave()" class="policy-save" nbButton *ngIf="isEditMode()" shape="round">

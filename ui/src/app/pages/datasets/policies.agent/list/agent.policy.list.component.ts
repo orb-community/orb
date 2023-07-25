@@ -31,6 +31,7 @@ import { DeleteSelectedComponent } from 'app/shared/components/delete/delete.sel
 import { combineLatest, Observable, Subscription } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
 import { STRINGS } from '../../../../../assets/text/strings';
+import { PolicyDuplicateComponent } from '../duplicate/agent.policy.duplicate.confirmation';
 
 
 @Component({
@@ -151,23 +152,36 @@ export class AgentPolicyListComponent
     );
   }
 
+  onOpenDuplicatePolicy(agentPolicy: any) {
+    const policy = agentPolicy.name;
+    this.dialogService
+      .open(PolicyDuplicateComponent, {
+        context: { policy },
+        autoFocus: true,
+        closeOnEsc: true,
+      })
+      .onClose.subscribe((confirm) => {
+        if (confirm) {
+          this.duplicatePolicy(agentPolicy);
+        }
+      })
+  }
   duplicatePolicy(agentPolicy: any) {
     this.agentPoliciesService
-      .duplicateAgentPolicy(agentPolicy.id)
-      .subscribe((newAgentPolicy) => {
-        if (newAgentPolicy?.id) {
-          this.notificationsService.success(
-            'Agent Policy Duplicated',
-            `New Agent Policy Name: ${newAgentPolicy?.name}`,
-          );
-
-          this.router.navigate([`view/${newAgentPolicy.id}`], {
-            relativeTo: this.route,
-          });
-        }
-      });
+    .duplicateAgentPolicy(agentPolicy.id)
+    .subscribe((newAgentPolicy) => {
+      if (newAgentPolicy?.id) {
+        this.notificationsService.success(
+          'Agent Policy Duplicated',
+          `New Agent Policy Name: ${newAgentPolicy?.name}`,
+        );
+        this.router.navigate([`view/${newAgentPolicy.id}`], {
+          relativeTo: this.route,
+        });
+      }
+    });
   }
-
+  
   ngOnDestroy(): void {
     if (this.policiesSubscription) {
       this.policiesSubscription.unsubscribe();
