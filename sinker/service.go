@@ -100,7 +100,8 @@ func (svc SinkerService) startOtel(ctx context.Context) error {
 	if svc.otel {
 		var err error
 
-		bridgeService := bridgeservice.NewBridgeService(svc.logger, svc.inMemoryCacheExpiration, svc.sinkerCache, svc.policiesClient, svc.fleetClient, svc.messageInputCounter)
+		bridgeService := bridgeservice.NewBridgeService(svc.logger, svc.inMemoryCacheExpiration, svc.sinkerCache,
+			svc.policiesClient, svc.sinksClient, svc.fleetClient, svc.messageInputCounter)
 		svc.otelMetricsCancelFunct, err = otel.StartOtelMetricsComponents(ctx, &bridgeService, svc.logger, svc.otelKafkaUrl, svc.pubSub)
 
 		// starting Otel Logs components
