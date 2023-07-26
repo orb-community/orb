@@ -74,7 +74,7 @@
             Name is required.
           </div>
           <div *ngIf="formGroup.controls?.name.errors?.pattern">
-            Name does not match the pattern.
+            Name must start with a letter or "_" and contain only letters, numbers, "-" or "_"
           </div>
           <div *ngIf="formGroup?.controls.name.errors?.maxlength">
             Name must not exceed 64 characters.
