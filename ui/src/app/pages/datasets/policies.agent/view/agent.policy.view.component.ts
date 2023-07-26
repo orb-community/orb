@@ -25,6 +25,8 @@ import { Subscription } from 'rxjs';
 import yaml from 'js-yaml';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { filter } from 'rxjs/operators';
+import { PolicyDuplicateComponent } from '../duplicate/agent.policy.duplicate.confirmation';
+import { NbDialogService } from '@nebular/theme';
 
 @Component({
   selector: 'ngx-agent-view',
@@ -50,6 +52,8 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy, OnChanges {
     interface: false,
   };
 
+  lastUpdate: Date | null = null;
+
   @ViewChild(PolicyDetailsComponent) detailsComponent: PolicyDetailsComponent;
 
   @ViewChild(PolicyInterfaceComponent)
@@ -62,21 +66,23 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy, OnChanges {
     private cdr: ChangeDetectorRef,
     private notifications: NotificationsService,
     private router: Router,
+    private dialogService: NbDialogService,
   ) {}
 
   ngOnInit() {
-    this.router.events
-      .pipe(filter((event: RouterEvent) => event instanceof NavigationEnd))
-      .subscribe(() => {
-        this.fetchData();
-      });
     this.fetchData();
   }
 
-  fetchData() {
+  fetchData(newPolicyId?: any) {
     this.isLoading = true;
-    this.policyId = this.route.snapshot.paramMap.get('id');
+    if (newPolicyId) {
+      this.policyId = newPolicyId;
+    }
+    else {
+      this.policyId = this.route.snapshot.paramMap.get('id');
+    }
     this.retrievePolicy();
+    this.lastUpdate = new Date();
   }
 
   ngOnChanges(): void {
@@ -146,12 +152,12 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy, OnChanges {
       } as AgentPolicy;
 
       this.policiesService.editAgentPolicy(payload).subscribe((resp) => {
+        this.notifications.success('Agent Policy updated successfully', '');
         this.discard();
         this.policy = resp;
         this.fetchData();
       });
 
-      this.notifications.success('Agent Policy updated successfully', '');
     } catch (err) {
       this.notifications.error(
         'Failed to edit Agent Policy',
@@ -171,21 +177,33 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy, OnChanges {
         this.cdr.markForCheck();
       });
   }
-
-  duplicatePolicy() {
-    this.policiesService
-      .duplicateAgentPolicy(this.policyId || this.policy.id)
-      .subscribe((resp) => {
-        if (resp?.id) {
-          this.notifications.success(
-            'Agent Policy Duplicated',
-            `New Agent Policy Name: ${resp?.name}`,
-          );
-          this.router.navigate([`view/${resp.id}`], {
-            relativeTo: this.route.parent,
-          });
+  onOpenDuplicatePolicy() {
+    const policy = this.policy.name;
+    this.dialogService
+      .open(PolicyDuplicateComponent, {
+        context: { policy },
+        autoFocus: true,
+        closeOnEsc: true,
+      })
+      .onClose.subscribe((confirm) => {
+        if (confirm) {
+          this.duplicatePolicy(this.policy);
         }
-      });
+      })
+  }
+  duplicatePolicy(agentPolicy: any) {
+    this.policiesService
+    .duplicateAgentPolicy(agentPolicy.id)
+    .subscribe((newAgentPolicy) => {
+      if (newAgentPolicy?.id) {
+        this.notifications.success(
+          'Agent Policy Duplicated',
+          `New Agent Policy Name: ${newAgentPolicy?.name}`,
+        );
+        this.router.navigateByUrl(`/pages/datasets/policies/view/${newAgentPolicy?.id}`);
+        this.fetchData(newAgentPolicy.id);
+      }
+    });
   }
 
   ngOnDestroy() {

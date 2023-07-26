@@ -70,6 +70,10 @@ export class AgentPoliciesService {
     return this.http
       .put(`${environment.agentPoliciesUrl}/${agentPolicy.id}`, agentPolicy)
       .catch((err) => {
+        this.notificationsService.error(
+          'Failed to Edit Agent Policy',
+          `Error: ${err.status} - ${err.statusText}`,
+        );
         return throwError(err);
       });
   }

@@ -59,7 +59,7 @@ type deleteSinkEvent struct {
 func (dse deleteSinkEvent) Encode() (map[string]interface{}, error) {
 	return map[string]interface{}{
 		"sink_id":   dse.sinkID,
-		"owner_id":  dse.ownerID,
+		"owner":     dse.ownerID,
 		"operation": SinkDelete,
 	}, nil
 }

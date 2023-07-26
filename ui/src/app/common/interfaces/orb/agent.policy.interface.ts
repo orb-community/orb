@@ -13,6 +13,11 @@ export enum AgentPolicyStates {
   failedToApply = 'failed_to_apply',
 }
 
+export enum AgentPolicyUsage {
+  inUse = 'in use',
+  notInUse = 'not in use',
+}
+
 export interface AgentPolicyState {
   id?: string;
   name?: string;
@@ -76,6 +81,11 @@ export interface AgentPolicy extends OrbEntity {
    * Either JSON or YAML compatible string;
    */
   policy_data?: string;
+
+  /**
+   * Will say if the policy is in use or not
+   */
+  policy_usage?: AgentPolicyUsage;
 
   /** HELPERS */
   datasets?: any[];

@@ -60,7 +60,7 @@ export const STRINGS = {
     },
     // add page
     add: {
-      header: 'New Sink',
+      header: 'Create New Sink',
     },
     // edit page
     edit: {

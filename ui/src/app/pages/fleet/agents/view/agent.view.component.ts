@@ -6,7 +6,8 @@ import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
 import { AgentsService } from 'app/common/services/agents/agents.service';
 import { OrbService } from 'app/common/services/orb.service';
 import { STRINGS } from 'assets/text/strings';
-import { Subscription } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
+import { shareReplay } from 'rxjs/operators';
 
 @Component({
   selector: 'ngx-agent-view',
@@ -14,6 +15,9 @@ import { Subscription } from 'rxjs';
   styleUrls: ['./agent.view.component.scss'],
 })
 export class AgentViewComponent implements OnInit, OnDestroy {
+
+  lastUpdate: Date | null = null;
+
   strings = STRINGS.agents;
 
   agentStates = AgentStates;
@@ -63,6 +67,7 @@ export class AgentViewComponent implements OnInit, OnDestroy {
       },
     });
     this.isLoading = true;
+    this.lastUpdate = new Date();
   }
 
   isToday() {
@@ -78,5 +83,9 @@ export class AgentViewComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.agentSubscription?.unsubscribe();
+  }
+  refreshAgent() {
+    this.isLoading = true;
+    this.retrieveAgent();
   }
 }

@@ -10,7 +10,9 @@
     </button>
   </nb-card-header>
   <nb-card-body>
-    <p>{{strings.delete.body}}<span class="ns1-red">*</span></p>
+    <p>Are you sure you want to delete Agent Group <span class="ns1-red">{{name}}</span>? This may cause Datasets which 
+      use this Agent Group to become invalid. 
+      This action cannot be undone.<span class="ns1-red">*</span></p>
     <p class="ns1-red">{{strings.delete.warning}}</p>
     <input type="text" #autoInput [nbAutocomplete]="auto" nbInput fullWidth placeholder="{{name}}" [(ngModel)]="validationInput">
     <nb-autocomplete #auto >

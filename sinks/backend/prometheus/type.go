@@ -12,9 +12,8 @@ var _ backend.Backend = (*Backend)(nil)
 
 const (
 	RemoteHostURLConfigFeature = "remote_host"
-	UsernameConfigFeature      = "username"
-	PasswordConfigFeature      = "password"
 	ApiTokenConfigFeature      = "api_token"
+	CustomHeadersConfigFeature = "headers"
 )
 
 //type PrometheusConfigMetadata = types.Metadata
@@ -27,27 +26,11 @@ const (
 )
 
 type Backend struct {
-	apiHost     string
-	apiPort     uint64
-	apiUser     string
-	apiPassword string
-}
-
-type configParseUtility struct {
-	RemoteHost string  `yaml:"remote_host"`
-	Username   *string `yaml:"username,omitempty"`
-	Password   *string `yaml:"password,omitempty"`
-	APIToken   *string `yaml:"api_token,omitempty"`
-}
-
-type SinkFeature struct {
-	Backend     string                  `json:"backend"`
-	Description string                  `json:"description"`
-	Config      []backend.ConfigFeature `json:"config"`
+	RemoteHost string `json:"remote_host"`
 }
 
 func (p *Backend) Metadata() interface{} {
-	return SinkFeature{
+	return backend.SinkFeature{
 		Backend:     "prometheus",
 		Description: "Prometheus time series database sink",
 		Config:      p.CreateFeatureConfig(),

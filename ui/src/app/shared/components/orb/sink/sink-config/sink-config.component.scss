@@ -1,3 +1,15 @@
 ngx-monaco-editor {
     height: 25rem;
 }
+.summary-accent {
+    color: #969fb9 !important;
+}
+nb-card {
+    width: 50vw;
+    min-width: 340px;
+}
+@media (max-width: 1500px) {
+    nb-card {
+      width: 35vw; 
+    }
+}

@@ -6,8 +6,14 @@
           tabTitle="{{backend.key}}">
           <p><label>Version:</label> {{backend.value.version}}</p>
           <ng-container *ngIf="agent?.last_hb_data?.backend_state">
-            <p><label>State</label> {{agent.last_hb_data.backend_state[backend.key].state}}</p>
-            <p><label>Last Restart</label> {{agent.last_hb_data.backend_state[backend.key].last_restart_ts | date:'full'}}</p>
+            <p><label>State:</label> <span class="orb-service-{{agent.last_hb_data.backend_state[backend.key].state}}"> {{agent.last_hb_data.backend_state[backend.key].state}} </span></p>
+            <p><label>Last Restart:</label> {{agent.last_hb_data.backend_state[backend.key].last_restart_ts | date:'full'}}</p>
+            <div *ngIf="agent.last_hb_data.backend_state[backend.key].error">
+              <p class="error"><label>Error:</label> {{ agent.last_hb_data.backend_state[backend.key].error }} </p>
+            </div>
+            <div *ngIf="agent.last_hb_data.backend_state[backend.key].last_error && !agent.last_hb_data.backend_state[backend.key].error">
+              <p class="error"><label>Last Error:</label> {{ agent.last_hb_data.backend_state[backend.key].last_error }} </p>
+            </div>
           </ng-container>
       </nb-tab>
     </nb-tabset>

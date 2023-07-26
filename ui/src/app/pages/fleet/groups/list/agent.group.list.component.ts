@@ -29,8 +29,9 @@ import { OrbService } from 'app/common/services/orb.service';
 import { AgentMatchComponent } from 'app/pages/fleet/agents/match/agent.match.component';
 import { AgentGroupDeleteComponent } from 'app/pages/fleet/groups/delete/agent.group.delete.component';
 import { AgentGroupDetailsComponent } from 'app/pages/fleet/groups/details/agent.group.details.component';
+import { DeleteSelectedComponent } from 'app/shared/components/delete/delete.selected.component';
 import { STRINGS } from 'assets/text/strings';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 
 @Component({
   selector: 'ngx-agent-group-list-component',
@@ -49,6 +50,10 @@ export class AgentGroupListComponent
 
   searchPlaceholder = 'Search by name';
 
+  selected: any[] = [];
+
+  private groupsSubscription: Subscription;
+
   // templates
   @ViewChild('agentGroupNameTemplateCell')
   agentGroupNameTemplateCell: TemplateRef<any>;
@@ -60,6 +65,10 @@ export class AgentGroupListComponent
   agentGroupTagsTemplateCell: TemplateRef<any>;
 
   @ViewChild('actionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
+
+  @ViewChild('checkboxTemplateCell') checkboxTemplateCell: TemplateRef<any>;
+
+  @ViewChild('checkboxTemplateHeader') checkboxTemplateHeader: TemplateRef<any>;
 
   filterValue = null;
 
@@ -91,6 +100,8 @@ export class AgentGroupListComponent
     private orb: OrbService,
     private filters: FilterService,
   ) {
+    this.selected = [];
+
     this.groups$ = this.orb.getGroupListView();
 
     this.filters$ = this.filters.getFilters();
@@ -132,6 +143,9 @@ export class AgentGroupListComponent
   }
 
   ngOnDestroy(): void {
+    if (this.groupsSubscription) {
+      this.groupsSubscription.unsubscribe();
+    }
     this.orb.killPolling.next();
   }
 
@@ -152,39 +166,48 @@ export class AgentGroupListComponent
     this.orb.refreshNow();
     this.columns = [
       {
+        name: '',
+        prop: 'checkbox',
+        width: 1,
+        minWidth: 62,
+        canAutoResize: true,
+        sortable: false,
+        cellTemplate: this.checkboxTemplateCell,
+        headerTemplate: this.checkboxTemplateHeader,
+      },
+      {
         prop: 'name',
         name: 'Name',
-        flexGrow: 1,
+        width: 230,
         canAutoResize: true,
-        resizeable: false,
+        resizeable: true,
         minWidth: 150,
         cellTemplate: this.agentGroupNameTemplateCell,
       },
       {
         prop: 'description',
         name: 'Description',
-        flexGrow: 2,
+        width: 350,
         canAutoResize: true,
-        resizeable: false,
+        resizeable: true,
         minWidth: 180,
         cellTemplate: this.agentGroupNameTemplateCell,
       },
       {
         prop: 'matching_agents',
         name: 'Agents',
-        flexGrow: 1,
+        width: 150,
         canAutoResize: true,
-        resizeable: false,
+        resizeable: true,
         minWidth: 80,
         comparator: (a, b) => a.total - b.total,
         cellTemplate: this.agentGroupsTemplateCell,
       },
       {
         prop: 'tags',
-        name: 'Tags',
-        flexGrow: 3,
+        width: 450,
         canAutoResize: true,
-        resizeable: false,
+        resizeable: true,
         cellTemplate: this.agentGroupTagsTemplateCell,
         comparator: (a, b) =>
           Object.entries(a)
@@ -199,8 +222,8 @@ export class AgentGroupListComponent
       {
         name: '',
         prop: 'actions',
-        flexGrow: 2,
-        canAutoResize: true,
+        width: 150,
+        resizeable: true,
         minWidth: 150,
         sortable: false,
         cellTemplate: this.actionsTemplateCell,
@@ -241,7 +264,30 @@ export class AgentGroupListComponent
         }
       });
   }
+  onOpenDeleteSelected() {
+    const selected = this.selected;
+    const elementName = "Agent Groups"
+    this.dialogService
+      .open(DeleteSelectedComponent, {
+        context: { selected, elementName },
+        autoFocus: true,
+        closeOnEsc: true,
+      })
+      .onClose.subscribe((confirm) => {
+        if (confirm) {
+          this.deleteSelectedAgentGroups();
+          this.selected = [];
+          this.orb.refreshNow();
+        }
+      });
+  }
 
+  deleteSelectedAgentGroups() {
+    this.selected.forEach((group) => {
+      this.agentGroupsService.deleteAgentGroup(group.id).subscribe();
+    })
+    this.notificationsService.success('All selected Groups delete requests succeeded', '');
+  }
   openDetailsModal(row: any) {
     this.dialogService
       .open(AgentGroupDetailsComponent, {
@@ -262,5 +308,47 @@ export class AgentGroupListComponent
       autoFocus: true,
       closeOnEsc: true,
     });
+  }
+  public onCheckboxChange(event: any, row: any): void { 
+    let selectedGroup = {
+      id: row.id,
+      name: row.name,
+    }
+    if (this.getChecked(row) === false) {
+      this.selected.push(selectedGroup);
+    } 
+    else {
+      for (let i = 0; i < this.selected.length; i++) {
+        if (this.selected[i].id === row.id) {
+          this.selected.splice(i, 1);
+          break;
+        }
+      }
+    }
+  }
+
+  public getChecked(row: any): boolean {
+    const item = this.selected.filter((e) => e.id === row.id);
+    return item.length > 0 ? true : false;
+  }
+
+  onHeaderCheckboxChange(event: any) {
+    if (event.target.checked && this.filteredGroups$) {
+      this.groupsSubscription = this.filteredGroups$.subscribe(rows => {
+        this.selected = [];
+        rows.forEach(row => {
+          const policySelected = {
+            id: row.id,
+            name: row.name,
+          }
+          this.selected.push(policySelected);
+        });
+      });
+    } else {
+      if (this.groupsSubscription) {
+        this.groupsSubscription.unsubscribe();
+      }
+      this.selected = [];
+    }
   }
 }

@@ -168,13 +168,45 @@ tr div p {
   &online, &healthy {
     color: #6fcf97;
   }
-  &stale, &none {
+  &stale {
     color: #f2994a;
   }
   &error, &failure {
     color: #df316f;
   }
-  &offline {
+  &offline, &none {
     color: #969fb9;
   }
+}
+input[type=checkbox] {
+  margin-left: 10px;
+}
+.agent-reset {
+  color: #fff !important;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  text-transform: none !important;
+  width: 125px;
+
+  &.btn-disabled {
+    background: #2b3148;
+  }
+
+  &:not(.btn-disabled) {
+    background-color: #3089fc !important;
+  }
+}
+.options {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+.delete-selected {
+  color: #ffffff !important; 
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  text-transform: none !important;
+  width: 90px;
+  background-color: #df316f !important;
 }

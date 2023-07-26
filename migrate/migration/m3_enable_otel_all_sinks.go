@@ -7,13 +7,14 @@ import (
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks"
+	"github.com/orb-community/orb/sinks/authentication_type"
 	"go.uber.org/zap"
 )
 
 type M3SinksOpenTelemetry struct {
 	logger  *zap.Logger
 	dbSinks postgres.Database
-	pwdSvc  sinks.PasswordService
+	pwdSvc  authentication_type.PasswordService
 }
 
 func NewM3SinksOpenTelemetry(log *zap.Logger, dbSinks postgres.Database) Plan {

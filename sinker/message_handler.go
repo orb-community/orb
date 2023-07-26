@@ -29,12 +29,18 @@ func (svc SinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, owner
 		return err
 	}
 	ctx := context.Background()
-	if cfgRepo.Opentelemetry == "enabled" {
+	otelMetadata, ok := cfgRepo.Config["opentelemetry"]
+	if ok && otelMetadata == "enabled" {
 		svc.logger.Info("deprecate warning opentelemetry sink scraping legacy agent", zap.String("sink-ID", cfgRepo.SinkID))
 		ctx = context.WithValue(ctx, "deprecation", "opentelemetry")
 	}
+	configMetadata := cfgRepo.Config.GetSubMetadata("exporter")
+	if configMetadata == nil {
+		svc.logger.Error("unable to find prometheus remote host", zap.Error(err))
+		return err
+	}
 	cfg := prometheus.NewConfig(
-		prometheus.WriteURLOption(cfgRepo.Url),
+		prometheus.WriteURLOption(configMetadata["remote_host"].(string)),
 	)
 
 	promClient, err := prometheus.NewClient(cfg)
@@ -42,9 +48,13 @@ func (svc SinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, owner
 		svc.logger.Error("unable to construct client", zap.Error(err))
 		return err
 	}
-
+	authMetadata := cfgRepo.Config.GetSubMetadata("authentication")
+	if authMetadata == nil {
+		svc.logger.Error("unable to find prometheus remote host", zap.Error(err))
+		return err
+	}
 	var headers = make(map[string]string)
-	headers["Authorization"] = svc.encodeBase64(cfgRepo.User, cfgRepo.Password)
+	headers["Authorization"] = svc.encodeBase64(authMetadata["username"].(string), authMetadata["password"].(string))
 	result, writeErr := promClient.WriteTimeSeries(ctx, tsList, prometheus.WriteOptions{Headers: headers})
 	if err := error(writeErr); err != nil {
 		if cfgRepo.Msg != fmt.Sprint(err) {
@@ -62,7 +72,8 @@ func (svc SinkerService) remoteWriteToPrometheus(tsList prometheus.TSList, owner
 		return err
 	}
 
-	svc.logger.Debug("successful sink", zap.Int("payload_size_b", result.PayloadSize), zap.String("sink_id", sinkID), zap.String("url", cfgRepo.Url), zap.String("user", cfgRepo.User))
+	svc.logger.Debug("successful sink", zap.Int("payload_size_b", result.PayloadSize),
+		zap.String("sink_id", sinkID))
 
 	if cfgRepo.State != config.Active {
 		cfgRepo.State = config.Active
@@ -117,13 +128,15 @@ func (svc SinkerService) handleMetrics(ctx context.Context, agentID string, chan
 		return fleet.ErrSchemaMalformed
 	}
 
-	agentPb, err2 := svc.ExtractAgent(ctx, channelID)
-	if err2 != nil {
-		return err2
+	agentPb, err := svc.ExtractAgent(ctx, channelID)
+	if err != nil {
+		return err
 	}
 
-	agentName, _ := types.NewIdentifier(agentPb.AgentName)
-
+	agentName, err := types.NewIdentifier(agentPb.AgentName)
+	if err != nil {
+		return err
+	}
 	agent := fleet.Agent{
 		Name:        agentName,
 		MFOwnerID:   agentPb.OwnerID,
@@ -138,9 +151,9 @@ func (svc SinkerService) handleMetrics(ctx context.Context, agentID string, chan
 		// however, per policy, we want a unique set of sink IDs as we don't want to send the same metrics twice to the same sink for the same policy
 		datasetSinkIDs := make(map[string]bool)
 		// first go through the datasets and gather the unique set of sinks we need for this particular policy
-		err2 := svc.GetSinks(agent, metricsPayload, datasetSinkIDs)
-		if err2 != nil {
-			return err2
+		err = svc.GetSinks(agent, metricsPayload, datasetSinkIDs)
+		if err != nil {
+			return err
 		}
 
 		// ensure there are sinks

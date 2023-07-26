@@ -35,8 +35,16 @@
       "default": "",
       "title": "The description Schema",
       "examples": [
-        ""
+        "This is a sink with prometheus backend"
       ]
+    },
+    "tags": {
+      "type": "object",
+      "default": {},
+      "title": "The tags Schema",
+      "required": [],
+      "properties": {},
+      "examples": [{}]
     },
     "state": {
       "type": "string",
@@ -59,40 +67,91 @@
       "default": {},
       "title": "The config Schema",
       "required": [
-        "password",
-        "remote_host",
-        "username"
+        "authentication",
+        "exporter"
       ],
       "properties": {
-        "password": {
-          "type": "string",
-          "default": "",
-          "title": "The password Schema",
-          "examples": [
-            "pass"
-          ]
+        "authentication": {
+          "type": "object",
+          "default": {},
+          "title": "The authentication Schema",
+          "required": [
+            "password",
+            "type",
+            "username"
+          ],
+          "properties": {
+            "password": {
+              "type": "string",
+              "default": "",
+              "title": "The password Schema",
+              "examples": [
+                ""
+              ]
+            },
+            "type": {
+              "type": "string",
+              "default": "",
+              "title": "The type Schema",
+              "examples": [
+                "basicauth"
+              ]
+            },
+            "username": {
+              "type": "string",
+              "default": "",
+              "title": "The username Schema",
+              "examples": [
+                "admin"
+              ]
+            }
+          },
+          "examples": [{
+            "password": "",
+            "type": "basicauth",
+            "username": "admin"
+          }]
         },
-        "remote_host": {
-          "type": "string",
-          "default": "",
-          "title": "The remote_host Schema",
-          "examples": [
-            "https://prometheus-prod-10-prod-us-central-0.grafana.net/api/prom/push"
-          ]
+        "exporter": {
+          "type": "object",
+          "default": {},
+          "title": "The exporter Schema",
+          "required": [
+            "remote_host"
+          ],
+          "properties": {
+            "remote_host": {
+              "type": "string",
+              "default": "",
+              "title": "The remote_host Schema",
+              "examples": [
+                "https://my.prometheus.endpoint/prom/push"
+              ]
+            }
+          },
+          "examples": [{
+            "remote_host": "https://my.prometheus.endpoint/prom/push"
+          }]
         },
-        "username": {
+        "opentelemetry": {
           "type": "string",
           "default": "",
-          "title": "The username Schema",
+          "title": "The opentelemetry Schema",
           "examples": [
-            "user"
+            "enabled"
           ]
         }
       },
       "examples": [{
-        "password": "pass",
-        "remote_host": "https://prometheus-prod-10-prod-us-central-0.grafana.net/api/prom/push",
-        "username": "user"
+        "authentication": {
+          "password": "12345678",
+          "type": "basicauth",
+          "username": "admin"
+        },
+        "exporter": {
+          "remote_host": "https://my.prometheus.endpoint/prom/push"
+        },
+        "opentelemetry": "enabled"
       }]
     },
     "ts_created": {
@@ -100,21 +159,27 @@
       "default": "",
       "title": "The ts_created Schema",
       "examples": [
-        "2022-05-27T14:12:09.108703Z"
+        "2023-06-01T17:37:21.848101999Z"
       ]
     }
   },
   "examples": [{
-    "id": "ef8b4710-734e-469f-b4ba-724f857499a9",
-    "name": "sink-schema",
+    "id": "f000638f-2a8a-4669-b681-b65d5c46d871",
+    "name": "test_sink_label_name_mEpBRavPHa",
     "description": "",
     "state": "unknown",
     "backend": "prometheus",
     "config": {
-      "password": "pass",
-      "remote_host": "https://prometheus-prod-10-prod-us-central-0.grafana.net/api/prom/push",
-      "username": "user"
+      "authentication": {
+        "password": "",
+        "type": "basicauth",
+        "username": "admin"
+      },
+      "exporter": {
+        "remote_host": "https://prometheus.qa.orb.live/api/v1/write"
+      },
+      "opentelemetry": "enabled"
     },
-    "ts_created": "2022-05-27T14:12:09.108703Z"
+    "ts_created": "2023-06-01T17:37:21.848101999Z"
   }]
 }

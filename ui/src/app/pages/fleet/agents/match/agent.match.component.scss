@@ -32,13 +32,13 @@ nb-card {
   &new {
     color: #9b51e0;
   }
-  &online {
+  &online, &running {
     color: #6fcf97;
   }
   &stale {
     color: #f2994a;
   }
-  &error {
+  &error, &failed_to_apply {
     color: #df316f;
   }
   &offline {

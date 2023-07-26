@@ -2,6 +2,7 @@ package consumer
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/orb-community/orb/maestro/config"
@@ -33,7 +34,7 @@ const (
 )
 
 type Subscriber interface {
-	CreateDeploymentEntry(ctx context.Context, sinkId, sinkUrl, sinkUsername, sinkPassword string) error
+	CreateDeploymentEntry(ctx context.Context, sink config.SinkData) error
 	GetDeploymentEntryFromSinkId(ctx context.Context, sinkId string) (string, error)
 
 	UpdateSinkCache(ctx context.Context, data config.SinkData) (err error)
@@ -97,7 +98,7 @@ func (es eventStore) SubscribeSinkerEvents(ctx context.Context) error {
 					go func() {
 						err = es.handleSinkerCreateCollector(ctx, rte) //sinker request to create collector
 						if err != nil {
-							es.logger.Error("Failed to handle sinks event", zap.Any("operation", event["operation"]), zap.Error(err))
+							es.logger.Error("Failed to handle sinker event", zap.Any("operation", event["operation"]), zap.Error(err))
 						} else {
 							es.streamRedisClient.XAck(ctx, streamSinker, groupMaestro, msg.ID)
 						}
@@ -191,8 +192,29 @@ func (es eventStore) handleSinkerCreateCollector(ctx context.Context, event maes
 	es.logger.Info("Received maestro CREATE event from sinker, sink state", zap.String("state", event.State), zap.String("sinkID", event.SinkID), zap.String("ownerID", event.Owner))
 	deploymentEntry, err := es.GetDeploymentEntryFromSinkId(ctx, event.SinkID)
 	if err != nil {
-		es.logger.Error("could not find deployment entry from sink-id", zap.String("sinkID", event.SinkID), zap.Error(err))
-		return err
+		sink, err := es.sinksClient.RetrieveSink(ctx, &sinkspb.SinkByIDReq{
+			SinkID:  event.SinkID,
+			OwnerID: event.Owner,
+		})
+		if err != nil {
+			es.logger.Error("could not find deployment entry from sink-id", zap.String("sinkID", event.SinkID), zap.Error(err))
+			return err
+		}
+		var metadata types.Metadata
+		if err := json.Unmarshal(sink.Config, &metadata); err != nil {
+			return err
+		}
+		sinkData := config.SinkData{
+			SinkID:  sink.Id,
+			OwnerID: sink.OwnerID,
+			Backend: sink.Backend,
+			Config:  metadata,
+		}
+		err = es.CreateDeploymentEntry(ctx, sinkData)
+		if err != nil {
+			es.logger.Error("could not create deployment entry from sink", zap.String("sinkID", event.SinkID), zap.Error(err))
+			return err
+		}
 	}
 	err = es.kubecontrol.CreateOtelCollector(ctx, event.Owner, event.SinkID, deploymentEntry)
 	if err != nil {

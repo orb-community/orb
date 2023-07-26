@@ -88,5 +88,6 @@ def _read_configs():
     if include_otel_env_var == "false" and enable_otel == "false":
         raise ValueError("'enable_otel' is false, but the variable is not being included in the commands because of "
                          "'include_otel_env_var' is false. Check your parameters.")
+    configs['backend_type'] = configs.get("backend_type", "prometheus")
 
     return configs

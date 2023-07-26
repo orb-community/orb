@@ -40,7 +40,7 @@ func (r *OrbReceiver) MessageMetricsInbound(msg messaging.Message) error {
 			return
 		}
 
-		r.sinkerService.IncreamentMessageCounter(msg.Publisher, msg.Subtopic, msg.Channel, msg.Protocol)
+		r.sinkerService.IncrementMessageCounter(msg.Publisher, msg.Subtopic, msg.Channel, msg.Protocol)
 
 		if mr.Metrics().ResourceMetrics().Len() == 0 || mr.Metrics().ResourceMetrics().At(0).ScopeMetrics().Len() == 0 {
 			r.cfg.Logger.Info("No data information from metrics request")
@@ -94,6 +94,9 @@ func (r *OrbReceiver) ProccessMetricsContext(scope pmetric.ScopeMetrics, channel
 	for k, v := range agentPb.OrbTags {
 		scope = r.injectScopeMetricsAttribute(scope, k, v)
 	}
+
+	r.injectScopeMetricsAttribute(scope, "agent", agentPb.AgentName)
+	r.injectScopeMetricsAttribute(scope, "policy_id", polID)
 
 	scope = r.replaceScopeMetricsTimestamp(scope, pcommon.NewTimestampFromTime(time.Now()))
 	sinkIds, err := r.sinkerService.GetSinkIdsFromDatasetIDs(execCtx, agentPb.OwnerID, datasetIDs)

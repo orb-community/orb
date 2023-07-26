@@ -4,7 +4,9 @@
 
 package backend
 
-import "github.com/orb-community/orb/pkg/types"
+import (
+	"github.com/orb-community/orb/pkg/types"
+)
 
 type Backend interface {
 	Metadata() interface{}
@@ -23,6 +25,12 @@ type ConfigFeature struct {
 	Title    string `json:"title"`
 	Name     string `json:"name"`
 	Required bool   `json:"required"`
+}
+
+type SinkFeature struct {
+	Backend     string          `json:"backend"`
+	Description string          `json:"description"`
+	Config      []ConfigFeature `json:"config"`
 }
 
 var registry = make(map[string]Backend)

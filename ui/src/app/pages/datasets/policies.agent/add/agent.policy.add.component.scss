@@ -170,7 +170,6 @@ ngx-tag-control, ngx-tag-display {
 .code-editor {
   height: calc(100%);
   width: calc(100%);
-  padding: calc(1rem);
 }
 
 .code-editor-wrapper {
@@ -193,4 +192,18 @@ ngx-tag-control, ngx-tag-display {
 .add-handler-button {
   margin-top: 1rem;
   margin: 10px 0;
+}
+
+.upload-button {
+  color: #3089fc;
+  background-color: transparent;
+  border: none;
+  font-weight: 600;
+  outline: none;
+}
+.summary-accent {
+  color: #969fb9 !important;
+}
+.align {
+  margin: 0px;
 }

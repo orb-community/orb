@@ -16,7 +16,16 @@
     </div>
   </header>
   <div #tableWrapper class="tableWrapper">
-    <ngx-filter [availableFilters]="filterOptions"></ngx-filter>
+    <div class="options">
+      <ngx-filter [availableFilters]="filterOptions"></ngx-filter>
+      <button (click)="onOpenDeleteSelected()"
+        *ngIf="selected.length > 0"
+        class="delete-selected"
+        nbButton
+        shape="round">
+        Delete
+      </button>
+    </div>
     <div class="add-sink-container">
       <button
         (click)="onOpenAdd()"
@@ -30,7 +39,7 @@
     </div>
     <ngx-datatable
       #table
-      [columnMode]="columnMode.flex"
+      [columnMode]="columnMode.force"
       [columns]="columns"
       [footerHeight]="50"
       [headerHeight]="50"
@@ -38,18 +47,25 @@
       [rowHeight]="50"
       [rows]="filteredSinks$ | async"
       [scrollbarV]="true"
+      [scrollbarH]="true"
       [sorts]="tableSorts"
       class="orb"
       style="height: calc(62vh);"
+      [selected]="selected"
+      [selectionType]="'checkbox'"
     >
     </ngx-datatable>
   </div>
 </div>
 
-<ng-template #sinkNameTemplateCell let-value="value">
-  <span nbTooltip="{{ value }}">
+<ng-template #sinkNameTemplateCell let-i="index" let-row="row" let-value="value">
+  <button
+    (click)="onOpenView(row)"
+    class="view-sink-button"
+    nbTooltip="{{ value }}"
+  >
     {{ value }}
-  </span>
+  </button>
 </ng-template>
 
 <ng-template #sinkStateTemplateCell let-value="value">
@@ -69,7 +85,7 @@
         {{tag | tagchip}}
       </mat-chip>
       <mat-chip
-        *ngIf="(row?.tags | json) === '{}'"
+        *ngIf="!row?.tags"
         [style.background-color]="'notag' | tagcolor"
         class="orb-tag-chip ">
         No tags were created
@@ -95,7 +111,7 @@
       <nb-icon icon="search-outline"></nb-icon>
     </button>
     <button
-      (click)="onOpenEdit(row)"
+      (click)="onOpenView(row)"
       class="orb-action-hover edit-button"
       ghost
       nbTooltip="Edit"
@@ -113,4 +129,13 @@
       <nb-icon icon="trash-2-outline"></nb-icon>
     </button>
   </div>
+</ng-template>
+
+<ng-template #checkboxTemplateCell let-i="index" let-row="row" let-value="value">
+  <input type="checkbox" [checked]="getChecked(row)" 
+  (change)="onCheckboxChange($event, row)">
+</ng-template>
+
+<ng-template #checkboxTemplateHeader>
+  <input type="checkbox" (change)="onHeaderCheckboxChange($event)">
 </ng-template>

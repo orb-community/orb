@@ -18,6 +18,7 @@
       <div class="col-6 d-flex flex-column align-items-start">
         <p class="detail-title">{{strings.propNames.description}}</p>
         <p>{{ sink.description }}</p>
+        <p *ngIf="!sink.description">No Description Added</p>
       </div>
     </div>
     <div class="row">
@@ -26,14 +27,15 @@
         <p>{{ sink.backend }}</p>
       </div>
       <div class="col-6 d-flex flex-column align-items-start">
-        <p class="detail-title">{{strings.propNames.config_remote_host}}</p>
-        <p>{{ sink.config.remote_host }}</p>
+        <p class="detail-title">{{ exporterField }}</p>
+        <p *ngIf="sink.config.exporter.remote_host">{{ sink.config.exporter.remote_host }} </p>
+        <p *ngIf="sink.config.exporter.endpoint">{{ sink.config.exporter.endpoint }} </p>
       </div>
     </div>
     <div class="row">
       <div class="col-6 d-flex flex-column align-items-start">
         <p class="detail-title">{{strings.propNames.config_username}}</p>
-        <p>{{ sink.config.username }}</p>
+        <p>{{ sink.config.authentication.username }}</p>
       </div>
     </div>
     <div class="row">
@@ -49,6 +51,7 @@
             </mat-chip>
           </mat-chip-list>
         </div>
+        <p *ngIf="!sink.tags">No tags Added</p>
       </div>
     </div>
     <div class="row" *ngIf="sink?.state === _sinkStates.error">
@@ -60,6 +63,6 @@
   </nb-card-body>
 
   <nb-card-footer>
-    <button nbButton status="primary" class="sink-edit-button" (click)="onOpenEdit(sink)">Edit</button>
+    <button nbButton status="primary" class="sink-edit-button" (click)="onOpenView(sink)">View Sink</button>
   </nb-card-footer>
 </nb-card>

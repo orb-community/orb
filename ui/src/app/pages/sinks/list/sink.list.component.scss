@@ -143,12 +143,12 @@ tr div p {
     color: #6fcf97;
   }
   &unknown {
-    color: #f2994a;
+    color: #9b51e0;
   }
   &error {
     color: #df316f;
   }
-  &warning {
+  &idle {
     color: #f2dc4a; 
   }
 }
@@ -201,4 +201,31 @@ mat-chip-list {
   to {
     transform: translateX(-70%);
   }
+}
+.options {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+.delete-selected {
+  color: #ffffff !important; 
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  text-transform: none !important;
+  width: 90px;
+  background-color: #df316f !important;
+}
+input[type=checkbox] {
+  margin-left: 10px;
+}
+.view-sink-button {
+  background-color: transparent !important;
+  background-repeat: no-repeat !important;
+  border: none !important;
+  cursor: pointer !important;
+  outline: none !important;
+  overflow: hidden !important;
+  color: #ffffff;
+  text-align: left;
 }

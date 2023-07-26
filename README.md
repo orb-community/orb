@@ -4,6 +4,7 @@
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/orb-community/orb)](https://goreportcard.com/report/github.com/orb-community/orb)
 [![CodeCov](https://codecov.io/gh/orb-community/orb/branch/develop/graph/badge.svg)](https://app.codecov.io/gh/orb-community/orb/tree/develop)
+[![Go Reference](https://pkg.go.dev/badge/github.com/orb-community/orb.svg)](https://pkg.go.dev/github.com/orb-community/orb)
 
 **Orb** is a modern network observability platform built to provide critical visibility into increasingly complex and distributed networks. It can analyze network traffic, run synthetic network probes, and connect the resulting telemetry directly to your existing observability stacks with OpenTelemetry. Orb differentiates from other solutions by pushing analysis close to the traffic sources (reducing inactionable metrics and processing costs), and allows for dynamic reconfiguration of remote agents in real time.
 
@@ -28,7 +29,7 @@ with more analyzers in the works.
 
 ## Realtime Agent Orchestration
 
-Orb uses IoT principals to allow the observability agents to connect out to the Orb central control plane, avoiding
+Orb uses IoT principles to allow the observability agents to connect out to the Orb central control plane, avoiding
 firewall problems. Once connected, agents are controlled in real time from the Orb Portal or REST API, orchestrating
 observability [policies](https://orb.community/about/#policies) designed to precisely extract the desired insights. Agents
 are grouped and addressed based on [tags](https://orb.community/about/#agent-group).

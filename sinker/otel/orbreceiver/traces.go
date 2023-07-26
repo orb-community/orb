@@ -38,7 +38,7 @@ func (r *OrbReceiver) MessageTracesInbound(msg messaging.Message) error {
 			return
 		}
 
-		r.sinkerService.IncreamentMessageCounter(msg.Publisher, msg.Subtopic, msg.Channel, msg.Protocol)
+		r.sinkerService.IncrementMessageCounter(msg.Publisher, msg.Subtopic, msg.Channel, msg.Protocol)
 
 		if tr.Traces().ResourceSpans().Len() == 0 || tr.Traces().ResourceSpans().At(0).ScopeSpans().Len() == 0 {
 			r.cfg.Logger.Info("No data information from traces request")
@@ -92,6 +92,8 @@ func (r *OrbReceiver) ProccessTracesContext(scope ptrace.ScopeSpans, channel str
 	for k, v := range agentPb.OrbTags {
 		scope = r.injectScopeSpansAttribute(scope, k, v)
 	}
+	r.injectScopeSpansAttribute(scope, "agent", agentPb.AgentName)
+	r.injectScopeSpansAttribute(scope, "policy_id", polID)
 
 	sinkIds, err := r.sinkerService.GetSinkIdsFromDatasetIDs(execCtx, agentPb.OwnerID, datasetIDs)
 	if err != nil {

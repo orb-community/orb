@@ -2,6 +2,7 @@ package bridgeservice
 
 import (
 	"context"
+	"fmt"
 	"sort"
 	"time"
 
@@ -9,11 +10,13 @@ import (
 	fleetpb "github.com/orb-community/orb/fleet/pb"
 	policiespb "github.com/orb-community/orb/policies/pb"
 	"github.com/orb-community/orb/sinker/config"
+	"github.com/patrickmn/go-cache"
 	"go.uber.org/zap"
 )
 
 type BridgeService interface {
 	ExtractAgent(ctx context.Context, channelID string) (*fleetpb.AgentInfoRes, error)
+	GetPolicyName(ctx context.Context, policyId, ownerId string) (*policiespb.PolicyRes, error)
 	GetDataSetsFromAgentGroups(ctx context.Context, mfOwnerId string, agentGroupIds []string) (map[string]string, error)
 	NotifyActiveSink(ctx context.Context, mfOwnerId, sinkId, state, message string) error
 	GetSinkIdsFromPolicyID(ctx context.Context, mfOwnerId string, policyID string) (map[string]string, error)
@@ -21,28 +24,33 @@ type BridgeService interface {
 }
 
 func NewBridgeService(logger *zap.Logger,
+	defaultCacheExpiration time.Duration,
 	sinkerCache config.ConfigRepo,
 	policiesClient policiespb.PolicyServiceClient,
 	fleetClient fleetpb.FleetServiceClient, messageInputCounter metrics.Counter) SinkerOtelBridgeService {
 	return SinkerOtelBridgeService{
-		logger:              logger,
-		sinkerCache:         sinkerCache,
-		policiesClient:      policiesClient,
-		fleetClient:         fleetClient,
-		messageInputCounter: messageInputCounter,
+		defaultCacheExpiration: defaultCacheExpiration,
+		inMemoryCache:          *cache.New(defaultCacheExpiration, defaultCacheExpiration*2),
+		logger:                 logger,
+		sinkerCache:            sinkerCache,
+		policiesClient:         policiesClient,
+		fleetClient:            fleetClient,
+		messageInputCounter:    messageInputCounter,
 	}
 }
 
 type SinkerOtelBridgeService struct {
-	logger              *zap.Logger
-	sinkerCache         config.ConfigRepo
-	policiesClient      policiespb.PolicyServiceClient
-	fleetClient         fleetpb.FleetServiceClient
-	messageInputCounter metrics.Counter
+	inMemoryCache          cache.Cache
+	defaultCacheExpiration time.Duration
+	logger                 *zap.Logger
+	sinkerCache            config.ConfigRepo
+	policiesClient         policiespb.PolicyServiceClient
+	fleetClient            fleetpb.FleetServiceClient
+	messageInputCounter    metrics.Counter
 }
 
 // Implementar nova funcao
-func (bs *SinkerOtelBridgeService) IncreamentMessageCounter(publisher, subtopic, channel, protocol string) {
+func (bs *SinkerOtelBridgeService) IncrementMessageCounter(publisher, subtopic, channel, protocol string) {
 	labels := []string{
 		"method", "handleMsgFromAgent",
 		"agent_id", publisher,
@@ -89,26 +97,44 @@ func (bs *SinkerOtelBridgeService) NotifyActiveSink(ctx context.Context, mfOwner
 			}
 			bs.logger.Info("registering sink activity", zap.String("sinkID", sinkId), zap.String("newState", newState), zap.Any("currentState", cfgRepo.State))
 		}
-	} else if cfgRepo.State == config.Active || cfgRepo.State == config.Warning {
+	} else {
 		err = bs.sinkerCache.AddActivity(mfOwnerId, sinkId)
 		if err != nil {
 			bs.logger.Error("error during update last remote write", zap.String("sinkId", sinkId), zap.Error(err))
 			return err
 		}
 		bs.logger.Info("registering sink activity", zap.String("sinkID", sinkId), zap.String("newState", newState), zap.Any("currentState", cfgRepo.State))
-	} else if cfgRepo.State == config.Error {
-		cfgRepo.Msg = message
 	}
 
 	return nil
 }
 
 func (bs *SinkerOtelBridgeService) ExtractAgent(ctx context.Context, channelID string) (*fleetpb.AgentInfoRes, error) {
-	agentPb, err := bs.fleetClient.RetrieveAgentInfoByChannelID(ctx, &fleetpb.AgentInfoByChannelIDReq{Channel: channelID})
-	if err != nil {
-		return nil, err
+	cacheKey := fmt.Sprintf("agent-%s", channelID)
+	value, found := bs.inMemoryCache.Get(cacheKey)
+	if !found {
+		agentPb, err := bs.fleetClient.RetrieveAgentInfoByChannelID(ctx, &fleetpb.AgentInfoByChannelIDReq{Channel: channelID})
+		if err != nil {
+			return nil, err
+		}
+		bs.inMemoryCache.Set(cacheKey, agentPb, cache.DefaultExpiration)
+		return agentPb, nil
 	}
-	return agentPb, nil
+	return value.(*fleetpb.AgentInfoRes), nil
+}
+
+func (bs *SinkerOtelBridgeService) GetPolicyName(ctx context.Context, policyId, ownerID string) (*policiespb.PolicyRes, error) {
+	cacheKey := fmt.Sprintf("policy-%s", policyId)
+	value, found := bs.inMemoryCache.Get(cacheKey)
+	if !found {
+		policyPb, err := bs.policiesClient.RetrievePolicy(ctx, &policiespb.PolicyByIDReq{PolicyID: policyId, OwnerID: ownerID})
+		if err != nil {
+			return nil, err
+		}
+		bs.inMemoryCache.Set(cacheKey, policyPb, cache.DefaultExpiration)
+		return policyPb, nil
+	}
+	return value.(*policiespb.PolicyRes), nil
 }
 
 func (bs *SinkerOtelBridgeService) GetSinkIdsFromDatasetIDs(ctx context.Context, mfOwnerId string, datasetIDs []string) (map[string]string, error) {
@@ -116,15 +142,22 @@ func (bs *SinkerOtelBridgeService) GetSinkIdsFromDatasetIDs(ctx context.Context,
 	mapSinkIdPolicy := make(map[string]string)
 	sort.Strings(datasetIDs)
 	for i := 0; i < len(datasetIDs); i++ {
-		datasetRes, err := bs.policiesClient.RetrieveDataset(ctx, &policiespb.DatasetByIDReq{
-			DatasetID: datasetIDs[i],
-			OwnerID:   mfOwnerId,
-		})
-		if err != nil {
-			bs.logger.Info("unable to retrieve datasets from policy")
-			return nil, err
+		datasetID := datasetIDs[i]
+		cacheKey := fmt.Sprintf("ds-%s-%s", mfOwnerId, datasetID)
+		value, found := bs.inMemoryCache.Get(cacheKey)
+		if !found {
+			datasetRes, err := bs.policiesClient.RetrieveDataset(ctx, &policiespb.DatasetByIDReq{
+				DatasetID: datasetID,
+				OwnerID:   mfOwnerId,
+			})
+			if err != nil {
+				bs.logger.Info("unable to retrieve datasets from policy")
+				return nil, err
+			}
+			value = datasetRes.SinkIds
+			bs.inMemoryCache.Set(cacheKey, value, cache.DefaultExpiration)
 		}
-		for _, sinkId := range datasetRes.SinkIds {
+		for _, sinkId := range value.([]string) {
 			mapSinkIdPolicy[sinkId] = "active"
 		}
 	}
