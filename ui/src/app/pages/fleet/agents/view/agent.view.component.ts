@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { Agent, AgentStates } from 'app/common/interfaces/orb/agent.interface';
 import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
@@ -37,7 +37,6 @@ export class AgentViewComponent implements OnInit, OnDestroy {
   constructor(
     protected agentsService: AgentsService,
     protected route: ActivatedRoute,
-    protected router: Router,
     protected orb: OrbService,
     protected cdr: ChangeDetectorRef,
   ) {
@@ -45,7 +44,6 @@ export class AgentViewComponent implements OnInit, OnDestroy {
     this.datasets = {};
     this.groups = [];
     this.isLoading = true;
-    this.router.routeReuseStrategy.shouldReuseRoute = () => false;
   }
 
   ngOnInit() {
