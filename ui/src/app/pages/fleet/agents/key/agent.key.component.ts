@@ -59,8 +59,14 @@ orbcommunity/orb-agent`;
   toggleIcon (target) {
     if (target === 'key') {
       this.copyKeyIcon = 'checkmark-outline';
+      setTimeout(() => {
+        this.copyKeyIcon = 'copy-outline';
+      }, 2000);
     } else if (target === 'command') {
       this.copyCommandIcon = 'checkmark-outline';
+      setTimeout(() => {
+        this.copyCommandIcon = "copy-outline";
+      }, 2000);
     }
   }
 

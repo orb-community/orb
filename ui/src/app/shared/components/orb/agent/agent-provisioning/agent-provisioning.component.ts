@@ -38,6 +38,9 @@ export class AgentProvisioningComponent implements OnInit {
   toggleIcon(target) {
     if (target === "command") {
       this.copyCommandIcon = "checkmark-outline";
+      setTimeout(() => {
+        this.copyCommandIcon = "copy-outline";
+      }, 2000);
     }
   }
 
