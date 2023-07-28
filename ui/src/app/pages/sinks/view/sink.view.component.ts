@@ -7,6 +7,7 @@ import { SinkConfigComponent } from 'app/shared/components/orb/sink/sink-config/
 import { SinkDetailsComponent } from 'app/shared/components/orb/sink/sink-details/sink-details.component';
 import { STRINGS } from 'assets/text/strings';
 import { Subscription } from 'rxjs';
+import { updateMenuItems } from 'app/pages/pages-menu';
 
 @Component({
   selector: 'ngx-sink-view',
@@ -42,6 +43,7 @@ export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnInit(): void {
     this.fetchData();
+    updateMenuItems('Sink Management');
   }
 
   ngOnChanges(): void {
