@@ -8,6 +8,7 @@ import { OrbService } from 'app/common/services/orb.service';
 import { STRINGS } from 'assets/text/strings';
 import { Observable, Subscription } from 'rxjs';
 import { shareReplay } from 'rxjs/operators';
+import { updateMenuItems } from 'app/pages/pages-menu';
 
 @Component({
   selector: 'ngx-agent-view',
@@ -49,6 +50,7 @@ export class AgentViewComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.agentID = this.route.snapshot.paramMap.get('id');
     this.retrieveAgent();
+    updateMenuItems('Agents');
   }
 
   retrieveAgent() {
