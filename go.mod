@@ -23,7 +23,7 @@ require (
 	github.com/mainflux/mainflux v0.0.0-20220415135135-92d8fb99bf82
 	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/mitchellh/mapstructure v1.5.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.75.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.81.0
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/ory/dockertest/v3 v3.10.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
@@ -56,10 +56,10 @@ require (
 	github.com/gogo/protobuf v1.3.2
 	github.com/google/uuid v1.3.0
 	github.com/prometheus/common v0.44.0 // indirect
-	go.opentelemetry.io/collector v0.75.0
+	go.opentelemetry.io/collector v0.81.0
 	go.opentelemetry.io/collector/pdata v1.0.0-rc9
-	go.opentelemetry.io/otel/metric v0.37.0
-	go.opentelemetry.io/otel/trace v1.14.0
+	go.opentelemetry.io/otel/metric v1.16.0
+	go.opentelemetry.io/otel/trace v1.16.0
 	google.golang.org/genproto v0.0.0-20230306155012-7f2fa6fef1f4
 	k8s.io/client-go v0.26.3
 )
@@ -116,7 +116,7 @@ require (
 	github.com/nats-io/nkeys v0.4.4 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/oklog/ulid/v2 v2.0.2 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/ottl v0.75.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/ottl v0.81.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.2 // indirect
 	github.com/opencontainers/runc v1.1.5 // indirect
@@ -186,8 +186,8 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.75.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.62.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.81.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.81.0
 	github.com/orb-community/diode v0.0.0-20230419222319-4ec19ba89e9f
 	github.com/pelletier/go-toml/v2 v2.0.6 // indirect
 	github.com/pierrec/lz4/v4 v4.1.17 // indirect
@@ -196,8 +196,8 @@ require (
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.1.2
 	github.com/xdg-go/stringprep v1.0.4 // indirect
-	go.opentelemetry.io/collector/receiver/otlpreceiver v0.75.0
-	go.opentelemetry.io/collector/semconv v0.75.0
+	go.opentelemetry.io/collector/receiver/otlpreceiver v0.81.0
+	go.opentelemetry.io/collector/semconv v0.81.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.40.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20230303024457-afdc3dddf62d // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
