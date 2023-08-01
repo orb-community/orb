@@ -23,7 +23,7 @@ require (
 	github.com/mainflux/mainflux v0.0.0-20220415135135-92d8fb99bf82
 	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/mitchellh/mapstructure v1.5.1-0.20220423185008-bf980b35cac4
-	github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.81.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.75.0
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/ory/dockertest/v3 v3.10.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible

@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { Agent, AgentStates } from 'app/common/interfaces/orb/agent.interface';
 import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
@@ -8,6 +8,7 @@ import { OrbService } from 'app/common/services/orb.service';
 import { STRINGS } from 'assets/text/strings';
 import { Observable, Subscription } from 'rxjs';
 import { shareReplay } from 'rxjs/operators';
+import { updateMenuItems } from 'app/pages/pages-menu';
 
 @Component({
   selector: 'ngx-agent-view',
@@ -37,7 +38,6 @@ export class AgentViewComponent implements OnInit, OnDestroy {
   constructor(
     protected agentsService: AgentsService,
     protected route: ActivatedRoute,
-    protected router: Router,
     protected orb: OrbService,
     protected cdr: ChangeDetectorRef,
   ) {
@@ -45,12 +45,12 @@ export class AgentViewComponent implements OnInit, OnDestroy {
     this.datasets = {};
     this.groups = [];
     this.isLoading = true;
-    this.router.routeReuseStrategy.shouldReuseRoute = () => false;
   }
 
   ngOnInit() {
     this.agentID = this.route.snapshot.paramMap.get('id');
     this.retrieveAgent();
+    updateMenuItems('Agents');
   }
 
   retrieveAgent() {

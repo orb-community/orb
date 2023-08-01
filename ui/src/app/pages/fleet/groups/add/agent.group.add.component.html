@@ -33,11 +33,11 @@
                   autofocus
                   fieldSize="medium"
                   formControlName="name"
-                  [status]="firstFormGroup?.controls.name.touched ? (!firstFormGroup.controls.name.valid  ? 'danger' : 'success') : 'basic'"
+                  [status]="firstFormGroup?.controls.name.dirty ? (!firstFormGroup.controls.name.valid  ? 'danger' : 'success') : 'basic'"
                   fullWidth="true"
                   nbInput/>
               </div>
-              <ng-container *ngIf="firstFormGroup?.controls.name.touched && !firstFormGroup.controls.name.valid">
+              <ng-container *ngIf="firstFormGroup?.controls.name.dirty && !firstFormGroup.controls.name.valid">
                 <p *ngIf="!firstFormGroup.controls.name.value" class="caption status-danger mb-1">
                   Name is required!
                 </p>

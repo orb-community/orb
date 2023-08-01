@@ -45,13 +45,13 @@ nb-card {
     }
   }
   .orb-service- {
-    &new {
+    &new, &unknown {
       color: #9b51e0;
     }
     &online, &healthy, &in, &active {
       color: #6fcf97;
     }
-    &stale, &none, &unknown, &not {
+    &stale, &none, &not, &idle {
       color: #f2994a;
     }
     &error, &failure {

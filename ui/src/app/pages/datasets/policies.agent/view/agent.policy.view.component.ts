@@ -27,6 +27,7 @@ import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { filter } from 'rxjs/operators';
 import { PolicyDuplicateComponent } from '../duplicate/agent.policy.duplicate.confirmation';
 import { NbDialogService } from '@nebular/theme';
+import { updateMenuItems } from 'app/pages/pages-menu';
 
 @Component({
   selector: 'ngx-agent-view',
@@ -71,6 +72,7 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy, OnChanges {
 
   ngOnInit() {
     this.fetchData();
+    updateMenuItems('Policy Management');
   }
 
   fetchData(newPolicyId?: any) {

@@ -33,9 +33,10 @@
                        fieldSize="medium"
                        formControlName="name"
                        fullWidth="true"
-                       [status]="firstFormGroup?.controls.name.touched ? (!firstFormGroup.controls.name.valid  ? 'danger' : 'success') : 'basic'"
+                       [status]="firstFormGroup.controls?.name.dirty ? (!firstFormGroup.controls.name.valid  ? 'danger' : 'success') : 'basic'"
                        nbInput/>
-                <ng-container *ngIf="firstFormGroup?.controls.name.touched && !firstFormGroup.controls.name.valid">
+                <ng-container *ngIf="firstFormGroup.controls?.name.invalid
+                && firstFormGroup.controls?.name.dirty ">
                   <p *ngIf="!firstFormGroup.controls.name.value" class="caption status-danger mb-1">
                     Name is required!
                   </p>
