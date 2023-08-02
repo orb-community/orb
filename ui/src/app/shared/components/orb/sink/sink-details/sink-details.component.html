@@ -117,7 +117,7 @@
                   nbInput/>
                   <div
                   *ngIf="formGroup.controls?.name.invalid
-                  && (formGroup.controls?.name.dirty || formGroup.controls?.name.touched)"
+                  && formGroup.controls?.name.dirty"
                   class="required">
                   <div *ngIf="formGroup.controls?.name.errors?.required">
                     Name is required.

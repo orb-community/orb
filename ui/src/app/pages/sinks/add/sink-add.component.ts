@@ -7,7 +7,6 @@ import { SinkConfigComponent } from 'app/shared/components/orb/sink/sink-config/
 import { SinkDetailsComponent } from 'app/shared/components/orb/sink/sink-details/sink-details.component';
 import { STRINGS } from 'assets/text/strings';
 
-
 @Component({
     selector: 'ngx-sink-add-component',
     templateUrl: './sink-add.component.html',
@@ -42,30 +41,43 @@ export class SinkAddComponent {
     }
 
     createSink() {
-
         const sinkDetails = this.detailsComponent.formGroup?.value;
         const tags = this.detailsComponent.selectedTags;
         const configSink = this.configComponent.code;
 
-        const details = { ...sinkDetails};
+        const details = { ...sinkDetails };
+        
+        let payload = {};
 
-        let configs = JSON.parse(configSink);
-
-        const config = {
-            ...configs
+        if (this.isJson(configSink)) {
+            const config = JSON.parse(configSink);
+            payload = {
+                ...details,
+                tags,
+                config,
+            } as Sink;
+        }
+        else {
+            payload = {
+                ...details,
+                tags,
+                format: 'yaml',
+                config_data: configSink,
+            } as Sink;
         }
 
-        const payload = {
-            ...details,
-            tags,
-            config,
-        
-        } as Sink;
-        
         this.sinksService.addSink(payload).subscribe(() => {
             this.notificationsService.success('Sink successfully created', '');
             this.goBack();
         });
+    }
+    isJson(str: string) {
+        try {
+            JSON.parse(str);
+            return true;
+        } catch {
+            return false;
+        }
     }
 
     goBack() {

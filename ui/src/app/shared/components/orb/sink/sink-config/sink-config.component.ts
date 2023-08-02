@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import { Sink, SinkBackends } from 'app/common/interfaces/orb/sink.interface';
+import * as YAML from 'yaml';
 import IStandaloneEditorConstructionOptions = monaco.editor.IStandaloneEditorConstructionOptions;
 @Component({
   selector: 'ngx-sink-config',
@@ -48,7 +49,16 @@ export class SinkConfigComponent implements OnInit, OnChanges {
     lineDecorationsWidth: 0,
     lineNumbersMinChars: 0,
   };
-
+  editorOptionsYaml = {
+    theme: 'vs-dark',
+    language: 'yaml',
+    automaticLayout: true,
+    glyphMargin: false,
+    folding: true,
+    lineDecorationsWidth: 0,
+    lineNumbersMinChars: 0,
+    readOnly: true,
+  };
   code = '';
 
   sinkConfigSchemaPrometheus: any;
@@ -57,7 +67,10 @@ export class SinkConfigComponent implements OnInit, OnChanges {
 
   formControl: FormControl;
 
+  isYaml: boolean;
+
   constructor(private fb: FormBuilder) { 
+    this.isYaml = false; 
     this.sink = {};
     this.editMode = false;
     this.editModeChange = new EventEmitter<boolean>();
@@ -92,23 +105,43 @@ export class SinkConfigComponent implements OnInit, OnChanges {
       this.code = JSON.stringify(this.sinkConfigSchemaOtlp, null, 2);
     }
     else {
-      this.code = JSON.stringify(this.sink.config, null, 2);
-    }
-  }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes?.editMode && !changes?.editMode.firstChange) {
-      this.toggleEdit(changes.editMode.currentValue, false);
-    }
-    if (changes?.sinkBackend) {
-      if (this.sinkBackend === SinkBackends.prometheus) {
-        this.code = JSON.stringify(this.sinkConfigSchemaPrometheus, null, 2);
+      // TODO: implement properly YAML view
+
+
+      if (this.isJson(JSON.stringify(this.sink.config))) {
+        this.isYaml = false;
+        this.code = JSON.stringify(this.sink.config, null, 2);
       }
       else {
-        this.code = JSON.stringify(this.sinkConfigSchemaOtlp, null, 2);
+        this.isYaml = true;
+        this.code = YAML.stringify(this.sink.config);
       }
     }
   }
+  isJson(str: string) {
+    try {
+        JSON.parse(str);
+        return true;
+    } catch {
+        return false;
+    }
+}
+ngOnChanges(changes: SimpleChanges) {
+  const { editMode, sinkBackend } = changes;
+  if (editMode && !editMode.firstChange) {
+    this.toggleEdit(editMode.currentValue, false);
+  }
+  if (sinkBackend) {
+    const sinkConfigSchema = this.sinkBackend === SinkBackends.prometheus
+      ? this.sinkConfigSchemaPrometheus
+      : this.sinkConfigSchemaOtlp;
+      
+    this.code = this.isYaml
+      ? YAML.stringify(sinkConfigSchema, null)
+      : JSON.stringify(sinkConfigSchema, null, 2);
+  }
+}
 
   updateForm() {
     const { config } = this.sink;
@@ -124,8 +157,21 @@ export class SinkConfigComponent implements OnInit, OnChanges {
   toggleEdit(edit, notify = true) {
     this.editMode = edit;
     this.editorOptions = { ...this.editorOptions, readOnly: !edit };
+    this.editorOptionsYaml = { ...this.editorOptionsYaml, readOnly: !edit };
     this.updateForm();
     !!notify && this.editModeChange.emit(this.editMode);
+    if (!edit) this.isYaml = false; // TODO: implement properly YAML view
+    }
+  toggleLanguage() {
+    this.isYaml = !this.isYaml;
+    if (this.isYaml) {
+      const parsedCode = YAML.parse(this.code);
+      this.code = YAML.stringify(parsedCode);
+    }
+    else {
+      const parsedConfig = YAML.parse(this.code);
+      this.code = JSON.stringify(parsedConfig, null, 2);
+    }
   }
-
+  
 }

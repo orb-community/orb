@@ -78,55 +78,56 @@ export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
     this.editMode.config = false;
   }
 
-  save() {
-    const { id, backend } = this.sink;
+save() {
+  const { id, backend } = this.sink;
+  const sinkDetails = this.detailsComponent.formGroup?.value;
+  const tags = this.detailsComponent.selectedTags;
+  const configSink = this.configComponent.code;
 
-    const sinkDetails = this.detailsComponent.formGroup?.value;
-    const tags = this.detailsComponent.selectedTags;
-    const configSink = this.configComponent.code;
+  const details = { ...sinkDetails, tags };
+  const isJson = this.isJson(configSink);
 
-    let payload = {};
-    const details = { ...sinkDetails, tags};
+  let payload: Sink = { id, backend };
+
+  if (isJson) {
     const config = JSON.parse(configSink);
 
     if (this.editMode.details && !this.editMode.config) {
-      payload = {
-        id,
-        backend,
-        ...details,
-      } as Sink;
+      payload = { ...payload, ...details };
+    } else if (!this.editMode.details && this.editMode.config) {
+      payload = { ...payload, config };
+    } else {
+      payload = { ...payload, ...details, config };
     }
-    else if (!this.editMode.details && this.editMode.config) {
-      payload = {
-        id,
-        backend,
-        config,
-      } as Sink;
-    }
-    else {
-      payload = {
-        id,
-        backend,
-        details,
-        config,
-      } as Sink;
-    }
-
-    try {
-      this.sinks.editSink(payload).subscribe((resp) => {
-        this.discard();
-        this.sink = resp;
-        this.fetchData();
-        this.notifications.success('Sink updated successfully', '');
-      });
-    } catch (err) {
-      this.notifications.error(
-        'Failed to edit Sink',
-        'Error: Invalid configuration',
-      )
+  } else {
+    if (this.editMode.details && !this.editMode.config) {
+      payload = { ...payload, ...details };
+    } else if (!this.editMode.details && this.editMode.config) {
+      payload = { ...payload, format: 'yaml', config_data: configSink };
+    } else {
+      payload = { ...payload, ...details, format: 'yaml', config_data: configSink };
     }
   }
 
+  try {
+    this.sinks.editSink(payload).subscribe((resp) => {
+      this.discard();
+      this.sink = resp;
+      this.fetchData();
+      this.notifications.success('Sink updated successfully', '');
+    });
+  } catch (err) {
+    this.notifications.error('Failed to edit Sink', 'Error: Invalid configuration');
+  }
+}
+  isJson(str: string) {
+    try {
+        JSON.parse(str);
+        return true;
+    } catch {
+        return false;
+    }
+}
   retrieveSink() {
     this.sinkSubscription = this.sinks
     .getSinkById(this.sinkId)

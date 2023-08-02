@@ -8,8 +8,26 @@ nb-card {
     width: 50vw;
     min-width: 340px;
 }
-@media (max-width: 1500px) {
+@media (max-width: 1550px) {
     nb-card {
-      width: 35vw; 
+      width: 40vw; 
     }
+}
+.switch-button {
+    color: #3089fc;
+    background-color: transparent;
+    border: none;
+    font-weight: 600;
+    outline: none;
+    margin-right: 20px;
+    margin-top: 7px;
+    display: inline-block;
+}
+.flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.align-items {
+    margin-left: auto;
 }
