@@ -3,6 +3,7 @@ import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import { Sink, SinkBackends } from 'app/common/interfaces/orb/sink.interface';
 import * as YAML from 'yaml';
 import IStandaloneEditorConstructionOptions = monaco.editor.IStandaloneEditorConstructionOptions;
+
 @Component({
   selector: 'ngx-sink-config',
   templateUrl: './sink-config.component.html',
@@ -105,18 +106,15 @@ export class SinkConfigComponent implements OnInit, OnChanges {
       this.code = JSON.stringify(this.sinkConfigSchemaOtlp, null, 2);
     }
     else {
-
-      // TODO: implement properly YAML view
-
-
-      if (this.isJson(JSON.stringify(this.sink.config))) {
+      if (this.sink.config_data && this.sink.format === 'yaml') {
+        this.isYaml = true;
+        this.code = YAML.stringify(this.sink.config_data);
+      }
+      else if (this.isJson(JSON.stringify(this.sink.config))) {
         this.isYaml = false;
         this.code = JSON.stringify(this.sink.config, null, 2);
       }
-      else {
-        this.isYaml = true;
-        this.code = YAML.stringify(this.sink.config);
-      }
+
     }
   }
   isJson(str: string) {
@@ -143,16 +141,21 @@ ngOnChanges(changes: SimpleChanges) {
   }
 }
 
-  updateForm() {
-    const { config } = this.sink;
-    if (this.editMode) {
-      this.code = JSON.stringify(config, null, 2);
-      this.formControl = this.fb.control(this.code, [Validators.required]);
-    } else {
-      this.formControl = this.fb.control(null, [Validators.required]);
-      this.code = JSON.stringify(config, null, 2);
-    }
+updateForm() {
+  const configData = this.sink.config_data;
+  const isYamlFormat = this.sink.format === 'yaml';
+
+  if (this.editMode) {
+    this.isYaml = isYamlFormat;
+    this.code = isYamlFormat ? YAML.stringify(configData) : JSON.stringify(this.sink.config, null, 2);
+  } else {
+    this.formControl = this.fb.control(null, [Validators.required]);
+    this.isYaml = isYamlFormat;
+    this.code = isYamlFormat ? YAML.stringify(configData) : JSON.stringify(this.sink.config, null, 2);
   }
+
+  this.formControl = this.fb.control(this.code, [Validators.required]);
+}
 
   toggleEdit(edit, notify = true) {
     this.editMode = edit;
@@ -160,8 +163,7 @@ ngOnChanges(changes: SimpleChanges) {
     this.editorOptionsYaml = { ...this.editorOptionsYaml, readOnly: !edit };
     this.updateForm();
     !!notify && this.editModeChange.emit(this.editMode);
-    if (!edit) this.isYaml = false; // TODO: implement properly YAML view
-    }
+  }
   toggleLanguage() {
     this.isYaml = !this.isYaml;
     if (this.isYaml) {
