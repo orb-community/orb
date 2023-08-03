@@ -296,7 +296,7 @@ var JsonDeployment = `
             "containers": [
               {
                 "name": "otel-collector",
-                "image": "otel/opentelemetry-collector-contrib:0.81.0",
+                "image": "otel/opentelemetry-collector-contrib:0.82.0",
                 "ports": [
                   {
                     "containerPort": 13133,
