@@ -35,7 +35,7 @@ func (svc sinkService) CreateSink(ctx context.Context, token string, sink Sink) 
 
 	sink.MFOwnerID = mfOwnerID
 
-	be, err := validateBackend(&sink)
+	be, err := svc.validateBackend(&sink)
 	if err != nil {
 		return Sink{}, errors.Wrap(ErrCreateSink, err)
 	}
@@ -202,7 +202,7 @@ func (svc sinkService) UpdateSinkInternal(ctx context.Context, sink Sink) (Sink,
 	} else {
 		sink.Backend = currentSink.Backend
 		// we still need to validate here
-		be, err := validateBackend(&sink)
+		be, err := svc.validateBackend(&sink)
 		if err != nil {
 			return Sink{}, errors.Wrap(ErrMalformedEntity, err)
 		}
@@ -294,7 +294,7 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 		}
 	} else {
 		sink.Backend = currentSink.Backend
-		be, err := validateBackend(&sink)
+		be, err := svc.validateBackend(&sink)
 		if err != nil {
 			return Sink{}, errors.Wrap(errors.New("incorrect backend and exporter configuration"), err)
 		}
@@ -457,7 +457,7 @@ func (svc sinkService) ValidateSink(ctx context.Context, token string, sink Sink
 
 	sink.MFOwnerID = mfOwnerID
 
-	_, err = validateBackend(&sink)
+	_, err = svc.validateBackend(&sink)
 	if err != nil {
 		return Sink{}, errors.Wrap(ErrValidateSink, err)
 	}
@@ -474,7 +474,7 @@ func (svc sinkService) ChangeSinkStateInternal(ctx context.Context, sinkID strin
 	return svc.sinkRepo.UpdateSinkState(ctx, sinkID, msg, ownerID, state)
 }
 
-func validateBackend(sink *Sink) (be backend.Backend, err error) {
+func (svc sinkService) validateBackend(sink *Sink) (be backend.Backend, err error) {
 	if backend.HaveBackend(sink.Backend) {
 		sink.State = Unknown
 	} else {
@@ -494,6 +494,7 @@ func validateBackend(sink *Sink) (be backend.Backend, err error) {
 		}
 		sink.Config = parseConfig
 		config2 := sink.Config.GetSubMetadata("exporter")
+		svc.logger.Info("DEBUG sink config", zap.Any("config", config2), zap.String("sink", sink.ConfigData))
 		if config2 == nil {
 			return nil, errors.Wrap(ErrInvalidBackend, errors.New("missing exporter configuration"))
 		}
