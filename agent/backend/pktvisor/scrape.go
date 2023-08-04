@@ -21,7 +21,7 @@ import (
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
-	"go.opentelemetry.io/otel/metric/global"
+	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
@@ -160,7 +160,7 @@ func (p *pktvisorBackend) receiveOtlp() {
 					TelemetrySettings: component.TelemetrySettings{
 						Logger:         p.logger,
 						TracerProvider: trace.NewNoopTracerProvider(),
-						MeterProvider:  global.MeterProvider(),
+						MeterProvider:  metric.NewMeterProvider(),
 					},
 					BuildInfo: component.NewDefaultBuildInfo(),
 				}

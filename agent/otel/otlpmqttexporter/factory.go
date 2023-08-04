@@ -3,6 +3,7 @@ package otlpmqttexporter
 import (
 	"context"
 	"fmt"
+	"go.opentelemetry.io/otel/sdk/metric"
 
 	"github.com/orb-community/orb/agent/otel"
 	"go.uber.org/zap"
@@ -12,7 +13,6 @@ import (
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/exporter/exporterhelper"
-	"go.opentelemetry.io/otel/metric/global"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -56,7 +56,7 @@ func CreateDefaultSettings(logger *zap.Logger) exporter.CreateSettings {
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         logger,
 			TracerProvider: trace.NewNoopTracerProvider(),
-			MeterProvider:  global.MeterProvider(),
+			MeterProvider:  metric.NewMeterProvider(),
 		},
 		BuildInfo: component.NewDefaultBuildInfo(),
 	}
