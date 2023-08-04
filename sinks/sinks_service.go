@@ -494,7 +494,6 @@ func (svc sinkService) validateBackend(sink *Sink) (be backend.Backend, err erro
 		}
 		sink.Config = parseConfig
 		config2 := sink.Config.GetSubMetadata("exporter")
-		svc.logger.Info("DEBUG sink config", zap.Any("config", config2), zap.String("sink", sink.ConfigData))
 		if config2 == nil {
 			return nil, errors.Wrap(ErrInvalidBackend, errors.New("missing exporter configuration"))
 		}
