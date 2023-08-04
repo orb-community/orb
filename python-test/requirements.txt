@@ -12,4 +12,4 @@ mkdocs==1.5.1
 mkdocs-material==9.1.21
 prometheus-client==0.17.1
 psutil==5.9.5
-webdriver-manager==3.9.1
+webdriver-manager==4.0.0
