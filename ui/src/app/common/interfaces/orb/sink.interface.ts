@@ -68,6 +68,15 @@ export interface Sink extends OrbEntity {
    * config: object containing sink specific info
    */
   config?: SinkTypes;
+
+  /**
+   *  Default = json, can be Yaml
+   */
+  format?: string;
+  /**
+   *  Only used for Yaml payload
+   */
+  config_data?: string;
 }
 
 export type SinkTypes = OtlpConfig;
