@@ -56,7 +56,7 @@ func (o openTelemetryBackend) Configure(logger *zap.Logger, repo policies.Policy
 	if o.binaryPath, prs = configuration["binary"]; !prs {
 		o.binaryPath = DefaultBinary
 	}
-
+	return nil
 }
 
 func (o openTelemetryBackend) SetCommsClient(agentID string, client *mqtt.Client, baseTopic string) {
