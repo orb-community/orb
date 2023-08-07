@@ -2,6 +2,7 @@ package otel
 
 import (
 	"context"
+	"fmt"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/orb-community/orb/agent/backend"
 	"github.com/orb-community/orb/agent/config"
@@ -9,10 +10,13 @@ import (
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/receiver"
 	"go.uber.org/zap"
+	"strings"
 	"time"
 )
 
 var _ backend.Backend = (*openTelemetryBackend)(nil)
+
+const DefaultBinary = "/usr/local/sbin/otelcol"
 
 type openTelemetryBackend struct {
 	logger    *zap.Logger
@@ -22,7 +26,7 @@ type openTelemetryBackend struct {
 
 	//policies
 	policyRepo policies.PolicyRepo
-	agentTags map[string]string
+	agentTags  map[string]string
 
 	// Context for controlling the context cancellation
 	startCtx           context.Context
@@ -49,12 +53,18 @@ func (o openTelemetryBackend) Configure(logger *zap.Logger, repo policies.Policy
 	o.policyRepo = repo
 
 	var prs bool
-	if
+	if o.binaryPath, prs = configuration["binary"]; !prs {
+		o.binaryPath = DefaultBinary
+	}
+
 }
 
-func (o openTelemetryBackend) SetCommsClient(s string, client *mqtt.Client, s2 string) {
-	//TODO implement me
-	panic("implement me")
+func (o openTelemetryBackend) SetCommsClient(agentID string, client *mqtt.Client, baseTopic string) {
+	o.mqttClient = client
+	otelBaseTopic := strings.Replace(baseTopic, "?", "otlp", 1)
+	o.otlpMetricsTopic = fmt.Sprintf("%s/m/%c", otelBaseTopic, agentID[0])
+	o.otlpTracesTopic = fmt.Sprintf("%s/t/%c", otelBaseTopic, agentID[0])
+	o.otlpLogsTopic = fmt.Sprintf("%s/l/%c", otelBaseTopic, agentID[0])
 }
 
 func (o openTelemetryBackend) Version() (string, error) {
