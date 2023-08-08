@@ -7,7 +7,7 @@ import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
 import { STRINGS } from '../../../../../assets/text/strings';
 import { Tags } from 'app/common/interfaces/orb/tag';
-
+import { CodeEditorService } from 'app/common/services/code.editor.service';
 const CONFIG = {
   TAPS: 'TAPS',
   BACKEND: 'BACKEND',
@@ -117,7 +117,7 @@ kind: collection`;
     `;
 
   // is config specified wizard mode or in YAML or JSON
-  isJson = true;
+  isJsonMode = true;
 
   // format definition
   format = 'yaml';
@@ -139,6 +139,7 @@ kind: collection`;
     private router: Router,
     private route: ActivatedRoute,
     private _formBuilder: FormBuilder,
+    private editor: CodeEditorService,
   ) {
     this.agentPolicyID = this.route.snapshot.paramMap.get('id');
     this.agentPolicy = this.newAgent();
@@ -229,7 +230,7 @@ kind: collection`;
     const wizard = format !== this.format;
 
     if (policy_data) {
-      this.isJson = false;
+      this.isJsonMode = false;
       this.codeyaml = policy_data;
     }
 
@@ -274,20 +275,20 @@ kind: collection`;
     const file: File = event.target.files[0];
     const reader: FileReader = new FileReader();
   
-reader.onload = (e: any) => {
-  const fileContent = e.target.result;
-  if (this.isJson) {
-    this.codejson = fileContent;
-  } else {
-    this.codeyaml = fileContent;
-  }
-};
+    reader.onload = (e: any) => {
+    const fileContent = e.target.result;
+      if (this.isJsonMode) {
+        this.codejson = fileContent;
+      } else {
+        this.codeyaml = fileContent;
+      }
+    };
   
     reader.readAsText(file);
   }
   onSubmit() {
     let payload = {};
-    if (this.isJson) {
+    if (this.isJsonMode) {
       const policy = JSON.parse(this.codejson);
       payload = {
         name: this.detailsFG.controls.name.value,
@@ -325,5 +326,12 @@ reader.onload = (e: any) => {
         );
       },
     );   
+  }
+  canCreate() {
+    if (this.isJsonMode) {
+      return this.editor.isJson(this.codejson);
+    } else {
+      return this.editor.isYaml(this.codeyaml);
+    }
   }
 }
