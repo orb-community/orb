@@ -3,6 +3,7 @@ module github.com/orb-community/orb
 go 1.19
 
 require (
+	github.com/amenzhinsky/go-memexec v0.7.1
 	github.com/andybalholm/brotli v1.0.5
 	github.com/aws/aws-sdk-go v1.44.232
 	github.com/benbjohnson/immutable v0.4.3

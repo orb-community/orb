@@ -1,9 +1,11 @@
 package otel
 
 import (
+	"bufio"
 	"context"
 	_ "embed"
 	"fmt"
+	"github.com/amenzhinsky/go-memexec"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/orb-community/orb/agent/backend"
 	"github.com/orb-community/orb/agent/config"
@@ -25,8 +27,6 @@ var openTelemtryContribBinary []byte
 type openTelemetryBackend struct {
 	logger    *zap.Logger
 	startTime time.Time
-
-	binaryPath string
 
 	//policies
 	policyRepo policies.PolicyRepo
@@ -56,11 +56,6 @@ func (o openTelemetryBackend) Configure(logger *zap.Logger, repo policies.Policy
 	o.logger = logger
 	o.policyRepo = repo
 
-	var prs bool
-	if o.binaryPath, prs = configuration["binary"]; !prs {
-		o.binaryPath = DefaultBinary
-	}
-
 	return nil
 }
 
@@ -73,8 +68,42 @@ func (o openTelemetryBackend) SetCommsClient(agentID string, client *mqtt.Client
 }
 
 func (o openTelemetryBackend) Version() (string, error) {
-	//TODO implement me
-	panic("implement me")
+	executable, err := memexec.New(openTelemtryContribBinary)
+	if err != nil {
+		return "", err
+	}
+	defer func(executable *memexec.Exec) {
+		err := executable.Close()
+		if err != nil {
+			o.logger.Error("error closing executable", zap.Error(err))
+		}
+	}(executable)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	cmd := executable.CommandContext(ctx, "--version")
+	if cmd.Err != nil {
+		return "", cmd.Err
+	}
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return "", err
+	}
+	var versionOutput string
+	go func() {
+		scanner := bufio.NewScanner(stdout)
+		for scanner.Scan() {
+			o.logger.Info("DEBUG", zap.String("line", scanner.Text()))
+			versionOutput = scanner.Text()
+		}
+	}()
+	if err := cmd.Start(); err != nil {
+		return "", err
+	}
+	if err := cmd.Wait(); err != nil {
+		return "", err
+	}
+	o.logger.Info("running opentelemetry-contrib version", zap.String("version", versionOutput))
+	return versionOutput, nil
 }
 
 func (o openTelemetryBackend) Start(ctx context.Context, cancelFunc context.CancelFunc) error {
