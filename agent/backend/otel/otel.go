@@ -13,6 +13,7 @@ import (
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/receiver"
 	"go.uber.org/zap"
+	"os"
 	"strings"
 	"time"
 )
@@ -29,16 +30,17 @@ type openTelemetryBackend struct {
 	startTime time.Time
 
 	//policies
-	policyRepo policies.PolicyRepo
-	agentTags  map[string]string
+	policyRepo            policies.PolicyRepo
+	policyConfigDirectory string
+	agentTags             map[string]string
 
 	// Context for controlling the context cancellation
-	startCtx           context.Context
+	mainContext        context.Context
+	runningCollectors  map[string]context.Context
 	mainCancelFunction context.CancelFunc
 
 	// MQTT Config for OTEL MQTT Exporter
 	mqttConfig config.MQTTConfig
-
 	mqttClient *mqtt.Client
 
 	otlpMetricsTopic string
@@ -47,14 +49,41 @@ type openTelemetryBackend struct {
 
 	otelReceiverHost string
 	otelReceiverPort int
-	receiver         receiver.Metrics
-	exporter         exporter.Metrics
+
+	metricsReceiver receiver.Metrics
+	metricsExporter exporter.Metrics
+	//tracesReceiver  receiver.Traces
+	//tracesExporter  exporter.Traces
+	//logsReceiver    receiver.Logs
+	//logsExporter    exporter.Logs
 }
 
 // Configure initializes the backend with the given configuration
-func (o openTelemetryBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo, configuration map[string]string, openTelemetryConfiguration map[string]interface{}) error {
+func (o openTelemetryBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo, configuration map[string]string, otelConfig map[string]interface{}) error {
 	o.logger = logger
 	o.policyRepo = repo
+	var err error
+	o.policyConfigDirectory, err = os.MkdirTemp("", "otel-policies")
+	if err != nil {
+		return err
+	}
+	if agentTags, ok := otelConfig["agent_tags"]; ok {
+		o.agentTags = agentTags.(map[string]string)
+	}
+	for k, v := range otelConfig {
+		switch k {
+		case "Host":
+			o.otelReceiverHost = v.(string)
+		case "Port":
+			o.otelReceiverPort = v.(int)
+		}
+	}
+	o.mqttConfig = config.MQTTConfig{
+		Address:   "",
+		Id:        "",
+		Key:       "",
+		ChannelID: "",
+	}
 
 	return nil
 }
@@ -78,7 +107,7 @@ func (o openTelemetryBackend) Version() (string, error) {
 			o.logger.Error("error closing executable", zap.Error(err))
 		}
 	}(executable)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(o.mainContext, 5*time.Second)
 	defer cancel()
 	cmd := executable.CommandContext(ctx, "--version")
 	if cmd.Err != nil {
@@ -107,13 +136,45 @@ func (o openTelemetryBackend) Version() (string, error) {
 }
 
 func (o openTelemetryBackend) Start(ctx context.Context, cancelFunc context.CancelFunc) error {
-	//TODO implement me
-	panic("implement me")
+	// initialize otlpreceiver and mqttexporter for scraping
+	if o.policyRepo == nil {
+		return fmt.Errorf("backend not properly configured, call Configure() first")
+	}
+	o.runningCollectors = make(map[string]context.Context)
+	o.mainCancelFunction = cancelFunc
+
+	currentVersion, err := o.Version()
+	if err != nil {
+		o.logger.Error("error during ")
+	}
+	o.logger.Info("starting open-telemetry backend using version", zap.String("version", currentVersion))
+
+	policiesData, err := o.policyRepo.GetAll()
+	if err != nil {
+		defer cancelFunc()
+		o.logger.Error("failed to start otel backend, policies are absent")
+		return err
+	}
+	for _, policyData := range policiesData {
+		if err := o.ApplyPolicy(policyData, true); err != nil {
+			o.logger.Error("failed to start otel backend, failed to apply policy", zap.Error(err))
+			cancelFunc()
+			return err
+		}
+		o.logger.Info("policy applied successfully", zap.String("policy_id", policyData.ID))
+	}
+
+	return nil
 }
 
 func (o openTelemetryBackend) Stop(ctx context.Context) error {
-	//TODO implement me
-	panic("implement me")
+	o.logger.Info("stopping all running policies")
+	o.mainCancelFunction()
+	for policyID, policyCtx := range o.runningCollectors {
+		o.logger.Debug("stopping policy context", zap.String("policy_id", policyID))
+		policyCtx.Done()
+	}
+	return nil
 }
 
 func (o openTelemetryBackend) FullReset(ctx context.Context) error {
@@ -136,9 +197,85 @@ func (o openTelemetryBackend) GetRunningStatus() (backend.RunningStatus, string,
 	panic("implement me")
 }
 
-func (o openTelemetryBackend) ApplyPolicy(data policies.PolicyData, updatePolicy bool) error {
-	//TODO implement me
-	panic("implement me")
+func (o openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, updatePolicy bool) error {
+	if !o.policyRepo.Exists(newPolicyData.ID) {
+		temporaryFile, err := os.CreateTemp(o.policyConfigDirectory, fmt.Sprintf("otel-%s-config.yml", newPolicyData.ID))
+		if err != nil {
+			return err
+		}
+		err = o.addRunner(newPolicyData, temporaryFile.Name())
+		if err != nil {
+			return err
+		}
+	} else {
+		currentPolicyData, err := o.policyRepo.Get(newPolicyData.ID)
+		if err != nil {
+			return err
+		}
+		if currentPolicyData.Version <= newPolicyData.Version {
+			dataAsByte := []byte(newPolicyData.Data.(string))
+			currentPolicyPath := o.policyConfigDirectory + fmt.Sprintf("otel-%s-config.yml", currentPolicyData.ID)
+			o.logger.Info("new policy version received, updating", zap.String("policy_id", newPolicyData.ID), zap.Int32("version", newPolicyData.Version))
+			err := os.WriteFile(currentPolicyPath, dataAsByte, os.ModeTemporary)
+			if err != nil {
+				return err
+			}
+			err = o.policyRepo.Update(newPolicyData)
+			if err != nil {
+				return err
+			}
+		} else {
+			o.logger.Info("current policy version is newer than the one being applied, skipping",
+				zap.String("policy_id", newPolicyData.ID),
+				zap.Int32("current_version", currentPolicyData.Version),
+				zap.Int32("incoming_version", newPolicyData.Version))
+		}
+	}
+
+	return nil
+}
+
+func (o openTelemetryBackend) addRunner(policyData policies.PolicyData, policyFilePath string) error {
+	policyContext := context.WithValue(o.mainContext, "policy_id", policyData.ID)
+	executable, err := memexec.New(openTelemtryContribBinary)
+	if err != nil {
+		return err
+	}
+	defer func(executable *memexec.Exec) {
+		err := executable.Close()
+		if err != nil {
+			o.logger.Error("error closing executable", zap.Error(err))
+		}
+	}(executable)
+	command := executable.CommandContext(policyContext, "--config", policyFilePath)
+	stderr, err := command.StderrPipe()
+	if err != nil {
+		return err
+	}
+	go func(ctx context.Context) {
+		scanner := bufio.NewScanner(stderr)
+		for scanner.Scan() {
+			o.logger.Info("stderr output",
+				zap.String("policy_id", policyData.ID),
+				zap.String("line", scanner.Text()))
+			if command.Err != nil {
+				o.logger.Error("error running command", zap.Error(command.Err))
+				ctx.Done()
+				return
+			}
+		}
+	}(policyContext)
+
+	return nil
+}
+
+func (o openTelemetryBackend) addPolicyControl(policyCtx context.Context, policyID string) {
+	o.runningCollectors[policyID] = policyCtx
+}
+
+func (o openTelemetryBackend) removePolicyControl(policyID string) {
+	o.runningCollectors[policyID].Done()
+	delete(o.runningCollectors, policyID)
 }
 
 func (o openTelemetryBackend) RemovePolicy(data policies.PolicyData) error {
