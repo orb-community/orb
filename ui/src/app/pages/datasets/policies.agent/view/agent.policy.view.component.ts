@@ -18,6 +18,7 @@ import { PolicyConfig } from 'app/common/interfaces/orb/policy/config/policy.con
 import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { OrbService } from 'app/common/services/orb.service';
+import { CodeEditorService } from 'app/common/services/code.editor.service';
 import { PolicyDetailsComponent } from 'app/shared/components/orb/policy/policy-details/policy-details.component';
 import { PolicyInterfaceComponent } from 'app/shared/components/orb/policy/policy-interface/policy-interface.component';
 import { STRINGS } from 'assets/text/strings';
@@ -68,6 +69,7 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy, OnChanges {
     private notifications: NotificationsService,
     private router: Router,
     private dialogService: NbDialogService,
+    private editor: CodeEditorService,
   ) {}
 
   ngOnInit() {
@@ -103,10 +105,14 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy, OnChanges {
       ? this.detailsComponent?.formGroup?.status === 'VALID'
       : true;
 
-    const interfaceValid = this.editMode.interface
-      ? this.interfaceComponent?.formControl?.status === 'VALID'
-      : true;
+    let config = this.interfaceComponent?.code
+    let interfaceValid = false;
 
+    if (this.editor.isJson(config)) {
+      interfaceValid = true;
+    } else if (this.editor.isYaml(config)) {
+      interfaceValid = true;
+    }
     return detailsValid && interfaceValid;
   }
 

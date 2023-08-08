@@ -6,6 +6,8 @@ import { SinksService } from 'app/common/services/sinks/sinks.service';
 import { SinkConfigComponent } from 'app/shared/components/orb/sink/sink-config/sink-config.component';
 import { SinkDetailsComponent } from 'app/shared/components/orb/sink/sink-details/sink-details.component';
 import { STRINGS } from 'assets/text/strings';
+import * as YAML from 'yaml';
+import { CodeEditorService } from 'app/common/services/code.editor.service';
 
 @Component({
     selector: 'ngx-sink-add-component',
@@ -29,15 +31,28 @@ export class SinkAddComponent {
         private sinksService: SinksService,
         private notificationsService: NotificationsService,
         private router: Router,
+        private editor: CodeEditorService,
     ) {
         this.createMode = true;
     }
 
-    canCreate() { 
+    canCreate() {
         const detailsValid = this.createMode
         ? this.detailsComponent?.formGroup?.status === 'VALID'
         : true;
-        return detailsValid;
+    
+        const configSink = this.configComponent?.code;
+        let config;
+        
+        if (this.editor.isJson(configSink)) {
+            config = JSON.parse(configSink);
+        } else if (this.editor.isYaml(configSink)) {
+            config = YAML.parse(configSink);
+        } else {
+            return false;
+        }
+        
+        return !this.editor.checkEmpty(config.authentication) && !this.editor.checkEmpty(config.exporter) && detailsValid;
     }
 
     createSink() {
@@ -49,7 +64,7 @@ export class SinkAddComponent {
         
         let payload = {};
 
-        if (this.isJson(configSink)) {
+        if (this.editor.isJson(configSink)) {
             const config = JSON.parse(configSink);
             payload = {
                 ...details,
@@ -71,14 +86,6 @@ export class SinkAddComponent {
             this.goBack();
         });
     }
-    isJson(str: string) {
-        try {
-            JSON.parse(str);
-            return true;
-        } catch {
-            return false;
-        }
-    }
 
     goBack() {
         this.router.navigateByUrl('/pages/sinks');
@@ -87,4 +94,5 @@ export class SinkAddComponent {
     getBackendEmit(backend: any) {
         this.sinkBackend = backend;
     }
+
 }

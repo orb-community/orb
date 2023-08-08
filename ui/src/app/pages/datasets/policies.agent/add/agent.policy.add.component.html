@@ -142,16 +142,16 @@
           </ng-template>
           <div>
             <nb-toggle
-              [(ngModel)]="isJson"
+              [(ngModel)]="isJsonMode"
               [disabled]="isEdit"
               data-orb-qa-id="wizard-selector"
               id="wizard"
               labelPosition="end"
             >
-            Create Policy through {{isJson ? "JSON editor" : "YAML editor"}}
+            Create Policy through {{isJsonMode ? "JSON editor" : "YAML editor"}}
             </nb-toggle>
           </div>
-          <div *ngIf="isJson">
+          <div *ngIf="isJsonMode">
             <div style="display: flex; margin-top: 10px; margin-bottom: 10px; gap: 60px;">
               <p class="summary-accent align">Paste or Upload your JSON configuration</p>
               <button class="upload-button align" (click)="fileInput.click()">
@@ -170,7 +170,7 @@
               </ngx-monaco-editor>
             </div>
           </div>  
-          <div *ngIf="!isJson">
+          <div *ngIf="!isJsonMode">
               <div style="display: flex; margin-top: 10px; margin-bottom: 10px; gap: 60px;">
                 <p class="summary-accent align">Paste or Upload your YAML configuration</p>
                 <button class="upload-button align" (click)="fileInput.click()">
@@ -199,7 +199,8 @@
               nbTooltip="Paste your configuration in the code editor above"
               shape="round"
               status="primary"
-              type="button">
+              type="button"
+              [disabled]="!canCreate()">
               {{ strings.stepper.save }}
             </button>
             <button
