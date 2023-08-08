@@ -2,6 +2,7 @@ package otel
 
 import (
 	"context"
+	_ "embed"
 	"fmt"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/orb-community/orb/agent/backend"
@@ -17,6 +18,9 @@ import (
 var _ backend.Backend = (*openTelemetryBackend)(nil)
 
 const DefaultBinary = "/usr/local/sbin/otelcol"
+
+//go:embed otelcol-contrib
+var openTelemtryContribBinary []byte
 
 type openTelemetryBackend struct {
 	logger    *zap.Logger
@@ -48,7 +52,7 @@ type openTelemetryBackend struct {
 }
 
 // Configure initializes the backend with the given configuration
-func (o openTelemetryBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo, configuration map[string]string, m2 map[string]interface{}) error {
+func (o openTelemetryBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo, configuration map[string]string, openTelemetryConfiguration map[string]interface{}) error {
 	o.logger = logger
 	o.policyRepo = repo
 
@@ -56,6 +60,7 @@ func (o openTelemetryBackend) Configure(logger *zap.Logger, repo policies.Policy
 	if o.binaryPath, prs = configuration["binary"]; !prs {
 		o.binaryPath = DefaultBinary
 	}
+
 	return nil
 }
 
