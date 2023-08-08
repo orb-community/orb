@@ -67,6 +67,7 @@ export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   canSave() {
+    let configValid = true;
     const detailsValid = this.editMode.details
       ? this.detailsComponent?.formGroup?.status === 'VALID'
       : true;
@@ -81,8 +82,10 @@ export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
     } else {
       return false;
     }
-
-    return !this.editor.checkEmpty(config.authentication) && !this.editor.checkEmpty(config.exporter) && detailsValid;
+    if (this.editMode.config) {
+      configValid = !this.editor.checkEmpty(config.authentication) && !this.editor.checkEmpty(config.exporter);
+    }
+    return detailsValid && configValid;
   }
 
   discard() {
