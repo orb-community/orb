@@ -20,8 +20,6 @@ import (
 
 var _ backend.Backend = (*openTelemetryBackend)(nil)
 
-const DefaultBinary = "/usr/local/sbin/otelcol"
-
 //go:embed otelcol-contrib
 var openTelemtryContribBinary []byte
 
@@ -46,6 +44,7 @@ type openTelemetryBackend struct {
 	otlpMetricsTopic string
 	otlpTracesTopic  string
 	otlpLogsTopic    string
+	otelReceiverTaps []string
 
 	otelReceiverHost string
 	otelReceiverPort int
@@ -59,9 +58,11 @@ type openTelemetryBackend struct {
 }
 
 // Configure initializes the backend with the given configuration
-func (o openTelemetryBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo, configuration map[string]string, otelConfig map[string]interface{}) error {
+func (o openTelemetryBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo,
+	_ map[string]string, otelConfig map[string]interface{}) error {
 	o.logger = logger
 	o.policyRepo = repo
+	o.otelReceiverTaps = []string{}
 	var err error
 	o.policyConfigDirectory, err = os.MkdirTemp("", "otel-policies")
 	if err != nil {
@@ -142,6 +143,7 @@ func (o openTelemetryBackend) Start(ctx context.Context, cancelFunc context.Canc
 	}
 	o.runningCollectors = make(map[string]context.Context)
 	o.mainCancelFunction = cancelFunc
+	o.startTime = time.Now()
 
 	currentVersion, err := o.Version()
 	if err != nil {
@@ -183,18 +185,26 @@ func (o openTelemetryBackend) FullReset(ctx context.Context) error {
 }
 
 func (o openTelemetryBackend) GetStartTime() time.Time {
-	//TODO implement me
-	panic("implement me")
+	return o.startTime
 }
 
-func (o openTelemetryBackend) GetCapabilities() (map[string]interface{}, error) {
-	//TODO implement me
-	panic("implement me")
+// this will only print a default backend config
+func (o openTelemetryBackend) GetCapabilities() (capabilities map[string]interface{}, err error) {
+	capabilities["taps"] = o.otelReceiverTaps
+	capabilities["version"], err = o.Version()
+	if err != nil {
+		return
+	}
+	return
 }
 
+// cross reference the Processes using the os, with the policies and contexts
 func (o openTelemetryBackend) GetRunningStatus() (backend.RunningStatus, string, error) {
-	//TODO implement me
-	panic("implement me")
+	amountCollectors := len(o.runningCollectors)
+	if amountCollectors > 0 {
+		return backend.Running, fmt.Sprintf("opentelemetry backend running with %d policies", amountCollectors), nil
+	}
+	return backend.Offline, "opentelemetry backend offline, waiting for policy to come to start running", nil
 }
 
 func (o openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, updatePolicy bool) error {
@@ -224,6 +234,7 @@ func (o openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, upd
 			if err != nil {
 				return err
 			}
+			o.otelReceiverTaps = append(o.otelReceiverTaps, newPolicyData.ID)
 		} else {
 			o.logger.Info("current policy version is newer than the one being applied, skipping",
 				zap.String("policy_id", newPolicyData.ID),
@@ -279,6 +290,12 @@ func (o openTelemetryBackend) removePolicyControl(policyID string) {
 }
 
 func (o openTelemetryBackend) RemovePolicy(data policies.PolicyData) error {
-	//TODO implement me
-	panic("implement me")
+	if o.policyRepo.Exists(data.ID) {
+		o.removePolicyControl(data.ID)
+		err := o.policyRepo.Remove(data.ID)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
