@@ -95,6 +95,24 @@
 
   nb-card {
     border: none;
+      /* width */
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+      background: rgba(150, 159, 185, 0.5);
+    }
+
+    /* Track */
+    ::-webkit-scrollbar-track {
+      border-radius: 16px;
+    }
+
+    /* Handle */
+    ::-webkit-scrollbar-thumb {
+      background: #969fb9;
+      border-radius: 16px;
+    }
+    scrollbar-color: #969fb9 #969fb980; 
   }
 
   nb-card nb-list {
