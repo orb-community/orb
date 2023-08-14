@@ -189,6 +189,11 @@ func (o openTelemetryBackend) FullReset(_ context.Context) error {
 	return nil
 }
 
+func Register() bool {
+	backend.Register("otel", &openTelemetryBackend{})
+	return true
+}
+
 func (o openTelemetryBackend) GetStartTime() time.Time {
 	return o.startTime
 }

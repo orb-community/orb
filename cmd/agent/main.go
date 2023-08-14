@@ -7,6 +7,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/orb-community/orb/agent/backend/otel"
 	"os"
 	"os/signal"
 	"strings"
@@ -34,6 +35,7 @@ var (
 
 func init() {
 	pktvisor.Register()
+	otel.Register()
 	diode.Register()
 }
 
