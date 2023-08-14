@@ -61,8 +61,13 @@ func (o openTelemetryBackend) Configure(logger *zap.Logger, repo policies.Policy
 	configuration map[string]string, otelConfig map[string]interface{}) error {
 	o.logger = logger
 	o.policyRepo = repo
+	pols, err := repo.GetAll()
+	if err != nil {
+		o.logger.Error("error getting policies", zap.Error(err))
+		return err
+	}
+	o.logger.Info("configuring OpenTelemetry backend", zap.Any("policies", pols))
 	o.otelReceiverTaps = []string{}
-	var err error
 	o.policyConfigDirectory, err = os.MkdirTemp("", "otel-policies")
 	if err != nil {
 		return err
