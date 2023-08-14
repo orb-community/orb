@@ -61,12 +61,7 @@ func (o openTelemetryBackend) Configure(logger *zap.Logger, repo policies.Policy
 	configuration map[string]string, otelConfig map[string]interface{}) error {
 	o.logger = logger
 	o.policyRepo = repo
-	pols, err := repo.GetAll()
-	if err != nil {
-		o.logger.Error("error getting policies", zap.Error(err))
-		return err
-	}
-	o.logger.Info("configuring OpenTelemetry backend", zap.Any("policies", pols))
+	var err error
 	o.otelReceiverTaps = []string{}
 	o.policyConfigDirectory, err = os.MkdirTemp("", "otel-policies")
 	if err != nil {
@@ -82,12 +77,6 @@ func (o openTelemetryBackend) Configure(logger *zap.Logger, repo policies.Policy
 		case "Port":
 			o.otelReceiverPort = v.(int)
 		}
-	}
-	o.mqttConfig = config.MQTTConfig{
-		Address:   configuration["cloud"],
-		Id:        "",
-		Key:       "",
-		ChannelID: "",
 	}
 
 	return nil
@@ -133,15 +122,20 @@ func (o openTelemetryBackend) Version() (string, error) {
 }
 
 func (o openTelemetryBackend) Start(ctx context.Context, cancelFunc context.CancelFunc) error {
-	// initialize otlpreceiver and mqttexporter for scraping
-	if o.policyRepo == nil {
-		return fmt.Errorf("backend not properly configured, call Configure() first")
-	}
 	o.runningCollectors = make(map[string]context.Context)
 	o.mainCancelFunction = cancelFunc
 	o.mainContext = ctx
 	o.startTime = time.Now()
-
+	// apply sample policy - remove after POC
+	err := o.ApplyPolicy(samplePolicy, false)
+	if err != nil {
+		o.logger.Error("error updating policies", zap.Error(err))
+		return err
+	}
+	// initialize otlpreceiver and mqttexporter for scraping
+	if o.policyRepo == nil {
+		return fmt.Errorf("backend not properly configured, call Configure() first")
+	}
 	currentVersion, err := o.Version()
 	if err != nil {
 		o.logger.Error("error during ")

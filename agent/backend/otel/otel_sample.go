@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-var policyData = `
+var samplePolicyData = `
 receivers:
   httpcheck:
     targets:
@@ -25,17 +25,18 @@ extensions: # tbd
 
 service: # tbd
 	metrics:
-		exporters: 
+		exporters: [otlphttp]
+		receivers: [httpcheck]
 `
 
-var policy = policies.PolicyData{
+var samplePolicy = policies.PolicyData{
 	ID:                 "default",
 	Datasets:           nil,
 	GroupIds:           nil,
 	Name:               "opentelemetry-default",
 	Backend:            "otel",
 	Version:            0,
-	Data:               nil,
+	Data:               samplePolicyData,
 	State:              0,
 	BackendErr:         "",
 	LastScrapeBytes:    0,
