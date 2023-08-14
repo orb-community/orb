@@ -11,7 +11,7 @@ import (
 )
 
 func (o openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, updatePolicy bool) error {
-	if !o.policyRepo.Exists(newPolicyData.ID) {
+	if !updatePolicy || !o.policyRepo.Exists(newPolicyData.ID) {
 		temporaryFile, err := os.CreateTemp(o.policyConfigDirectory, fmt.Sprintf("otel-%s-config.yml", newPolicyData.ID))
 		if err != nil {
 			return err
@@ -85,6 +85,7 @@ func (o openTelemetryBackend) addRunner(policyData policies.PolicyData, policyFi
 			}
 		}
 	}(policyContext)
+	o.addPolicyControl(policyContext, policyData.ID)
 
 	return nil
 }
