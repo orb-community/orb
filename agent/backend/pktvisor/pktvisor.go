@@ -316,6 +316,7 @@ func (p *pktvisorBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo
 			p.otelReceiverPort = v.(int)
 		}
 	}
+	p.logger.Info("configured otel receiver host", zap.String("host", p.otelReceiverHost), zap.Int("port", p.otelReceiverPort))
 
 	return nil
 }
