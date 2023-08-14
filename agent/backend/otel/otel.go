@@ -20,7 +20,7 @@ import (
 var _ backend.Backend = (*openTelemetryBackend)(nil)
 
 //go:embed otelcol-contrib
-var openTelemtryContribBinary []byte
+var openTelemetryContribBinary []byte
 
 type openTelemetryBackend struct {
 	logger    *zap.Logger
@@ -58,7 +58,7 @@ type openTelemetryBackend struct {
 
 // Configure initializes the backend with the given configuration
 func (o openTelemetryBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo,
-	_ map[string]string, otelConfig map[string]interface{}) error {
+	configuration map[string]string, otelConfig map[string]interface{}) error {
 	o.logger = logger
 	o.policyRepo = repo
 	o.otelReceiverTaps = []string{}
@@ -79,7 +79,7 @@ func (o openTelemetryBackend) Configure(logger *zap.Logger, repo policies.Policy
 		}
 	}
 	o.mqttConfig = config.MQTTConfig{
-		Address:   "",
+		Address:   configuration["cloud"],
 		Id:        "",
 		Key:       "",
 		ChannelID: "",
@@ -89,7 +89,7 @@ func (o openTelemetryBackend) Configure(logger *zap.Logger, repo policies.Policy
 }
 
 func (o openTelemetryBackend) Version() (string, error) {
-	executable, err := memexec.New(openTelemtryContribBinary)
+	executable, err := memexec.New(openTelemetryContribBinary)
 	if err != nil {
 		return "", err
 	}

@@ -51,7 +51,7 @@ func (o openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, upd
 
 func (o openTelemetryBackend) addRunner(policyData policies.PolicyData, policyFilePath string) error {
 	policyContext := context.WithValue(o.mainContext, "policy_id", policyData.ID)
-	executable, err := memexec.New(openTelemtryContribBinary)
+	executable, err := memexec.New(openTelemetryContribBinary)
 	if err != nil {
 		return err
 	}
@@ -67,6 +67,12 @@ func (o openTelemetryBackend) addRunner(policyData policies.PolicyData, policyFi
 		return err
 	}
 	go func(ctx context.Context) {
+		err := command.Start()
+		if err != nil {
+			o.logger.Error("error starting command", zap.Error(err))
+			ctx.Done()
+			return
+		}
 		scanner := bufio.NewScanner(stderr)
 		for scanner.Scan() {
 			o.logger.Info("stderr output",

@@ -1,0 +1,38 @@
+version: "1.0"
+
+# this section is used by pktvisor
+# see https://github.com/orb-community/pktvisor/blob/develop/RFCs/2021-04-16-75-taps.md
+visor:
+  taps:
+    default_pcap:
+      input_type: pcap
+      config:
+        iface: "auto"
+
+# this section is used orb-agent
+# most sections and keys are optional
+orb:
+  # these are arbitrary key value pairs used for dynamically define a group of agents by matching against agent group tags
+  tags:
+    region: LA
+  cloud:
+    config:
+      # optionally specify an agent name to use during auto provisioning
+      # hostname will be used if it's not specified here
+      agent_name: dev-otel-1
+      auto_provision: false
+    api:
+      address: https://kubernetes.docker.internal
+    mqtt:
+      address: tls://kubernetes.docker.internal:8883
+      id: "7cdfe20e-9a58-42ab-9fc0-e6b004a96aed"
+      key: "f29ebb11-7784-43cf-82d2-bc6192551d77"
+      channel_id: "dd0a1803-4109-4496-807c-bf624d5350c0"
+  tls:
+    verify: false
+  backends:
+    otel:
+      config_file: "/opt/orb/agent.yaml"
+  otel:
+    enable: true
+

@@ -17,7 +17,7 @@ receivers:
 
 exporters:
 	otlphttp:
-		endpoint: http://localhost:
+		endpoint: http://localhost:0
 
 processors: # this collection value may be supported (tbd)
 

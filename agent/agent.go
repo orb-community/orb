@@ -91,6 +91,11 @@ func New(logger *zap.Logger, c config.Config) (Agent, error) {
 
 	pm, err := manager.New(logger, c, db)
 	if err != nil {
+		logger.Error("error during create policy manager, exiting", zap.Error(err))
+		return nil, err
+	}
+	if pm.GetRepo() == nil {
+		logger.Error("policy manager failed to get repository", zap.Error(err))
 		return nil, err
 	}
 	return &orbAgent{logger: logger, config: c, policyManager: pm, db: db, groupsInfos: make(map[string]GroupInfo)}, nil
@@ -112,6 +117,7 @@ func (a *orbAgent) startBackends(agentCtx context.Context) error {
 		configuration := structs.Map(a.config.OrbAgent.Otel)
 		configuration["agent_tags"] = a.config.OrbAgent.Tags
 		if err := be.Configure(a.logger, a.policyManager.GetRepo(), configurationEntry, configuration); err != nil {
+			a.logger.Info("failed to configure backend", zap.String("backend", name), zap.Error(err))
 			return err
 		}
 		backendCtx := context.WithValue(agentCtx, "routine", name)
@@ -121,6 +127,7 @@ func (a *orbAgent) startBackends(agentCtx context.Context) error {
 			backendCtx = context.WithValue(backendCtx, "agent_id", "auto-provisioning-without-id")
 		}
 		if err := be.Start(context.WithCancel(backendCtx)); err != nil {
+			a.logger.Info("failed to start backend", zap.String("backend", name), zap.Error(err))
 			return err
 		}
 		a.backends[name] = be

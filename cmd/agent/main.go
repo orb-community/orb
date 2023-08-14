@@ -49,21 +49,21 @@ func Run(cmd *cobra.Command, args []string) {
 	initConfig()
 
 	// configuration
-	var config config.Config
-	err := viper.Unmarshal(&config)
+	var configData config.Config
+	err := viper.Unmarshal(&configData)
 	if err != nil {
-		cobra.CheckErr(fmt.Errorf("agent start up error (config): %w", err))
+		cobra.CheckErr(fmt.Errorf("agent start up error (configData): %w", err))
 		os.Exit(1)
 	}
 
 	// include pktvisor backend by default if binary is at default location
 	_, err = os.Stat(pktvisor.DefaultBinary)
-	if err == nil && config.OrbAgent.Backends == nil {
-		config.OrbAgent.Backends = make(map[string]map[string]string)
-		config.OrbAgent.Backends["pktvisor"] = make(map[string]string)
-		config.OrbAgent.Backends["pktvisor"]["binary"] = pktvisor.DefaultBinary
+	if err == nil && configData.OrbAgent.Backends == nil {
+		configData.OrbAgent.Backends = make(map[string]map[string]string)
+		configData.OrbAgent.Backends["pktvisor"] = make(map[string]string)
+		configData.OrbAgent.Backends["pktvisor"]["binary"] = pktvisor.DefaultBinary
 		if len(cfgFiles) > 0 {
-			config.OrbAgent.Backends["pktvisor"]["config_file"] = cfgFiles[0]
+			configData.OrbAgent.Backends["pktvisor"]["config_file"] = cfgFiles[0]
 		}
 	}
 
@@ -88,7 +88,7 @@ func Run(cmd *cobra.Command, args []string) {
 	}(logger)
 
 	// new agent
-	a, err := agent.New(logger, config)
+	a, err := agent.New(logger, configData)
 	if err != nil {
 		logger.Error("agent start up error", zap.Error(err))
 		os.Exit(1)
@@ -151,10 +151,10 @@ func mergeOrError(path string) {
 	v.SetDefault("orb.otel.port", 0)
 	v.SetDefault("orb.debug.enable", Debug)
 
-	v.SetDefault("orb.backends.pktvisor.binary", "/usr/local/sbin/pktvisord")
-	v.SetDefault("orb.backends.pktvisor.config_file", "/opt/orb/agent.yaml")
-	v.SetDefault("orb.backends.pktvisor.api_host", "localhost")
-	v.SetDefault("orb.backends.pktvisor.api_port", "10853")
+	//v.SetDefault("orb.backends.pktvisor.binary", "/usr/local/sbin/pktvisord")
+	//v.SetDefault("orb.backends.pktvisor.config_file", "/opt/orb/agent.yaml")
+	//v.SetDefault("orb.backends.pktvisor.api_host", "localhost")
+	//v.SetDefault("orb.backends.pktvisor.api_port", "10853")
 
 	if len(path) > 0 {
 		cobra.CheckErr(v.ReadInConfig())
