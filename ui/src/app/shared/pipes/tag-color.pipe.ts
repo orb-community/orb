@@ -12,8 +12,8 @@ export class TagColorPipe implements PipeTransform {
    * @param tagList {<KeyValue<string,string>> | string}
    * @return {<string>}
    */
-  transform(tag: string | KeyValue<string, string>): string {
-    const value = typeof tag === 'string' ? tag : tag.key;
+  transform(tag: string): string {
+    const value = tag;
     if (value !== '') {
       const h = Math.abs(
         `${value}}`

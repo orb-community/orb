@@ -4,20 +4,23 @@
       <mat-chip
         *ngFor="let tag of tags | keyvalue; index as i;"
         [attr.data-orb-qa-id]="'orb_tag_' + i"
-        [style.background-color]="tag | tagcolor"
+        style="background-color: #2B3148;"
         class="orb-tag-chip "
         [value]="tag.key">
-        {{tag | tagchip}}
+        <span [style.color]="tag.key | tagcolor">{{ tag.key }}</span><span style="color: #969FB9;">:</span>&nbsp;
+        <span [style.color]="tag.value | tagcolor">{{ tag.value }}</span>
         <nb-icon (click)="onRemoveTag(tag.key)"
                  class="ml-1"
                  icon="close-outline"
-                 size="12"></nb-icon>
+                 size="12"
+                 style="color: #df316f;">
+        </nb-icon>
       </mat-chip>
       <mat-chip
         *ngIf="(tags | json) === '{}'"
-        [style.background-color]="'notag' | tagcolor"
+        style="background-color: #2B3148;"
         class="orb-tag-chip ">
-        No tag added
+        <span style="color: #df316f;">No tag added</span>
       </mat-chip>
     </mat-chip-list>
   </div>
