@@ -2,7 +2,6 @@ button {
   margin: 0 3px;
 
   &.policy-duplicate {
-    float: right;
     color: #fff !important;
     font-family: "Montserrat", sans-serif;
     font-weight: 700;
@@ -18,7 +17,6 @@ button {
   }
 
   &.policy-save {
-    float: right;
     color: #fff !important;
     font-family: "Montserrat", sans-serif;
     font-weight: 700;
@@ -34,7 +32,6 @@ button {
   }
 
   &.policy-discard {
-    float: right;
     color: #fff !important;
     font-family: "Montserrat", sans-serif;
     font-weight: 700;
@@ -62,9 +59,19 @@ ngx-sink-config {
     height: 30rem !important;
   }
 }
-
 .row {
+  display: flex;
   gap: 10px;
+}
+
+.card-col {
+  flex-grow: 1;
+}
+
+@media (min-width: 768px) {
+  .card-col {
+    min-width: 370px !important;
+  }
 }
 
 header {

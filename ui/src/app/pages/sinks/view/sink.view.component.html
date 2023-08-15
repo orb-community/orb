@@ -1,5 +1,5 @@
 <header data-orb-qa-id="sink#view" class="row">
-  <div class="col-7">
+  <div class="col-3">
     <xng-breadcrumb class="orb-breadcrumb" data-orb-qa-id="breadcrumb">
       <ng-container
         *xngBreadcrumbItem="let breadcrumb; let info = info; let first = first"
@@ -11,32 +11,39 @@
     </xng-breadcrumb>
     <h4>{{ strings.sink.view.header }}</h4>
   </div>
-  <div class="col-3">
-    <button
+  <div class="col-4">
+    <div style="margin-left: 100px; margin-top: 20px;">
+      <button
       (click)="save()"
       [disabled]="!canSave()"
       class="policy-save"
       nbButton
       *ngIf="isEditMode()"
       shape="round"
-    >
+      >
       Save
-    </button>
-    <button
-      (click)="discard()"
-      class="policy-discard"
-      nbButton
-      shape="round"
-      *ngIf="isEditMode()"
-    >
-      Discard
-    </button>
+      </button>
+      <button
+        (click)="discard()"
+        class="policy-discard"
+        nbButton
+        shape="round"
+        *ngIf="isEditMode()"
+      >
+        Discard
+      </button>
+    </div>
+
   </div>
 </header>
 
-<div *ngIf="!isLoading" class="row">
-  <ngx-sink-details [(editMode)]="editMode.details" [sink]="sink">
-  </ngx-sink-details>
-  <ngx-sink-config [(editMode)]="editMode.config" [sink]="sink">
-  </ngx-sink-config>
+<div *ngIf="!isLoading" class="row" #content>
+  <div class="card-col col-3">
+    <ngx-sink-details [(editMode)]="editMode.details" [sink]="sink">
+    </ngx-sink-details>
+  </div>
+  <div class="card-col col-7">
+    <ngx-sink-config [(editMode)]="editMode.config" [sink]="sink">
+    </ngx-sink-config>
+  </div>
 </div>
