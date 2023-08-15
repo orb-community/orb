@@ -73,22 +73,26 @@
         let-row="row"
         let-value="value"
 >
-  <mat-chip-list nbTooltip="{{ value | json }}">
-    <mat-chip
-            *ngFor="let tag of value | keyvalue"
-            [style.background-color]="tag | tagcolor"
-            class="orb-tag-chip"
-    >
-      {{ tag | tagchip }}
-    </mat-chip>
-    <mat-chip
-            *ngIf="(row?.tags | json) === '{}'"
-            [style.background-color]="'notag' | tagcolor"
-            class="orb-tag-chip"
-    >
-      No tags were created
-    </mat-chip>
-  </mat-chip-list>
+    <mat-chip-list>
+      <mat-chip
+        *ngFor="let tag of value | keyvalue"
+        style="background-color: #2B3148;"
+        class="orb-tag-chip"
+        >
+        <span [style.color]="tag.key | tagcolor">{{ tag.key }}</span><span style="color: #969FB9;">:</span>&nbsp;
+        <span [style.color]="tag.value | tagcolor">{{ tag.value }}</span>
+      </mat-chip>
+     <mat-chip
+        *ngIf="
+          (row?.tags | json) === '{}'
+        "
+        style="background-color: #2B3148;"
+        class="orb-tag-chip"
+        >
+        <span style="color: #df316f;">No tag were created</span>
+      </mat-chip>
+    </mat-chip-list>
+
 </ng-template>
 
 <ng-template #versionTemplateCell let-i="index" let-row="row" let-value="value">

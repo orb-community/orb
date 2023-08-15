@@ -187,6 +187,21 @@ mat-chip-list {
     animation-direction: alternate;
   }
 }
+
+::ng-deep .mat-chip-list {
+  display: block;
+}
+
+@keyframes slidetween {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-70%);
+  }
+}
+
 .orb-service-{
   &in {
     color: #6fcf97;

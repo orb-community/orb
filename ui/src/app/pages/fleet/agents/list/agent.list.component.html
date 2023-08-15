@@ -107,19 +107,20 @@
   <mat-chip-list #tablechiplist nbTooltip="{{ row.combined_tags | json }}">
     <mat-chip
       *ngFor="let tag of value | keyvalue"
-      [style.background-color]="tag | tagcolor"
+      style="background-color: #2B3148;"
       class="orb-tag-chip"
     >
-      {{ tag | tagchip }}
+      <span [style.color]="tag.key | tagcolor">{{ tag.key }}</span><span style="color: #969FB9;">:</span>&nbsp;
+      <span [style.color]="tag.value | tagcolor">{{ tag.value }}</span>
     </mat-chip>
     <mat-chip
       *ngIf="
         (row?.orb_tags | json) === '{}' && (row?.agent_tags | json) === '{}'
       "
-      [style.background-color]="'notag' | tagcolor"
+      style="background-color: #2B3148;"
       class="orb-tag-chip"
     >
-      No tags were created
+      <span style="color: #df316f;">No tag were created</span>
     </mat-chip>
   </mat-chip-list>
 </ng-template>
