@@ -34,8 +34,20 @@ button {
   }
   
   .row {
-    gap: 1rem;
+    display: flex;
+    gap: 10px;
   }
+  
+  .card-col {
+    flex-grow: 1;
+  }
+  
+  @media (min-width: 768px) {
+    .card-col {
+      min-width: 370px !important;
+    }
+  }
+  
   
   header {
     justify-content: space-between;
