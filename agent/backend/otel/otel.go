@@ -58,13 +58,15 @@ type openTelemetryBackend struct {
 
 // Configure initializes the backend with the given configuration
 func (o openTelemetryBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo,
-	configuration map[string]string, otelConfig map[string]interface{}) error {
+	_ map[string]string, otelConfig map[string]interface{}) error {
 	o.logger = logger
+	o.logger.Info("configuring OpenTelemetry backend")
 	o.policyRepo = repo
 	var err error
 	o.otelReceiverTaps = []string{}
 	o.policyConfigDirectory, err = os.MkdirTemp("", "otel-policies")
 	if err != nil {
+		o.logger.Error("failed to create temporary directory for policy configs", zap.Error(err))
 		return err
 	}
 	if agentTags, ok := otelConfig["agent_tags"]; ok {
@@ -131,10 +133,6 @@ func (o openTelemetryBackend) Start(ctx context.Context, cancelFunc context.Canc
 	if err != nil {
 		o.logger.Error("error updating policies", zap.Error(err))
 		return err
-	}
-	// initialize otlpreceiver and mqttexporter for scraping
-	if o.policyRepo == nil {
-		return fmt.Errorf("backend not properly configured, call Configure() first")
 	}
 	currentVersion, err := o.Version()
 	if err != nil {

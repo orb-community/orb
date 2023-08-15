@@ -66,25 +66,25 @@ func (o openTelemetryBackend) addRunner(policyData policies.PolicyData, policyFi
 	if err != nil {
 		return err
 	}
-	go func(ctx context.Context) {
+	go func(ctx context.Context, logger *zap.Logger) {
 		err := command.Start()
 		if err != nil {
-			o.logger.Error("error starting command", zap.Error(err))
+			fmt.Printf("error starting command: %s", err)
 			ctx.Done()
 			return
 		}
 		scanner := bufio.NewScanner(stderr)
 		for scanner.Scan() {
-			o.logger.Info("stderr output",
+			logger.Info("stderr output",
 				zap.String("policy_id", policyData.ID),
 				zap.String("line", scanner.Text()))
 			if command.Err != nil {
-				o.logger.Error("error running command", zap.Error(command.Err))
+				logger.Error("error running command", zap.Error(command.Err))
 				ctx.Done()
 				return
 			}
 		}
-	}(policyContext)
+	}(policyContext, o.logger)
 	o.addPolicyControl(policyContext, policyData.ID)
 
 	return nil
