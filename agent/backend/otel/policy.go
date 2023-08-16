@@ -10,7 +10,7 @@ import (
 	"os"
 )
 
-func (o openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, updatePolicy bool) error {
+func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, updatePolicy bool) error {
 	if !updatePolicy || !o.policyRepo.Exists(newPolicyData.ID) {
 		temporaryFile, err := os.CreateTemp(o.policyConfigDirectory, fmt.Sprintf("otel-%s-config.yml", newPolicyData.ID))
 		if err != nil {
@@ -49,7 +49,7 @@ func (o openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, upd
 	return nil
 }
 
-func (o openTelemetryBackend) addRunner(policyData policies.PolicyData, policyFilePath string) error {
+func (o *openTelemetryBackend) addRunner(policyData policies.PolicyData, policyFilePath string) error {
 	policyContext := context.WithValue(o.mainContext, "policy_id", policyData.ID)
 	executable, err := memexec.New(openTelemetryContribBinary)
 	if err != nil {
@@ -90,16 +90,16 @@ func (o openTelemetryBackend) addRunner(policyData policies.PolicyData, policyFi
 	return nil
 }
 
-func (o openTelemetryBackend) addPolicyControl(policyCtx context.Context, policyID string) {
+func (o *openTelemetryBackend) addPolicyControl(policyCtx context.Context, policyID string) {
 	o.runningCollectors[policyID] = policyCtx
 }
 
-func (o openTelemetryBackend) removePolicyControl(policyID string) {
+func (o *openTelemetryBackend) removePolicyControl(policyID string) {
 	o.runningCollectors[policyID].Done()
 	delete(o.runningCollectors, policyID)
 }
 
-func (o openTelemetryBackend) RemovePolicy(data policies.PolicyData) error {
+func (o *openTelemetryBackend) RemovePolicy(data policies.PolicyData) error {
 	if o.policyRepo.Exists(data.ID) {
 		o.removePolicyControl(data.ID)
 		err := o.policyRepo.Remove(data.ID)

@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func (o openTelemetryBackend) SetCommsClient(agentID string, client *mqtt.Client, baseTopic string) {
+func (o *openTelemetryBackend) SetCommsClient(agentID string, client *mqtt.Client, baseTopic string) {
 	o.mqttClient = client
 	otelBaseTopic := strings.Replace(baseTopic, "?", "otlp", 1)
 	o.otlpMetricsTopic = fmt.Sprintf("%s/m/%c", otelBaseTopic, agentID[0])

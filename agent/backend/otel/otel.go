@@ -57,10 +57,11 @@ type openTelemetryBackend struct {
 }
 
 // Configure initializes the backend with the given configuration
-func (o openTelemetryBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo,
+func (o *openTelemetryBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo,
 	_ map[string]string, otelConfig map[string]interface{}) error {
 	o.logger = logger
 	o.logger.Info("configuring OpenTelemetry backend")
+	logger.Info("debug pointer", zap.Reflect("pointer", &o))
 	o.policyRepo = repo
 	var err error
 	o.otelReceiverTaps = []string{}
@@ -84,7 +85,7 @@ func (o openTelemetryBackend) Configure(logger *zap.Logger, repo policies.Policy
 	return nil
 }
 
-func (o openTelemetryBackend) Version() (string, error) {
+func (o *openTelemetryBackend) Version() (string, error) {
 	executable, err := memexec.New(openTelemetryContribBinary)
 	if err != nil {
 		return "", err
@@ -123,7 +124,7 @@ func (o openTelemetryBackend) Version() (string, error) {
 	return versionOutput, nil
 }
 
-func (o openTelemetryBackend) Start(ctx context.Context, cancelFunc context.CancelFunc) error {
+func (o *openTelemetryBackend) Start(ctx context.Context, cancelFunc context.CancelFunc) error {
 	o.runningCollectors = make(map[string]context.Context)
 	o.mainCancelFunction = cancelFunc
 	o.mainContext = ctx
@@ -158,7 +159,7 @@ func (o openTelemetryBackend) Start(ctx context.Context, cancelFunc context.Canc
 	return nil
 }
 
-func (o openTelemetryBackend) Stop(_ context.Context) error {
+func (o *openTelemetryBackend) Stop(_ context.Context) error {
 	o.logger.Info("stopping all running policies")
 	o.mainCancelFunction()
 	for policyID, policyCtx := range o.runningCollectors {
@@ -168,7 +169,7 @@ func (o openTelemetryBackend) Stop(_ context.Context) error {
 	return nil
 }
 
-func (o openTelemetryBackend) FullReset(_ context.Context) error {
+func (o *openTelemetryBackend) FullReset(_ context.Context) error {
 	o.logger.Info("resetting all policies and restarting")
 	for policyID, policyCtx := range o.runningCollectors {
 		o.logger.Debug("stopping policy context", zap.String("policy_id", policyID))
@@ -191,12 +192,12 @@ func Register() bool {
 	return true
 }
 
-func (o openTelemetryBackend) GetStartTime() time.Time {
+func (o *openTelemetryBackend) GetStartTime() time.Time {
 	return o.startTime
 }
 
 // this will only print a default backend config
-func (o openTelemetryBackend) GetCapabilities() (capabilities map[string]interface{}, err error) {
+func (o *openTelemetryBackend) GetCapabilities() (capabilities map[string]interface{}, err error) {
 	capabilities["taps"] = o.otelReceiverTaps
 	capabilities["version"], err = o.Version()
 	if err != nil {
@@ -206,7 +207,7 @@ func (o openTelemetryBackend) GetCapabilities() (capabilities map[string]interfa
 }
 
 // cross reference the Processes using the os, with the policies and contexts
-func (o openTelemetryBackend) GetRunningStatus() (backend.RunningStatus, string, error) {
+func (o *openTelemetryBackend) GetRunningStatus() (backend.RunningStatus, string, error) {
 	amountCollectors := len(o.runningCollectors)
 	if amountCollectors > 0 {
 		return backend.Running, fmt.Sprintf("opentelemetry backend running with %d policies", amountCollectors), nil
