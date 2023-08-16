@@ -116,7 +116,6 @@ func (a *orbAgent) startBackends(agentCtx context.Context) error {
 		be := backend.GetBackend(name)
 		configuration := structs.Map(a.config.OrbAgent.Otel)
 		configuration["agent_tags"] = a.config.OrbAgent.Tags
-		a.logger.Info("DEBUG pointer", zap.Reflect("be", be))
 		if err := be.Configure(a.logger, a.policyManager.GetRepo(), configurationEntry, configuration); err != nil {
 			a.logger.Info("failed to configure backend", zap.String("backend", name), zap.Error(err))
 			return err
@@ -127,7 +126,6 @@ func (a *orbAgent) startBackends(agentCtx context.Context) error {
 		} else {
 			backendCtx = context.WithValue(backendCtx, "agent_id", "auto-provisioning-without-id")
 		}
-		a.logger.Info("DEBUG pointer", zap.Reflect("be", be))
 		if err := be.Start(context.WithCancel(backendCtx)); err != nil {
 			a.logger.Info("failed to start backend", zap.String("backend", name), zap.Error(err))
 			return err
