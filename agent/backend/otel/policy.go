@@ -13,6 +13,12 @@ func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, up
 	if !updatePolicy || !o.policyRepo.Exists(newPolicyData.ID) {
 		temporaryFile, err := os.CreateTemp(o.policyConfigDirectory, fmt.Sprintf("otel-%s-config.yml", newPolicyData.ID))
 		if err != nil {
+			o.logger.Error("failed to create temporary file", zap.Error(err), zap.String("policy_id", newPolicyData.ID))
+			return err
+		}
+		_, err = temporaryFile.Write([]byte(newPolicyData.Data.(string)))
+		if err != nil {
+			o.logger.Error("failed to write temporary file", zap.Error(err), zap.String("policy_id", newPolicyData.ID), zap.String("policyData", newPolicyData.Data.(string)))
 			return err
 		}
 		err = o.addRunner(newPolicyData, temporaryFile.Name())

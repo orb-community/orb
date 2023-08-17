@@ -135,17 +135,17 @@ func (o *openTelemetryBackend) Start(ctx context.Context, cancelFunc context.Can
 	}
 	o.otelExecutable = executable
 	// apply sample policy - remove after POC
-	err = o.ApplyPolicy(samplePolicy, false)
-	if err != nil {
-		o.logger.Error("error updating policies", zap.Error(err))
-		return err
-	}
 	currentVersion, err := o.Version()
 	if err != nil {
 		o.logger.Error("error during getting current version", zap.Error(err))
 		return err
 	}
 	o.logger.Info("starting open-telemetry backend using version", zap.String("version", currentVersion))
+	err = o.ApplyPolicy(samplePolicy, false)
+	if err != nil {
+		o.logger.Error("error updating policies", zap.Error(err))
+		return err
+	}
 
 	policiesData, err := o.policyRepo.GetAll()
 	if err != nil {
