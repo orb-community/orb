@@ -26,7 +26,7 @@ GOARCH ?= $(shell dpkg-architecture -q DEB_BUILD_ARCH)
 ORB_VERSION = $(shell cat VERSION)
 COMMIT_HASH = $(shell git rev-parse --short HEAD)
 OTEL_COLLECTOR_CONTRIB_VERSION = 0.81.0
-OTEL_CONTRIB_URL="https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v$(OTEL_COLLECTOR_CONTRIB_VERSION)/otelcol-contrib_$(OTEL_COLLECTOR_CONTRIB_VERSION)_linux_arm64.tar.gz"
+OTEL_CONTRIB_URL="https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v$(OTEL_COLLECTOR_CONTRIB_VERSION)/otelcol-contrib_$(OTEL_COLLECTOR_CONTRIB_VERSION)_linux_amd64.tar.gz"
 
 define compile_service
     echo "ORB_VERSION: $(ORB_VERSION)"

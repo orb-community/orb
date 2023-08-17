@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"context"
 	"fmt"
-	"github.com/amenzhinsky/go-memexec"
 	"github.com/orb-community/orb/agent/policies"
 	"go.uber.org/zap"
 	"os"
@@ -51,17 +50,7 @@ func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, up
 
 func (o *openTelemetryBackend) addRunner(policyData policies.PolicyData, policyFilePath string) error {
 	policyContext := context.WithValue(o.mainContext, "policy_id", policyData.ID)
-	executable, err := memexec.New(openTelemetryContribBinary)
-	if err != nil {
-		return err
-	}
-	defer func(executable *memexec.Exec) {
-		err := executable.Close()
-		if err != nil {
-			o.logger.Error("error closing executable", zap.Error(err))
-		}
-	}(executable)
-	command := executable.CommandContext(policyContext, "--config", policyFilePath)
+	command := o.otelExecutable.CommandContext(policyContext, "--config", policyFilePath)
 	stderr, err := command.StderrPipe()
 	if err != nil {
 		return err
@@ -69,7 +58,7 @@ func (o *openTelemetryBackend) addRunner(policyData policies.PolicyData, policyF
 	go func(ctx context.Context, logger *zap.Logger) {
 		err := command.Start()
 		if err != nil {
-			fmt.Printf("error starting command: %s", err)
+			logger.Error("error starting command", zap.Error(err))
 			ctx.Done()
 			return
 		}

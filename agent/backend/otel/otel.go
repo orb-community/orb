@@ -44,12 +44,15 @@ type openTelemetryBackend struct {
 	otlpTracesTopic  string
 	otlpLogsTopic    string
 	otelReceiverTaps []string
+	otelCurrVersion  string
 
 	otelReceiverHost string
 	otelReceiverPort int
 
 	metricsReceiver receiver.Metrics
 	metricsExporter exporter.Metrics
+	otelExecutable  *memexec.Exec
+
 	//tracesReceiver  receiver.Traces
 	//tracesExporter  exporter.Traces
 	//logsReceiver    receiver.Logs
@@ -63,7 +66,7 @@ func (o *openTelemetryBackend) Configure(logger *zap.Logger, repo policies.Polic
 	o.logger.Info("configuring OpenTelemetry backend")
 	o.policyRepo = repo
 	var err error
-	o.otelReceiverTaps = []string{}
+	o.otelReceiverTaps = []string{"otelcol-contrib", "receivers", "processors", "extensions"}
 	o.policyConfigDirectory, err = os.MkdirTemp("", "otel-policies")
 	if err != nil {
 		o.logger.Error("failed to create temporary directory for policy configs", zap.Error(err))
@@ -85,24 +88,19 @@ func (o *openTelemetryBackend) Configure(logger *zap.Logger, repo policies.Polic
 }
 
 func (o *openTelemetryBackend) Version() (string, error) {
-	executable, err := memexec.New(openTelemetryContribBinary)
-	if err != nil {
-		return "", err
+	if o.otelCurrVersion != "" {
+		return o.otelCurrVersion, nil
 	}
-	defer func(executable *memexec.Exec) {
-		err := executable.Close()
-		if err != nil {
-			o.logger.Error("error closing executable", zap.Error(err))
-		}
-	}(executable)
-	ctx, cancel := context.WithTimeout(o.mainContext, 5*time.Second)
+	ctx, cancel := context.WithTimeout(o.mainContext, 60*time.Second)
 	defer cancel()
-	cmd := executable.CommandContext(ctx, "--version")
+	cmd := o.otelExecutable.CommandContext(ctx, "--version")
 	if cmd.Err != nil {
+		o.logger.Error("error during create command", zap.Error(cmd.Err))
 		return "", cmd.Err
 	}
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
+		o.logger.Error("error during attach to stdout", zap.Error(err))
 		return "", err
 	}
 	var versionOutput string
@@ -114,9 +112,11 @@ func (o *openTelemetryBackend) Version() (string, error) {
 		}
 	}()
 	if err := cmd.Start(); err != nil {
+		o.logger.Error("error during start command", zap.Error(err))
 		return "", err
 	}
 	if err := cmd.Wait(); err != nil {
+		o.logger.Error("error waiting command to finalize", zap.Error(err))
 		return "", err
 	}
 	o.logger.Info("running opentelemetry-contrib version", zap.String("version", versionOutput))
@@ -128,15 +128,22 @@ func (o *openTelemetryBackend) Start(ctx context.Context, cancelFunc context.Can
 	o.mainCancelFunction = cancelFunc
 	o.mainContext = ctx
 	o.startTime = time.Now()
+	executable, err := memexec.New(openTelemetryContribBinary)
+	if err != nil {
+		o.logger.Error("error during creating executable", zap.Error(err))
+		return err
+	}
+	o.otelExecutable = executable
 	// apply sample policy - remove after POC
-	err := o.ApplyPolicy(samplePolicy, false)
+	err = o.ApplyPolicy(samplePolicy, false)
 	if err != nil {
 		o.logger.Error("error updating policies", zap.Error(err))
 		return err
 	}
 	currentVersion, err := o.Version()
 	if err != nil {
-		o.logger.Error("error during ")
+		o.logger.Error("error during getting current version", zap.Error(err))
+		return err
 	}
 	o.logger.Info("starting open-telemetry backend using version", zap.String("version", currentVersion))
 
@@ -165,6 +172,12 @@ func (o *openTelemetryBackend) Stop(_ context.Context) error {
 		o.logger.Debug("stopping policy context", zap.String("policy_id", policyID))
 		policyCtx.Done()
 	}
+	defer func(executable *memexec.Exec) {
+		err := executable.Close()
+		if err != nil {
+			o.logger.Error("error closing executable", zap.Error(err))
+		}
+	}(o.otelExecutable)
 	return nil
 }
 
@@ -197,11 +210,8 @@ func (o *openTelemetryBackend) GetStartTime() time.Time {
 
 // this will only print a default backend config
 func (o *openTelemetryBackend) GetCapabilities() (capabilities map[string]interface{}, err error) {
+	capabilities = make(map[string]interface{})
 	capabilities["taps"] = o.otelReceiverTaps
-	capabilities["version"], err = o.Version()
-	if err != nil {
-		return
-	}
 	return
 }
 

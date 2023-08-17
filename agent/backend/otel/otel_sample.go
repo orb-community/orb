@@ -13,20 +13,23 @@ receivers:
         method: GET
       - endpoint: http://localhost:8000/health
         method: GET
-    collection_interval: 10s
+    collection_interval: 5s
 
 exporters:
 	otlphttp:
 		endpoint: http://localhost:0
-
-processors: # this collection value may be supported (tbd)
-
-extensions: # tbd
+	logging:
+		verbosity: detailed
+		sampling_initial: 10
+		sampling_thereafter: 200
 
 service: # tbd
 	metrics:
-		exporters: [otlphttp]
-		receivers: [httpcheck]
+		exporters: 
+			- otlphttp
+			-logging
+		receivers: 
+			-httpcheck
 `
 
 var samplePolicy = policies.PolicyData{
