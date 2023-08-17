@@ -60,6 +60,11 @@ nb-card {
     }
   }
 }
+nb-form-field {
+  label {
+    color: #fff !important;
+  }
+}
 
 ::ng-deep {
 
@@ -116,7 +121,21 @@ nb-card {
     color: #df316f !important;
   }
 }
+.agent-save {
+  float: right;
+  color: #fff !important;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  text-transform: none !important;
+  margin-left: 5px;
+  &.btn-disabled {
+    background: #2b3148;
+  }
 
+  &:not(.btn-disabled) {
+    background-color: #3089fc !important;
+  }
+}
 .agent-reset {
   float: right;
   color: #fff !important;

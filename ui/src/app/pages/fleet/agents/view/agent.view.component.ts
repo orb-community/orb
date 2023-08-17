@@ -88,4 +88,10 @@ export class AgentViewComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.retrieveAgent();
   }
+
+  onRefreshRequests(value: boolean) {
+    if (value) {
+      this.refreshAgent();
+    }
+  }
 }
