@@ -294,5 +294,6 @@ pull-latest-otel-collector-contrib:
 	wget -O ./agent/backend/otel/otelcol_contrib.tar.gz $(OTEL_CONTRIB_URL)
 	tar -xvf ./agent/backend/otel/otelcol_contrib.tar.gz -C ./agent/backend/otel/
 	cp ./agent/backend/otel/otelcol-contrib .
-	rm ./agent/backend/otel/otelcol_contrib/LICENSE
-	rm ./agent/backend/otel/otelcol_contrib/README.md
+	rm ./agent/backend/otel/otelcol_contrib.tar.gz
+	rm ./agent/backend/otel/LICENSE
+	rm ./agent/backend/otel/README.md
