@@ -43,7 +43,8 @@
                  name="key"
                  [(ngModel)]="key"
                  fullWidth="true"
-                 nbInput/>
+                 nbInput
+                 (keyup.enter)="onEnter()"/>
         </div>
       </div>
       <div class="d-flex justify-content-center align-items-center col-1 mt-4 px-0 mx-0">
@@ -64,7 +65,8 @@
                  fullWidth="true"
                  required
                  ngxEmptyInput
-                 nbInput/>
+                 nbInput
+                 (keyup.enter)="onEnter()"/>
         </div>
       </div>
       <div class="d-flex col-1 align-items-center justify-content-center mx-0 pl-4 px-0"
