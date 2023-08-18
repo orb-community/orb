@@ -1,17 +1,33 @@
 package otel
 
 import (
-	"bufio"
 	"context"
 	"fmt"
+	"github.com/go-cmd/cmd"
 	"github.com/orb-community/orb/agent/policies"
 	"go.uber.org/zap"
 	"os"
 )
 
+const tempFileNamePattern = "otel-%s-config.yml"
+
+type runningPolicy struct {
+	ctx        context.Context
+	cancel     context.CancelFunc
+	policyId   string
+	policyData policies.PolicyData
+	statusChan cmd.Status
+	processId  int
+}
+
+var defaultCmdOptions = cmd.Options{
+	Buffered:  false,
+	Streaming: true,
+}
+
 func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, updatePolicy bool) error {
 	if !updatePolicy || !o.policyRepo.Exists(newPolicyData.ID) {
-		temporaryFile, err := os.CreateTemp(o.policyConfigDirectory, fmt.Sprintf("otel-%s-config.yml", newPolicyData.ID))
+		temporaryFile, err := os.CreateTemp(o.policyConfigDirectory, fmt.Sprintf(tempFileNamePattern, newPolicyData.ID))
 		if err != nil {
 			o.logger.Error("failed to create temporary file", zap.Error(err), zap.String("policy_id", newPolicyData.ID))
 			return err
@@ -32,7 +48,7 @@ func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, up
 		}
 		if currentPolicyData.Version <= newPolicyData.Version {
 			dataAsByte := []byte(newPolicyData.Data.(string))
-			currentPolicyPath := o.policyConfigDirectory + fmt.Sprintf("otel-%s-config.yml", currentPolicyData.ID)
+			currentPolicyPath := o.policyConfigDirectory + fmt.Sprintf(tempFileNamePattern, currentPolicyData.ID)
 			o.logger.Info("new policy version received, updating", zap.String("policy_id", newPolicyData.ID), zap.Int32("version", newPolicyData.Version))
 			err := os.WriteFile(currentPolicyPath, dataAsByte, os.ModeTemporary)
 			if err != nil {
@@ -55,42 +71,63 @@ func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, up
 }
 
 func (o *openTelemetryBackend) addRunner(policyData policies.PolicyData, policyFilePath string) error {
-	policyContext := context.WithValue(o.mainContext, "policy_id", policyData.ID)
-	command := o.otelExecutable.CommandContext(policyContext, "--config", policyFilePath)
-	stderr, err := command.StderrPipe()
-	if err != nil {
-		return err
-	}
+	policyContext, policyCancel := context.WithCancel(context.WithValue(o.mainContext, "policy_id", policyData.ID))
+	command := cmd.NewCmdOptions(defaultCmdOptions, o.otelExecutablePath, "--config", policyFilePath)
+	var PID chan int
 	go func(ctx context.Context, logger *zap.Logger) {
-		err := command.Start()
-		if err != nil {
-			logger.Error("error starting command", zap.Error(err))
-			ctx.Done()
-			return
-		}
-		scanner := bufio.NewScanner(stderr)
-		for scanner.Scan() {
-			logger.Info("stderr output",
-				zap.String("policy_id", policyData.ID),
-				zap.String("line", scanner.Text()))
-			if command.Err != nil {
-				logger.Error("error running command", zap.Error(command.Err))
-				ctx.Done()
-				return
+		status := command.Start()
+		PID <- command.Status().PID
+		o.logger.Info("starting otel policy", zap.String("policy_id", policyData.ID),
+			zap.Any("status", command.Status()), zap.Int("process id", command.Status().PID))
+		for command.Status().Complete == false {
+			select {
+			case <-ctx.Done():
+				err := command.Stop()
+				if err != nil {
+					logger.Error("failed to stop otel", zap.String("policy_id", policyData.ID), zap.Error(err))
+					return
+				}
+			case line := <-command.Stdout:
+				logger.Info("otel stdout", zap.String("policy_id", policyData.ID), zap.String("line", line))
+			case line := <-command.Stderr:
+				logger.Error("otel stderr", zap.String("policy_id", policyData.ID), zap.String("line", line))
+			case finalStatus := <-status:
+				logger.Info("otel finished", zap.String("policy_id", policyData.ID), zap.Any("status", finalStatus))
 			}
 		}
 	}(policyContext, o.logger)
-	o.addPolicyControl(policyContext, policyData.ID)
+	var processId int
+	select {
+	case processId = <-PID:
+	}
+	policyEntry := runningPolicy{
+		ctx:        policyContext,
+		cancel:     policyCancel,
+		policyId:   policyData.ID,
+		policyData: policyData,
+		statusChan: command.Status(),
+		processId:  processId,
+	}
+	o.addPolicyControl(policyEntry, policyData.ID)
 
 	return nil
 }
 
-func (o *openTelemetryBackend) addPolicyControl(policyCtx context.Context, policyID string) {
-	o.runningCollectors[policyID] = policyCtx
+func (o *openTelemetryBackend) addPolicyControl(policyEntry runningPolicy, policyID string) {
+	o.runningCollectors[policyID] = policyEntry
 }
 
 func (o *openTelemetryBackend) removePolicyControl(policyID string) {
-	o.runningCollectors[policyID].Done()
+	policy, ok := o.runningCollectors[policyID]
+	if !ok {
+		o.logger.Error("did not find a running collector for policy id", zap.String("policy_id", policyID))
+		return
+	}
+	policy.cancel()
+	select {
+	case <-policy.ctx.Done():
+		o.logger.Info("policy context done", zap.String("policy_id", policyID))
+	}
 	delete(o.runningCollectors, policyID)
 }
 
@@ -99,6 +136,12 @@ func (o *openTelemetryBackend) RemovePolicy(data policies.PolicyData) error {
 		o.removePolicyControl(data.ID)
 		err := o.policyRepo.Remove(data.ID)
 		if err != nil {
+			return err
+		}
+		policyPath := o.policyConfigDirectory + fmt.Sprintf(tempFileNamePattern, data.ID)
+		err = os.Remove(policyPath)
+		if err != nil {
+			o.logger.Error("error removing temporary file with policy")
 			return err
 		}
 	}

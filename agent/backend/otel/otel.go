@@ -1,12 +1,11 @@
 package otel
 
 import (
-	"bufio"
 	"context"
 	_ "embed"
 	"fmt"
-	"github.com/amenzhinsky/go-memexec"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/go-cmd/cmd"
 	"github.com/orb-community/orb/agent/backend"
 	"github.com/orb-community/orb/agent/config"
 	"github.com/orb-community/orb/agent/policies"
@@ -33,7 +32,7 @@ type openTelemetryBackend struct {
 
 	// Context for controlling the context cancellation
 	mainContext        context.Context
-	runningCollectors  map[string]context.Context
+	runningCollectors  map[string]runningPolicy
 	mainCancelFunction context.CancelFunc
 
 	// MQTT Config for OTEL MQTT Exporter
@@ -49,9 +48,9 @@ type openTelemetryBackend struct {
 	otelReceiverHost string
 	otelReceiverPort int
 
-	metricsReceiver receiver.Metrics
-	metricsExporter exporter.Metrics
-	otelExecutable  *memexec.Exec
+	metricsReceiver    receiver.Metrics
+	metricsExporter    exporter.Metrics
+	otelExecutablePath string
 
 	//tracesReceiver  receiver.Traces
 	//tracesExporter  exporter.Traces
@@ -93,47 +92,34 @@ func (o *openTelemetryBackend) Version() (string, error) {
 	}
 	ctx, cancel := context.WithTimeout(o.mainContext, 60*time.Second)
 	defer cancel()
-	cmd := o.otelExecutable.CommandContext(ctx, "--version")
-	if cmd.Err != nil {
-		o.logger.Error("error during create command", zap.Error(cmd.Err))
-		return "", cmd.Err
-	}
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		o.logger.Error("error during attach to stdout", zap.Error(err))
-		return "", err
-	}
 	var versionOutput string
-	go func() {
-		scanner := bufio.NewScanner(stdout)
-		for scanner.Scan() {
-			o.logger.Info("DEBUG", zap.String("line", scanner.Text()))
-			versionOutput = scanner.Text()
-		}
-	}()
-	if err := cmd.Start(); err != nil {
-		o.logger.Error("error during start command", zap.Error(err))
-		return "", err
+	command := cmd.NewCmdOptions(defaultCmdOptions, o.otelExecutablePath, "--version")
+	status := command.Start()
+	select {
+	case stdout := <-command.Stdout:
+		versionOutput = stdout
+		break
+	case stderr := <-command.Stderr:
+		o.logger.Error("error during getting version", zap.String("stderr", stderr))
+	case <-ctx.Done():
+		o.logger.Error("timeout during getting version", zap.Error(ctx.Err()))
+	case _ = <-status:
+		break
 	}
-	if err := cmd.Wait(); err != nil {
-		o.logger.Error("error waiting command to finalize", zap.Error(err))
-		return "", err
-	}
+
 	o.logger.Info("running opentelemetry-contrib version", zap.String("version", versionOutput))
 	return versionOutput, nil
 }
 
-func (o *openTelemetryBackend) Start(ctx context.Context, cancelFunc context.CancelFunc) error {
-	o.runningCollectors = make(map[string]context.Context)
+func (o *openTelemetryBackend) Start(ctx context.Context, cancelFunc context.CancelFunc) (err error) {
+	o.runningCollectors = make(map[string]runningPolicy)
 	o.mainCancelFunction = cancelFunc
 	o.mainContext = ctx
 	o.startTime = time.Now()
-	executable, err := memexec.New(openTelemetryContribBinary)
+	currentWd, err := os.Getwd()
 	if err != nil {
-		o.logger.Error("error during creating executable", zap.Error(err))
-		return err
+		o.otelExecutablePath = currentWd + "/otelcol-contrib"
 	}
-	o.otelExecutable = executable
 	// apply sample policy - remove after POC
 	currentVersion, err := o.Version()
 	if err != nil {
@@ -141,12 +127,13 @@ func (o *openTelemetryBackend) Start(ctx context.Context, cancelFunc context.Can
 		return err
 	}
 	o.logger.Info("starting open-telemetry backend using version", zap.String("version", currentVersion))
+	// TODO remove sample policy
 	err = o.ApplyPolicy(samplePolicy, false)
 	if err != nil {
 		o.logger.Error("error updating policies", zap.Error(err))
 		return err
 	}
-
+	// TODO end remove sample policy
 	policiesData, err := o.policyRepo.GetAll()
 	if err != nil {
 		defer cancelFunc()
@@ -168,30 +155,19 @@ func (o *openTelemetryBackend) Start(ctx context.Context, cancelFunc context.Can
 func (o *openTelemetryBackend) Stop(_ context.Context) error {
 	o.logger.Info("stopping all running policies")
 	o.mainCancelFunction()
-	for policyID, policyCtx := range o.runningCollectors {
+	for policyID, policyEntry := range o.runningCollectors {
 		o.logger.Debug("stopping policy context", zap.String("policy_id", policyID))
-		policyCtx.Done()
+		policyEntry.ctx.Done()
 	}
-	defer func(executable *memexec.Exec) {
-		err := executable.Close()
-		if err != nil {
-			o.logger.Error("error closing executable", zap.Error(err))
-		}
-	}(o.otelExecutable)
 	return nil
 }
 
 func (o *openTelemetryBackend) FullReset(_ context.Context) error {
 	o.logger.Info("resetting all policies and restarting")
-	for policyID, policyCtx := range o.runningCollectors {
+	for policyID, policyEntry := range o.runningCollectors {
 		o.logger.Debug("stopping policy context", zap.String("policy_id", policyID))
-		policyCtx.Done()
-		policy, err := o.policyRepo.Get(policyID)
-		if err != nil {
-			o.logger.Error("failed to get policy", zap.Error(err))
-			return err
-		}
-		err = o.ApplyPolicy(policy, true)
+		policyEntry.ctx.Done()
+		err := o.ApplyPolicy(policyEntry.policyData, true)
 		if err != nil {
 			return err
 		}

@@ -5,31 +5,27 @@ import (
 	"time"
 )
 
-var samplePolicyData = `
+var samplePolicyData = `---
 receivers:
   httpcheck:
-    targets:
-      - endpoint: http://localhost:8000/health
-        method: GET
-      - endpoint: http://localhost:8000/health
-        method: GET
-    collection_interval: 5s
-
+    endpoint: http://localhost:8000/health
+    method: GET
+    collection_interval: 1s
 exporters:
-	otlphttp:
-		endpoint: http://localhost:0
-	logging:
-		verbosity: detailed
-		sampling_initial: 10
-		sampling_thereafter: 200
-
-service: # tbd
-	metrics:
-		exporters: 
-			- otlphttp
-			-logging
-		receivers: 
-			-httpcheck
+  otlphttp:
+    endpoint: http://localhost:0
+  logging:
+    verbosity: detailed
+    sampling_initial: 10
+    sampling_thereafter: 200
+service:
+  pipelines:
+    metrics:
+      exporters: 
+        - otlphttp
+        - logging
+      receivers: 
+        - httpcheck
 `
 
 var samplePolicy = policies.PolicyData{
