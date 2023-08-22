@@ -5,14 +5,9 @@ ngx-monaco-editor {
     color: #969fb9 !important;
 }
 nb-card {
-    width: 50vw;
     min-width: 500px;
 }
-@media (max-width: 1550px) {
-    nb-card {
-      width: 36vw; 
-    }
-}
+
 .switch-button {
     color: #3089fc;
     background-color: transparent;

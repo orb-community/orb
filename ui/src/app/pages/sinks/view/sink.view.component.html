@@ -1,5 +1,5 @@
 <header data-orb-qa-id="sink#view" class="row">
-  <div class="col-3">
+  <div class="col-4">
     <xng-breadcrumb class="orb-breadcrumb" data-orb-qa-id="breadcrumb">
       <ng-container
         *xngBreadcrumbItem="let breadcrumb; let info = info; let first = first"
@@ -11,8 +11,17 @@
     </xng-breadcrumb>
     <h4>{{ strings.sink.view.header }}</h4>
   </div>
-  <div class="col-4">
-    <div style="margin-left: 100px; margin-top: 20px;">
+  <div class="col-7" *ngIf="!isLoading">
+    <div style="margin-top: 20px; float: right;">
+      <button 
+      (click)="openDeleteModal()" 
+      class="card-button  delete-button" 
+      nbButton shape="round" 
+      *ngIf="!isEditMode()"
+      style="color: #df316f !important;">
+        <nb-icon icon="trash-2-outline"></nb-icon>
+        Delete Sink
+      </button>
       <button
       (click)="save()"
       [disabled]="!canSave()"
@@ -21,6 +30,7 @@
       *ngIf="isEditMode()"
       shape="round"
       >
+      <nb-icon icon="save-outline"></nb-icon>
       Save
       </button>
       <button
@@ -38,7 +48,7 @@
 </header>
 
 <div *ngIf="!isLoading" class="row" #content>
-  <div class="card-col col-3">
+  <div class="card-col col-4">
     <ngx-sink-details [(editMode)]="editMode.details" [sink]="sink">
     </ngx-sink-details>
   </div>

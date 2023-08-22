@@ -123,18 +123,20 @@ nb-form-field {
 }
 .agent-save {
   float: right;
-  color: #fff !important;
+  color: #3089fc !important;
   font-family: 'Montserrat', sans-serif;
   font-weight: 700;
   text-transform: none !important;
-  margin-left: 5px;
   &.btn-disabled {
     background: #2b3148;
   }
 
   &:not(.btn-disabled) {
-    background-color: #3089fc !important;
+    background-color: transparent !important;
   }
+}
+.agent-save:hover {
+  background-color: #171c30 !important;
 }
 .agent-reset {
   float: right;

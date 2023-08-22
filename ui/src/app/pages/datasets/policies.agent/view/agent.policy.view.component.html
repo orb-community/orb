@@ -12,20 +12,27 @@
       <button nbButton ghost [className]="'refresh-button'" shape="round" (click)="fetchData()">
         <i class="fa fa-redo" [ngClass]="isLoading == true ? 'rotate' : 'paused'" style="color: #3089fc;"></i>
       </button>
-  
       <span class="last-update" *ngIf="lastUpdate !== null" style="margin-top: 8px; margin-right: 15px;">
         Last Update: {{ lastUpdate | date: 'HH:mm:ss a' }}
       </span>
-  
-      <button (click)="onOpenDuplicatePolicy()" class="policy-duplicate" data-orb-qa-id="button#reset" nbButton shape="round">
-        Duplicate Policy
-      </button>
-      <button (click)="save()" [disabled]="!canSave()" class="policy-save" nbButton *ngIf="isEditMode()" shape="round">
-        Save
-      </button>
-      <button (click)="discard()" class="policy-discard" nbButton shape="round" *ngIf="isEditMode()">
-        Discard
-      </button>
+      <div *ngIf="!isLoading" >
+        <button (click)="discard()" class="policy-discard" nbButton shape="round" *ngIf="isEditMode()">
+          Discard Changes
+        </button>
+        <button (click)="save()" [disabled]="!canSave()" class="policy-save" nbButton *ngIf="isEditMode()" shape="round">
+          <nb-icon icon="save-outline"></nb-icon>
+          Save Changes
+        </button>
+        <button (click)="onOpenDuplicatePolicy()" class="policy-duplicate" data-orb-qa-id="button#reset" nbButton shape="round" *ngIf="!isEditMode()">
+          <nb-icon icon="copy-outline"></nb-icon>
+          Duplicate Policy
+        </button>
+        <button (click)="openDeleteModal()" class="card-button delete-button" data-orb-qa-id="button#reset" nbButton shape="round" *ngIf="!isEditMode()"
+        style="color: #df316f !important;">
+          <nb-icon icon="trash-2-outline"></nb-icon>
+          Delete Policy
+        </button>
+      </div>
     </div>
   </div>
 </header>

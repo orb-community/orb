@@ -144,14 +144,35 @@
 .card-button {
   border-radius: 15px !important;
   float: right !important;
-  color: #fff !important;
+  color: #3089fc !important;
   font-family: 'Montserrat', sans-serif;
   font-weight: 600;
   text-transform: none !important;
+  background-color: transparent !important;
 
   &.btn-disabled {
     background: #2b3148;
   }
+}
+.card-button:hover {
+  background-color: #171c30 !important;
+}
+
+.add-button {
+  border-radius: 15px !important;
+  float: right !important;
+  color: #fff !important;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  text-transform: none !important;
+  background-color: #3089fc !important;
+
+  &.btn-disabled {
+    background: #2b3148;
+  }
+}
+.delete-button:hover {
+ background-color: #2b3148 !important;
 }
 
 .tableWrapper {
