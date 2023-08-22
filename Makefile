@@ -23,10 +23,12 @@ DOCKERS = $(addprefix docker_,$(SERVICES))
 DOCKERS_DEV = $(addprefix docker_dev_,$(SERVICES))
 CGO_ENABLED ?= 0
 GOARCH ?= $(shell dpkg-architecture -q DEB_BUILD_ARCH)
+GO_OS ?= $(shell dpkg-architecture -q DEB_TARGET_ARCH_OS)
+DIODE_TAG=develop
 ORB_VERSION = $(shell cat VERSION)
 COMMIT_HASH = $(shell git rev-parse --short HEAD)
-OTEL_COLLECTOR_CONTRIB_VERSION = 0.81.0
-OTEL_CONTRIB_URL="https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v$(OTEL_COLLECTOR_CONTRIB_VERSION)/otelcol-contrib_$(OTEL_COLLECTOR_CONTRIB_VERSION)_linux_amd64.tar.gz"
+OTEL_COLLECTOR_CONTRIB_VERSION ?= 0.81.0
+OTEL_CONTRIB_URL ?= "https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v$(OTEL_COLLECTOR_CONTRIB_VERSION)/otelcol-contrib_$(OTEL_COLLECTOR_CONTRIB_VERSION)_$(GO_OS)_$(GOARCH).tar.gz"
 
 define compile_service
     echo "ORB_VERSION: $(ORB_VERSION)"
@@ -241,6 +243,7 @@ agent_full:
 	  --build-arg PKTVISOR_TAG=$(PKTVISOR_TAG) \
 	  --build-arg DIODE_TAG=$(DIODE_TAG) \
 	  --build-arg ORB_TAG=${ORB_TAG} \
+	  --build-arg OTEL_TAG=${OTEL_COLLECTOR_CONTRIB_VERSION} \
 	  --tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent-full:$(REF_TAG) \
 	  --tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent-full:$(ORB_VERSION) \
 	  --tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent-full:$(ORB_VERSION)-$(COMMIT_HASH) \
