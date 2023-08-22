@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { Agent, AgentStates } from 'app/common/interfaces/orb/agent.interface';
 import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
@@ -9,6 +9,9 @@ import { STRINGS } from 'assets/text/strings';
 import { Observable, Subscription } from 'rxjs';
 import { shareReplay } from 'rxjs/operators';
 import { updateMenuItems } from 'app/pages/pages-menu';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { NbDialogService } from '@nebular/theme';
+import { AgentDeleteComponent } from '../delete/agent.delete.component';
 
 @Component({
   selector: 'ngx-agent-view',
@@ -40,6 +43,9 @@ export class AgentViewComponent implements OnInit, OnDestroy {
     protected route: ActivatedRoute,
     protected orb: OrbService,
     protected cdr: ChangeDetectorRef,
+    protected notificationService: NotificationsService,
+    private dialogService: NbDialogService,
+    private router: Router,
   ) {
     this.agent = {};
     this.datasets = {};
@@ -93,5 +99,25 @@ export class AgentViewComponent implements OnInit, OnDestroy {
     if (value) {
       this.refreshAgent();
     }
+  }
+  openDeleteModal() {
+    const { name, id } = this.agent;
+    this.dialogService
+      .open(AgentDeleteComponent, {
+        context: { name },
+        autoFocus: true,
+        closeOnEsc: true,
+      })
+      .onClose.subscribe((confirm) => {
+        if (confirm) {
+          this.agentsService.deleteAgent(id).subscribe(() => {
+            this.notificationService.success('Agent successfully deleted', '');
+            this.goBack();
+          });
+        }
+      });
+  }
+  goBack() {
+    this.router.navigateByUrl('/pages/fleet/agents');
   }
 }

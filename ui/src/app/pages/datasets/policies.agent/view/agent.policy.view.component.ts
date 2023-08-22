@@ -29,6 +29,7 @@ import { filter } from 'rxjs/operators';
 import { PolicyDuplicateComponent } from '../duplicate/agent.policy.duplicate.confirmation';
 import { NbDialogService } from '@nebular/theme';
 import { updateMenuItems } from 'app/pages/pages-menu';
+import { AgentPolicyDeleteComponent } from '../delete/agent.policy.delete.component';
 
 @Component({
   selector: 'ngx-agent-view',
@@ -216,5 +217,28 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy, OnChanges {
 
   ngOnDestroy() {
     this.policySubscription?.unsubscribe();
+  }
+  openDeleteModal() {
+    const { name: name, id } = this.policy as AgentPolicy;
+    this.dialogService
+      .open(AgentPolicyDeleteComponent, {
+        context: { name },
+        autoFocus: true,
+        closeOnEsc: true,
+      })
+      .onClose.subscribe((confirm) => {
+        if (confirm) {
+          this.policiesService.deleteAgentPolicy(id).subscribe(() => {
+            this.notifications.success(
+              'Agent Policy successfully deleted',
+              '',
+            );
+            this.goBack();
+          });
+        }
+      });
+  }
+  goBack() {
+    this.router.navigateByUrl('/pages/datasets/policies');
   }
 }

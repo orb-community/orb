@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Sink } from 'app/common/interfaces/orb/sink.interface';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { SinksService } from 'app/common/services/sinks/sinks.service';
@@ -10,6 +10,8 @@ import { Subscription } from 'rxjs';
 import { updateMenuItems } from 'app/pages/pages-menu';
 import * as YAML from 'yaml';
 import { CodeEditorService } from 'app/common/services/code.editor.service';
+import { SinkDeleteComponent } from '../delete/sink.delete.component';
+import { NbDialogService } from '@nebular/theme';
 
 @Component({
   selector: 'ngx-sink-view',
@@ -42,6 +44,8 @@ export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
     private sinks: SinksService,
     private route: ActivatedRoute,
     private editor: CodeEditorService,
+    private dialogService: NbDialogService,
+    private router: Router,
     ) { }
 
   ngOnInit(): void {
@@ -148,5 +152,25 @@ export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnDestroy(): void {
     this.sinkSubscription.unsubscribe();
+  }
+  openDeleteModal() {
+    const { id } = this.sink;
+    this.dialogService
+      .open(SinkDeleteComponent, {
+        context: { sink: this.sink },
+        autoFocus: true,
+        closeOnEsc: true,
+      })
+      .onClose.subscribe((confirm) => {
+        if (confirm) {
+          this.sinks.deleteSink(id).subscribe(() => {
+            this.notifications.success('Sink successfully deleted', '');
+            this.goBack();
+          });
+        }
+      });
+  }
+  goBack() {
+    this.router.navigateByUrl('/pages/sinks');
   }
 }
