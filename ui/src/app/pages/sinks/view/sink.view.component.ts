@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Sink } from 'app/common/interfaces/orb/sink.interface';
+import { Sink, SinkStates } from 'app/common/interfaces/orb/sink.interface';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { SinksService } from 'app/common/services/sinks/sinks.service';
 import { SinkConfigComponent } from 'app/shared/components/orb/sink/sink-config/sink-config.component';
@@ -29,6 +29,10 @@ export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
 
   sinkSubscription: Subscription;
 
+  lastUpdate: Date | null = null;
+
+  sinkStates = SinkStates;
+  
   editMode = {
     details: false,
     config: false,
@@ -147,6 +151,7 @@ export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
       this.sink = sink;
       this.isLoading = false;
       this.cdr.markForCheck();
+      this.lastUpdate = new Date();
     });
   }
 
