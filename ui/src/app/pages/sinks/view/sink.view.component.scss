@@ -75,9 +75,19 @@ ngx-sink-config {
 }
 
 header {
+  display: flex;
   justify-content: space-between;
+  align-items: center;
 }
 
+.left-content {
+  flex: 1;
+}
+
+.right-content {
+  display: flex;
+  align-items: center;
+}
 h4 {
   font-family: 'Montserrat', sans-serif;
   font-size: 1.5rem;
@@ -113,3 +123,30 @@ h4 {
     }
   }
 }
+.fa.fa-circle {
+  font-size: 11px;
+}
+.state {
+  font-size: 16px;
+  font-weight: 700;
+}
+.orb-service- {
+  &active {
+    color: #6fcf97;
+  }
+  &unknown {
+    color: #9b51e0;
+  }
+  &error {
+    color: #df316f;
+  }
+  &idle {
+    color: #f2994a; 
+  }
+}
+
+.last-update {
+  color: #969fb9;
+  font-size: 14px;
+}
+
