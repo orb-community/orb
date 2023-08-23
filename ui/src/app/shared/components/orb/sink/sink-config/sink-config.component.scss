@@ -26,3 +26,27 @@ ngx-monaco-editor {
 .align-items {
     margin-left: auto;
 }
+nb-card {
+    margin: 15px 0 !important;
+    padding: 0 !important;
+    border: transparent;
+    border-radius: 0.5rem;
+  
+    nb-card-header {
+      background-color: #232940;
+      border-bottom: transparent;
+      border-radius: 0.5rem;
+      color: #969fb9;
+      padding: 0.5rem 1rem;
+    }
+  
+    nb-card-body {
+      label {
+        color: #969fb9;
+      }
+  
+      span {
+        text-align: end;
+      }
+    }
+  }
