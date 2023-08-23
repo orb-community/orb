@@ -14,3 +14,6 @@ orb:
     otel:
       binary: /usr/local/bin/otelcol-contrib
       config_file: /opt/orb/agent_default.yaml
+    otel:
+      binary: /usr/local/bin/otelcol-contrib
+      config_file: /opt/orb/agent_default.yaml

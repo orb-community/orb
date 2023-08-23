@@ -239,7 +239,7 @@ agent:
 	  -f agent/docker/Dockerfile .
 	  
 agent_full:
-	docker build --progress=plain  --no-cache \
+	docker build --no-cache \
 	  --build-arg PKTVISOR_TAG=$(PKTVISOR_TAG) \
 	  --build-arg DIODE_TAG=$(DIODE_TAG) \
 	  --build-arg ORB_TAG=${REF_TAG} \
