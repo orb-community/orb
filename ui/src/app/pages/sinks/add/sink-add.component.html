@@ -25,7 +25,7 @@
         class="sink-create"
           nbButton
         shape="round"
-        [disabled]="!canCreate()"
+        [disabled]="!canCreate() || isRequesting"
         >
         Create
         </button> 

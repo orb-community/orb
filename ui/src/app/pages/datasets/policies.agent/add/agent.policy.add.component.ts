@@ -133,6 +133,8 @@ kind: collection`;
 
   uploadIconKey = 'upload-outline'
 
+  isRequesting: boolean;  
+
   constructor(
     private agentPoliciesService: AgentPoliciesService,
     private notificationsService: NotificationsService,
@@ -141,6 +143,7 @@ kind: collection`;
     private _formBuilder: FormBuilder,
     private editor: CodeEditorService,
   ) {
+    this.isRequesting = false;
     this.agentPolicyID = this.route.snapshot.paramMap.get('id');
     this.agentPolicy = this.newAgent();
     this.isEdit = !!this.agentPolicyID;
@@ -287,6 +290,7 @@ kind: collection`;
     reader.readAsText(file);
   }
   onSubmit() {
+    this.isRequesting = true;
     let payload = {};
     if (this.isJsonMode) {
       const policy = JSON.parse(this.codejson);

@@ -19,7 +19,7 @@
         <button (click)="discard()" class="policy-discard" nbButton shape="round" *ngIf="isEditMode()">
           Discard Changes
         </button>
-        <button (click)="save()" [disabled]="!canSave()" class="policy-save" nbButton *ngIf="isEditMode()" shape="round">
+        <button (click)="save()" [disabled]="!canSave() || isRequesting || !hasChanges()" class="policy-save" nbButton *ngIf="isEditMode()" shape="round">
           <nb-icon icon="save-outline"></nb-icon>
           Save Changes
         </button>

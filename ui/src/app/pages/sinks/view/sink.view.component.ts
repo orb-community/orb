@@ -38,6 +38,8 @@ export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
     config: false,
   }
 
+  isRequesting: boolean;
+
   @ViewChild(SinkDetailsComponent) detailsComponent: SinkDetailsComponent;
 
   @ViewChild(SinkConfigComponent)
@@ -50,7 +52,9 @@ export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
     private editor: CodeEditorService,
     private dialogService: NbDialogService,
     private router: Router,
-    ) { }
+    ) { 
+      this.isRequesting = false;
+    }
 
   ngOnInit(): void {
     this.fetchData();
@@ -102,6 +106,7 @@ export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   save() {
+    this.isRequesting = true;
     const { id, backend } = this.sink;
     const sinkDetails = this.detailsComponent.formGroup?.value;
     const tags = this.detailsComponent.selectedTags;
@@ -138,6 +143,7 @@ export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
         this.sink = resp;
         this.fetchData();
         this.notifications.success('Sink updated successfully', '');
+        this.isRequesting = false;
       });
     } catch (err) {
       this.notifications.error('Failed to edit Sink', 'Error: Invalid configuration');
@@ -177,5 +183,16 @@ export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
   }
   goBack() {
     this.router.navigateByUrl('/pages/sinks');
+  }
+  hasChanges() {
+    const sinkDetails = this.detailsComponent.formGroup?.value;
+    const tags = this.detailsComponent.selectedTags;
+    let selectedTags = JSON.stringify(tags);
+    let orb_tags = this.sink.tags ? JSON.stringify(this.sink.tags) : "{}";
+
+    if (sinkDetails.name !== this.sink.name || sinkDetails?.description !== this.sink?.description || selectedTags !== orb_tags) {
+      return true;
+    }
+    return false;
   }
 }
