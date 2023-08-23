@@ -35,6 +35,8 @@ export class AgentAddComponent {
 
   agentID;
 
+  isRequesting: boolean;
+
   constructor(
     private agentsService: AgentsService,
     private dialogService: NbDialogService,
@@ -43,6 +45,7 @@ export class AgentAddComponent {
     private route: ActivatedRoute,
     private _formBuilder: FormBuilder,
   ) {
+    this.isRequesting = false;
     this.isLoading = true;
 
     this.agentID = this.route.snapshot.paramMap.get('id');
@@ -113,6 +116,7 @@ export class AgentAddComponent {
 
   // saves current agent group
   onFormSubmit() {
+    this.isRequesting = true;
     const payload = this.wrapPayload(false);
 
     if (this.isEdit) {

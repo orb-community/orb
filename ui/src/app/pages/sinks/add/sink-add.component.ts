@@ -27,6 +27,8 @@ export class SinkAddComponent {
 
     sinkBackend: any;
 
+    isRequesting: boolean;  
+    
     constructor(
         private sinksService: SinksService,
         private notificationsService: NotificationsService,
@@ -34,6 +36,7 @@ export class SinkAddComponent {
         private editor: CodeEditorService,
     ) {
         this.createMode = true;
+        this.isRequesting = false;
     }
 
     canCreate() {
@@ -56,6 +59,7 @@ export class SinkAddComponent {
     }
 
     createSink() {
+        this.isRequesting = true;
         const sinkDetails = this.detailsComponent.formGroup?.value;
         const tags = this.detailsComponent.selectedTags;
         const configSink = this.configComponent.code;

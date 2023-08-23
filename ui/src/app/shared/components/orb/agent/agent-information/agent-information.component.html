@@ -17,7 +17,8 @@
       class="agent-save" 
       nbButton 
       *ngIf="editMode" 
-      shape="round">
+      shape="round"
+      [disabled]="isRequesting || !hasChanges() || !canSave()">
       <nb-icon icon="save-outline"></nb-icon>
       Save
     </button>

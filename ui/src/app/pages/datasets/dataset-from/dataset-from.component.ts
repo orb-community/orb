@@ -66,6 +66,8 @@ export class DatasetFromComponent implements OnInit {
     return acc;
   }, {});
 
+  isRequesting: boolean;
+
   constructor(
     private agentGroupsService: AgentGroupsService,
     private agentPoliciesService: AgentPoliciesService,
@@ -87,6 +89,7 @@ export class DatasetFromComponent implements OnInit {
     this._selectedSinks = [];
     this.unselectedSinks = [];
     this.sinkIDs = [];
+    this.isRequesting = false;
 
     this.getDatasetAvailableConfigList();
 
@@ -289,6 +292,7 @@ export class DatasetFromComponent implements OnInit {
   }
 
   onFormSubmit() {
+    this.isRequesting = true;
     const payload = {
       name: this.createNewName(),
       agent_group_id: this.form.controls.agent_group_id.value,

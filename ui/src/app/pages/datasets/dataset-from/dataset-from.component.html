@@ -129,7 +129,7 @@
     <nb-card-footer>
         <button
                 (click)="onFormSubmit()"
-                [disabled]="form.invalid || sinkIDs.length === 0"
+                [disabled]="form.invalid || sinkIDs.length === 0 || isRequesting"
                 class="dataset-save-button"
                 nbButton
                 shape="round"

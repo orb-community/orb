@@ -55,6 +55,8 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy, OnChanges {
     interface: false,
   };
 
+  isRequesting: boolean;
+
   lastUpdate: Date | null = null;
 
   @ViewChild(PolicyDetailsComponent) detailsComponent: PolicyDetailsComponent;
@@ -71,7 +73,9 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy, OnChanges {
     private router: Router,
     private dialogService: NbDialogService,
     private editor: CodeEditorService,
-  ) {}
+  ) {
+    this.isRequesting = false;
+  }
 
   ngOnInit() {
     this.fetchData();
@@ -123,6 +127,8 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   save() {
+    this.isRequesting = true;
+
     const { format, version, name, description, id, backend } = this.policy;
 
     // get values from all modified sections' forms and submit through service.
@@ -165,6 +171,7 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy, OnChanges {
         this.discard();
         this.policy = resp;
         this.fetchData();
+        this.isRequesting = false;
       });
 
     } catch (err) {
@@ -240,5 +247,21 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy, OnChanges {
   }
   goBack() {
     this.router.navigateByUrl('/pages/datasets/policies');
+  }
+
+  hasChanges() {
+    let policyDetails = this.detailsComponent.formGroup?.value;
+    const tags = this.detailsComponent.selectedTags;
+
+    const description = this.policy.description ? this.policy.description : "";
+    const formsDescription = policyDetails.description === null ? "" : policyDetails.description
+
+    let selectedTags = JSON.stringify(tags);
+    let orb_tags = JSON.stringify(this.policy.tags);
+
+    if (policyDetails.name !== this.policy.name || formsDescription !== description || selectedTags !== orb_tags) {
+      return true;
+    }
+    return false;
   }
 }

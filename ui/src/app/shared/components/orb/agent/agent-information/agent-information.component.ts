@@ -23,6 +23,8 @@ export class AgentInformationComponent implements OnInit {
 
   selectedTags: Tags;
 
+  isRequesting: boolean;
+
   @Output()
   refreshRequests = new EventEmitter<boolean>();
 
@@ -32,6 +34,7 @@ export class AgentInformationComponent implements OnInit {
     private fb: FormBuilder,
   ) {
     this.isResetting = false;
+    this.isRequesting = false;
     this.editMode = false;
     this.updateForm();
   }
@@ -100,6 +103,7 @@ export class AgentInformationComponent implements OnInit {
     return false;
   }
   save () {
+    this.isRequesting = true;
     const name = this.formGroup.controls.name.value;
     const payload = {
       name: name,
@@ -109,7 +113,19 @@ export class AgentInformationComponent implements OnInit {
       this.notificationService.success('Agent successfully updated', '');
       this.refreshRequests.emit(true);
       this.editMode = false;
+      this.isRequesting = false;
     });
+  }
 
+  hasChanges() {
+    const name = this.formGroup.controls.name.value;
+
+    let selectedTags = JSON.stringify(this.selectedTags);
+    let orb_tags = JSON.stringify(this.agent.orb_tags);
+
+    if (this.agent.name !== name || selectedTags !== orb_tags) {
+      return true;
+    }
+    return false;
   }
 }

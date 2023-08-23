@@ -127,12 +127,9 @@ nb-form-field {
   font-family: 'Montserrat', sans-serif;
   font-weight: 700;
   text-transform: none !important;
+  background-color: transparent !important;
   &.btn-disabled {
-    background: #2b3148;
-  }
-
-  &:not(.btn-disabled) {
-    background-color: transparent !important;
+    color: #8c93b1 !important;
   }
 }
 .agent-save:hover {

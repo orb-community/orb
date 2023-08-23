@@ -200,7 +200,7 @@
               shape="round"
               status="primary"
               type="button"
-              [disabled]="!canCreate()">
+              [disabled]="!canCreate() || isRequesting">
               {{ strings.stepper.save }}
             </button>
             <button

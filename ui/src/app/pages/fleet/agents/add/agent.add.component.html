@@ -148,7 +148,8 @@
                     nbButton
                     shape="round"
                     status="primary"
-                    type="submit">
+                    type="submit"
+                    [disabled]="isRequesting">
               {{ strings.stepper.save }}
             </button>
             <button data-orb-qa-id="button#back"
