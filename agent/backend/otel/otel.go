@@ -18,8 +18,7 @@ import (
 
 var _ backend.Backend = (*openTelemetryBackend)(nil)
 
-//go:embed otelcol-contrib
-var openTelemetryContribBinary []byte
+const DefaultPath = "/usr/local/bin/otelcol-contrib"
 
 type openTelemetryBackend struct {
 	logger    *zap.Logger
@@ -60,13 +59,18 @@ type openTelemetryBackend struct {
 
 // Configure initializes the backend with the given configuration
 func (o *openTelemetryBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo,
-	_ map[string]string, otelConfig map[string]interface{}) error {
+	config map[string]string, otelConfig map[string]interface{}) error {
 	o.logger = logger
 	o.logger.Info("configuring OpenTelemetry backend")
 	o.policyRepo = repo
 	var err error
 	o.otelReceiverTaps = []string{"otelcol-contrib", "receivers", "processors", "extensions"}
 	o.policyConfigDirectory, err = os.MkdirTemp("", "otel-policies")
+	if path, ok := config["binary"]; ok {
+		o.otelExecutablePath = path
+	} else {
+		o.otelExecutablePath = DefaultPath
+	}
 	if err != nil {
 		o.logger.Error("failed to create temporary directory for policy configs", zap.Error(err))
 		return err
@@ -94,21 +98,26 @@ func (o *openTelemetryBackend) Version() (string, error) {
 	defer cancel()
 	var versionOutput string
 	command := cmd.NewCmdOptions(defaultCmdOptions, o.otelExecutablePath, "--version")
-	status := command.Start()
-	select {
-	case stdout := <-command.Stdout:
-		versionOutput = stdout
-		break
-	case stderr := <-command.Stderr:
-		o.logger.Error("error during getting version", zap.String("stderr", stderr))
-	case <-ctx.Done():
-		o.logger.Error("timeout during getting version", zap.Error(ctx.Err()))
-	case _ = <-status:
-		break
-	}
+	go func() {
+		status := command.Start()
+		select {
+		case stdout := <-command.Stdout:
+			o.logger.Info("running opentelemetry-contrib version", zap.String("stdout", stdout))
+			o.otelCurrVersion = stdout
+			break
+		case stderr := <-command.Stderr:
+			o.logger.Error("error during getting version", zap.String("stderr", stderr))
+		case <-ctx.Done():
+			o.logger.Error("timeout during getting version", zap.Error(ctx.Err()))
+		case _ = <-status:
+			break
+		}
 
-	o.logger.Info("running opentelemetry-contrib version", zap.String("version", versionOutput))
+		o.logger.Info("running opentelemetry-contrib version", zap.String("version", versionOutput))
+	}()
+
 	return versionOutput, nil
+
 }
 
 func (o *openTelemetryBackend) Start(ctx context.Context, cancelFunc context.CancelFunc) (err error) {

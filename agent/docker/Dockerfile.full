@@ -1,13 +1,13 @@
 ARG ORB_TAG=develop
+ARG PKTVISOR_TAG=develop
+ARG DIODE_TAG=develop
 FROM orbcommunity/orb-agent:${ORB_TAG} AS orb
 
-ARG DIODE_TAG=develop
 FROM orbcommunity/diode-agent:${DIODE_TAG} AS diode
 
 RUN SQPATH=$(pip show suzieq |  sed -n 's/Location: \(.*\)/\1/p') \
     && cp -rf "$SQPATH/suzieq" "/tmp/suzieq-patched"
 
-ARG PKTVISOR_TAG=develop
 FROM orbcommunity/pktvisor:${PKTVISOR_TAG}
 
 ARG OTEL_TAG=0.81.0
@@ -32,10 +32,10 @@ RUN mkdir /opt/otelcol-contrib
 RUN wget -O /opt/otelcol-contrib/otelcol_contrib.tar.gz https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v$(echo $OTEL_TAG)/otelcol-contrib_$(echo $OTEL_TAG)_linux_amd64.tar.gz
 RUN tar -xvf /opt/otelcol-contrib/otelcol_contrib.tar.gz -C /opt/otelcol-contrib/
 RUN ls /opt/otelcol-contrib
-RUN cp /opt/otelcol-contrib/otelcol_contrib /usr/local/bin/otelcol_contrib
+RUN cp /opt/otelcol-contrib/otelcol-contrib /usr/local/bin/otelcol-contrib
 RUN rm /opt/otelcol-contrib/LICENSE
 RUN	rm /opt/otelcol-contrib/README.md
-RUN chmod +x /usr/local/bin/otelcol_contrib
+RUN chmod +x /usr/local/bin/otelcol-contrib
 
 # adding suzieq patched
 COPY --from=diode /root/.suzieq /root/.suzieq
