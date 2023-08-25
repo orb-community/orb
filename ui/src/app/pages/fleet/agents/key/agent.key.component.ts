@@ -12,14 +12,18 @@ import { Agent } from 'app/common/interfaces/orb/agent.interface';
 export class AgentKeyComponent implements OnInit {
   strings = STRINGS.agents;
 
-  command2copy: string;
+  defaultCommandCopy: string;
+  defaultCommandShow: string;
+  fileConfigCommandCopy: string;
+  fileConfigCommandShow: string;
 
-  command2show: string;
   copyCommandIcon: string;
 
   key2copy: string;
   copyKeyIcon: string;
   saveKeyIcon: string;
+  hideCommand: boolean;
+  hideCommand2: boolean;
 
   @Input() agent: Agent = {};
 
@@ -28,6 +32,8 @@ export class AgentKeyComponent implements OnInit {
     protected route: ActivatedRoute,
     protected router: Router,
   ) {
+    this.hideCommand = false;
+    this.hideCommand2 = false;
   }
 
   ngOnInit(): void {
@@ -39,7 +45,7 @@ export class AgentKeyComponent implements OnInit {
   }
 
   makeCommand2Copy() {
-    this.command2copy = `docker run -d --restart=always --net=host \\
+    this.defaultCommandCopy = `docker run -d --restart=always --net=host \\
 -e ORB_CLOUD_ADDRESS=${ document.location.hostname } \\
 -e ORB_CLOUD_MQTT_ID=${ this.agent.id } \\
 -e ORB_CLOUD_MQTT_CHANNEL_ID=${ this.agent.channel_id } \\
@@ -47,13 +53,31 @@ export class AgentKeyComponent implements OnInit {
 -e PKTVISOR_PCAP_IFACE_DEFAULT=auto \\
 orbcommunity/orb-agent`;
 
-    this.command2show = `docker run -d --restart=always --net=host \\
+    this.defaultCommandShow = `docker run -d --restart=always --net=host \\
 -e ORB_CLOUD_ADDRESS=${ document.location.hostname } \\
 -e ORB_CLOUD_MQTT_ID=${ this.agent.id } \\
 -e ORB_CLOUD_MQTT_CHANNEL_ID=${ this.agent.channel_id } \\
 -e ORB_CLOUD_MQTT_KEY=${ this.agent.key } \\
 -e PKTVISOR_PCAP_IFACE_DEFAULT=<mark>auto</mark> \\
 orbcommunity/orb-agent`;
+
+  this.fileConfigCommandCopy = `docker run -d --restart=always --net=host \\
+-e ORB_CLOUD_ADDRESS=${ document.location.hostname } \\
+-e ORB_CLOUD_MQTT_ID=${ this.agent.id } \\
+-e ORB_CLOUD_MQTT_CHANNEL_ID=${ this.agent.channel_id } \\
+-e ORB_CLOUD_MQTT_KEY=${ this.agent.key } \\
+-e PKTVISOR_PCAP_IFACE_DEFAULT=auto \\
+-v \${PWD}/:/usr/local/orb/ \\
+orbcommunity/orb-agent run -c /usr/local/orb/agent.yaml`;
+
+  this.fileConfigCommandShow = `docker run -d --restart=always --net=host \\
+-e ORB_CLOUD_ADDRESS=${ document.location.hostname } \\
+-e ORB_CLOUD_MQTT_ID=${ this.agent.id } \\
+-e ORB_CLOUD_MQTT_CHANNEL_ID=${ this.agent.channel_id } \\
+-e ORB_CLOUD_MQTT_KEY=${ this.agent.key } \\
+-e PKTVISOR_PCAP_IFACE_DEFAULT=<mark>auto</mark> \\
+-v \${PWD}/:/usr/local/orb/ \\
+orbcommunity/orb-agent run -c /usr/local/orb/agent.yaml`;
   }
 
   toggleIcon (target) {
@@ -73,13 +97,31 @@ orbcommunity/orb-agent`;
   onClose() {
     this.dialogRef.close(false);
   }
-  downloadCommand() {
-    const blob = new Blob([this.command2copy], { type: 'text/plain' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${this.agent.id}.txt`;
-    a.click();
-    window.URL.revokeObjectURL(url);
+  downloadCommand(commandType: string) {
+    if (commandType === 'default') {
+      const blob = new Blob([this.defaultCommandCopy], { type: 'text/plain' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${this.agent.id}.txt`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    }
+    else if (commandType === 'fileConfig') {
+      const blob = new Blob([this.fileConfigCommandCopy], { type: 'text/plain' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${this.agent.id}_configfile.txt`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    }
+
+  }
+  toggleProvisioningCommand() {
+    this.hideCommand = !this.hideCommand;
+  }
+  toggleProvisioningCommand2() {
+    this.hideCommand2 = !this.hideCommand2;
   }
 }
