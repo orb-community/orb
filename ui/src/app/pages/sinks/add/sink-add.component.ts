@@ -88,6 +88,9 @@ export class SinkAddComponent {
         this.sinksService.addSink(payload).subscribe(() => {
             this.notificationsService.success('Sink successfully created', '');
             this.goBack();
+        },
+        (error) => {
+          this.isRequesting = false;
         });
     }
 
