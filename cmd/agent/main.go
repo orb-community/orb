@@ -56,17 +56,6 @@ func Run(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	// include pktvisor backend by default if binary is at default location
-	_, err = os.Stat(pktvisor.DefaultBinary)
-	if err == nil && configData.OrbAgent.Backends == nil {
-		configData.OrbAgent.Backends = make(map[string]map[string]string)
-		configData.OrbAgent.Backends["pktvisor"] = make(map[string]string)
-		configData.OrbAgent.Backends["pktvisor"]["binary"] = pktvisor.DefaultBinary
-		if len(cfgFiles) > 0 {
-			configData.OrbAgent.Backends["pktvisor"]["config_file"] = cfgFiles[0]
-		}
-	}
-
 	// logger
 	var logger *zap.Logger
 	atomicLevel := zap.NewAtomicLevel()
@@ -86,6 +75,18 @@ func Run(cmd *cobra.Command, args []string) {
 	defer func(logger *zap.Logger) {
 		_ = logger.Sync()
 	}(logger)
+
+	// include pktvisor backend by default if binary is at default location
+	_, err = os.Stat(pktvisor.DefaultBinary)
+	logger.Info("backends loaded", zap.Any("backends", configData.OrbAgent.Backends))
+	if err == nil && configData.OrbAgent.Backends == nil {
+		configData.OrbAgent.Backends = make(map[string]map[string]string)
+		configData.OrbAgent.Backends["pktvisor"] = make(map[string]string)
+		configData.OrbAgent.Backends["pktvisor"]["binary"] = pktvisor.DefaultBinary
+		if len(cfgFiles) > 0 {
+			configData.OrbAgent.Backends["pktvisor"]["config_file"] = cfgFiles[0]
+		}
+	}
 
 	// new agent
 	a, err := agent.New(logger, configData)
