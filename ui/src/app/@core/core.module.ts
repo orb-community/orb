@@ -47,6 +47,10 @@ export const NB_CORE_PROVIDERS = [
             resetPass: {
               endpoint: environment.resetPassUrl,
               method: 'put',
+              redirect: {
+                success: '/auth/login',
+                failure: null
+              }
             },
             logout:
              { method: null, redirect: { success: '/', failure: '/' } },
