@@ -9,6 +9,7 @@ import { NotificationsService } from 'app/common/services/notifications/notifica
 import { AgentKeyComponent } from '../key/agent.key.component';
 import { Tags } from 'app/common/interfaces/orb/tag';
 
+
 @Component({
   selector: 'ngx-agent-add-component',
   templateUrl: './agent.add.component.html',
@@ -127,6 +128,9 @@ export class AgentAddComponent {
     } else {
       this.agentsService.addAgent(payload).subscribe((resp) => {
         this.openKeyModal(resp);
+      },
+      (error) => {
+        this.isRequesting = false;
       });
     }
   }

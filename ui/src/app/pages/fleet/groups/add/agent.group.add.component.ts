@@ -300,6 +300,9 @@ export class AgentGroupAddComponent
           '',
         );
         this.goBack();
+      },
+      (error) => {
+        this.isRequesting = false;
       });
     }
   }

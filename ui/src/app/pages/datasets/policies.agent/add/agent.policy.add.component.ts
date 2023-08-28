@@ -328,6 +328,7 @@ kind: collection`;
           'Failed to create Agent Policy',
           `Error: ${error.status} - ${error.statusText} - ${error.error.error}`,
         );
+        this.isRequesting = false;
       },
     );   
   }
