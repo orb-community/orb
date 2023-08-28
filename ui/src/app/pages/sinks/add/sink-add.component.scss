@@ -20,33 +20,9 @@ button {
 .sink-cancel {
   background-color: #3089fc !important; 
 }
-  ngx-sink-details {
-    flex: 0 1 22rem;
-  }
-  
-  ngx-sink-config {
-    flex: 2 1 auto;
-    min-height: 30rem !important;
-  
-     nb-card {
-      height: 30rem !important;
-    }
-  }
-  
-  .row {
-    display: flex;
-    gap: 10px;
-  }
-  
-  .card-col {
-    flex-grow: 1;
-  }
-  
-  @media (min-width: 768px) {
-    .card-col {
-      min-width: 370px !important;
-    }
-  }
+
+
+
   
   
   header {

@@ -12,7 +12,7 @@
       <h4>{{ strings.sink.add.header }}</h4>
     </div>
     <div class="col-4">
-      <div style="margin-left: 100px; margin-top: 20px;">
+      <div style="float: right; margin-top: 20px;">
         <button
         (click)="goBack()"
         shape="round"
@@ -34,17 +34,15 @@
       
 </header>
 <div class="row">
-  <div class="card-col col-3">
+  <div class="card-col col-4">
     <ngx-sink-details 
     [(createMode)]="createMode"
     (sinkBackend)="getBackendEmit($event)"
     >
     </ngx-sink-details>
   </div>
-  <div class="card-col col-7">
+  <div class="card-col col-8">
     <ngx-sink-config [(createMode)]="createMode" [(sinkBackend)]="sinkBackend">
     </ngx-sink-config>
   </div>
-
-
 </div>
