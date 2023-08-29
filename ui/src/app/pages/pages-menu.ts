@@ -10,16 +10,23 @@ export const MENU: NbMenuItem[] = [
     home: true,
   },
   {
-    title: 'Agents',
-    icon: 'pin-outline',
-    link: '/pages/fleet/agents',
-    pathMatch: 'full',
-  },
-  {
-    title: 'Agent Groups',
-    icon: 'globe-outline',
-    link: '/pages/fleet/groups',
-    pathMatch: 'full',
+    title: 'Fleet Management',
+    icon: 'cube-outline',
+    pathMatch: 'prefix',
+    children: [
+      {
+        title: 'Agents',
+        icon: 'pin-outline',
+        link: '/pages/fleet/agents',
+        pathMatch: 'full',
+      },
+      {
+        title: 'Agent Groups',
+        icon: 'globe-outline',
+        link: '/pages/fleet/groups',
+        pathMatch: 'full',
+      },
+    ],
   },
   {
     title: 'Policy Management',
@@ -51,6 +58,13 @@ export const MENU_ITEMS = [
 
 export function updateMenuItems(pageName: string) {
   MENU_ITEMS.forEach(item => {
-    item.selected = item.title === pageName;
-  })
+    if (item.children) {
+      item.children.forEach(child => {
+        child.selected = child.title === pageName;
+      });
+      item.selected = item.children.some(child => child.selected);
+    } else {
+      item.selected = item.title === pageName;
+    }
+  });
 }
