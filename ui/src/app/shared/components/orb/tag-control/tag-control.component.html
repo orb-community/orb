@@ -4,25 +4,28 @@
       <mat-chip
         *ngFor="let tag of tags | keyvalue; index as i;"
         [attr.data-orb-qa-id]="'orb_tag_' + i"
-        [style.background-color]="tag | tagcolor"
+        style="background-color: #2B3148;"
         class="orb-tag-chip "
         [value]="tag.key">
-        {{tag | tagchip}}
+        <span [style.color]="tag.key | tagcolor">{{ tag.key }}</span><span style="color: #969FB9;">:</span>&nbsp;
+        <span [style.color]="tag.value | tagcolor">{{ tag.value }}</span>
         <nb-icon (click)="onRemoveTag(tag.key)"
                  class="ml-1"
                  icon="close-outline"
-                 size="12"></nb-icon>
+                 size="12"
+                 style="color: #df316f;">
+        </nb-icon>
       </mat-chip>
       <mat-chip
         *ngIf="(tags | json) === '{}'"
-        [style.background-color]="'notag' | tagcolor"
+        style="background-color: #2B3148;"
         class="orb-tag-chip ">
-        No tag added
+        <span style="color: #df316f;">No tag added</span>
       </mat-chip>
     </mat-chip-list>
   </div>
 
-  <div>
+  <div style="margin-top: 5px;">
     <div class="container d-flex row px-0 mx-0">
       <div class="d-flex flex-column col-5 px-0 mx-0">
         <div>
@@ -40,11 +43,12 @@
                  name="key"
                  [(ngModel)]="key"
                  fullWidth="true"
-                 nbInput/>
+                 nbInput
+                 (keyup.enter)="onEnter()"/>
         </div>
       </div>
       <div class="d-flex justify-content-center align-items-center col-1 mt-4 px-0 mx-0">
-        <nb-icon icon="plus-outline" size="14" style="color: #df316f;"></nb-icon>
+        <span class="two-dot">:</span>
       </div>
       <div class="d-flex flex-column col-5 px-0 mx-0">
         <div>
@@ -61,15 +65,16 @@
                  fullWidth="true"
                  required
                  ngxEmptyInput
-                 nbInput/>
+                 nbInput
+                 (keyup.enter)="onEnter()"/>
         </div>
       </div>
       <div class="d-flex col-1 align-items-center justify-content-center mx-0 pl-4 px-0"
-           style="transform: translateY(14px);">
+           style="transform: translateY(14px); white-space: nowrap;">
         <button (click)="onAddTag()"
                 [disabled]="keyInput.invalid || valueInput.invalid"
                 data-orb-qa-id="button#addTag"
-                ghost
+                class="add-button"
                 nbButton>
           <nb-icon icon="plus-outline"
                    size="14"

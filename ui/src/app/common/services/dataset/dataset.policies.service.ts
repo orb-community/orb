@@ -40,10 +40,12 @@ export class DatasetPoliciesService {
       .get<Dataset>(`${environment.datasetPoliciesUrl}/${id}`)
       .pipe(
         catchError((err) => {
-          this.notificationsService.error(
-            'Failed to fetch Dataset of this Policy',
-            `Error: ${err.status} - ${err.statusText}`,
-          );
+          if (err.status !== 404 && err.error.error !== "non-existent entity") {
+            this.notificationsService.error(
+              'Failed to fetch Dataset of this Policy',
+              `Error: ${err.status} - ${err.statusText}`,
+            );
+          }
           err['id'] = id;
           return of(err);
         }),

@@ -84,6 +84,8 @@ export class AgentGroupAddComponent
 
   agentGroupID;
 
+  isRequesting: boolean;
+
   constructor(
     private agentGroupsService: AgentGroupsService,
     private agentsService: AgentsService,
@@ -94,6 +96,7 @@ export class AgentGroupAddComponent
     private _formBuilder: FormBuilder,
   ) {
     this.isLoading = true;
+    this.isRequesting = false;
 
     this.selectedTags = {};
     this.tagMatch.total = this.tagMatch.online = 0;
@@ -275,6 +278,7 @@ export class AgentGroupAddComponent
 
   // saves current agent group
   onFormSubmit() {
+    this.isRequesting = true;
     // validate:false
     const payload = this.wrapPayload(false);
 
@@ -296,6 +300,9 @@ export class AgentGroupAddComponent
           '',
         );
         this.goBack();
+      },
+      (error) => {
+        this.isRequesting = false;
       });
     }
   }

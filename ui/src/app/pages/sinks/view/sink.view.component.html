@@ -1,5 +1,5 @@
-<header data-orb-qa-id="sink#view" class="row">
-  <div class="col-7">
+<header data-orb-qa-id="sink#view">
+  <div class="left-content">
     <xng-breadcrumb class="orb-breadcrumb" data-orb-qa-id="breadcrumb">
       <ng-container
         *xngBreadcrumbItem="let breadcrumb; let info = info; let first = first"
@@ -11,16 +11,34 @@
     </xng-breadcrumb>
     <h4>{{ strings.sink.view.header }}</h4>
   </div>
-  <div class="col-3">
+  <div class="right-content">
+    <button nbButton ghost [className]="'refresh-button'" shape="round" (click)="fetchData()">
+      <i class="fa fa-redo" [ngClass]="isLoading == true ? 'rotate' : 'paused'" style="color: #3089fc;"></i>
+    </button>
+    <span class="last-update" *ngIf="lastUpdate !== null">
+      Last Update: {{ lastUpdate | date: 'HH:mm:ss a' }}
+    </span>
+  </div>
+  <div *ngIf="!isLoading" style="margin: 0 20px;">
+    <button 
+    (click)="openDeleteModal()" 
+    class="card-button  delete-button" 
+    nbButton shape="round" 
+    *ngIf="!isEditMode()"
+    style="color: #df316f !important; float: none !important;">
+      <nb-icon icon="trash-2-outline"></nb-icon>
+      Delete Sink
+    </button>
     <button
-      (click)="save()"
-      [disabled]="!canSave()"
-      class="policy-save"
-      nbButton
-      *ngIf="isEditMode()"
-      shape="round"
+    (click)="save()"
+    [disabled]="!canSave() || isRequesting || !hasChanges()"
+    class="policy-save"
+    nbButton
+    *ngIf="isEditMode()"
+    shape="round"
     >
-      Save
+    <nb-icon icon="save-outline"></nb-icon>
+    Save
     </button>
     <button
       (click)="discard()"
@@ -32,11 +50,29 @@
       Discard
     </button>
   </div>
+  <div style="margin-bottom: 23px;" *ngIf="!isLoading && !isEditMode()">
+    <div style="float: right;">
+      <span class="orb-service-{{ sink?.state }} state" style="margin-left: 10px;">
+        <i aria-hidden="true" class="fa fa-circle orb-service-{{ sink?.state }}"></i>
+        {{ sink?.state | ngxCapitalize }}
+      </span>
+    </div>
+    <div style="font-size: 14px; font-weight: 400; margin-top: 23px;">
+      <span>
+        Created on {{ sink?.ts_created | date: 'M/d/yy, HH:mm z' }}
+      </span>
+    </div>
+  </div>
+
 </header>
 
-<div *ngIf="!isLoading" class="row">
-  <ngx-sink-details [(editMode)]="editMode.details" [sink]="sink">
-  </ngx-sink-details>
-  <ngx-sink-config [(editMode)]="editMode.config" [sink]="sink">
-  </ngx-sink-config>
+<div *ngIf="!isLoading" class="row" #content>
+  <div class="card-col col-4">
+    <ngx-sink-details [(editMode)]="editMode.details" [sink]="sink">
+    </ngx-sink-details>
+  </div>
+  <div class="card-col col-8">
+    <ngx-sink-config [(editMode)]="editMode.config" [sink]="sink">
+    </ngx-sink-config>
+  </div>
 </div>

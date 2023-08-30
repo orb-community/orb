@@ -14,7 +14,7 @@ import (
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/processor"
 	"go.opentelemetry.io/collector/receiver"
-	"go.opentelemetry.io/otel/metric/global"
+	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
@@ -30,7 +30,7 @@ func StartOtelMetricsComponents(ctx context.Context, bridgeService *bridgeservic
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         logger,
 			TracerProvider: trace.NewNoopTracerProvider(),
-			MeterProvider:  global.MeterProvider(),
+			MeterProvider:  metric.NewMeterProvider(),
 			MetricsLevel:   configtelemetry.LevelDetailed,
 		},
 		BuildInfo: component.NewDefaultBuildInfo(),
@@ -60,7 +60,7 @@ func StartOtelMetricsComponents(ctx context.Context, bridgeService *bridgeservic
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         logger,
 			TracerProvider: trace.NewNoopTracerProvider(),
-			MeterProvider:  global.MeterProvider(),
+			MeterProvider:  metric.NewMeterProvider(),
 			MetricsLevel:   configtelemetry.LevelDetailed,
 		},
 	}
@@ -83,7 +83,7 @@ func StartOtelMetricsComponents(ctx context.Context, bridgeService *bridgeservic
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         logger,
 			TracerProvider: trace.NewNoopTracerProvider(),
-			MeterProvider:  global.MeterProvider(),
+			MeterProvider:  metric.NewMeterProvider(),
 			MetricsLevel:   configtelemetry.LevelDetailed,
 		},
 	}
@@ -118,7 +118,7 @@ func StartOtelLogsComponents(ctx context.Context, bridgeService *bridgeservice.S
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         logger,
 			TracerProvider: trace.NewNoopTracerProvider(),
-			MeterProvider:  global.MeterProvider(),
+			MeterProvider:  metric.NewMeterProvider(),
 			MetricsLevel:   configtelemetry.LevelDetailed,
 		},
 		BuildInfo: component.NewDefaultBuildInfo(),
@@ -148,7 +148,7 @@ func StartOtelLogsComponents(ctx context.Context, bridgeService *bridgeservice.S
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         logger,
 			TracerProvider: trace.NewNoopTracerProvider(),
-			MeterProvider:  global.MeterProvider(),
+			MeterProvider:  metric.NewMeterProvider(),
 			MetricsLevel:   configtelemetry.LevelDetailed,
 		},
 	}
@@ -171,7 +171,7 @@ func StartOtelLogsComponents(ctx context.Context, bridgeService *bridgeservice.S
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         logger,
 			TracerProvider: trace.NewNoopTracerProvider(),
-			MeterProvider:  global.MeterProvider(),
+			MeterProvider:  metric.NewMeterProvider(),
 			MetricsLevel:   configtelemetry.LevelDetailed,
 		},
 	}
@@ -206,7 +206,7 @@ func StartOtelTracesComponents(ctx context.Context, bridgeService *bridgeservice
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         logger,
 			TracerProvider: trace.NewNoopTracerProvider(),
-			MeterProvider:  global.MeterProvider(),
+			MeterProvider:  metric.NewMeterProvider(),
 			MetricsLevel:   configtelemetry.LevelDetailed,
 		},
 		BuildInfo: component.NewDefaultBuildInfo(),
@@ -236,7 +236,7 @@ func StartOtelTracesComponents(ctx context.Context, bridgeService *bridgeservice
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         logger,
 			TracerProvider: trace.NewNoopTracerProvider(),
-			MeterProvider:  global.MeterProvider(),
+			MeterProvider:  metric.NewMeterProvider(),
 			MetricsLevel:   configtelemetry.LevelDetailed,
 		},
 	}
@@ -259,7 +259,7 @@ func StartOtelTracesComponents(ctx context.Context, bridgeService *bridgeservice
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         logger,
 			TracerProvider: trace.NewNoopTracerProvider(),
-			MeterProvider:  global.MeterProvider(),
+			MeterProvider:  metric.NewMeterProvider(),
 			MetricsLevel:   configtelemetry.LevelDetailed,
 		},
 	}

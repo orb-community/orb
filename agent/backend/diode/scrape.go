@@ -6,6 +6,7 @@ package diode
 
 import (
 	"context"
+	"go.opentelemetry.io/otel/sdk/metric"
 	"strconv"
 	"time"
 
@@ -15,7 +16,6 @@ import (
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
-	"go.opentelemetry.io/otel/metric/global"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
@@ -73,7 +73,7 @@ func (d *diodeBackend) receiveOtlp() {
 					TelemetrySettings: component.TelemetrySettings{
 						Logger:         d.logger,
 						TracerProvider: trace.NewNoopTracerProvider(),
-						MeterProvider:  global.MeterProvider(),
+						MeterProvider:  metric.NewMeterProvider(),
 					},
 					BuildInfo: component.NewDefaultBuildInfo(),
 				}

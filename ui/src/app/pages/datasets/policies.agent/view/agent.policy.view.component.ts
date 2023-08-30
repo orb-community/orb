@@ -18,6 +18,7 @@ import { PolicyConfig } from 'app/common/interfaces/orb/policy/config/policy.con
 import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { OrbService } from 'app/common/services/orb.service';
+import { CodeEditorService } from 'app/common/services/code.editor.service';
 import { PolicyDetailsComponent } from 'app/shared/components/orb/policy/policy-details/policy-details.component';
 import { PolicyInterfaceComponent } from 'app/shared/components/orb/policy/policy-interface/policy-interface.component';
 import { STRINGS } from 'assets/text/strings';
@@ -25,6 +26,10 @@ import { Subscription } from 'rxjs';
 import yaml from 'js-yaml';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { filter } from 'rxjs/operators';
+import { PolicyDuplicateComponent } from '../duplicate/agent.policy.duplicate.confirmation';
+import { NbDialogService } from '@nebular/theme';
+import { updateMenuItems } from 'app/pages/pages-menu';
+import { AgentPolicyDeleteComponent } from '../delete/agent.policy.delete.component';
 
 @Component({
   selector: 'ngx-agent-view',
@@ -50,6 +55,8 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy, OnChanges {
     interface: false,
   };
 
+  isRequesting: boolean;
+
   lastUpdate: Date | null = null;
 
   @ViewChild(PolicyDetailsComponent) detailsComponent: PolicyDetailsComponent;
@@ -64,15 +71,25 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy, OnChanges {
     private cdr: ChangeDetectorRef,
     private notifications: NotificationsService,
     private router: Router,
-  ) {}
+    private dialogService: NbDialogService,
+    private editor: CodeEditorService,
+  ) {
+    this.isRequesting = false;
+  }
 
   ngOnInit() {
     this.fetchData();
+    updateMenuItems('Policy Management');
   }
 
-  fetchData() {
+  fetchData(newPolicyId?: any) {
     this.isLoading = true;
-    this.policyId = this.route.snapshot.paramMap.get('id');
+    if (newPolicyId) {
+      this.policyId = newPolicyId;
+    }
+    else {
+      this.policyId = this.route.snapshot.paramMap.get('id');
+    }
     this.retrievePolicy();
     this.lastUpdate = new Date();
   }
@@ -93,10 +110,14 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy, OnChanges {
       ? this.detailsComponent?.formGroup?.status === 'VALID'
       : true;
 
-    const interfaceValid = this.editMode.interface
-      ? this.interfaceComponent?.formControl?.status === 'VALID'
-      : true;
+    let config = this.interfaceComponent?.code
+    let interfaceValid = false;
 
+    if (this.editor.isJson(config)) {
+      interfaceValid = true;
+    } else if (this.editor.isYaml(config)) {
+      interfaceValid = true;
+    }
     return detailsValid && interfaceValid;
   }
 
@@ -106,6 +127,8 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   save() {
+    this.isRequesting = true;
+
     const { format, version, name, description, id, backend } = this.policy;
 
     // get values from all modified sections' forms and submit through service.
@@ -148,6 +171,7 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy, OnChanges {
         this.discard();
         this.policy = resp;
         this.fetchData();
+        this.isRequesting = false;
       });
 
     } catch (err) {
@@ -169,24 +193,75 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy, OnChanges {
         this.cdr.markForCheck();
       });
   }
-
-  duplicatePolicy() {
-    this.policiesService
-      .duplicateAgentPolicy(this.policyId || this.policy.id)
-      .subscribe((resp) => {
-        if (resp?.id) {
-          this.notifications.success(
-            'Agent Policy Duplicated',
-            `New Agent Policy Name: ${resp?.name}`,
-          );
-          this.router.navigate([`view/${resp.id}`], {
-            relativeTo: this.route.parent,
-          });
+  onOpenDuplicatePolicy() {
+    const policy = this.policy.name;
+    this.dialogService
+      .open(PolicyDuplicateComponent, {
+        context: { policy },
+        autoFocus: true,
+        closeOnEsc: true,
+      })
+      .onClose.subscribe((confirm) => {
+        if (confirm) {
+          this.duplicatePolicy(this.policy);
         }
-      });
+      })
+  }
+  duplicatePolicy(agentPolicy: any) {
+    this.policiesService
+    .duplicateAgentPolicy(agentPolicy.id)
+    .subscribe((newAgentPolicy) => {
+      if (newAgentPolicy?.id) {
+        this.notifications.success(
+          'Agent Policy Duplicated',
+          `New Agent Policy Name: ${newAgentPolicy?.name}`,
+        );
+        this.router.navigateByUrl(`/pages/datasets/policies/view/${newAgentPolicy?.id}`);
+        this.fetchData(newAgentPolicy.id);
+      }
+    });
   }
 
   ngOnDestroy() {
     this.policySubscription?.unsubscribe();
+  }
+  openDeleteModal() {
+    const { name: name, id } = this.policy as AgentPolicy;
+    this.dialogService
+      .open(AgentPolicyDeleteComponent, {
+        context: { name },
+        autoFocus: true,
+        closeOnEsc: true,
+      })
+      .onClose.subscribe((confirm) => {
+        if (confirm) {
+          this.policiesService.deleteAgentPolicy(id).subscribe(() => {
+            this.notifications.success(
+              'Agent Policy successfully deleted',
+              '',
+            );
+            this.goBack();
+          });
+        }
+      });
+  }
+  goBack() {
+    this.router.navigateByUrl('/pages/datasets/policies');
+  }
+
+  hasChanges() {
+    let policyDetails = this.detailsComponent.formGroup?.value;
+    const tags = this.detailsComponent.selectedTags;
+
+    const description = this.policy.description ? this.policy.description : "";
+    const formsDescription = policyDetails.description === null ? "" : policyDetails.description
+
+    let selectedTags = JSON.stringify(tags);
+    let orb_tags = JSON.stringify(this.policy.tags);
+
+    if (policyDetails.name !== this.policy.name || formsDescription !== description || selectedTags !== orb_tags) {
+      return true;
+    }
+    return false;
   }
 }

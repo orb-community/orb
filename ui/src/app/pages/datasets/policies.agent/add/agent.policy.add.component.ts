@@ -4,14 +4,10 @@ import { NotificationsService } from 'app/common/services/notifications/notifica
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
-import { DynamicFormConfig } from 'app/common/interfaces/orb/dynamic.form.interface';
 import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
-import { PolicyTap } from 'app/common/interfaces/orb/policy/policy.tap.interface';
-import { NbDialogService } from '@nebular/theme';
-import { HandlerPolicyAddComponent } from 'app/pages/datasets/policies.agent/add/handler.policy.add.component';
 import { STRINGS } from '../../../../../assets/text/strings';
 import { Tags } from 'app/common/interfaces/orb/tag';
-
+import { CodeEditorService } from 'app/common/services/code.editor.service';
 const CONFIG = {
   TAPS: 'TAPS',
   BACKEND: 'BACKEND',
@@ -32,38 +28,9 @@ export class AgentPolicyAddComponent {
   // agent policy general information - name, desc, backend
   detailsFG: FormGroup;
 
-  // selected tap, input_type
-  tapFG: FormGroup;
-
-  // dynamic input config
-  inputConfigFG: FormGroup;
-
-  // dynamic input filter config
-  inputFilterFG: FormGroup;
-
   // #key inputs holders
   // selected backend object
   backend: { [propName: string]: any };
-
-  // selected tap object
-  tap: PolicyTap;
-
-  // selected input object
-  input: {
-    version?: string,
-    config?: DynamicFormConfig,
-    filter?: DynamicFormConfig,
-  };
-
-  // holds all handlers added by user
-  modules: {
-    [propName: string]: {
-      name?: string,
-      type?: string,
-      config?: { [propName: string]: {} | any },
-      filter?: { [propName: string]: {} | any },
-    },
-  } = {};
 
   // #services responses
   // hold info retrieved
@@ -74,22 +41,15 @@ export class AgentPolicyAddComponent {
     },
   };
 
-  availableTaps: { [propName: string]: PolicyTap };
-
-  availableInputs: {
-    [propName: string]: {
-      version?: string,
-      config?: DynamicFormConfig,
-      filter?: DynamicFormConfig,
-    },
-  };
-
   agentPolicy: AgentPolicy;
 
   agentPolicyID: string;
 
-  @ViewChild('editorComponent')
-  editor;
+  @ViewChild('editorComponentYaml')
+  editorYaml;
+
+  @ViewChild('editorComponentJson')
+  editorJson;
 
   isEdit: boolean;
 
@@ -103,8 +63,29 @@ export class AgentPolicyAddComponent {
     lineDecorationsWidth: 0,
     lineNumbersMinChars: 0,
   };
+  editorOptionsJson = {
+    theme: 'vs-dark',
+    dragAndDrop: true,
+    wordWrap: 'on',
+    detectIndentation: true,
+    tabSize: 2,
+    autoIndent: 'full',
+    formatOnPaste: true,
+    trimAutoWhitespace: true,
+    formatOnType: true,
+    matchBrackets: 'always',
+    language: 'json',
+    automaticLayout: true,
+    glyphMargin: false,
+    folding: true,
+    readOnly: false,
+    scrollBeyondLastLine: false,
+    // Undocumented see https://github.com/Microsoft/vscode/issues/30795#issuecomment-410998882
+    lineDecorationsWidth: 0,
+    lineNumbersMinChars: 0,
+  };
 
-  code = `handlers:
+  codeyaml = `handlers:
   modules:
     default_dns:
       type: dns
@@ -115,8 +96,28 @@ input:
   tap: default_pcap
 kind: collection`;
 
+  codejson = 
+  `{
+  "handlers": {
+    "modules": {
+      "default_dns": {
+        "type": "dns"
+      },
+      "default_net": {
+        "type": "net"
+      }
+    }
+  },
+  "input": {
+    "input_type": "pcap",
+    "tap": "default_pcap"
+  },
+  "kind": "collection"
+}
+    `;
+
   // is config specified wizard mode or in YAML or JSON
-  isWizard = true;
+  isJsonMode = true;
 
   // format definition
   format = 'yaml';
@@ -132,20 +133,22 @@ kind: collection`;
 
   uploadIconKey = 'upload-outline'
 
+  isRequesting: boolean;  
+
   constructor(
     private agentPoliciesService: AgentPoliciesService,
     private notificationsService: NotificationsService,
     private router: Router,
     private route: ActivatedRoute,
     private _formBuilder: FormBuilder,
-    private dialogService: NbDialogService,
+    private editor: CodeEditorService,
   ) {
+    this.isRequesting = false;
     this.agentPolicyID = this.route.snapshot.paramMap.get('id');
     this.agentPolicy = this.newAgent();
     this.isEdit = !!this.agentPolicyID;
 
     this.readyForms();
-
 
     Promise.all([
       this.isEdit ? this.retrieveAgentPolicy() : Promise.resolve(),
@@ -154,13 +157,16 @@ kind: collection`;
       .then(() => this.updateForms())
       .catch((reason) => console.warn(`Couldn't fetch ${this.agentPolicy?.backend} data. Reason: ${reason}`));
   }
-
+  ngOnInit(): void {
+    this.selectedTags = this.agentPolicy?.tags || {};
+  }
   resizeComponents() {
     const timeoutId = setTimeout(() => {
       window.dispatchEvent(new Event('resize'));
       clearTimeout(timeoutId);
     }, 50);
-    !!this.editor?.layout && this.editor.layout();
+    !!this.editorJson?.layout && this.editorJson.layout();
+    !!this.editorYaml?.layout && this.editorYaml.layout();
   }
 
   newAgent() {
@@ -199,43 +205,16 @@ kind: collection`;
   }
 
   readyForms() {
-    const {
-      name,
-      description,
-      backend,
-      policy_data,
-      tags,
-      policy: {
-        input: {
-          tap,
-          input_type,
-        },
-        handlers: {
-          modules,
-        },
-      },
-    } = this.agentPolicy;
-
-    if (policy_data) {
-      this.code = policy_data;
-    }
-    this.selectedTags = { ...tags };
-    this.modules = modules;
-
     this.detailsFG = this._formBuilder.group({
       name: [name, [
           Validators.required,
           Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$'),
           Validators.maxLength(64),
       ]],
-      description: [description, [
+      description: [[
         Validators.maxLength(64),
       ]],
-      backend: [{ backend }, [Validators.required]],
-    });
-    this.tapFG = this._formBuilder.group({
-      selected_tap: [tap, Validators.required],
-      input_type: [input_type, Validators.required],
+      backend: [[Validators.required]],
     });
   }
 
@@ -254,13 +233,11 @@ kind: collection`;
     const wizard = format !== this.format;
 
     if (policy_data) {
-      this.isWizard = false;
-      this.code = policy_data;
+      this.isJsonMode = false;
+      this.codeyaml = policy_data;
     }
 
     this.detailsFG.patchValue({ name, description, backend });
-
-    this.modules = handlers?.modules || {};
 
     if (wizard) {
       this.onBackendSelected(backend).catch(reason => console.warn(`${reason}`));
@@ -284,168 +261,10 @@ kind: collection`;
   }
 
   onBackendSelected(selectedBackend) {
-    return new Promise((resolve) => {
+    return new Promise(() => {
       this.backend = this.availableBackends[selectedBackend];
       this.backend['config'] = {};
-
-      // todo hardcoded for pktvisor
-      this.getBackendData().then(() => {
-        resolve(null);
-      });
     });
-  }
-
-  getBackendData() {
-    return Promise.all([this.getTaps(), this.getInputs()])
-      .then(value => {
-        if (this.isEdit && this.agentPolicy && this.isWizard) {
-          const selected_tap = this.agentPolicy.policy.input.tap;
-          this.tapFG.patchValue({ selected_tap }, { emitEvent: true });
-          this.onTapSelected(selected_tap);
-          this.tapFG.controls.selected_tap.disable();
-        }
-
-      }, reason => console.warn(`Cannot retrieve backend data - reason: ${JSON.parse(reason)}`))
-      .catch(reason => {
-        console.warn(`Cannot retrieve backend data - reason: ${JSON.parse(reason)}`);
-      });
-  }
-
-  getTaps() {
-    return new Promise((resolve) => {
-      this.isLoading[CONFIG.TAPS] = true;
-      this.agentPoliciesService.getBackendConfig([this.backend.backend, 'taps'])
-        .subscribe(taps => {
-          this.availableTaps = taps.reduce((acc, curr) => {
-            acc[curr.name] = curr;
-            return acc;
-          }, {});
-
-          this.isLoading[CONFIG.TAPS] = false;
-
-          resolve(taps);
-        });
-    });
-  }
-
-  onTapSelected(selectedTap) {
-    this.tap = this.availableTaps[selectedTap];
-    this.tapFG.controls.selected_tap.patchValue(selectedTap);
-
-    const { input } = this.agentPolicy.policy;
-    const { input_type, config_predefined, filter_predefined } = this.tap;
-
-    this.tap.config = {
-      ...config_predefined,
-      ...input.config,
-    };
-
-    this.tap.filter = {
-      ...filter_predefined,
-      ...input.filter,
-    };
-
-    if (input_type) {
-      this.onInputSelected(input_type);
-    } else {
-      this.input = null;
-      this.tapFG.controls.input_type.reset('');
-    }
-  }
-
-  getInputs() {
-    return new Promise((resolve) => {
-      this.isLoading[CONFIG.INPUTS] = true;
-      this.agentPoliciesService.getBackendConfig([this.backend.backend, 'inputs'])
-        .subscribe(inputs => {
-          this.availableInputs = !!inputs && inputs;
-
-          this.isLoading[CONFIG.INPUTS] = false;
-
-          resolve(inputs);
-        });
-    });
-
-  }
-
-  onInputSelected(input_type) {
-    // TODO version here
-    this.input = this.availableInputs[input_type]['1.0'];
-
-    this.tapFG.patchValue({ input_type });
-
-    // input type config model
-    const { config: inputConfig, filter: filterConfig } = this.input;
-    // if editing, some values might not be overrideable any longer, all should be prefilled in form
-    const { config: agentConfig, filter: agentFilter } = this.agentPolicy.policy.input;
-    // tap config values, cannot be overridden if set
-    const { config_predefined: preConfig, filter_predefined: preFilter } = this.tap;
-
-    // populate form controls for config
-    const inputConfDynamicCtrl = Object.entries(inputConfig)
-      .reduce((acc, [key, input]) => {
-        const value = agentConfig?.[key] || '';
-        if (!preConfig?.includes(key)) {
-          acc[key] = [
-            value,
-            [!!input?.props?.required && input.props.required === true ? Validators.required : Validators.nullValidator],
-          ];
-        }
-        return acc;
-      }, {});
-
-    this.inputConfigFG = Object.keys(inputConfDynamicCtrl).length > 0 ? this._formBuilder.group(inputConfDynamicCtrl) : null;
-
-    const inputFilterDynamicCtrl = Object.entries(filterConfig)
-      .reduce((acc, [key, input]) => {
-        const value = !!agentFilter?.[key] ? agentFilter[key] : '';
-        // const disabled = !!preConfig?.[key];
-        if (!preFilter?.includes(key)) {
-          acc[key] = [
-            value,
-            [!!input?.props?.required && input.props.required === true ? Validators.required : Validators.nullValidator],
-          ];
-        }
-        return acc;
-      }, {});
-
-    this.inputFilterFG = Object.keys(inputFilterDynamicCtrl).length > 0 ? this._formBuilder.group(inputFilterDynamicCtrl) : null;
-
-  }
-
-  addHandler() {
-    this.dialogService.open(HandlerPolicyAddComponent, {
-      context: {
-        backend: this.backend,
-        modules: this.modules,
-      },
-      autoFocus: true,
-      closeOnEsc: true,
-    }).onClose.subscribe((handler) => {
-      // save handler to the policy being created/edited
-      if (handler) {
-        this.onHandlerAdded(handler);
-      }
-    });
-  }
-
-  onHandlerAdded(handler) {
-    const { config, filter, type, name } = handler;
-
-    this.modules[name] = ({
-      type,
-      config,
-      filter,
-    });
-
-  }
-
-  onHandlerRemoved(name) {
-    delete this.modules[name];
-  }
-
-  hasModules() {
-    return Object.keys(this.modules).length > 0;
   }
 
   goBack() {
@@ -460,104 +279,64 @@ kind: collection`;
     const reader: FileReader = new FileReader();
   
     reader.onload = (e: any) => {
-      this.code = e.target.result;
+    const fileContent = e.target.result;
+      if (this.isJsonMode) {
+        this.codejson = fileContent;
+      } else {
+        this.codeyaml = fileContent;
+      }
     };
   
     reader.readAsText(file);
   }
-  onYAMLSubmit() {
-    const payload = {
-      name: this.detailsFG.controls.name.value,
-      description: this.detailsFG.controls.description.value,
-      backend: this.detailsFG.controls.backend.value,
-      format: this.format,
-      policy_data: this.code,
-      version: !!this.isEdit && !!this.agentPolicy.version && this.agentPolicy.version || 1,
-    };
-
-    this.submit(payload);
-  }
-
-  onFormSubmit() {
-    const payload = {
-      name: this.detailsFG.controls.name.value,
-      description: this.detailsFG.controls.description.value,
-      backend: this.detailsFG.controls.backend.value,
-      tags: { ...this.selectedTags },
-      version: !!this.isEdit && !!this.agentPolicy.version && this.agentPolicy.version || 1,
-      policy: {
-        kind: 'collection',
-        input: {
-          tap: this.tap.name,
-          input_type: this.tapFG.controls.input_type.value,
-          ...Object.entries(this.inputConfigFG?.controls || {})
-            .map(([key, control]) => ({ [key]: control.value }))
-            .reduce((acc, curr) => {
-              for (const [key, value] of Object.entries(curr)) {
-                if (!!value && value !== '') acc.config[key] = value;
-              }
-              return acc;
-            }, { config: {} }),
-          ...Object.entries(this.inputFilterFG?.controls || {})
-            .map(([key, control]) => ({ [key]: control.value }))
-            .reduce((acc, curr) => {
-              for (const [key, value] of Object.entries(curr)) {
-                if (!!value && value !== '') acc.filter[key] = value;
-              }
-              return acc;
-            }, { filter: {} }),
-        },
-        handlers: {
-          modules: Object.entries(this.modules).reduce((acc, [key, value]) => {
-            const { type, config, filter } = value;
-            acc[key] = {
-              type,
-              config,
-              filter,
-            };
-            if (Object.keys(config || {}).length > 0) acc[key][config] = config;
-            return acc;
-          }, {}),
-        },
-      },
-    } as AgentPolicy;
-
-    if (Object.keys(payload.policy?.input?.config).length <= 0)
-      delete payload.policy.input.config;
-    if (Object.keys(payload.policy?.input?.filter).length <= 0)
-      delete payload.policy.input.filter;
-
+  onSubmit() {
+    this.isRequesting = true;
+    let payload = {};
+    if (this.isJsonMode) {
+      const policy = JSON.parse(this.codejson);
+      payload = {
+        name: this.detailsFG.controls.name.value,
+        description: this.detailsFG.controls.description.value,
+        backend: this.detailsFG.controls.backend.value,
+        policy: policy,
+        version: !!this.isEdit && !!this.agentPolicy.version && this.agentPolicy.version || 1,
+        tags: this.selectedTags,
+      }
+    }
+    else {
+      payload = {
+        name: this.detailsFG.controls.name.value,
+        description: this.detailsFG.controls.description.value,
+        backend: this.detailsFG.controls.backend.value,
+        format: this.format,
+        policy_data: this.codeyaml,
+        version: !!this.isEdit && !!this.agentPolicy.version && this.agentPolicy.version || 1,
+        tags: this.selectedTags,
+      };
+    }
     this.submit(payload);
   }
 
   submit(payload) {
-    if (this.isEdit) {
-      // updating existing sink
-      this.agentPoliciesService.editAgentPolicy({ ...payload, id: this.agentPolicyID }).subscribe(
-        (next) => {
-          this.notificationsService.success('Agent Policy successfully updated', '');
-          this.viewPolicy(this.agentPolicyID);
-        },
-        (error) => {
-          this.notificationsService.error(
-            'Failed to edit Agent Policy',
-            `Error: ${error.status} - ${error.statusText}`,
-          );
-        },
-      );
+    this.agentPoliciesService.addAgentPolicy(payload).subscribe(
+      (next) => {
+        this.notificationsService.success('Agent Policy successfully created', '');
+        this.viewPolicy(next.id);
+      },
+      (error) => {
+        this.notificationsService.error(
+          'Failed to create Agent Policy',
+          `Error: ${error.status} - ${error.statusText} - ${error.error.error}`,
+        );
+        this.isRequesting = false;
+      },
+    );   
+  }
+  canCreate() {
+    if (this.isJsonMode) {
+      return this.editor.isJson(this.codejson);
     } else {
-      this.agentPoliciesService.addAgentPolicy(payload).subscribe(
-        (next) => {
-          this.notificationsService.success('Agent Policy successfully created', '');
-          this.viewPolicy(next.id);
-        },
-        (error) => {
-          this.notificationsService.error(
-            'Failed to create Agent Policy',
-            `Error: ${error.status} - ${error.statusText} - ${error.error.error}`,
-          );
-        },
-      );
+      return this.editor.isYaml(this.codeyaml);
     }
   }
 }

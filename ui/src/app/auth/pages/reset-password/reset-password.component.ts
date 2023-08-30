@@ -22,7 +22,7 @@ export class ResetPasswordComponent extends NbResetPasswordComponent {
 
   showMessages: any = {};
 
-  strategy: string = '';
+  strategy: string = 'email';
 
   submitted = false;
 

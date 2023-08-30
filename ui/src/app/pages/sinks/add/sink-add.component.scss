@@ -20,22 +20,10 @@ button {
 .sink-cancel {
   background-color: #3089fc !important; 
 }
-  ngx-sink-details {
-    flex: 0 1 22rem;
-  }
+
+
+
   
-  ngx-sink-config {
-    flex: 2 1 auto;
-    min-height: 30rem !important;
-  
-     nb-card {
-      height: 30rem !important;
-    }
-  }
-  
-  .row {
-    gap: 1rem;
-  }
   
   header {
     justify-content: space-between;
@@ -49,3 +37,31 @@ button {
     line-height: 2rem;
     margin-bottom: 1.5rem;
   }
+  ::ng-deep {
+    .orb-breadcrumb {
+      display: flex;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 12px;
+      font-style: normal;
+      font-weight: 500;
+      line-height: 12px;
+  
+      ::ng-deep {
+        .xng-breadcrumb-trail {
+          color: #fff !important;
+          margin-bottom: 0 !important;
+        }
+  
+        .xng-breadcrumb-link {
+          color: #969fb9 !important;
+          text-decoration: none !important;
+        }
+  
+        .xng-breadcrumb-separator {
+          color: #969fb9 !important;
+          text-decoration: none !important;
+        }
+      }
+    }
+  }
+  

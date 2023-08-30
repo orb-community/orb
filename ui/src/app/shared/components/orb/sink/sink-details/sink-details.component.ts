@@ -4,7 +4,6 @@ import { Sink, SinkBackends, SinkStates } from 'app/common/interfaces/orb/sink.i
 import { SinkFeature } from 'app/common/interfaces/orb/sink/sink.feature.interface';
 import { Tags } from 'app/common/interfaces/orb/tag';
 import { SinksService } from 'app/common/services/sinks/sinks.service';
-import { SinkConfigComponent } from '../sink-config/sink-config.component';
 
 
 @Component({

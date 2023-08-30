@@ -1,41 +1,122 @@
 <nb-card>
-  <nb-card-header>Agent Information</nb-card-header>
+  <nb-card-header>
+    Agent Information
+    <button
+      (click)="toggleEdit(true)"
+      *ngIf="!editMode"
+      class="card-button"
+      nbButton
+      shape="round"
+      status="primary">
+      <nb-icon icon="edit-outline"></nb-icon>
+      Edit
+    </button>
+    <button 
+      (click)="save()" 
+      [disabled]="!canSave()" 
+      class="agent-save" 
+      nbButton 
+      *ngIf="editMode" 
+      shape="round"
+      [disabled]="isRequesting || !hasChanges() || !canSave()">
+      <nb-icon icon="save-outline"></nb-icon>
+      Save
+    </button>
+    <button
+      (click)="toggleEdit(false)"
+      *ngIf="editMode"
+      class="card-button"
+      nbButton
+      shape="round"
+      style="color: #df316f !important;">
+      Discard
+    </button>
+
+  </nb-card-header>
   <nb-card-body>
-    <div class="row">
-      <div class="col-6">
-        <label>Agent Name</label>
-        <p>{{ agent?.name }}</p>
-
-      </div>
-      <div class="col-6">
-        <div class="float-right">
-          <label>Agent Version</label>
-          <p *ngIf="agent?.state !== agentStates.new" >{{ getAgentVersion() }}</p>
-          <p *ngIf="agent?.state === agentStates.new" >Agent never connected</p>
-        </div>
-      </div>
-      <div class="col-12">
-        <label>Agent ID</label>
-        <p>{{ agent?.id }}</p>
-
-        <label>Channel ID</label>
-        <p>{{ agent?.channel_id }}</p>
-
-        <label>Created on</label>
-        <p *ngIf="agent.state !== 'new'">{{ agent?.ts_created | date:'full'}}</p>
-      </div>
-    </div>
-    <ngx-combined-tag [agent]="agent"></ngx-combined-tag>
-    
-    <div class="block">
-      <button (click)="resetAgent()"
-              [disabled]="isResetting || agent?.state === 'new' || agent?.state === 'offline'"
-              class="agent-reset"
-              data-orb-qa-id="button#reset"
-              nbButton
-              shape="round">
-        Reset Agent
-      </button>
-    </div>
+    <div *ngIf="editMode; then editView else readView"></div>
   </nb-card-body>
 </nb-card>
+
+<ng-template #readView>
+  <div class="row">
+    <div class="col-6">
+      <label>Agent Name</label>
+      <p>{{ agent?.name }}</p>
+
+    </div>
+    <div class="col-6">
+      <div class="float-right">
+        <label>Agent Version</label>
+        <p *ngIf="agent?.state !== agentStates.new" >{{ getAgentVersion() }}</p>
+        <p *ngIf="agent?.state === agentStates.new" >Agent never connected</p>
+      </div>
+    </div>
+    <div class="col-12">
+      <label>Agent ID</label>
+      <p>{{ agent?.id }}</p>
+
+      <label>Channel ID</label>
+      <p>{{ agent?.channel_id }}</p>
+
+      <label>Created on</label>
+      <p *ngIf="agent.state !== 'new'">{{ agent?.ts_created | date:'full'}}</p>
+    </div>
+  </div>
+  <ngx-combined-tag [agent]="agent"></ngx-combined-tag>
+  
+  <div class="block">
+    <button (click)="resetAgent()"
+            [disabled]="isResetting || agent?.state === 'new' || agent?.state === 'offline'"
+            class="agent-reset"
+            data-orb-qa-id="button#reset"
+            nbButton
+            shape="round">
+      Reset Agent
+    </button>
+  </div>
+</ng-template>
+
+<ng-template #editView>
+  <div style="margin: 10px 0;">
+    <form [formGroup]="formGroup">
+      <nb-form-field>
+        <div class="d-flex flex-column">
+          <div>
+            <label class="font-weight-bold">Agent Name</label>
+            <span class="required">*</span>
+          </div>
+          <input
+            [placeholder]="agent.name"
+            autofocus
+            class="form-control"
+            data-orb-qa-id="name"
+            fieldSize="medium"
+            formControlName="name"
+            fullWidth="true"
+            nbInput/>
+          <div
+            *ngIf="formGroup.controls?.name.invalid
+            && (formGroup.controls?.name.dirty || formGroup.controls?.name.touched)"
+            class="required">
+            <div *ngIf="formGroup.controls?.name.errors?.required">
+              Name is required.
+            </div>
+            <div *ngIf="formGroup.controls?.name.errors?.pattern">
+              Name must start with a letter or "_" and contain only letters, numbers, "-" or "_"
+            </div>
+            <div *ngIf="formGroup?.controls.name.errors?.maxlength">
+              Name must not exceed 64 characters.
+            </div>
+            <div *ngIf="formGroup?.controls.name.errors?.minlength">
+              Name too short.
+            </div>
+          </div>
+        </div>
+      </nb-form-field>
+    </form>
+    <label class="font-weight-bold" style="color: #fff !important; margin-top: 5px;">Orb Tags</label>
+    <ngx-tag-control [(tags)]="selectedTags"></ngx-tag-control>
+  </div>
+ 
+</ng-template>

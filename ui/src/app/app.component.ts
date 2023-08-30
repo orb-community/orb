@@ -6,6 +6,7 @@
 import { Component, OnInit } from '@angular/core';
 import { GoogleAnalyticsService } from './common/services/analytics/google-service-analytics.service';
 import { environment } from 'environments/environment';
+import { BreadcrumbService } from 'xng-breadcrumb';
 
 @Component({
   selector: 'ngx-app',
@@ -13,7 +14,9 @@ import { environment } from 'environments/environment';
 })
 export class AppComponent implements OnInit {
 
-  constructor(private gtagService: GoogleAnalyticsService) {
+  constructor(
+    private gtagService: GoogleAnalyticsService,
+    private breadcrumbService: BreadcrumbService) {
   }
 
   ngOnInit() {

@@ -39,8 +39,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   // Mainflux - Menu and version
   userMenu = [
-    {title: 'Profile', link: '/pages/profile'},
-    {title: 'Log out', link: '/auth/logout'},
+    {title: 'Profile', link: '/pages/profile', icon: 'person-outline'},
+    {title: 'Log Out', link: '/auth/logout', icon: 'log-out-outline'},
   ];
   version = '0.0.0';
 

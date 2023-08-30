@@ -7,6 +7,7 @@
       nbButton
       shape="round"
       status="primary">
+      <nb-icon icon="edit-outline"></nb-icon>
       Edit
     </button>
     <button
@@ -15,7 +16,7 @@
       class="card-button"
       nbButton
       shape="round"
-      status="danger">
+      style="color: #df316f !important;">
       Discard
     </button>
   </nb-card-header>
@@ -74,7 +75,7 @@
             Name is required.
           </div>
           <div *ngIf="formGroup.controls?.name.errors?.pattern">
-            Name does not match the pattern.
+            Name must start with a letter or "_" and contain only letters, numbers, "-" or "_"
           </div>
           <div *ngIf="formGroup?.controls.name.errors?.maxlength">
             Name must not exceed 64 characters.

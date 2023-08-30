@@ -48,3 +48,9 @@ export const MENU_ITEMS = [
   ...MENU,
   ...environment.production ? [] : DEV_ITEMS,
 ];
+
+export function updateMenuItems(pageName: string) {
+  MENU_ITEMS.forEach(item => {
+    item.selected = item.title === pageName;
+  })
+}
