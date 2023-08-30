@@ -190,8 +190,7 @@ func initJaeger(svcName, url string, logger *zap.Logger) (opentracing.Tracer, io
 		},
 	}.NewTracer()
 	if err != nil {
-		logger.Error("Failed to init Jaeger client", zap.Error(err))
-		os.Exit(1)
+		logger.Error("Failed to init Jaeger client, tracing will be disabled", zap.Error(err))
 	}
 
 	return tracer, closer
