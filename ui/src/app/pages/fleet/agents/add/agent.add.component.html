@@ -51,16 +51,6 @@
             </nb-form-field>
             <hr/>
             <div class="d-flex justify-content-end">
-              <button [disabled]="!firstFormGroup.valid"
-                      class="next-button"
-                      data-orb-qa-id="button#next"
-                      nbButton
-                      nbStepperNext
-                      shape="round"
-                      status="primary"
-                      type="submit">
-                {{ strings.stepper.next }}
-              </button>
               <button (click)="goBack()"
                       data-orb-qa-id="button#cancel"
                       ghost
@@ -69,6 +59,16 @@
                       status="primary"
                       type="button">
                 {{ strings.stepper.cancel }}
+              </button>
+              <button [disabled]="!firstFormGroup.valid"
+                class="next-button"
+                data-orb-qa-id="button#next"
+                nbButton
+                nbStepperNext
+                shape="round"
+                status="primary"
+                type="submit">
+                {{ strings.stepper.next }}
               </button>
             </div>
           </form>
@@ -89,23 +89,6 @@
             <hr>
           </div>
           <div class="d-flex justify-content-end">
-            <button class="next-button"
-                    data-orb-qa-id="button#next"
-                    nbButton
-                    nbStepperNext
-                    shape="round"
-                    status="primary"
-                    type="submit">
-              {{ strings.stepper.next }}
-            </button>
-            <button data-orb-qa-id="button#back"
-                    ghost
-                    nbButton
-                    nbStepperPrevious
-                    shape="round"
-                    status="primary">
-              {{ strings.stepper.back }}
-            </button>
             <button (click)="goBack()"
                     data-orb-qa-id="button#cancel"
                     ghost
@@ -114,6 +97,23 @@
                     status="primary"
                     type="button">
               {{ strings.stepper.cancel }}
+            </button>
+            <button data-orb-qa-id="button#back"
+              ghost
+              nbButton
+              nbStepperPrevious
+              shape="round"
+              status="primary">
+              {{ strings.stepper.back }}
+            </button>
+            <button class="next-button"
+              data-orb-qa-id="button#next"
+              nbButton
+              nbStepperNext
+              shape="round"
+              status="primary"
+              type="submit">
+              {{ strings.stepper.next }}
             </button>
           </div>
         </nb-step>
@@ -141,25 +141,6 @@
           </div>
           <hr/>
           <div class="d-flex justify-content-end">
-            <button (click)="onFormSubmit()"
-                    autofocus
-                    class="next-button"
-                    data-orb-qa-id="button#save"
-                    nbButton
-                    shape="round"
-                    status="primary"
-                    type="submit"
-                    [disabled]="isRequesting">
-              {{ strings.stepper.save }}
-            </button>
-            <button data-orb-qa-id="button#back"
-                    ghost
-                    nbButton
-                    nbStepperPrevious
-                    shape="round"
-                    status="primary">
-              {{ strings.stepper.back }}
-            </button>
             <button (click)="goBack()"
                     data-orb-qa-id="button#cancel"
                     ghost
@@ -169,6 +150,25 @@
                     type="button">
               {{ strings.stepper.cancel }}
             </button>
+            <button data-orb-qa-id="button#back"
+                    ghost
+                    nbButton
+                    nbStepperPrevious
+                    shape="round"
+                    status="primary">
+              {{ strings.stepper.back }}
+            </button>
+            <button (click)="onFormSubmit()"
+              autofocus
+              class="next-button"
+              data-orb-qa-id="button#save"
+              nbButton
+              shape="round"
+              status="primary"
+              type="submit"
+              [disabled]="isRequesting">
+              {{ strings.stepper.save }}
+            </button>           
           </div>
         </nb-step>
       </nb-stepper>
