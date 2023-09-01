@@ -17,9 +17,21 @@ nb-card {
     border-radius: 0.5rem;
     color: #969fb9;
     padding: 0.5rem 1rem;
+    button {
+      float: right;
+      margin: 0;
+    }
+    nb-icon {
+      float: right  ;
+    }
   }
 
   nb-card-body {
+    border-bottom-left-radius: 0.5rem;
+    border-bottom-right-radius: 0.5rem;
+    margin: 0 2rem 0 2rem;
+    padding: 0;
+
     label {
       color: #969fb9;
     }
@@ -35,22 +47,27 @@ nb-card {
     }
 
     pre {
-      background: #1c2339;
-      border-radius: 0.5rem;
-      color: #fff;
-      font-weight: 400;
-      padding: 0.75rem;
+      display: flex;
+      flex-direction: row-reverse;
+      flex-wrap: wrap;
+      align-content: space-between;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin: 0;
 
+      background: transparent;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
       white-space: pre-line;
 
       button {
         background: transparent;
         border: 0 transparent;
         color: #969fb9;
-        float: right;
-        position: relative;
-        right: -0.5rem;
         top: -0.25rem;
+        float: right;
+        right: -0.5rem;
+        outline: none;
       }
 
       code {
@@ -104,4 +121,14 @@ button {
   box-shadow: none !important;
   outline: none !important;
   margin-right: 15px;
+}
+a {
+  white-space: nowrap !important;
+  padding: 0 0.3rem !important;
+  background-color: #ff9f05 !important;
+  font-weight: 700 !important;
+  text-decoration: none !important;
+  color: #ffffff !important;
+  border-radius: 10px;
+  fill: #3089fc !important;
 }
