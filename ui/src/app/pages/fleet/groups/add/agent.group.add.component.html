@@ -26,8 +26,7 @@
             <nb-form-field>
               <div class="d-flex flex-column">
                 <div>
-                  <label class="font-weight-bold">{{strings.propNames.name}}</label>
-                  <span class="required">*</span>
+                  <label class="input-label">{{strings.propNames.name}}<span class="required">*</span></label>
                 </div>
                 <input
                   autofocus
@@ -35,31 +34,33 @@
                   formControlName="name"
                   [status]="firstFormGroup?.controls.name.dirty ? (!firstFormGroup.controls.name.valid  ? 'danger' : 'success') : 'basic'"
                   fullWidth="true"
-                  nbInput/>
+                  nbInput
+                  placeholder="Agent Group Name"/>
               </div>
               <ng-container *ngIf="firstFormGroup?.controls.name.dirty && !firstFormGroup.controls.name.valid">
-                <p *ngIf="!firstFormGroup.controls.name.value" class="caption status-danger mb-1">
+                <div *ngIf="!firstFormGroup.controls.name.value" class="caption status-danger mb-1">
                   Name is required!
-                </p>
-                <p *ngIf="!!firstFormGroup.controls.name.errors?.pattern" class="caption status-danger mb-1">
+                </div>
+                <div *ngIf="!!firstFormGroup.controls.name.errors?.pattern" class="caption status-danger mb-1">
                   Name must start with a letter or "_" and contain only letters, numbers, "-" or "_"
-                </p>
-                <p *ngIf="firstFormGroup?.controls.name.errors?.maxlength" class="caption status-danger mb-1">
+                </div>
+                <div *ngIf="firstFormGroup?.controls.name.errors?.maxlength" class="caption status-danger mb-1">
                   Name must be less than {{firstFormGroup.controls.name.errors?.maxlength.requiredLength}} characters
-                </p>
+                </div>
               </ng-container>
             </nb-form-field>
             <hr/>
             <nb-form-field>
               <div>
-                <label class="font-weight-bold">{{strings.propNames.description}}</label>
+                <label class="input-label">{{strings.propNames.description}}</label>
               </div>
               <input
                 fieldSize="medium"
                 formControlName="description"
                 fullWidth="true"
                 [status]="firstFormGroup?.controls.description.touched ? (!firstFormGroup.controls.description.valid  ? 'danger' : 'success') : 'basic'"
-                nbInput/>
+                nbInput
+                placeholder="Agent Group Description"/>
                 <ng-container *ngIf="firstFormGroup?.controls.description.touched && !firstFormGroup.controls.description.valid">
                   <p *ngIf="firstFormGroup?.controls.description.errors?.maxlength" class="caption status-danger mb-1">
                     Description must be less than {{firstFormGroup.controls.description.errors?.maxlength.requiredLength}} characters
@@ -72,7 +73,7 @@
                 (click)="goBack()"
                 data-orb-qa-id="button#cancel"
                 ghost
-                nbButton
+                class="cancel-back-button"
                 shape="round"
                 status="primary"
                 type="button">
@@ -82,7 +83,7 @@
                 [disabled]="!firstFormGroup.valid"
                 class="next-button"
                 data-orb-qa-id="button#next"
-                nbButton
+                class="next-button"
                 nbStepperNext
                 shape="round"
                 status="primary"
@@ -131,7 +132,7 @@
               (click)="goBack()"
               data-orb-qa-id="button#cancel"
               ghost
-              nbButton
+              class="cancel-back-button"
               status="primary"
               type="button">
               {{ strings.stepper.cancel }}
@@ -139,7 +140,7 @@
             <button
               data-orb-qa-id="button#back"
               ghost
-              nbButton
+              class="cancel-back-button"
               nbStepperPrevious
               status="primary">
               {{ strings.stepper.back }}
@@ -148,7 +149,7 @@
               [disabled]="!selectedTagsValid()"
               class="next-button"
               data-orb-qa-id="button#save"
-              nbButton
+              class="next-button"
               nbStepperNext
               shape="round"
               status="primary"
@@ -168,14 +169,14 @@
             class="d-flex row column-direction">
             <div class="col-md-12 col-xl-6">
               <div class="max-width-vw">
-                <label class="font-weight-bold review-label">{{strings.propNames.name}}</label>
+                <label class="review-label">{{strings.propNames.name}}</label>
                 <p>{{firstFormGroup.controls.name.value}}</p>
               </div>
             </div>
             <hr/>
             <div class="col-md-12 col-xl-6">
               <div class="max-width-vw">
-                <label class="font-weight-bold review-label">Description</label>
+                <label class="review-label">Description</label>
                 <p *ngIf="firstFormGroup.controls.description.value">{{firstFormGroup.controls.description.value}}</p>
                 <p *ngIf="!firstFormGroup.controls.description.value" style="font-style: italic; font-size: 14px;">No description added</p>
               </div>
@@ -184,7 +185,7 @@
           </div>
           <div class="d-flex row">
             <div class="col-8">
-              <label class="font-weight-bold review-label" style="margin-bottom: 3px;">Tags</label>
+              <label class="review-label" style="margin-bottom: 3px;">Tags</label>
               <ngx-tag-display [tags]="selectedTags"></ngx-tag-display>
             </div>
           </div>
@@ -220,7 +221,7 @@
               (click)="goBack()"
               data-orb-qa-id="button#cancel"
               ghost
-              nbButton
+              class="cancel-back-button"
               status="primary"
               type="button">
               {{ strings.stepper.cancel }}
@@ -228,7 +229,7 @@
             <button
               data-orb-qa-id="button#back"
               ghost
-              nbButton
+              class="cancel-back-button"
               nbStepperPrevious
               status="primary">
               {{ strings.stepper.back }}
@@ -237,7 +238,6 @@
               (click)="onFormSubmit()"
               class="next-button"
               data-orb-qa-id="button#save"
-              nbButton
               shape="round"
               status="primary"
               type="submit"

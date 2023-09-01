@@ -268,3 +268,49 @@
 p {
   font-family: 'Montserrat' !important;
 }
+button {
+  font-family: 'Montserrat' !important;
+}
+label {
+  font-family: 'Montserrat' !important;
+}
+.input-label {
+  color: #fff !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+}
+input {
+  background-color: transparent !important;
+}
+.next-button {
+  border-radius: 16px !important;
+  background: #3089FC !important; 
+  padding: 8px 24px !important;
+  color: #fff !important;
+  border: none !important; 
+  outline: none !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  transition: background-color 0.3s ease !important;
+}
+.next-button:hover {
+  background-color: #509afc!important;
+}
+.next-button:disabled {
+  background: #2b3148 !important;
+}
+.cancel-back-button {
+  border-radius: 16px !important;; 
+  padding: 8px 24px !important;
+  background-color: transparent !important;
+  color: #3089FC !important;
+  border: none !important;
+  outline: none !important;
+  font-size: 14px !important;
+  font-weight: 600 !important; 
+  transition: background-color 0.3s ease !important;
+  margin-right: 0 !important;
+}
+.cancel-back-button:hover {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
