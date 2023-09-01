@@ -31,7 +31,7 @@
       <label class="summary-accent">Name</label>
       <p>{{ policy?.name }}</p>
     </div>
-    <div class="flex-row">
+    <div class="flex-row" *ngIf="policy?.description">
       <label class="summary-accent">Description</label>
       <p>{{ policy?.description }}</p>
     </div>
