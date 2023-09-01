@@ -34,9 +34,8 @@
             <div class="d-flex flex-column">
               <div>
                 <label
-                  class="font-weight-bold"
-                  for="name">Policy Name</label>
-                <span class="required">*</span>
+                  class="input-label"
+                  for="name">Policy Name<span class="required">*</span></label>
               </div>
               <input
                 autofocus
@@ -46,24 +45,25 @@
                 fullWidth="true"
                 [status]="detailsFG?.controls.name.dirty  ? (!detailsFG.controls.name.valid  ? 'danger' : 'success') : 'basic'"
                 id="name"
-                nbInput/>
+                nbInput
+                placeholder="Policy Name"/>
                 <ng-container *ngIf="detailsFG?.controls.name.dirty && !detailsFG.controls.name.valid">
-                  <p *ngIf="!detailsFG.controls.name.value" class="caption status-danger mb-1">
+                  <div *ngIf="!detailsFG.controls.name.value" class="caption status-danger mb-1">
                     Name is required!
-                  </p>
-                  <p *ngIf="!!detailsFG.controls.name.errors?.pattern" class="caption status-danger mb-1">
+                  </div>
+                  <div *ngIf="!!detailsFG.controls.name.errors?.pattern" class="caption status-danger mb-1">
                     Name must start with a letter or "_" and contain only letters, numbers, "-" or "_"
-                  </p>
-                  <p *ngIf="detailsFG?.controls.name.errors?.maxlength" class="caption status-danger mb-1">
+                  </div>
+                  <div *ngIf="detailsFG?.controls.name.errors?.maxlength" class="caption status-danger mb-1">
                     Name must be less than {{detailsFG.controls.name.errors?.maxlength.requiredLength}} characters
-                  </p>
+                  </div>
                 </ng-container>
             </div>
           </nb-form-field>
             <nb-form-field>
             <div>
               <label
-                class="font-weight-bold"
+                class="input-label"
                 for="description">Policy Description</label>
             </div>
             <input
@@ -72,7 +72,8 @@
               formControlName="description"
               fullWidth="true"
               id="description"
-              nbInput/>
+              nbInput
+              placeholder="Policy Description"/>
               <ng-container *ngIf="detailsFG?.controls.description.touched && !detailsFG.controls.description.valid">
                 <p *ngIf="detailsFG?.controls.description.errors?.maxlength" class="caption status-danger mb-1">
                   Description must be less than {{detailsFG.controls.description.errors?.maxlength.requiredLength}} characters
@@ -82,7 +83,7 @@
             <nb-form-field>
               <div>
                 <label
-                  class="font-weight-bold"
+                  class="input-label"
                   for="description">Policy Backend</label>
               </div>
               <nb-select (selectedChange)="onBackendSelected($event)"
@@ -102,7 +103,7 @@
                   </p>
                 </ng-container>
               </nb-form-field>
-              <label class="font-weight-bold">Tags</label>
+              <label class="input-label">Tags</label>
               <ngx-tag-control [(tags)]="selectedTags"></ngx-tag-control>
             <hr/>
             <div class="d-flex justify-content-end">
@@ -110,7 +111,7 @@
                       (click)="goBack()"
                       data-orb-qa-id="button#cancel"
                       ghost
-                      nbButton
+                      class="cancel-back-button"
                       shape="round"
                       status="primary"
                       type="button">
@@ -121,7 +122,7 @@
                 [disabled]="!detailsFG?.valid"
                 class="next-button"
                 data-orb-qa-id="button#next"
-                nbButton
+                class="next-button"
                 nbStepperNext
                 shape="round"
                 type="button"
@@ -195,7 +196,7 @@
               (click)="goBack()"
               data-orb-qa-id="button#cancel"
               ghost
-              nbButton
+              class="cancel-back-button"
               status="primary"
               type="button">
               {{ strings.stepper.cancel }} 
@@ -203,7 +204,7 @@
             <button
               data-orb-qa-id="button#back"
               ghost
-              nbButton
+              class="cancel-back-button"
               nbStepperPrevious
               status="primary">
               {{ strings.stepper.back }}
@@ -212,7 +213,7 @@
               (click)="onSubmit()"
               class="next-button"
               data-orb-qa-id="button#save"
-              nbButton
+              class="next-button"
               nbStepperNext
               nbTooltip="Paste your configuration in the code editor above"
               shape="round"
