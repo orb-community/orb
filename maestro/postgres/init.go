@@ -28,8 +28,30 @@ func Connect(cfg config.PostgresConfig) (*sqlx.DB, error) {
 func migrateDB(db *sqlx.DB) error {
 	migrations := &migrate.MemoryMigrationSource{
 		Migrations: []*migrate.Migration{
-			{},
+			{
+				Id: "1",
+				Up: []string{
+					`CREATE TABLE deployments (
+					    id                      VARCHAR(255),
+					    owner_id                VARCHAR(255),
+					    sink_id                 VARCHAR(255),
+					    config                  JSONB,
+					    last_status             VARCHAR(255),
+					    last_status_update      TIMESTAMP,
+					    last_error_message      VARCHAR(255),
+					    last_error_time         TIMESTAMP,
+					    collector_name          VARCHAR(255),
+					    last_collector_deploy_time TIMESTAMP,
+					    last_collector_stop_time   TIMESTAMP,
+					);`,
+				},
+				Down: []string{
+					"DROP TABLE deployments",
+				},
+			},
 		},
 	}
-	return nil
+	_, err := migrate.Exec(db.DB, "postgres", migrations, migrate.Up)
+
+	return err
 }

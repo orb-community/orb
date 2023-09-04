@@ -12,6 +12,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/jmoiron/sqlx"
+	"github.com/orb-community/orb/maestro/postgres"
 	"io"
 	"os"
 	"os/signal"
@@ -115,7 +116,7 @@ func main() {
 	db := connectToDB(dbCfg, logger)
 	defer db.Close()
 
-	svc := maestro.NewMaestroService(logger, streamEsClient, sinkerEsClient, sinksGRPCClient, streamEsCfg, otelCfg)
+	svc := maestro.NewMaestroService(logger, streamEsClient, sinkerEsClient, sinksGRPCClient, streamEsCfg, otelCfg, db)
 	errs := make(chan error, 2)
 
 	mainContext, mainCancelFunction := context.WithCancel(context.Background())
