@@ -11,6 +11,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/jmoiron/sqlx"
 	"io"
 	"os"
 	"os/signal"
@@ -48,6 +49,7 @@ func main() {
 	svcCfg := config.LoadBaseServiceConfig(envPrefix, httpPort)
 	jCfg := config.LoadJaegerConfig(envPrefix)
 	sinksGRPCCfg := config.LoadGRPCConfig("orb", "sinks")
+	dbCfg := config.LoadPostgresConfig(envPrefix, svcName)
 
 	// logger
 	var logger *zap.Logger
@@ -110,6 +112,8 @@ func main() {
 	}
 	sinksGRPCClient := sinksgrpc.NewClient(tracer, sinksGRPCConn, sinksGRPCTimeout, logger)
 	otelCfg := config.LoadOtelConfig(envPrefix)
+	db := connectToDB(dbCfg, logger)
+	defer db.Close()
 
 	svc := maestro.NewMaestroService(logger, streamEsClient, sinkerEsClient, sinksGRPCClient, streamEsCfg, otelCfg)
 	errs := make(chan error, 2)
@@ -130,6 +134,15 @@ func main() {
 
 	err = <-errs
 	logger.Error(fmt.Sprintf("Maestro service terminated: %s", err))
+}
+
+func connectToDB(cfg config.PostgresConfig, logger *zap.Logger) *sqlx.DB {
+	db, err := postgres.Connect(cfg)
+	if err != nil {
+		logger.Error("Failed to connect to postgres", zap.Error(err))
+		os.Exit(1)
+	}
+	return db
 }
 
 func connectToGRPC(cfg config.GRPCConfig, logger *zap.Logger) *grpc.ClientConn {
