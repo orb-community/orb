@@ -30,7 +30,7 @@
             <label class="summary-accent">Name</label>
             <p>{{ sink?.name }}</p>
           </div>
-          <div class="flex-row">
+          <div class="flex-row" *ngIf="sink?.description">
             <label class="summary-accent">Description</label>
             <p>{{ sink?.description }}</p>
           </div>

@@ -13,7 +13,7 @@
         <p class="detail-title">{{strings.propNames.name}}</p>
         <p>{{ agentGroup.name }}</p>
       </div>
-      <div class="col-6 d-flex flex-column align-items-start">
+      <div class="col-6 d-flex flex-column align-items-start" *ngIf="agentGroup?.description">
         <p class="detail-title">{{strings.propNames.description}}</p>
         <p>{{ agentGroup.description }}</p>
       </div>
