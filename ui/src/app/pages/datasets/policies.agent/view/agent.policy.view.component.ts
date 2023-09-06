@@ -95,7 +95,7 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   ngOnChanges(): void {
-    this.fetchData();
+    this.orb.refreshNow();
   }
 
   isEditMode() {
@@ -170,7 +170,7 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy, OnChanges {
         this.notifications.success('Agent Policy updated successfully', '');
         this.discard();
         this.policy = resp;
-        this.fetchData();
+        this.orb.refreshNow();
         this.isRequesting = false;
       });
 
@@ -224,6 +224,7 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy, OnChanges {
 
   ngOnDestroy() {
     this.policySubscription?.unsubscribe();
+    this.orb.killPolling.next();
   }
   openDeleteModal() {
     const { name: name, id } = this.policy as AgentPolicy;

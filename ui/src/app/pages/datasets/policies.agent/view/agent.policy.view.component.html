@@ -8,12 +8,7 @@
     <h4>Policy View</h4>
   </div>
   <div class="right-content">
-    <button nbButton ghost [className]="'refresh-button'" shape="round" (click)="fetchData()">
-      <i class="fa fa-redo" [ngClass]="isLoading == true ? 'rotate' : 'paused'" style="color: #3089fc;"></i>
-    </button>
-    <span class="last-update" *ngIf="lastUpdate !== null" style="margin-right: 15px;">
-      Last Update: {{ lastUpdate | date: 'HH:mm:ss a' }}
-    </span>
+    <ngx-poll-control style="margin-right: 15px !important;"></ngx-poll-control>
 
   <div *ngIf="!isLoading" style="margin-right: 10px;">
     <button (click)="discard()" class="policy-discard" nbButton shape="round" *ngIf="isEditMode()">

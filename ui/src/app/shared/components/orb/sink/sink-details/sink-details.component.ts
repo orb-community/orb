@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Sink, SinkBackends, SinkStates } from 'app/common/interfaces/orb/sink.interface';
 import { SinkFeature } from 'app/common/interfaces/orb/sink/sink.feature.interface';
 import { Tags } from 'app/common/interfaces/orb/tag';
+import { OrbService } from 'app/common/services/orb.service';
 import { SinksService } from 'app/common/services/sinks/sinks.service';
 
 
@@ -42,6 +43,7 @@ export class SinkDetailsComponent implements OnInit, OnChanges {
   constructor(
     private fb: FormBuilder,
     private sinksService: SinksService,
+    private orb: OrbService,
     ) { 
     this.sink = {};
     this.createMode = false;
@@ -110,6 +112,12 @@ export class SinkDetailsComponent implements OnInit, OnChanges {
 
   toggleEdit(value, notify = true) {
     this.editMode = value;
+    if (this.editMode) {
+      this.orb.pausePolling();
+    }
+    else {
+      this.orb.startPolling();
+    }
     this.updateForm();
     !!notify && this.editModeChange.emit(this.editMode);
   }

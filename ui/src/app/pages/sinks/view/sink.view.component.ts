@@ -12,6 +12,7 @@ import * as YAML from 'yaml';
 import { CodeEditorService } from 'app/common/services/code.editor.service';
 import { SinkDeleteComponent } from '../delete/sink.delete.component';
 import { NbDialogService } from '@nebular/theme';
+import { OrbService } from 'app/common/services/orb.service';
 
 @Component({
   selector: 'ngx-sink-view',
@@ -52,6 +53,7 @@ export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
     private editor: CodeEditorService,
     private dialogService: NbDialogService,
     private router: Router,
+    private orb: OrbService,
     ) { 
       this.isRequesting = false;
     }
@@ -141,7 +143,7 @@ export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
       this.sinks.editSink(payload).subscribe((resp) => {
         this.discard();
         this.sink = resp;
-        this.fetchData();
+        this.orb.refreshNow();
         this.notifications.success('Sink updated successfully', '');
         this.isRequesting = false;
       });
@@ -151,18 +153,17 @@ export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   retrieveSink() {
-    this.sinkSubscription = this.sinks
-    .getSinkById(this.sinkId)
-    .subscribe(sink => {
+    this.sinkSubscription = this.orb.getSinkView(this.sinkId).subscribe(sink => {
       this.sink = sink;
       this.isLoading = false;
       this.cdr.markForCheck();
       this.lastUpdate = new Date();
-    });
+    }) 
   }
 
   ngOnDestroy(): void {
     this.sinkSubscription.unsubscribe();
+    this.orb.killPolling.next();
   }
   openDeleteModal() {
     const { id } = this.sink;

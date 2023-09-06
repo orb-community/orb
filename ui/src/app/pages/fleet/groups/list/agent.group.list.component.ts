@@ -163,7 +163,6 @@ export class AgentGroupListComponent
   }
 
   ngAfterViewInit() {
-    this.orb.refreshNow();
     this.columns = [
       {
         name: '',
