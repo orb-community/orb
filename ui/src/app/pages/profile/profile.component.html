@@ -1,7 +1,7 @@
 <header>
   <div class="left-content">
     <p class="header-subtitle">Account Information</p>
-    <h4> User Profile</h4>
+    <h4> User Profile / Settings</h4>
   </div>
 </header>
 <div class="card-row">
@@ -32,7 +32,26 @@
         Cancel
       </button>
     </div>
+    <br>
+    <div>
+      <p class="user-name-title">
+        Polling Control Configuration 
 
+        <nb-icon icon="info-outline"
+        nbTooltip="Define timer beetween pages automatic requests.">
+        </nb-icon>
+      </p>
+      <nb-select  appearance="filled"
+                  fullWidth="true"
+                  placeholder="Select timer"
+                  size="medium"
+                  [(ngModel)]="selectedTimer"
+                  (ngModelChange)="setPollInterval($event)">
+                <nb-option *ngFor="let timer of availableTimers"
+                           [value]="timer">{{timer}} seconds 
+                </nb-option>
+      </nb-select>
+    </div>
   </div>
   <!-- User Password -->
   <div *ngIf="!isLoading" class="col-8">

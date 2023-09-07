@@ -6,7 +6,9 @@ button {
   display: flex;
   margin: 0 -0.5rem;
 }
-
+nb-icon {
+  font-size: 17px;
+}
 .card-col {
   flex: 1 0 calc(50% - 1rem);
   margin: 0 0.5rem;
