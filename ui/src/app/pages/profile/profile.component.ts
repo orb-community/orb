@@ -111,10 +111,6 @@ export class ProfileComponent implements OnInit {
         this.confirmPasswordInput = '';
       },
       error => {
-        this.notificationsService.error(
-          'Failed to change password, Old password is incorrect',
-          ``,
-        );
         this.isRequesting = false;
       }
     );
