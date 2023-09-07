@@ -12,6 +12,7 @@ import {
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import IStandaloneEditorConstructionOptions = monaco.editor.IStandaloneEditorConstructionOptions;
+import { OrbService } from 'app/common/services/orb.service';
 
 @Component({
   selector: 'ngx-policy-interface',
@@ -58,6 +59,7 @@ export class PolicyInterfaceComponent implements OnInit, AfterViewInit, OnChange
 
   constructor(
     private fb: FormBuilder,
+    private orb: OrbService,
   ) {
     this.policy = {};
     this.code = '';
@@ -92,6 +94,12 @@ export class PolicyInterfaceComponent implements OnInit, AfterViewInit, OnChange
 
   toggleEdit(edit, notify = true) {
     this.editMode = edit;
+    if (this.editMode) {
+      this.orb.pausePolling();
+    }
+    else {
+      this.orb.startPolling();
+    }
     this.editorOptions = { ...this.editorOptions, readOnly: !edit };
     this.updateForm();
     !!notify && this.editModeChange.emit(this.editMode);

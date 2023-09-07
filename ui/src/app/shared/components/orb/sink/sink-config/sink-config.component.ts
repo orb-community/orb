@@ -3,6 +3,7 @@ import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import { Sink, SinkBackends } from 'app/common/interfaces/orb/sink.interface';
 import * as YAML from 'yaml';
 import IStandaloneEditorConstructionOptions = monaco.editor.IStandaloneEditorConstructionOptions;
+import { OrbService } from 'app/common/services/orb.service';
 
 @Component({
   selector: 'ngx-sink-config',
@@ -70,7 +71,10 @@ export class SinkConfigComponent implements OnInit, OnChanges {
 
   isYaml: boolean;
 
-  constructor(private fb: FormBuilder) { 
+  constructor(
+    private fb: FormBuilder,
+    private orb: OrbService,
+    ) { 
     this.isYaml = false; 
     this.sink = {};
     this.editMode = false;
@@ -159,6 +163,12 @@ updateForm() {
 
   toggleEdit(edit, notify = true) {
     this.editMode = edit;
+    if (this.editMode) {
+      this.orb.pausePolling();
+    }
+    else {
+      this.orb.startPolling();
+    }
     this.editorOptions = { ...this.editorOptions, readOnly: !edit };
     this.editorOptionsYaml = { ...this.editorOptionsYaml, readOnly: !edit };
     this.updateForm();
