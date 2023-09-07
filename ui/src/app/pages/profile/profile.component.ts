@@ -3,8 +3,8 @@ import { Component, OnInit } from '@angular/core';
 import { UsersService } from 'app/common/services/users/users.service';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { User } from 'app/common/interfaces/mainflux.interface';
-import { OrbService } from 'app/common/services/orb.service';
-import { validateHorizontalPosition } from '@angular/cdk/overlay';
+import { OrbService, pollIntervalKey } from 'app/common/services/orb.service';
+
 
 @Component({
   selector: 'ngx-profile',
@@ -133,13 +133,11 @@ export class ProfileComponent implements OnInit {
     }
   }
   setPollInterval(timer) {
-    const pollIntervalKey = 'pollinterval';
     const pollKeyString = (timer * 1000).toString();
     localStorage.setItem(pollIntervalKey, pollKeyString);
     this.orb.pollInterval = timer * 1000;
   }
   getPollInterval() {
-    const pollIntervalKey = 'pollinterval';
     const value = Number(localStorage.getItem(pollIntervalKey));
     return value / 1000;
   }

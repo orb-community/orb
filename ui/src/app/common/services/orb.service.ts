@@ -34,6 +34,8 @@ export const PollControls = {
   RESUME: true,
 };
 
+export const pollIntervalKey = 'pollinterval';
+
 @Injectable({
   providedIn: 'root',
 })
@@ -105,7 +107,7 @@ export class OrbService implements OnDestroy {
     this.pollController$ = new BehaviorSubject<boolean>(PollControls.RESUME);
   }
   getPollInterval() {
-    const pollIntervalKey = 'pollinterval';
+
     let pollInterval: number;
 
     if (localStorage.getItem(pollIntervalKey)) {
