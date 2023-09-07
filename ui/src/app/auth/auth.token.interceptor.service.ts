@@ -16,6 +16,7 @@ import { NbAuthJWTToken, NbAuthService } from '@nebular/auth';
 import { environment } from 'environments/environment';
 
 import { JwtHelperService } from '@auth0/angular-jwt';
+import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 
 const jwtHelper = new JwtHelperService();
 @Injectable()
@@ -65,7 +66,8 @@ export class TokenInterceptor implements HttpInterceptor {
                 err instanceof HttpErrorResponse &&
                 err.status === 401 &&
                 !request.url.startsWith(environment.httpAdapterUrl) &&
-                !request.url.startsWith(environment.readerUrl)
+                !request.url.startsWith(environment.readerUrl) &&
+                (!request.url.endsWith('/password') && request.method !== 'PATCH')
               ) {
                 localStorage.removeItem('auth_app_token');
                 this.router.navigateByUrl('/auth/login');
