@@ -16,7 +16,6 @@ import { NbAuthJWTToken, NbAuthService } from '@nebular/auth';
 import { environment } from 'environments/environment';
 
 import { JwtHelperService } from '@auth0/angular-jwt';
-import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 
 const jwtHelper = new JwtHelperService();
 @Injectable()
