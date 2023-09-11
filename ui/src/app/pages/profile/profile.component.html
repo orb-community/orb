@@ -19,8 +19,7 @@
            style="width: 100%;" [(ngModel)]="userFullName">
         </div>
       </div>
-
-
+      
       <button (click)="toggleEdit('name')" *ngIf="!editMode.profileName" class="edit-button-profile">
         Edit
       </button>
@@ -81,10 +80,53 @@
               <p> ************ </p>
             </div>
             <div *ngIf="editMode.password">
-              <label>Password</label>
-              <input type="password" placeholder="Old Password" nbInput style="width: 100%" class="input-password" [(ngModel)]="oldPasswordInput" autocomplete="new-password">
-              <input type="password" placeholder="New Password" nbInput style="width: 100%" class="input-password" [(ngModel)]="newPasswordInput" autocomplete="new-password">
-              <input type="password" placeholder="Confirm Password" nbInput style="width: 100%" class="input-password" [(ngModel)]="confirmPasswordInput" autocomplete="new-password">
+              <label style="margin-bottom: 15px;">Password</label>
+              <input  type="password" 
+                      placeholder="Old Password" 
+                      nbInput 
+                      style="width: 100%" 
+                      class="input-password" 
+                      [(ngModel)]="oldPasswordInput" 
+                      autocomplete="new-password" 
+                      [attr.type]="showPassword ? 'text' : 'password'">
+              <span nbSuffix 
+                    ghost 
+                    (click)="showPassword = !showPassword" 
+                    class="password-icon">
+                <nb-icon [icon]="showPassword ? 'eye-outline' : 'eye-off-2-outline'"
+                          pack="eva">
+                </nb-icon>
+              </span>
+              <input type="password" 
+                      placeholder="New Password" 
+                      nbInput style="width: 100%" 
+                      class="input-password" 
+                      [(ngModel)]="newPasswordInput" 
+                      autocomplete="new-password" 
+                      [attr.type]="showPassword2 ? 'text' : 'password'">
+              <span nbSuffix 
+                    ghost 
+                    (click)="showPassword2 = !showPassword2" 
+                    class="password-icon">
+                  <nb-icon [icon]="showPassword2 ? 'eye-outline' : 'eye-off-2-outline'"
+                            pack="eva">
+                  </nb-icon>
+              </span>
+              <input type="password" 
+                      placeholder="Confirm Password" 
+                      nbInput style="width: 100%" 
+                      class="input-password" 
+                      [(ngModel)]="confirmPasswordInput" 
+                      autocomplete="new-password" 
+                      [attr.type]="showPassword3 ? 'text' : 'password'">
+              <span nbSuffix 
+                    ghost 
+                    (click)="showPassword3 = !showPassword3" 
+                    class="password-icon">
+                  <nb-icon [icon]="showPassword3 ? 'eye-outline' : 'eye-off-2-outline'"
+                            pack="eva">
+                  </nb-icon>
+                </span>
               <div *ngIf="!isPasswordValidSize && newPasswordInput !== ''">
                 <span>Password must be at least 8 characters long.</span>
               </div>

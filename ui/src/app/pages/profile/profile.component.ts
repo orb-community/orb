@@ -27,6 +27,10 @@ export class ProfileComponent implements OnInit {
   newPasswordInput: string;
   confirmPasswordInput: string;
 
+  showPassword = false;
+  showPassword2 = false;
+  showPassword3 = false;
+
   availableTimers = [15, 30, 60]
   selectedTimer: Number;
 
@@ -121,17 +125,43 @@ export class ProfileComponent implements OnInit {
       }
     );
   }
-  toggleEdit(name: string) {
-    const { editMode } = this;
-    editMode.profileName = name === 'name' ? !editMode.profileName : false;
-    editMode.work = name === 'work' ? !editMode.work : false;
-    editMode.password = name === 'password' ? !editMode.password : false;
-    if (name === '') {
+toggleEdit(name: string) {
+  const { editMode } = this;
+
+  switch (name) {
+    case 'name':
+      editMode.profileName = !editMode.profileName;
+      if (!editMode.profileName) {
+        this.userFullName = this.user.fullName;
+      }
+      this.editMode.password = false;
+      this.editMode.work = false;
+      break;
+    case 'work':
+      editMode.work = !editMode.work;
+      if (!editMode.work) {
+        this.userCompany = this.user.company;
+      }
+      this.editMode.password = false;
+      this.editMode.profileName = false;
+      break;
+    case 'password':
+      editMode.password = !editMode.password;
+      if (!editMode.password) {
+        this.oldPasswordInput = '';
+        this.newPasswordInput = '';
+        this.confirmPasswordInput = '';
+      }
+      this.editMode.profileName = false;
+      this.editMode.work = false;
+      break;
+    case '':
       editMode.profileName = false;
       editMode.work = false;
       editMode.password = false;
-    }
+      break;
   }
+}
   setPollInterval(timer) {
     const pollKeyString = (timer * 1000).toString();
     localStorage.setItem(pollIntervalKey, pollKeyString);
