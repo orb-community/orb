@@ -26,6 +26,22 @@ type deployService struct {
 	clientSet *kubernetes.Clientset
 }
 
+const OperationDeploy CollectorOperation = iota
+const OperationDelete = 1
+
+type CollectorOperation int
+
+func (o CollectorOperation) Name() string {
+	switch o {
+	case OperationDeploy:
+		return "deploy"
+	case OperationDelete:
+		return "delete"
+	default:
+		return "unknown"
+	}
+}
+
 func NewService(logger *zap.Logger) Service {
 	clusterConfig, err := rest.InClusterConfig()
 	if err != nil {

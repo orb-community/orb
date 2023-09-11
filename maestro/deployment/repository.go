@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/jmoiron/sqlx"
 	"github.com/orb-community/orb/pkg/errors"
-	"github.com/orb-community/orb/pkg/types"
 	"go.uber.org/zap"
 	"time"
 )
@@ -13,22 +12,10 @@ type Repository interface {
 	FetchAll(ctx context.Context) ([]Deployment, error)
 	Add(ctx context.Context, deployment Deployment) (Deployment, error)
 	Update(ctx context.Context, deployment Deployment) (Deployment, error)
+	UpdateStatus(ctx context.Context, ownerID string, sinkId string, status string, errorMessage string) error
 	Remove(ctx context.Context, ownerId string, sinkId string) error
 	FindByOwnerAndSink(ctx context.Context, ownerId string, sinkId string) (Deployment, error)
-}
-
-type Deployment struct {
-	Id                      string         `db:"id" json:"id,omitempty"`
-	OwnerID                 string         `db:"owner_id" json:"ownerID,omitempty"`
-	SinkID                  string         `db:"sink_id" json:"sinkID,omitempty"`
-	Config                  types.Metadata `db:"config" json:"config,omitempty"`
-	LastStatus              string         `db:"last_status" json:"lastStatus,omitempty"`
-	LastStatusUpdate        time.Time      `db:"last_status_update" json:"lastStatusUpdate"`
-	LastErrorMessage        string         `db:"last_error_message" json:"lastErrorMessage,omitempty"`
-	LastErrorTime           time.Time      `db:"last_error_time" json:"lastErrorTime"`
-	CollectorName           string         `db:"collector_name" json:"collectorName,omitempty"`
-	LastCollectorDeployTime time.Time      `db:"last_collector_deploy_time" json:"lastCollectorDeployTime"`
-	LastCollectorStopTime   time.Time      `db:"last_collector_stop_time" json:"lastCollectorStopTime"`
+	FindByCollectorName(ctx context.Context, collectorName string) (Deployment, error)
 }
 
 var _ Repository = (*repositoryService)(nil)
@@ -101,6 +88,26 @@ func (r *repositoryService) Update(ctx context.Context, deployment Deployment) (
 	return deployment, tx.Commit()
 }
 
+func (r *repositoryService) UpdateStatus(ctx context.Context, ownerID string, sinkId string, status string, errorMessage string) error {
+	tx := r.db.MustBeginTx(ctx, nil)
+	now := time.Now()
+	_, err := tx.ExecContext(ctx,
+		`UPDATE deployments 
+				SET 
+					   last_status = $1, 
+					   last_status_update = $2, 
+					   last_error_message = $3,
+					   last_error_time = $4
+				WHERE owner_id = $5 AND sink_id = $6`,
+		status, now, errorMessage, now, ownerID, sinkId)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	r.logger.Info("update deployment", zap.String("owner-id", ownerID), zap.String("sink-id", sinkId))
+	return tx.Commit()
+}
+
 func (r *repositoryService) Remove(ctx context.Context, ownerId string, sinkId string) error {
 	tx := r.db.MustBeginTx(ctx, nil)
 	tx.MustExecContext(ctx, "DELETE FROM deployments WHERE owner_id = $1 AND sink_id = $2", ownerId, sinkId)
@@ -117,6 +124,28 @@ func (r *repositoryService) FindByOwnerAndSink(ctx context.Context, ownerId stri
 	var rows []Deployment
 	err := tx.SelectContext(ctx, &rows, "SELECT * FROM deployments WHERE owner_id = :owner_id AND sink_id = :sink_id",
 		map[string]interface{}{"owner_id": ownerId, "sink_id": sinkId})
+	if err != nil {
+		_ = tx.Rollback()
+		return Deployment{}, err
+	}
+	err = tx.Commit()
+	if err != nil {
+		_ = tx.Rollback()
+		return Deployment{}, err
+	}
+	if len(rows) == 0 {
+		return Deployment{}, errors.New("")
+	}
+	deployment := rows[0]
+
+	return deployment, nil
+}
+
+func (r *repositoryService) FindByCollectorName(ctx context.Context, collectorName string) (Deployment, error) {
+	tx := r.db.MustBeginTx(ctx, nil)
+	var rows []Deployment
+	err := tx.SelectContext(ctx, &rows, "SELECT * FROM deployments WHERE collector_name = :collector_name",
+		map[string]interface{}{"collector_name": collectorName})
 	if err != nil {
 		_ = tx.Rollback()
 		return Deployment{}, err
