@@ -34,12 +34,14 @@ export const PollControls = {
   RESUME: true,
 };
 
+export const pollIntervalKey = 'pollinterval';
+
 @Injectable({
   providedIn: 'root',
 })
 export class OrbService implements OnDestroy {
   // interval for timer
-  pollInterval = 60000;
+  pollInterval;
 
   pollController$: BehaviorSubject<boolean>;
 
@@ -68,7 +70,7 @@ export class OrbService implements OnDestroy {
       this.pollController$.pipe(
         switchMap((control) => {
           if (control === PollControls.RESUME)
-            return defer(() => timer(1, this.pollInterval));
+            return defer(() => timer(1, this.pollInterval)); 
           return EMPTY;
         }),
       ),
@@ -100,8 +102,23 @@ export class OrbService implements OnDestroy {
     this.lastPollUpdate$ = new Subject<number>();
     this.forceRefresh = new Subject<number>();
     this.killPolling = new Subject<void>();
+    this.pollInterval = this.getPollInterval();
 
     this.pollController$ = new BehaviorSubject<boolean>(PollControls.RESUME);
+  }
+  getPollInterval() {
+
+    let pollInterval: number;
+
+    if (localStorage.getItem(pollIntervalKey)) {
+      pollInterval = Number(localStorage.getItem(pollIntervalKey));
+    } 
+    else {
+      pollInterval = 60000;
+      localStorage.setItem(pollIntervalKey, pollInterval.toString());
+    }
+  
+    return pollInterval;
   }
 
   private mapTags = (list: AgentGroup[] & Sink[]) => {

@@ -3,7 +3,8 @@ import { Component, OnInit } from '@angular/core';
 import { UsersService } from 'app/common/services/users/users.service';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { User } from 'app/common/interfaces/mainflux.interface';
-import { error } from 'console';
+import { OrbService, pollIntervalKey } from 'app/common/services/orb.service';
+
 
 @Component({
   selector: 'ngx-profile',
@@ -26,6 +27,9 @@ export class ProfileComponent implements OnInit {
   newPasswordInput: string;
   confirmPasswordInput: string;
 
+  availableTimers = [15, 30, 60]
+  selectedTimer: Number;
+
   editMode = {
     work: false,
     profileName: false,
@@ -40,12 +44,14 @@ export class ProfileComponent implements OnInit {
   constructor(
     private usersService: UsersService,
     private notificationsService: NotificationsService,
+    private orb: OrbService,
   ) { 
     this.oldPasswordInput = '';
     this.newPasswordInput = '';
     this.confirmPasswordInput = '';
+    this.selectedTimer = this.getPollInterval();
   }
-
+  
   ngOnInit(): void {
     this.retrieveUserInfo();
   }
@@ -125,5 +131,14 @@ export class ProfileComponent implements OnInit {
       editMode.work = false;
       editMode.password = false;
     }
+  }
+  setPollInterval(timer) {
+    const pollKeyString = (timer * 1000).toString();
+    localStorage.setItem(pollIntervalKey, pollKeyString);
+    this.orb.pollInterval = timer * 1000;
+  }
+  getPollInterval() {
+    const value = Number(localStorage.getItem(pollIntervalKey));
+    return value / 1000;
   }
 }
