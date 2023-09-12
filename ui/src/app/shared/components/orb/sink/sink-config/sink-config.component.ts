@@ -163,7 +163,7 @@ updateForm() {
 
   toggleEdit(edit, notify = true) {
     this.editMode = edit;
-    if (this.editMode) {
+    if (this.editMode && !this.createMode) {
       this.orb.pausePolling();
     }
     else {
