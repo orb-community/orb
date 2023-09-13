@@ -29,6 +29,9 @@ export class PolicyInterfaceComponent implements OnInit, AfterViewInit, OnChange
   @Output()
   editModeChange: EventEmitter<boolean>;
 
+  @Input()
+  detailsEditMode: boolean;
+
   @ViewChild('editorComponent')
   editor;
 
@@ -66,6 +69,7 @@ export class PolicyInterfaceComponent implements OnInit, AfterViewInit, OnChange
     this.editMode = false;
     this.editModeChange = new EventEmitter<boolean>();
     this.updateForm();
+    this.detailsEditMode = false;
   }
 
   ngOnInit(): void {
@@ -94,7 +98,7 @@ export class PolicyInterfaceComponent implements OnInit, AfterViewInit, OnChange
 
   toggleEdit(edit, notify = true) {
     this.editMode = edit;
-    if (this.editMode) {
+    if (this.editMode || this.detailsEditMode) {
       this.orb.pausePolling();
     }
     else {

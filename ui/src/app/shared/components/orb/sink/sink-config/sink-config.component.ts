@@ -27,6 +27,9 @@ export class SinkConfigComponent implements OnInit, OnChanges {
   @Output()
   editModeChange: EventEmitter<boolean>;
 
+  @Input()
+  detailsEditMode: boolean;
+
   @ViewChild('editorComponent')
   editor;
 
@@ -79,6 +82,7 @@ export class SinkConfigComponent implements OnInit, OnChanges {
     this.sink = {};
     this.editMode = false;
     this.editModeChange = new EventEmitter<boolean>();
+    this.detailsEditMode = false;
     this.updateForm();
     this.sinkConfigSchemaPrometheus = {
       "authentication" : {
@@ -163,7 +167,7 @@ updateForm() {
 
   toggleEdit(edit, notify = true) {
     this.editMode = edit;
-    if (this.editMode) {
+    if ((this.editMode || this.detailsEditMode) && !this.createMode) {
       this.orb.pausePolling();
     }
     else {

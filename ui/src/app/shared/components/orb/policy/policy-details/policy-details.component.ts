@@ -27,6 +27,9 @@ export class PolicyDetailsComponent implements OnInit, OnChanges {
   @Output()
   editModeChange: EventEmitter<boolean>;
 
+  @Input()
+  interfaceEditMode: boolean;
+
   formGroup: FormGroup;
 
   selectedTags: Tags;
@@ -39,6 +42,7 @@ export class PolicyDetailsComponent implements OnInit, OnChanges {
     this.editMode = false;
     this.editModeChange = new EventEmitter<boolean>();
     this.updateForm();
+    this.interfaceEditMode = false;
   }
 
   ngOnInit(): void {
@@ -80,7 +84,7 @@ export class PolicyDetailsComponent implements OnInit, OnChanges {
 
   toggleEdit(value, notify = true) {
     this.editMode = value;
-    if (this.editMode) {
+    if (this.editMode || this.interfaceEditMode) {
       this.orb.pausePolling();
     }
     else {

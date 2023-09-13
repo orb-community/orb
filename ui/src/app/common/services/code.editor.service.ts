@@ -30,7 +30,6 @@ export class CodeEditorService {
 
     checkEmpty (object) {
         for (let key in object) {
-            console.log(object[key]);
             if (object[key] === "" || typeof object[key] === "undefined" || object[key] === null) {
                 return true;
             }

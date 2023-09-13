@@ -36,6 +36,7 @@
     <ngx-policy-details
       [(editMode)]="editMode.details"
       [policy]="policy"
+      [interfaceEditMode]="editMode.interface"
     ></ngx-policy-details>
     <ngx-policy-groups [groups]="policy.groups" [policy]="policy"></ngx-policy-groups>
   </div>
@@ -48,6 +49,7 @@
     <ngx-policy-interface
       [(editMode)]="editMode.interface"
       [policy]="policy"
+      [detailsEditMode]="editMode.details"
     ></ngx-policy-interface>
   </div>
 </div>
