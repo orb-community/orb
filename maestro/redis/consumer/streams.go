@@ -3,6 +3,7 @@ package consumer
 import (
 	"context"
 	"encoding/json"
+	"github.com/orb-community/orb/maestro/deployment"
 	"time"
 
 	"github.com/orb-community/orb/maestro/config"
@@ -44,7 +45,6 @@ type Subscriber interface {
 	GetActivity(sinkID string) (int64, error)
 	RemoveSinkActivity(ctx context.Context, sinkId string) error
 
-	SubscribeSinksEvents(context context.Context) error
 	SubscribeSinkerEvents(context context.Context) error
 }
 
@@ -54,11 +54,13 @@ type eventStore struct {
 	sinksClient          sinkspb.SinkServiceClient
 	streamRedisClient    *redis.Client
 	sinkerKeyRedisClient *redis.Client
+	deploymentService    deployment.Service
 	esconsumer           string
 	logger               *zap.Logger
 }
 
-func NewEventStore(streamRedisClient, sinkerKeyRedisClient *redis.Client, kafkaUrl string, kubecontrol kubecontrol.Service, esconsumer string, sinksClient sinkspb.SinkServiceClient, logger *zap.Logger) Subscriber {
+func NewEventStore(streamRedisClient, sinkerKeyRedisClient *redis.Client, kafkaUrl string, kubecontrol kubecontrol.Service,
+	esconsumer string, sinksClient sinkspb.SinkServiceClient, logger *zap.Logger, service deployment.Service) Subscriber {
 	return eventStore{
 		kafkaUrl:             kafkaUrl,
 		kubecontrol:          kubecontrol,
@@ -66,6 +68,7 @@ func NewEventStore(streamRedisClient, sinkerKeyRedisClient *redis.Client, kafkaU
 		sinkerKeyRedisClient: sinkerKeyRedisClient,
 		sinksClient:          sinksClient,
 		esconsumer:           esconsumer,
+		deploymentService:    service,
 		logger:               logger,
 	}
 }
@@ -107,67 +110,6 @@ func (es eventStore) SubscribeSinkerEvents(ctx context.Context) error {
 				case <-ctx.Done():
 					return errors.New("stopped listening to sinks, due to context cancellation")
 				}
-			}
-		}
-	}
-}
-
-// SubscribeSinksEvents Subscribe to listen events from sinks to maestro
-func (es eventStore) SubscribeSinksEvents(ctx context.Context) error {
-	//listening sinker events
-	err := es.streamRedisClient.XGroupCreateMkStream(ctx, streamSinks, groupMaestro, "$").Err()
-	if err != nil && err.Error() != exists {
-		return err
-	}
-
-	for {
-		streams, err := es.streamRedisClient.XReadGroup(ctx, &redis.XReadGroupArgs{
-			Group:    groupMaestro,
-			Consumer: "orb_maestro-es-consumer",
-			Streams:  []string{streamSinks, ">"},
-			Count:    100,
-		}).Result()
-		if err != nil || len(streams) == 0 {
-			continue
-		}
-		for _, msg := range streams[0].Messages {
-			event := msg.Values
-			rte, err := decodeSinksEvent(event, event["operation"].(string))
-			if err != nil {
-				es.logger.Error("Failed to handle sinks event", zap.Any("operation", event["operation"]), zap.Error(err))
-				break
-			}
-			es.logger.Info("received message in sinks event bus", zap.Any("operation", event["operation"]))
-			switch event["operation"] {
-			case sinksCreate:
-				go func() {
-					err = es.handleSinksCreateCollector(ctx, rte) //should create collector
-					if err != nil {
-						es.logger.Error("Failed to handle sinks event", zap.Any("operation", event["operation"]), zap.Error(err))
-					} else {
-						es.streamRedisClient.XAck(ctx, streamSinks, groupMaestro, msg.ID)
-					}
-				}()
-			case sinksUpdate:
-				go func() {
-					err = es.handleSinksUpdateCollector(ctx, rte) //should create collector
-					if err != nil {
-						es.logger.Error("Failed to handle sinks event", zap.Any("operation", event["operation"]), zap.Error(err))
-					} else {
-						es.streamRedisClient.XAck(ctx, streamSinks, groupMaestro, msg.ID)
-					}
-				}()
-			case sinksDelete:
-				go func() {
-					err = es.handleSinksDeleteCollector(ctx, rte) //should delete collector
-					if err != nil {
-						es.logger.Error("Failed to handle sinks event", zap.Any("operation", event["operation"]), zap.Error(err))
-					} else {
-						es.streamRedisClient.XAck(ctx, streamSinks, groupMaestro, msg.ID)
-					}
-				}()
-			case <-ctx.Done():
-				return errors.New("stopped listening to sinks, due to context cancellation")
 			}
 		}
 	}

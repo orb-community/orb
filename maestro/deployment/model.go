@@ -9,6 +9,7 @@ type Deployment struct {
 	Id                      string         `db:"id" json:"id,omitempty"`
 	OwnerID                 string         `db:"owner_id" json:"ownerID,omitempty"`
 	SinkID                  string         `db:"sink_id" json:"sinkID,omitempty"`
+	Backend                 string         `db:"backend" json:"backend,omitempty"`
 	Config                  types.Metadata `db:"config" json:"config,omitempty"`
 	LastStatus              string         `db:"last_status" json:"lastStatus,omitempty"`
 	LastStatusUpdate        *time.Time     `db:"last_status_update" json:"lastStatusUpdate"`

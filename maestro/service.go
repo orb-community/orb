@@ -32,7 +32,8 @@ type maestroService struct {
 	serviceContext    context.Context
 	serviceCancelFunc context.CancelFunc
 
-	serviceRepository deployment.Repository
+	deploymentService   deployment.Service
+	sinkListenerService rediscons1.DeploymentListenerController
 
 	kubecontrol       kubecontrol.Service
 	monitor           monitor.Service
@@ -49,11 +50,13 @@ func NewMaestroService(logger *zap.Logger, streamRedisClient *redis.Client, sink
 	sinksGrpcClient sinkspb.SinkServiceClient, esCfg config.EsConfig, otelCfg config.OtelConfig, db *sqlx.DB) Service {
 	kubectr := kubecontrol.NewService(logger)
 	repo := deployment.NewRepositoryService(db, logger)
-	eventStore := rediscons1.NewEventStore(streamRedisClient, sinkerRedisClient, otelCfg.KafkaUrl, kubectr, esCfg.Consumer, sinksGrpcClient, logger)
+	deploymentService := deployment.NewDeploymentService(logger, repo)
+	eventStore := rediscons1.NewEventStore(streamRedisClient, sinkerRedisClient, otelCfg.KafkaUrl, kubectr,
+		esCfg.Consumer, sinksGrpcClient, logger, deploymentService)
 	monitorService := monitor.NewMonitorService(logger, &sinksGrpcClient, eventStore, &kubectr)
 	return &maestroService{
 		logger:            logger,
-		serviceRepository: repo,
+		deploymentService: deploymentService,
 		streamRedisClient: streamRedisClient,
 		sinkerRedisClient: sinkerRedisClient,
 		sinksClient:       sinksGrpcClient,
@@ -154,7 +157,7 @@ func (svc *maestroService) Start(ctx context.Context, cancelFunction context.Can
 }
 
 func (svc *maestroService) subscribeToSinksEvents(ctx context.Context) {
-	if err := svc.eventStore.SubscribeSinksEvents(ctx); err != nil {
+	if err := svc.sinkListenerService.SubscribeSinksEvents(ctx); err != nil {
 		svc.logger.Error("Bootstrap service failed to subscribe to event sourcing", zap.Error(err))
 		return
 	}

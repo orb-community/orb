@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/orb-community/orb/maestro/deployment"
 	"strconv"
 	"time"
 
@@ -23,7 +24,19 @@ const (
 	streamLen      = 1000
 )
 
-func (es eventStore) GetDeploymentEntryFromSinkId(ctx context.Context, sinkId string) (string, error) {
+type DeploymentHashsetRepository interface {
+	GetDeploymentEntryFromSinkId(ctx context.Context, ownerId string, sinkId string) (string, error)
+	CreateDeploymentEntry(ctx context.Context, deployment *deployment.Deployment) error
+	UpdateDeploymentEntry(ctx context.Context, data config.SinkData) (err error)
+	DeleteDeploymentEntry(ctx context.Context, sinkId string) error
+}
+
+type hashsetRepository struct {
+	logger             *zap.Logger
+	hashsetRedisClient *redis2.Client
+}
+
+func (es eventStore) GetDeploymentEntryFromSinkId(ctx context.Context, ownerId string, sinkId string) (string, error) {
 	cmd := es.sinkerKeyRedisClient.HGet(ctx, deploymentKey, sinkId)
 	if err := cmd.Err(); err != nil {
 		es.logger.Error("error during redis reading of SinkId", zap.String("sink-id", sinkId), zap.Error(err))
@@ -32,106 +45,16 @@ func (es eventStore) GetDeploymentEntryFromSinkId(ctx context.Context, sinkId st
 	return cmd.String(), nil
 }
 
-// handleSinksDeleteCollector will delete Deployment Entry and force delete otel collector
-func (es eventStore) handleSinksDeleteCollector(ctx context.Context, event redis.SinksUpdateEvent) error {
-	es.logger.Info("Received maestro DELETE event from sinks ID", zap.String("sinkID", event.SinkID), zap.String("owner", event.Owner))
-	err := es.RemoveSinkActivity(ctx, event.SinkID)
+func (es eventStore) CreateDeploymentEntry(ctx context.Context, d *deployment.Deployment) error {
+	deploy, err := config.BuildDeploymentJson(es.kafkaUrl, d)
 	if err != nil {
-		return err
-	}
-	deploymentEntry, err := es.GetDeploymentEntryFromSinkId(ctx, event.SinkID)
-	if err != nil {
-		es.logger.Error("did not find collector entry for sink", zap.String("sink-id", event.SinkID))
-		return err
-	}
-	err = es.sinkerKeyRedisClient.HDel(ctx, deploymentKey, event.SinkID).Err()
-	if err != nil {
-		return err
-	}
-	err = es.kubecontrol.DeleteOtelCollector(ctx, event.Owner, event.SinkID, deploymentEntry)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// handleSinksCreateCollector will create Deployment Entry in Redis
-func (es eventStore) handleSinksCreateCollector(ctx context.Context, event redis.SinksUpdateEvent) error {
-	es.logger.Info("Received event to Create DeploymentEntry from sinks ID", zap.String("sinkID", event.SinkID), zap.String("owner", event.Owner))
-	sinkData, err := es.sinksClient.RetrieveSink(ctx, &sinkspb.SinkByIDReq{
-		SinkID:  event.SinkID,
-		OwnerID: event.Owner,
-	})
-	if err != nil || (sinkData != nil && sinkData.Config == nil) {
-		es.logger.Error("could not fetch info for sink", zap.String("sink-id", event.SinkID), zap.Error(err))
-		return err
-	}
-	var metadata types.Metadata
-	if err := json.Unmarshal(sinkData.Config, &metadata); err != nil {
-		return err
-	}
-	data := config.SinkData{
-		SinkID:  sinkData.Id,
-		OwnerID: sinkData.OwnerID,
-		Backend: sinkData.Backend,
-		Config:  metadata,
-	}
-	err2 := es.CreateDeploymentEntry(ctx, data)
-	if err2 != nil {
-		return err2
-	}
-
-	return nil
-}
-
-func (es eventStore) CreateDeploymentEntry(ctx context.Context, sink config.SinkData) error {
-	deploy, err := config.GetDeploymentJson(es.kafkaUrl, sink)
-	if err != nil {
-		es.logger.Error("error trying to get deployment json for sink ID", zap.String("sinkId", sink.SinkID), zap.Error(err))
+		es.logger.Error("error trying to get deployment json for sink ID", zap.String("sinkId", d.SinkID), zap.Error(err))
 		return err
 	}
 
-	es.sinkerKeyRedisClient.HSet(ctx, deploymentKey, sink.SinkID, deploy)
-	return nil
-}
+	// Instead create the deployment entry in postgres
+	es.sinkerKeyRedisClient.HSet(ctx, deploymentKey, d.SinkID, deploy)
 
-// handleSinksUpdateCollector will update Deployment Entry in Redis and force update otel collector
-func (es eventStore) handleSinksUpdateCollector(ctx context.Context, event redis.SinksUpdateEvent) error {
-	es.logger.Info("Received event to Update DeploymentEntry from sinks ID", zap.String("sinkID", event.SinkID), zap.String("owner", event.Owner))
-	sinkData, err := es.sinksClient.RetrieveSink(ctx, &sinkspb.SinkByIDReq{
-		SinkID:  event.SinkID,
-		OwnerID: event.Owner,
-	})
-	if err != nil {
-		es.logger.Error("could not fetch info for sink", zap.String("sink-id", event.SinkID), zap.Error(err))
-	}
-	var metadata types.Metadata
-	if err := json.Unmarshal(sinkData.Config, &metadata); err != nil {
-		return err
-	}
-	data := config.SinkData{
-		SinkID:  sinkData.Id,
-		OwnerID: sinkData.OwnerID,
-		Backend: sinkData.Backend,
-		Config:  metadata,
-	}
-	_ = data.State.SetFromString(sinkData.State)
-
-	deploy, err := config.GetDeploymentJson(es.kafkaUrl, data)
-
-	if err != nil {
-		es.logger.Error("error trying to get deployment json for sink ID", zap.String("sinkId", event.SinkID), zap.Error(err))
-		return err
-	}
-	err = es.sinkerKeyRedisClient.HSet(ctx, deploymentKey, event.SinkID, deploy).Err()
-	if err != nil {
-		es.logger.Error("error trying to update deployment json for sink ID", zap.String("sinkId", event.SinkID), zap.Error(err))
-		return err
-	}
-	err = es.kubecontrol.UpdateOtelCollector(ctx, event.Owner, event.SinkID, deploy)
-	if err != nil {
-		return err
-	}
 	return nil
 }
 

@@ -2,6 +2,7 @@ package deployment
 
 import (
 	"context"
+	"fmt"
 	"github.com/jmoiron/sqlx"
 	"github.com/orb-community/orb/pkg/errors"
 	"go.uber.org/zap"
@@ -10,12 +11,12 @@ import (
 
 type Repository interface {
 	FetchAll(ctx context.Context) ([]Deployment, error)
-	Add(ctx context.Context, deployment Deployment) (Deployment, error)
-	Update(ctx context.Context, deployment Deployment) (Deployment, error)
+	Add(ctx context.Context, deployment *Deployment) (*Deployment, error)
+	Update(ctx context.Context, deployment *Deployment) (*Deployment, error)
 	UpdateStatus(ctx context.Context, ownerID string, sinkId string, status string, errorMessage string) error
 	Remove(ctx context.Context, ownerId string, sinkId string) error
-	FindByOwnerAndSink(ctx context.Context, ownerId string, sinkId string) (Deployment, error)
-	FindByCollectorName(ctx context.Context, collectorName string) (Deployment, error)
+	FindByOwnerAndSink(ctx context.Context, ownerId string, sinkId string) (*Deployment, error)
+	FindByCollectorName(ctx context.Context, collectorName string) (*Deployment, error)
 }
 
 var _ Repository = (*repositoryService)(nil)
@@ -43,33 +44,40 @@ func (r *repositoryService) FetchAll(ctx context.Context) ([]Deployment, error) 
 		_ = tx.Rollback()
 		return nil, err
 	}
-	r.logger.Info("fetched all deployments", zap.Int("count", len(deployments)))
+	r.logger.Debug("fetched all deployments", zap.Int("count", len(deployments)))
 	return deployments, nil
 }
 
-func (r *repositoryService) Add(ctx context.Context, deployment Deployment) (Deployment, error) {
+func (r *repositoryService) Add(ctx context.Context, deployment *Deployment) (*Deployment, error) {
 	tx := r.db.MustBeginTx(ctx, nil)
-	_, err := tx.NamedExecContext(ctx,
-		`INSERT INTO deployments (id, owner_id, sink_id, config, last_status, last_status_update, last_error_message, 
+	cmd, err := tx.NamedExecContext(ctx,
+		`INSERT INTO deployments (id, owner_id, sink_id, backend, config, last_status, last_status_update, last_error_message, 
 				last_error_time, collector_name, last_collector_deploy_time, last_collector_stop_time) 
-				VALUES (:id, :owner_id, :sink_id, :config, :last_status, :last_status_update, :last_error_message, 
+				VALUES (:id, :owner_id, :sink_id, :backend, :config, :last_status, :last_status_update, :last_error_message, 
 				        :last_error_time, :collector_name, :last_collector_deploy_time, :last_collector_stop_time)`,
 		deployment)
 	if err != nil {
 		_ = tx.Rollback()
-		return Deployment{}, err
+		return nil, err
 	}
-	r.logger.Info("added deployment", zap.String("owner-id", deployment.OwnerID), zap.String("sink-id", deployment.SinkID))
+	newId, err := cmd.LastInsertId()
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	deployment.Id = fmt.Sprintf("%d", newId)
+	r.logger.Debug("added deployment", zap.String("owner-id", deployment.OwnerID), zap.String("sink-id", deployment.SinkID))
 	return deployment, tx.Commit()
 }
 
-func (r *repositoryService) Update(ctx context.Context, deployment Deployment) (Deployment, error) {
+func (r *repositoryService) Update(ctx context.Context, deployment *Deployment) (*Deployment, error) {
 	tx := r.db.MustBeginTx(ctx, nil)
 	_, err := tx.NamedExecContext(ctx,
 		`UPDATE deployments 
 				SET 
                        owner_id = :owner_id,
                        sink_id = :sink_id,
+                       backend = :backend,
                        config = :config,
                        last_status = :last_status, 
                        last_status_update = :last_status_update, 
@@ -82,7 +90,7 @@ func (r *repositoryService) Update(ctx context.Context, deployment Deployment) (
 		deployment)
 	if err != nil {
 		_ = tx.Rollback()
-		return Deployment{}, err
+		return nil, err
 	}
 	r.logger.Info("update deployment", zap.String("owner-id", deployment.OwnerID), zap.String("sink-id", deployment.SinkID))
 	return deployment, tx.Commit()
@@ -104,7 +112,7 @@ func (r *repositoryService) UpdateStatus(ctx context.Context, ownerID string, si
 		_ = tx.Rollback()
 		return err
 	}
-	r.logger.Info("update deployment", zap.String("owner-id", ownerID), zap.String("sink-id", sinkId))
+	r.logger.Debug("update deployment", zap.String("owner-id", ownerID), zap.String("sink-id", sinkId))
 	return tx.Commit()
 }
 
@@ -119,46 +127,46 @@ func (r *repositoryService) Remove(ctx context.Context, ownerId string, sinkId s
 	return nil
 }
 
-func (r *repositoryService) FindByOwnerAndSink(ctx context.Context, ownerId string, sinkId string) (Deployment, error) {
+func (r *repositoryService) FindByOwnerAndSink(ctx context.Context, ownerId string, sinkId string) (*Deployment, error) {
 	tx := r.db.MustBeginTx(ctx, nil)
 	var rows []Deployment
 	err := tx.SelectContext(ctx, &rows, "SELECT * FROM deployments WHERE owner_id = :owner_id AND sink_id = :sink_id",
 		map[string]interface{}{"owner_id": ownerId, "sink_id": sinkId})
 	if err != nil {
 		_ = tx.Rollback()
-		return Deployment{}, err
+		return nil, err
 	}
 	err = tx.Commit()
 	if err != nil {
 		_ = tx.Rollback()
-		return Deployment{}, err
+		return nil, err
 	}
 	if len(rows) == 0 {
-		return Deployment{}, errors.New("")
+		return nil, errors.New(fmt.Sprintf("not found deployment for owner-id: %s and sink-id: %s", ownerId, sinkId))
 	}
-	deployment := rows[0]
+	deployment := &rows[0]
 
 	return deployment, nil
 }
 
-func (r *repositoryService) FindByCollectorName(ctx context.Context, collectorName string) (Deployment, error) {
+func (r *repositoryService) FindByCollectorName(ctx context.Context, collectorName string) (*Deployment, error) {
 	tx := r.db.MustBeginTx(ctx, nil)
 	var rows []Deployment
 	err := tx.SelectContext(ctx, &rows, "SELECT * FROM deployments WHERE collector_name = :collector_name",
 		map[string]interface{}{"collector_name": collectorName})
 	if err != nil {
 		_ = tx.Rollback()
-		return Deployment{}, err
+		return nil, err
 	}
 	err = tx.Commit()
 	if err != nil {
 		_ = tx.Rollback()
-		return Deployment{}, err
+		return nil, err
 	}
 	if len(rows) == 0 {
-		return Deployment{}, errors.New("")
+		return nil, errors.New(fmt.Sprintf("not found deployment for collector name: %s", collectorName))
 	}
-	deployment := rows[0]
+	deployment := &rows[0]
 
 	return deployment, nil
 }
