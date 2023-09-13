@@ -39,10 +39,11 @@
 </ng-template>
 
 <ng-template #groupTemplateCell let-i="index" let-row="row" let-value="value">
-    <button (click)="showAgentGroupMatches(row?.agent_group)"
+    <button *ngIf="row?.agent_group?.name" (click)="showAgentGroupMatches(row?.agent_group)"
             class="edit-dataset-button" matTooltip="{{ row?.agent_group?.name }}">
         {{ row?.agent_group?.name }}
     </button>
+    <span *ngIf="!row?.agent_group?.name" class="summary-accent" style="font-style: italic;">No group connected &nbsp;</span>
 </ng-template>
 
 <ng-template #validTemplateCell let-i="index" let-row="row" let-value="value">
@@ -59,6 +60,7 @@
             </button>
         </mat-list-item>
     </mat-nav-list>
+    <span *ngIf="value.length === 0" class="summary-accent" style="font-style: italic;">No sink connected</span>
 </ng-template>
 
 <ng-template #actionsTemplateCell let-i="index" let-row="row" let-value="value">
