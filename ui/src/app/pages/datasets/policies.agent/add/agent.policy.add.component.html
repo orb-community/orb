@@ -142,54 +142,46 @@
               <p>Provide a valid YAML or JSON configuration</p>
             </div>
           </ng-template>
-          <div>
-            <nb-toggle
-              [(ngModel)]="isJsonMode"
-              [disabled]="isEdit"
-              data-orb-qa-id="wizard-selector"
-              id="wizard"
-              labelPosition="end"
-            >
-            Create Policy through {{isJsonMode ? "JSON editor" : "YAML editor"}}
-            </nb-toggle>
+          <div class="div-language-button">
+            <button 
+            class="language-button {{isJsonMode}}"
+            (click)="isJsonMode = true">
+              JSON
+            </button>
+            <button 
+            class="language-button {{!isJsonMode}}"
+            (click)="isJsonMode = false">
+              YAML
+            </button>
           </div>
-          <div *ngIf="isJsonMode">
-            <div style="display: flex; margin-top: 10px; margin-bottom: 10px; gap: 60px;">
-              <p class="summary-accent align">Paste or Upload your JSON configuration</p>
-              <button class="upload-button align" (click)="fileInput.click()">
-                <nb-icon [icon]="uploadIconKey" pack="eva">
-                </nb-icon>
-                Upload file
-              </button>
-              <input type="file" (change)="onFileSelected($event)" #fileInput style="display: none">
-            </div>
-            <div class="code-editor-wrapper">
-              <ngx-monaco-editor
-                #editorComponentJson
-                [(ngModel)]="codejson"
-                [options]="editorOptionsJson"
-                class="code-editor">
-              </ngx-monaco-editor>
-            </div>
-          </div>  
-          <div *ngIf="!isJsonMode">
-              <div style="display: flex; margin-top: 10px; margin-bottom: 10px; gap: 60px;">
-                <p class="summary-accent align">Paste or Upload your YAML configuration</p>
-                <button class="upload-button align" (click)="fileInput.click()">
-                  <nb-icon [icon]="uploadIconKey" pack="eva">
-                  </nb-icon>
-                  Upload file
-                </button>
-                <input type="file" (change)="onFileSelected($event)" #fileInput style="display: none">
-              </div>
-              <div class="code-editor-wrapper">
+          <div style="display: flex; margin-top: 10px; margin-bottom: 10px; gap: 34px;">
+            <p class="summary-accent align">Paste or Upload your {{isJsonMode ? 'Json' : 'Yaml'}} configuration</p>
+            <button class="upload-button align" (click)="fileInput.click()">
+              <nb-icon [icon]="uploadIconKey" pack="eva">
+              </nb-icon>
+              Upload file
+            </button>
+            <input type="file" (change)="onFileSelected($event)" #fileInput style="display: none">
+          </div>
+          <div>
+            <div class="code-editor-wrapper" *ngIf="editorVisible">
+              <ng-container *ngIf="isJsonMode">
+                <ngx-monaco-editor                  
+                  #editorComponentJson
+                  [(ngModel)]="codejson"
+                  [options]="editorOptionsJson"
+                  class="code-editor">
+                </ngx-monaco-editor>
+              </ng-container>
+              <ng-container *ngIf="!isJsonMode">
                 <ngx-monaco-editor
                   #editorComponentYaml
                   [(ngModel)]="codeyaml"
                   [options]="editorOptions"
                   class="code-editor">
                 </ngx-monaco-editor>
-              </div>
+              </ng-container>
+            </div>
           </div>
           <div class="d-flex justify-content-end">
             <button
@@ -210,12 +202,85 @@
               {{ strings.stepper.back }}
             </button>
             <button
+              (click)="resizeComponents()"
+              [disabled]="!canCreate()"
+              class="next-button"
+              data-orb-qa-id="button#next"
+              class="next-button"
+              nbStepperNext
+              shape="round"
+              type="button"
+              status="primary">
+              {{ strings.stepper.next }}
+            </button>
+          </div>
+        </nb-step>
+        <nb-step [label]="review">
+          <ng-template #review>
+            <div
+              class="step-label d-flex flex-column">
+              <strong>Review & Confirm</strong>
+            </div>
+          </ng-template>
+          <div class="d-flex row">
+            <div class="col-12">
+              <div>
+                <label class="review-label">Policy Name</label>
+                <p data-orb-qa-id="review-name">{{detailsFG.controls.name.value}}</p>
+              </div>
+            </div>
+          </div>
+          <div class="d-flex row">
+            <div class="col-12">
+              <div>
+                <label class="review-label">Policy Description</label>
+                <p data-orb-qa-id="review-name" *ngIf="detailsFG.controls.description.value">{{detailsFG.controls.description.value}}</p>
+                <p *ngIf="!detailsFG.controls.description.value" style="font-style: italic; font-size: 14px;">No description provided</p>
+              </div>
+            </div>
+          </div>
+          <div class="d-flex row">
+            <div class="col-12">
+              <div>
+                <label class="review-label">Policy Backend</label>
+                <p data-orb-qa-id="review-name">{{detailsFG.controls.backend.value}}</p>
+              </div>
+            </div>
+          </div>
+          <div class="d-flex row">
+            <div class="col-12">
+              <label class="review-label" style="margin-bottom: 3px;">Tags</label>
+              <ngx-tag-display [tags]="selectedTags"></ngx-tag-display>
+            </div>
+          </div>
+          <hr/>
+
+
+          <div class="d-flex justify-content-end">
+            <button
+              (click)="goBack()"
+              data-orb-qa-id="button#cancel"
+              ghost
+              class="cancel-back-button"
+              status="primary"
+              type="button">
+              {{ strings.stepper.cancel }} 
+            </button>
+            <button
+              data-orb-qa-id="button#back"
+              ghost
+              class="cancel-back-button"
+              nbStepperPrevious
+              status="primary"
+              (click)="refreshEditor()">
+              {{ strings.stepper.back }}
+            </button>
+            <button
               (click)="onSubmit()"
               class="next-button"
               data-orb-qa-id="button#save"
               class="next-button"
               nbStepperNext
-              nbTooltip="Paste your configuration in the code editor above"
               shape="round"
               status="primary"
               type="button"
