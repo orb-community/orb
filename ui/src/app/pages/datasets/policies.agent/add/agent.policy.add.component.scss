@@ -30,6 +30,41 @@ ngx-tag-control, ngx-tag-display {
   margin-top: 20px;
 }
 
+.review-label {
+  font-family: 'Montserrat';
+  font-size: 13px;
+  font-weight: 400 !important; 
+  margin: 0;
+  color: #969fb9 !important;
+}
+.language-button {
+  border-radius: 16px;
+
+  padding: 8px 24px; 
+  color: #fff;
+  border: none; 
+  outline: none;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
+  margin: 8px 4px 8px 4px;
+  width: 90px;
+
+}
+.div-language-button {
+  background-color: #24293E;
+  width: fit-content;
+  padding: 0 4px 0 4px;
+  border-radius: 25px;
+  margin-bottom: 20px;
+}
+.true {
+  background: #3089FC; 
+}
+.false {
+  background-color: #181C2F;
+}
+
 ::ng-deep {
   .header {
     align-items: flex-end !important;
@@ -73,6 +108,7 @@ ngx-tag-control, ngx-tag-display {
   }
 
   .step-content {
+    padding-top: 0 !important;
     width: 500px !important;
   }
 
@@ -171,18 +207,20 @@ ngx-tag-control, ngx-tag-display {
 }
 
 .code-editor {
-  height: calc(100%);
+  height: calc(90%);
   width: calc(100%);
 }
 
 .code-editor-wrapper {
-  min-height: 350px;
+  min-height: 300px;
   min-width: 200px;
-  height: calc(58vh);
+  height: calc(50vh);
   width: calc(100%);
-  display: block;
 }
-
+.stepper {
+  margin: 0 !important;
+  padding-top: 0 !important;
+}
 .handlers-list {
   display: flex;
   flex-direction: column;
