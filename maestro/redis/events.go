@@ -21,6 +21,7 @@ type SinksUpdateEvent struct {
 	SinkID    string
 	Owner     string
 	Config    types.Metadata
+	Backend   string
 	Timestamp time.Time
 }
 

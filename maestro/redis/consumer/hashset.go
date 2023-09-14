@@ -141,6 +141,7 @@ func decodeSinksEvent(event map[string]interface{}, operation string) (redis.Sin
 	val := redis.SinksUpdateEvent{
 		SinkID:    read(event, "sink_id", ""),
 		Owner:     read(event, "owner", ""),
+		Backend:   read(event, "backend", ""),
 		Config:    readMetadata(event, "config"),
 		Timestamp: time.Now(),
 	}
