@@ -33,7 +33,7 @@ type maestroService struct {
 	serviceCancelFunc context.CancelFunc
 
 	deploymentService   deployment.Service
-	sinkListenerService rediscons1.DeploymentListenerController
+	sinkListenerService rediscons1.SinksListenerController
 
 	kubecontrol       kubecontrol.Service
 	monitor           monitor.Service

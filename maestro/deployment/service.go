@@ -3,7 +3,8 @@ package deployment
 import (
 	"context"
 	"errors"
-	"github.com/orb-community/orb/maestro/redis/consumer"
+	"github.com/orb-community/orb/maestro/config"
+	"github.com/orb-community/orb/maestro/kubecontrol"
 	"github.com/orb-community/orb/maestro/redis/producer"
 	"go.uber.org/zap"
 	"time"
@@ -29,8 +30,9 @@ type Service interface {
 type deploymentService struct {
 	dbRepository    Repository
 	logger          *zap.Logger
-	cacheRepository consumer.DeploymentHashsetRepository
+	kafkaUrl        string
 	maestroProducer producer.Producer
+	kubecontrol     kubecontrol.Service
 }
 
 var _ Service = (*deploymentService)(nil)
@@ -50,7 +52,7 @@ func (d *deploymentService) CreateDeployment(ctx context.Context, deployment *De
 	}
 	d.logger.Info("added deployment", zap.String("id", added.Id),
 		zap.String("ownerID", added.OwnerID), zap.String("sinkID", added.SinkID))
-	err = d.cacheRepository.CreateDeploymentEntry(ctx, deployment)
+	err = d.maestroProducer.PublishSinkStatus(added.OwnerID, added.SinkID, "unknown", "")
 	if err != nil {
 		return err
 	}
@@ -62,10 +64,15 @@ func (d *deploymentService) GetDeployment(ctx context.Context, ownerID string, s
 	if err != nil {
 		return nil, "", err
 	}
-	manifest := d.cacheRepository.GetDeploymentEntryFromSinkId(ctx, sinkId)
-	return deployment, nil
+	manifest, err := config.BuildDeploymentJson(d.kafkaUrl, deployment)
+	if err != nil {
+		return nil, "", err
+	}
+	return deployment, manifest, nil
 }
 
+// UpdateDeployment will stop the running collector if any, and change the deployment, it will not spin the collector back up,
+// it will wait for the next sink.activity
 func (d *deploymentService) UpdateDeployment(ctx context.Context, deployment *Deployment) error {
 	got, err := d.dbRepository.FindByOwnerAndSink(ctx, deployment.OwnerID, deployment.SinkID)
 	if err != nil {

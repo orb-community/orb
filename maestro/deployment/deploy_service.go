@@ -18,8 +18,6 @@ type DeployService interface {
 type deployService struct {
 	logger            *zap.Logger
 	deploymentService Service
-	kubecontrol       kubecontrol.Service
-
 	// Configuration for KafkaURL from Orb Deployment
 	kafkaUrl string
 }
@@ -59,21 +57,22 @@ func (d *deployService) HandleSinkCreate(ctx context.Context, sink config.SinkDa
 func (d *deployService) HandleSinkUpdate(ctx context.Context, sink config.SinkData) error {
 	now := time.Now()
 	// check if exists deployment entry from postgres
-	entry, manifest, err := d.deploymentService.GetDeployment(ctx, sink.OwnerID, sink.SinkID)
+	entry, _, err := d.deploymentService.GetDeployment(ctx, sink.OwnerID, sink.SinkID)
 	if err != nil {
 		d.logger.Error("error trying to get deployment entry", zap.Error(err))
 		return err
 	}
-	// update sink status to provisioning
-	err = d.deploymentService.UpdateStatus(ctx, sink.OwnerID, sink.SinkID, "provisioning", "")
-	if err != nil {
-		return err
-	}
-	err = d.kubecontrol.DeleteOtelCollector(ctx, sink.OwnerID, sink.SinkID, manifest)
-	if err != nil {
-		return err
-	}
-	entry.
+	// async update sink status to provisioning
+	go func() {
+		_ = d.deploymentService.UpdateStatus(ctx, sink.OwnerID, sink.SinkID, "provisioning", "")
+	}()
+	// update deployment entry in postgres
+	entry.Config = sink.Config
+	entry.Backend = sink.Backend
+	entry.LastCollectorStopTime = &now
+	entry.LastStatus = "provisioning"
+	entry.LastStatusUpdate = &now
+	err = d.deploymentService.UpdateDeployment(ctx, entry)
 
 	return nil
 }
