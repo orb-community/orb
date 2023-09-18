@@ -3,6 +3,7 @@ package deployment
 import (
 	"context"
 	"errors"
+	"github.com/orb-community/orb/maestro/authentication"
 	"github.com/orb-community/orb/maestro/config"
 	"github.com/orb-community/orb/maestro/kubecontrol"
 	"github.com/orb-community/orb/maestro/redis/producer"
@@ -37,6 +38,7 @@ type deploymentService struct {
 	maestroProducer   producer.Producer
 	kubecontrol       kubecontrol.Service
 	configBuilder     config.ConfigBuilder
+	encryptionService EncryptionService
 }
 
 var _ Service = (*deploymentService)(nil)
@@ -45,7 +47,7 @@ func NewDeploymentService(logger *zap.Logger, repository Repository, kafkaUrl st
 	namedLogger := logger.Named("deployment-service")
 	es := NewEncryptionService(logger, encryptionKey)
 	cb := config.NewConfigBuilder(namedLogger, kafkaUrl, es)
-	return &deploymentService{logger: namedLogger, dbRepository: repository, configBuilder: cb}
+	return &deploymentService{logger: namedLogger, dbRepository: repository, configBuilder: cb, encryptionService: es}
 }
 
 func (d *deploymentService) CreateDeployment(ctx context.Context, deployment *Deployment) error {
@@ -71,11 +73,13 @@ func (d *deploymentService) CreateDeployment(ctx context.Context, deployment *De
 	return nil
 }
 
-func (d *deploymentService)
+func (d *deploymentService) getAuthBuilder(authType string) authentication.AuthBuilderService {
+	return authentication.GetAuthService(authType, d.encryptionService)
+}
 
 func (d *deploymentService) encodeConfig(deployment *Deployment) (types.Metadata, error) {
 	authType := deployment.Config.GetSubMetadata(AuthenticationKey)["type"].(string)
-	authBuilder := d.configBuilder.GetAuthBuilder(authType)
+	authBuilder := d.getAuthBuilder(authType)
 	if authBuilder != nil {
 		return nil, errors.New("deployment do not have authentication information")
 	}
@@ -87,7 +91,14 @@ func (d *deploymentService) GetDeployment(ctx context.Context, ownerID string, s
 	if err != nil {
 		return nil, "", err
 	}
-	manifest, err := d.
+	authType := deployment.Config.GetSubMetadata(AuthenticationKey)["type"].(string)
+	authBuilder := d.getAuthBuilder(authType)
+	decodedDeployment, err := authBuilder.DecodeAuth(deployment.Config)
+	if err != nil {
+		return nil, "", err
+	}
+	deployment.Config = decodedDeployment
+	manifest, err := d.configBuilder.BuildDeploymentConfig(deployment)
 	if err != nil {
 		return nil, "", err
 	}
