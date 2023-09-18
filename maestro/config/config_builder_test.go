@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/orb-community/orb/maestro/deployment"
 	"github.com/orb-community/orb/pkg/types"
+	"go.uber.org/zap"
 	"testing"
 )
 
@@ -13,6 +14,7 @@ func TestReturnConfigYamlFromSink(t *testing.T) {
 		in0            context.Context
 		kafkaUrlConfig string
 		sink           *deployment.Deployment
+		key            string
 	}
 	tests := []struct {
 		name    string
@@ -97,8 +99,14 @@ func TestReturnConfigYamlFromSink(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		logger := zap.NewNop()
+		c := configBuilder{
+			logger:            logger,
+			kafkaUrl:          tt.args.kafkaUrlConfig,
+			encryptionService: deployment.NewEncryptionService(logger, tt.args.key),
+		}
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ReturnConfigYamlFromSink(tt.args.in0, tt.args.kafkaUrlConfig, tt.args.sink)
+			got, err := c.ReturnConfigYamlFromSink(tt.args.in0, tt.args.kafkaUrlConfig, tt.args.sink)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ReturnConfigYamlFromSink() error = %v, wantErr %v", err, tt.wantErr)
 				return

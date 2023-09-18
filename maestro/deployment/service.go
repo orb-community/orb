@@ -6,9 +6,12 @@ import (
 	"github.com/orb-community/orb/maestro/config"
 	"github.com/orb-community/orb/maestro/kubecontrol"
 	"github.com/orb-community/orb/maestro/redis/producer"
+	"github.com/orb-community/orb/pkg/types"
 	"go.uber.org/zap"
 	"time"
 )
+
+const AuthenticationKey = "authentication"
 
 type Service interface {
 	// CreateDeployment to be used to create the deployment when there is a sink.create
@@ -28,24 +31,33 @@ type Service interface {
 }
 
 type deploymentService struct {
-	dbRepository    Repository
-	logger          *zap.Logger
-	kafkaUrl        string
-	maestroProducer producer.Producer
-	kubecontrol     kubecontrol.Service
+	dbRepository      Repository
+	logger            *zap.Logger
+	kafkaUrl          string
+	maestroProducer   producer.Producer
+	kubecontrol       kubecontrol.Service
+	configBuilder     config.ConfigBuilder
 }
 
 var _ Service = (*deploymentService)(nil)
 
-func NewDeploymentService(logger *zap.Logger, repository Repository) Service {
+func NewDeploymentService(logger *zap.Logger, repository Repository, kafkaUrl string, encryptionKey string) Service {
 	namedLogger := logger.Named("deployment-service")
-	return &deploymentService{logger: namedLogger, dbRepository: repository}
+	es := NewEncryptionService(logger, encryptionKey)
+	cb := config.NewConfigBuilder(namedLogger, kafkaUrl, es)
+	return &deploymentService{logger: namedLogger, dbRepository: repository, configBuilder: cb}
 }
 
 func (d *deploymentService) CreateDeployment(ctx context.Context, deployment *Deployment) error {
 	if deployment == nil {
 		return errors.New("deployment is nil")
 	}
+	codedConfig, err := d.encodeConfig(deployment)
+	if err != nil {
+		return err
+	}
+	deployment.Config = codedConfig
+	// store with config encrypted
 	added, err := d.dbRepository.Add(ctx, deployment)
 	if err != nil {
 		return err
@@ -59,12 +71,23 @@ func (d *deploymentService) CreateDeployment(ctx context.Context, deployment *De
 	return nil
 }
 
+func (d *deploymentService)
+
+func (d *deploymentService) encodeConfig(deployment *Deployment) (types.Metadata, error) {
+	authType := deployment.Config.GetSubMetadata(AuthenticationKey)["type"].(string)
+	authBuilder := d.configBuilder.GetAuthBuilder(authType)
+	if authBuilder != nil {
+		return nil, errors.New("deployment do not have authentication information")
+	}
+	return authBuilder.EncodeAuth(deployment.Config)
+}
+
 func (d *deploymentService) GetDeployment(ctx context.Context, ownerID string, sinkId string) (*Deployment, string, error) {
 	deployment, err := d.dbRepository.FindByOwnerAndSink(ctx, ownerID, sinkId)
 	if err != nil {
 		return nil, "", err
 	}
-	manifest, err := config.BuildDeploymentJson(d.kafkaUrl, deployment)
+	manifest, err := d.
 	if err != nil {
 		return nil, "", err
 	}
