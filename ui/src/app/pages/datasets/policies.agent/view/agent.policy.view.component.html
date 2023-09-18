@@ -30,6 +30,9 @@
   </div>
 </div>
 </header>
+<div *ngIf="isLoading">
+  <div class="loading-spinner"></div>
+</div>
 
 <div *ngIf="!isLoading" class="row" #content>
   <div class="card-col col-4">

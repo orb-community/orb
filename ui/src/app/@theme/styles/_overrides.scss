@@ -264,6 +264,19 @@
   text-transform: none !important;
   width: 110px;
   background-color: #df316f !important;
+  opacity: 0;
+  animation: appear 0.3s forwards;
+}
+
+@keyframes appear {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 p {
   font-family: 'Montserrat' !important;
@@ -313,4 +326,25 @@ input {
 }
 .cancel-back-button:hover {
   background-color: rgba(255, 255, 255, 0.05) !important;
+}
+.loading-spinner {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 5px solid #404a70;
+  border-top: 5px solid #21316e;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }

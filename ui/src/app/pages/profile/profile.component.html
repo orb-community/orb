@@ -4,7 +4,12 @@
     <h4> User Profile / Settings</h4>
   </div>
 </header>
-<div class="card-row">
+
+<div *ngIf="isLoading">
+  <div class="loading-spinner"></div>
+</div>
+
+<div class="card-row" *ngIf="!isLoading">
   <div *ngIf="!isLoading" class="col-4" 
   style="padding-left: 10px !important; margin-right: 15px; margin-top: 10px;">
     <div class="info-container">
