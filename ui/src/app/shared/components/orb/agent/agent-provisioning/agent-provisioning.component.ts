@@ -52,7 +52,7 @@ export class AgentProvisioningComponent implements OnInit {
 -e ORB_CLOUD_ADDRESS=${ document.location.hostname } \\
 -e ORB_CLOUD_MQTT_ID=${ this.agent.id } \\
 -e ORB_CLOUD_MQTT_CHANNEL_ID=${ this.agent.channel_id } \\
--e ORB_CLOUD_MQTT_KEY="AGENT_KEY"\\
+-e ORB_CLOUD_MQTT_KEY="AGENT_KEY" \\
 -e PKTVISOR_PCAP_IFACE_DEFAULT=auto \\
 orbcommunity/orb-agent`;
 
@@ -60,7 +60,7 @@ orbcommunity/orb-agent`;
 -e ORB_CLOUD_ADDRESS=${ document.location.hostname } \\
 -e ORB_CLOUD_MQTT_ID=${ this.agent.id } \\
 -e ORB_CLOUD_MQTT_CHANNEL_ID=${ this.agent.channel_id } \\
--e ORB_CLOUD_MQTT_KEY=<mark>AGENT_KEY</mark>\\
+-e ORB_CLOUD_MQTT_KEY=<mark>AGENT_KEY</mark> \\
 -e PKTVISOR_PCAP_IFACE_DEFAULT=<mark>auto</mark> \\
 orbcommunity/orb-agent`;
 
@@ -68,7 +68,7 @@ orbcommunity/orb-agent`;
 -e ORB_CLOUD_ADDRESS=${ document.location.hostname } \\
 -e ORB_CLOUD_MQTT_ID=${ this.agent.id } \\
 -e ORB_CLOUD_MQTT_CHANNEL_ID=${ this.agent.channel_id } \\
--e ORB_CLOUD_MQTT_KEY="AGENT_KEY"\\
+-e ORB_CLOUD_MQTT_KEY="AGENT_KEY" \\
 -e PKTVISOR_PCAP_IFACE_DEFAULT=auto \\
 -v \${PWD}/:/usr/local/orb/ \\
 orbcommunity/orb-agent run -c /usr/local/orb/agent.yaml`;
@@ -77,7 +77,7 @@ orbcommunity/orb-agent run -c /usr/local/orb/agent.yaml`;
 -e ORB_CLOUD_ADDRESS=${ document.location.hostname } \\
 -e ORB_CLOUD_MQTT_ID=${ this.agent.id } \\
 -e ORB_CLOUD_MQTT_CHANNEL_ID=${ this.agent.channel_id } \\
--e ORB_CLOUD_MQTT_KEY=<mark>AGENT_KEY</mark>\\
+-e ORB_CLOUD_MQTT_KEY=<mark>AGENT_KEY</mark> \\
 -e PKTVISOR_PCAP_IFACE_DEFAULT=<mark>auto</mark> \\
 -v \${PWD}/:/usr/local/orb/ \\
 orbcommunity/orb-agent run -c /usr/local/orb/agent.yaml`;
