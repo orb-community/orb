@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"github.com/go-redis/redis/v8"
-	"github.com/orb-community/orb/maestro/deployment"
 	maestroredis "github.com/orb-community/orb/maestro/redis"
+	"github.com/orb-community/orb/maestro/service"
 	sinkspb "github.com/orb-community/orb/sinks/pb"
 	"go.uber.org/zap"
 )
@@ -17,7 +17,7 @@ type SinksListenerController interface {
 
 type sinksListenerService struct {
 	logger            *zap.Logger
-	deploymentService deployment.DeployService
+	deploymentService service.EventService
 	redisClient       *redis.Client
 	sinksClient       sinkspb.SinkServiceClient
 }
@@ -83,7 +83,7 @@ func (ls *sinksListenerService) SubscribeSinksEvents(ctx context.Context) error 
 	}
 }
 
-// handleSinksUpdate logic moved to deployment.DeployService
+// handleSinksUpdate logic moved to deployment.EventService
 func (ls *sinksListenerService) handleSinksUpdate(ctx context.Context, event maestroredis.SinksUpdateEvent) error {
 	ls.logger.Info("Received maestro UPDATE event from sinks ID", zap.String("sinkID", event.SinkID), zap.String("owner", event.Owner))
 	err := ls.deploymentService.HandleSinkUpdate(ctx, event)
@@ -94,7 +94,7 @@ func (ls *sinksListenerService) handleSinksUpdate(ctx context.Context, event mae
 	return nil
 }
 
-// handleSinksDelete logic moved to deployment.DeployService
+// handleSinksDelete logic moved to deployment.EventService
 func (ls *sinksListenerService) handleSinksDelete(ctx context.Context, event maestroredis.SinksUpdateEvent) error {
 	ls.logger.Info("Received maestro DELETE event from sinks ID", zap.String("sinkID", event.SinkID), zap.String("owner", event.Owner))
 	err := ls.deploymentService.HandleSinkDelete(ctx, event)
@@ -104,7 +104,7 @@ func (ls *sinksListenerService) handleSinksDelete(ctx context.Context, event mae
 	return nil
 }
 
-// handleSinksCreate logic moved to deployment.DeployService
+// handleSinksCreate logic moved to deployment.EventService
 func (ls *sinksListenerService) handleSinksCreate(ctx context.Context, event maestroredis.SinksUpdateEvent) error {
 	ls.logger.Info("Received event to CREATE event from sinks ID", zap.String("sinkID", event.SinkID), zap.String("owner", event.Owner))
 	err := ls.deploymentService.HandleSinkCreate(ctx, event)

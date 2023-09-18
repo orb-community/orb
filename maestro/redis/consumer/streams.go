@@ -34,20 +34,6 @@ const (
 	exists = "BUSYGROUP Consumer Group name already exists"
 )
 
-type Subscriber interface {
-	CreateDeploymentEntry(ctx context.Context, sink config.SinkData) error
-	GetDeploymentEntryFromSinkId(ctx context.Context, sinkId string) (string, error)
-
-	UpdateSinkCache(ctx context.Context, data config.SinkData) (err error)
-	UpdateSinkStateCache(ctx context.Context, data config.SinkData) (err error)
-	PublishSinkStateChange(sink *sinkspb.SinkRes, status string, logsErr error, err error)
-
-	GetActivity(sinkID string) (int64, error)
-	RemoveSinkActivity(ctx context.Context, sinkId string) error
-
-	SubscribeSinkerEvents(context context.Context) error
-}
-
 type eventStore struct {
 	kafkaUrl             string
 	kubecontrol          kubecontrol.Service
@@ -60,8 +46,8 @@ type eventStore struct {
 }
 
 func NewEventStore(streamRedisClient, sinkerKeyRedisClient *redis.Client, kafkaUrl string, kubecontrol kubecontrol.Service,
-	esconsumer string, sinksClient sinkspb.SinkServiceClient, logger *zap.Logger, service deployment.Service) Subscriber {
-	return eventStore{
+	esconsumer string, sinksClient sinkspb.SinkServiceClient, logger *zap.Logger, service deployment.Service) *eventStore {
+	return &eventStore{
 		kafkaUrl:             kafkaUrl,
 		kubecontrol:          kubecontrol,
 		streamRedisClient:    streamRedisClient,

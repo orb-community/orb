@@ -28,7 +28,7 @@ type Service interface {
 	// GetDeploymentByCollectorName to be used to get the deployment information for creating the collector or monitoring the collector
 	GetDeploymentByCollectorName(ctx context.Context, collectorName string) (*Deployment, error)
 	// NotifyCollector add collector information to deployment
-	NotifyCollector(ctx context.Context, ownerID string, sinkId string, collectorName string, operation string, status string, errorMessage string) error
+	NotifyCollector(ctx context.Context, ownerID string, sinkId string, operation string, status string, errorMessage string) (string, error)
 }
 
 type deploymentService struct {
@@ -66,7 +66,7 @@ func (d *deploymentService) CreateDeployment(ctx context.Context, deployment *De
 	}
 	d.logger.Info("added deployment", zap.String("id", added.Id),
 		zap.String("ownerID", added.OwnerID), zap.String("sinkID", added.SinkID))
-	err = d.maestroProducer.PublishSinkStatus(added.OwnerID, added.SinkID, "unknown", "")
+	err = d.maestroProducer.PublishSinkStatus(ctx, added.OwnerID, added.SinkID, "unknown", "")
 	if err != nil {
 		return err
 	}
@@ -108,15 +108,22 @@ func (d *deploymentService) GetDeployment(ctx context.Context, ownerID string, s
 // UpdateDeployment will stop the running collector if any, and change the deployment, it will not spin the collector back up,
 // it will wait for the next sink.activity
 func (d *deploymentService) UpdateDeployment(ctx context.Context, deployment *Deployment) error {
+	now := time.Now()
 	got, err := d.dbRepository.FindByOwnerAndSink(ctx, deployment.OwnerID, deployment.SinkID)
 	if err != nil {
 		return errors.New("could not find deployment to update")
+	}
+	// Spin down the collector if it is running
+	err = d.kubecontrol.KillOtelCollector(ctx, got.OwnerID, got.SinkID)
+	if err != nil {
+		d.logger.Warn("could not stop running collector, will try to update anyway", zap.Error(err))
 	}
 	err = deployment.Merge(*got)
 	if err != nil {
 		d.logger.Error("error during merge of deployments", zap.Error(err))
 		return err
 	}
+	deployment.LastCollectorStopTime = &now
 	if deployment == nil {
 		return errors.New("deployment is nil")
 	}
@@ -129,17 +136,35 @@ func (d *deploymentService) UpdateDeployment(ctx context.Context, deployment *De
 	return nil
 }
 
-func (d *deploymentService) NotifyCollector(ctx context.Context, ownerID string, sinkId string, collectorName string, operation string, status string, errorMessage string) error {
+func (d *deploymentService) NotifyCollector(ctx context.Context, ownerID string, sinkId string, operation string, status string, errorMessage string) (string, error) {
 	got, err := d.dbRepository.FindByOwnerAndSink(ctx, ownerID, sinkId)
 	if err != nil {
-		return errors.New("could not find deployment to update")
+		return "", errors.New("could not find deployment to update")
 	}
 	now := time.Now()
-	got.CollectorName = collectorName
 	if operation == "delete" {
 		got.LastCollectorStopTime = &now
+		err = d.kubecontrol.KillOtelCollector(ctx, got.OwnerID, got.SinkID)
+		if err != nil {
+			d.logger.Warn("could not stop running collector, will try to update anyway", zap.Error(err))
+		}
 	} else if operation == "deploy" {
-		got.LastCollectorDeployTime = &now
+		// Spin up the collector
+		if got.LastCollectorDeployTime != nil || got.LastCollectorDeployTime.Before(now) {
+			if got.LastCollectorStopTime != nil || got.LastCollectorStopTime.Before(now) {
+				d.logger.Debug("collector is not running deploying")
+				manifest, err := d.configBuilder.BuildDeploymentConfig(got)
+				if err != nil {
+					d.logger.Error("error during build deployment config", zap.Error(err))
+					return "", err
+				}
+				got.CollectorName, err = d.kubecontrol.CreateOtelCollector(ctx, got.OwnerID, got.SinkID, manifest)
+				got.LastCollectorDeployTime = &now
+			} else {
+				d.logger.Info("collector is already running")
+			}
+		}
+
 	}
 	if status != "" {
 		got.LastStatus = status
@@ -151,13 +176,13 @@ func (d *deploymentService) NotifyCollector(ctx context.Context, ownerID string,
 	}
 	updated, err := d.dbRepository.Update(ctx, got)
 	if err != nil {
-		return err
+		return "", err
 	}
 	d.logger.Info("updated deployment information for collector and status or error",
 		zap.String("ownerID", updated.OwnerID), zap.String("sinkID", updated.SinkID),
 		zap.String("collectorName", updated.CollectorName),
 		zap.String("status", updated.LastStatus), zap.String("errorMessage", updated.LastErrorMessage))
-	return nil
+	return updated.CollectorName, nil
 }
 
 // UpdateStatus this will change the status in postgres and notify sinks service to show new status to user

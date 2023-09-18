@@ -14,6 +14,8 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/orb-community/orb/maestro/deployment"
 	"github.com/orb-community/orb/maestro/monitor"
+	"github.com/orb-community/orb/maestro/redis/producer"
+	"github.com/orb-community/orb/maestro/service"
 	"github.com/orb-community/orb/pkg/types"
 	"strings"
 
@@ -41,8 +43,8 @@ type maestroService struct {
 	streamRedisClient *redis.Client
 	sinkerRedisClient *redis.Client
 	sinksClient       sinkspb.SinkServiceClient
+	eventService      service.EventService
 	esCfg             config.EsConfig
-	eventStore        rediscons1.Subscriber
 	kafkaUrl          string
 }
 
@@ -51,9 +53,9 @@ func NewMaestroService(logger *zap.Logger, streamRedisClient *redis.Client, sink
 	kubectr := kubecontrol.NewService(logger)
 	repo := deployment.NewRepositoryService(db, logger)
 	deploymentService := deployment.NewDeploymentService(logger, repo)
-	eventStore := rediscons1.NewEventStore(streamRedisClient, sinkerRedisClient, otelCfg.KafkaUrl, kubectr,
-		esCfg.Consumer, sinksGrpcClient, logger, deploymentService)
-	monitorService := monitor.NewMonitorService(logger, &sinksGrpcClient, eventStore, &kubectr)
+	ps := producer.NewMaestroProducer(logger, streamRedisClient)
+	monitorService := monitor.NewMonitorService(logger, &sinksGrpcClient, ps, &kubectr)
+	eventService := service.NewEventService(logger, deploymentService, kubectr)
 	return &maestroService{
 		logger:            logger,
 		deploymentService: deploymentService,
@@ -62,7 +64,6 @@ func NewMaestroService(logger *zap.Logger, streamRedisClient *redis.Client, sink
 		sinksClient:       sinksGrpcClient,
 		kubecontrol:       kubectr,
 		monitor:           monitorService,
-		eventStore:        eventStore,
 		kafkaUrl:          otelCfg.KafkaUrl,
 	}
 }

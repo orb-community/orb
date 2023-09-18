@@ -14,7 +14,6 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-	"time"
 )
 
 const namespace = "otelcollectors"
@@ -58,19 +57,13 @@ func NewService(logger *zap.Logger) Service {
 
 type Service interface {
 	// CreateOtelCollector - create an existing collector by id
-	CreateOtelCollector(ctx context.Context, ownerID, sinkID, deploymentEntry string) error
-
-	// DeleteOtelCollector - delete an existing collector by id
-	DeleteOtelCollector(ctx context.Context, ownerID, sinkID, deploymentEntry string) error
-
-	// UpdateOtelCollector - update an existing collector by id
-	UpdateOtelCollector(ctx context.Context, ownerID, sinkID, deploymentEntry string) error
+	CreateOtelCollector(ctx context.Context, ownerID, sinkID, deploymentEntry string) (string, error)
 
 	// KillOtelCollector - kill an existing collector by id, terminating by the ownerID, sinkID without the file
 	KillOtelCollector(ctx context.Context, ownerID, sinkID string) error
 }
 
-func (svc *deployService) collectorDeploy(ctx context.Context, operation, ownerID, sinkId, manifest string) error {
+func (svc *deployService) collectorDeploy(ctx context.Context, operation, ownerID, sinkId, manifest string) (string, error) {
 	_, status, err := svc.getDeploymentState(ctx, ownerID, sinkId)
 	fileContent := []byte(manifest)
 	tmp := strings.Split(string(fileContent), "\n")
@@ -83,7 +76,7 @@ func (svc *deployService) collectorDeploy(ctx context.Context, operation, ownerI
 	err = os.WriteFile("/tmp/otel-collector-"+sinkId+".json", []byte(newContent), 0644)
 	if err != nil {
 		svc.logger.Error("failed to write file content", zap.Error(err))
-		return err
+		return "", err
 	}
 	stdOutListenFunction := func(out *bufio.Scanner, err *bufio.Scanner) {
 		for out.Scan() {
@@ -100,8 +93,9 @@ func (svc *deployService) collectorDeploy(ctx context.Context, operation, ownerI
 	if err == nil {
 		svc.logger.Info(fmt.Sprintf("successfully %s the otel-collector for sink-id: %s", operation, sinkId))
 	}
-
-	return nil
+	// TODO this will be retrieved once we move to K8s SDK
+	collectorName := fmt.Sprintf("otelcol-%s-%s", ownerID, sinkId)
+	return collectorName, nil
 }
 
 func execCmd(_ context.Context, cmd *exec.Cmd, logger *zap.Logger, stdOutFunc func(stdOut *bufio.Scanner, stdErr *bufio.Scanner)) (*bufio.Scanner, *bufio.Scanner, error) {
@@ -146,35 +140,13 @@ func (svc *deployService) getDeploymentState(ctx context.Context, _, sinkId stri
 	return "", "deleted", nil
 }
 
-func (svc *deployService) CreateOtelCollector(ctx context.Context, ownerID, sinkID, deploymentEntry string) error {
-	err := svc.collectorDeploy(ctx, "apply", ownerID, sinkID, deploymentEntry)
+func (svc *deployService) CreateOtelCollector(ctx context.Context, ownerID, sinkID, deploymentEntry string) (string, error) {
+	col, err := svc.collectorDeploy(ctx, "apply", ownerID, sinkID, deploymentEntry)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
-}
-
-func (svc *deployService) UpdateOtelCollector(ctx context.Context, ownerID, sinkID, deploymentEntry string) error {
-	err := svc.DeleteOtelCollector(ctx, ownerID, sinkID, deploymentEntry)
-	if err != nil {
-		return err
-	}
-	// Time to wait until K8s completely removes before re-creating
-	time.Sleep(3 * time.Second)
-	err = svc.CreateOtelCollector(ctx, ownerID, sinkID, deploymentEntry)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (svc *deployService) DeleteOtelCollector(ctx context.Context, ownerID, sinkID, deploymentEntry string) error {
-	err := svc.collectorDeploy(ctx, "delete", ownerID, sinkID, deploymentEntry)
-	if err != nil {
-		return err
-	}
-	return nil
+	return col, nil
 }
 
 func (svc *deployService) KillOtelCollector(ctx context.Context, deploymentName string, sinkId string) error {
