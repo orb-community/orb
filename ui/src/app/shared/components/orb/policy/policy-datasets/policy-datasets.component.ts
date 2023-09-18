@@ -241,7 +241,7 @@ export class PolicyDatasetsComponent
 
   showAgentGroupMatches(agentGroup) {
     this.dialogService.open(AgentMatchComponent, {
-      context: { agentGroup },
+      context: { agentGroup: agentGroup, policy: this.policy },
       autoFocus: true,
       closeOnEsc: true,
     });
