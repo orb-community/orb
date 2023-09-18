@@ -519,7 +519,7 @@ jobs:
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
         with:
           platforms: all
 
