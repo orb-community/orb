@@ -389,7 +389,7 @@ jobs:
        
       - name: Login to Docker Hub orbcommunity
         if: github.event_name != 'pull_request'
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.ORB_DOCKERHUB_USERNAME }}
           password: ${{ secrets.ORB_DOCKERHUB_TOKEN }}
@@ -415,7 +415,7 @@ jobs:
         run: SERVICE=fleet make build_docker
 
       - name: Login to Docker Hub orbcommunity
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         if: github.event_name != 'pull_request'
         with:
           username: ${{ secrets.ORB_DOCKERHUB_USERNAME }}
@@ -442,7 +442,7 @@ jobs:
         run: SERVICE=policies make build_docker
         
       - name: Login to Docker Hub orbcommunity
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         if: github.event_name != 'pull_request'
         with:
           username: ${{ secrets.ORB_DOCKERHUB_USERNAME }}
@@ -469,7 +469,7 @@ jobs:
         run: SERVICE=sinker make build_docker
        
       - name: Login to Docker Hub orbcommunity
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         if: github.event_name != 'pull_request'
         with:
           username: ${{ secrets.ORB_DOCKERHUB_USERNAME }}
@@ -496,7 +496,7 @@ jobs:
         run: SERVICE=sinks make build_docker
         
       - name: Login to Docker Hub orbcommunity
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         if: github.event_name != 'pull_request'
         with:
           username: ${{ secrets.ORB_DOCKERHUB_USERNAME }}
@@ -523,7 +523,7 @@ jobs:
         run: SERVICE=maestro make build_docker      
 
       - name: Login to Docker Hub orbcommunity
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         if: github.event_name != 'pull_request'
         with:
           username: ${{ secrets.ORB_DOCKERHUB_USERNAME }}
@@ -553,7 +553,7 @@ jobs:
           
       - name: Login to Docker Hub orbcommunity
         if: ${{ steps.filter.outputs.yarn == 'true' }}
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.ORB_DOCKERHUB_USERNAME }}
           password: ${{ secrets.ORB_DOCKERHUB_TOKEN }}
@@ -599,7 +599,7 @@ jobs:
           git push origin develop
           
       - name: Login to Docker Hub orbcommunity
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         if: github.event_name != 'pull_request'
         with:
           username: ${{ secrets.ORB_DOCKERHUB_USERNAME }}
@@ -625,7 +625,7 @@ jobs:
 
       - name: Login to Docker Hub orbcommunity
         if: ${{ needs.prebuild.outputs.migrate == 'true' }}
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.ORB_DOCKERHUB_USERNAME }}
           password: ${{ secrets.ORB_DOCKERHUB_TOKEN }}
