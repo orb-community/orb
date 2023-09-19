@@ -5,14 +5,14 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/orb-community/orb/maestro/deployment"
+	"github.com/orb-community/orb/maestro/redis/producer"
 	"io"
 	"strings"
 	"time"
 
-	"github.com/orb-community/orb/maestro/kubecontrol"
-	rediscons1 "github.com/orb-community/orb/maestro/redis/consumer"
-
 	maestroconfig "github.com/orb-community/orb/maestro/config"
+	"github.com/orb-community/orb/maestro/kubecontrol"
 	sinkspb "github.com/orb-community/orb/sinks/pb"
 	"go.uber.org/zap"
 	k8scorev1 "k8s.io/api/core/v1"
@@ -27,12 +27,12 @@ const (
 	namespace       = "otelcollectors"
 )
 
-func NewMonitorService(logger *zap.Logger, sinksClient *sinkspb.SinkServiceClient, eventStore rediscons1.Subscriber, kubecontrol *kubecontrol.Service) Service {
+func NewMonitorService(logger *zap.Logger, sinksClient *sinkspb.SinkServiceClient, mp producer.Producer, kubecontrol *kubecontrol.Service) Service {
 	return &monitorService{
-		logger:      logger,
-		sinksClient: *sinksClient,
-		eventStore:  eventStore,
-		kubecontrol: *kubecontrol,
+		logger:          logger,
+		sinksClient:     *sinksClient,
+		maestroProducer: mp,
+		kubecontrol:     *kubecontrol,
 	}
 }
 
@@ -42,10 +42,11 @@ type Service interface {
 }
 
 type monitorService struct {
-	logger      *zap.Logger
-	sinksClient sinkspb.SinkServiceClient
-	eventStore  rediscons1.Subscriber
-	kubecontrol kubecontrol.Service
+	logger          *zap.Logger
+	sinksClient     sinkspb.SinkServiceClient
+	maestroProducer producer.Producer
+	deploymentSvc   deployment.Service
+	kubecontrol     kubecontrol.Service
 }
 
 func (svc *monitorService) Start(ctx context.Context, cancelFunc context.CancelFunc) error {
@@ -167,7 +168,7 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 		if sink == nil {
 			svc.logger.Warn("collector not found for sink, depleting collector", zap.String("collector name", collector.Name))
 			sinkId := collector.Name[5:41]
-			deploymentEntry, err := svc.eventStore.GetDeploymentEntryFromSinkId(ctx, sinkId)
+			deploymentEntry, err := svc.deploymentSvc.GetDeploymentByCollectorName(ctx, collector.Name)
 			if err != nil {
 				svc.logger.Error("did not find collector entry for sink", zap.String("sink-id", sinkId))
 				deploymentName := "otel-" + sinkId
