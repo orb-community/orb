@@ -38,6 +38,10 @@
   </div>
 </header>
 
+<div *ngIf="isLoading">
+  <div class="loading-spinner"></div>
+</div>
+
 <div *ngIf="!isLoading" class="row">
   <div class="card-col col-5">
     <ngx-agent-information [agent]="agent"></ngx-agent-information>
