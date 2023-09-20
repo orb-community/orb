@@ -94,12 +94,20 @@ export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
     } else if (this.editor.isYaml(configSink)) {
       config = YAML.parse(configSink);
     } else {
-      return false;
+        return false;
     }
+
     if (this.editMode.config) {
-      configValid = !this.editor.checkEmpty(config.authentication) && !this.editor.checkEmpty(config.exporter);
+      configValid = !this.editor.checkEmpty(config.authentication) && !this.editor.checkEmpty(config.exporter) && !this.checkString(config);
     }
     return detailsValid && configValid;
+  }
+
+  checkString(config: any): boolean {
+    if (typeof config.authentication.password !== 'string' || typeof config.authentication.username !== 'string') {
+      return true;
+    }
+    return false;
   }
 
   discard() {
@@ -113,40 +121,30 @@ export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
     const sinkDetails = this.detailsComponent.formGroup?.value;
     const tags = this.detailsComponent.selectedTags;
     const configSink = this.configComponent.code;
-
+  
     const details = { ...sinkDetails, tags };
-    const isJson = this.editor.isJson(configSink);
-
-    let payload: Sink = { id, backend };
-
-    if (isJson) {
-      const config = JSON.parse(configSink);
-
-      if (this.editMode.details && !this.editMode.config) {
-        payload = { ...payload, ...details };
-      } else if (!this.editMode.details && this.editMode.config) {
-        payload = { ...payload, config };
-      } else {
-        payload = { ...payload, ...details, config };
-      }
-    } else {
-      if (this.editMode.details && !this.editMode.config) {
-        payload = { ...payload, ...details };
-      } else if (!this.editMode.details && this.editMode.config) {
-        payload = { ...payload, format: 'yaml', config_data: configSink };
-      } else {
-        payload = { ...payload, ...details, format: 'yaml', config_data: configSink };
-      }
-    }
-
+  
+    let payload = { id, backend, config: {}};
+  
     try {
-      this.sinks.editSink(payload).subscribe((resp) => {
-        this.discard();
-        this.sink = resp;
-        this.orb.refreshNow();
-        this.notifications.success('Sink updated successfully', '');
-        this.isRequesting = false;
-      });
+      const config = YAML.parse(configSink);
+      payload.config = config;
+  
+      if (this.editMode.details) {
+        payload = { ...payload, ...details };
+      }
+  
+      this.sinks.editSink(payload as Sink).subscribe(
+        (resp) => {
+          this.discard();
+          this.sink = resp;
+          this.orb.refreshNow();
+          this.notifications.success('Sink updated successfully', '');
+          this.isRequesting = false;
+        },
+        (err) => {
+          this.isRequesting = false;
+        });
     } catch (err) {
       this.notifications.error('Failed to edit Sink', 'Error: Invalid configuration');
     }

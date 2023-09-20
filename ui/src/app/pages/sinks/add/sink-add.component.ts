@@ -55,7 +55,13 @@ export class SinkAddComponent {
             return false;
         }
         
-        return !this.editor.checkEmpty(config.authentication) && !this.editor.checkEmpty(config.exporter) && detailsValid;
+        return !this.editor.checkEmpty(config.authentication) && !this.editor.checkEmpty(config.exporter) && detailsValid && !this.checkString(config);
+    }
+    checkString(config: any): boolean {
+        if (typeof config.authentication.password !== 'string' || typeof config.authentication.username !== 'string') {
+            return true;
+        }
+        return false;
     }
 
     createSink() {
@@ -68,22 +74,30 @@ export class SinkAddComponent {
         
         let payload = {};
 
-        if (this.editor.isJson(configSink)) {
-            const config = JSON.parse(configSink);
-            payload = {
-                ...details,
-                tags,
-                config,
-            } as Sink;
-        }
-        else {
-            payload = {
-                ...details,
-                tags,
-                format: 'yaml',
-                config_data: configSink,
-            } as Sink;
-        }
+        const config = YAML.parse(configSink);
+
+        payload = {
+            ...details,
+            tags,
+            config,
+        } as Sink;
+
+        // if (this.editor.isJson(configSink)) {
+        //     const config = JSON.parse(configSink);
+        //     payload = {
+        //         ...details,
+        //         tags,
+        //         config,
+        //     } as Sink;
+        // }
+        // else {
+        //     payload = {
+        //         ...details,
+        //         tags,
+        //         format: 'yaml',
+        //         config_data: configSink,
+        //     } as Sink;
+        // }
 
         this.sinksService.addSink(payload).subscribe(() => {
             this.notificationsService.success('Sink successfully created', '');
