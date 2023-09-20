@@ -78,7 +78,7 @@ export class SinkConfigComponent implements OnInit, OnChanges {
     private fb: FormBuilder,
     private orb: OrbService,
     ) { 
-    this.isYaml = false; 
+    this.isYaml = true; 
     this.sink = {};
     this.editMode = false;
     this.editModeChange = new EventEmitter<boolean>();
@@ -111,28 +111,29 @@ export class SinkConfigComponent implements OnInit, OnChanges {
   ngOnInit(): void {
     if (this.createMode) {
       this.toggleEdit(true);
-      this.code = JSON.stringify(this.sinkConfigSchemaOtlp, null, 2);
+      this.code = YAML.stringify(this.sinkConfigSchemaOtlp);
     }
     else {
-      if (this.sink.config_data && this.sink.format === 'yaml') {
-        this.isYaml = true;
-        this.code = YAML.stringify(this.sink.config_data);
-      }
-      else if (this.isJson(JSON.stringify(this.sink.config))) {
-        this.isYaml = false;
-        this.code = JSON.stringify(this.sink.config, null, 2);
-      }
+      // if (this.sink.config_data && this.sink.format === 'yaml') {
+      // this.isYaml = true;
+      const parsedCode = YAML.parse(JSON.stringify(this.sink.config));
+      this.code = YAML.stringify(parsedCode);
+      // }
+      // else if (this.isJson(JSON.stringify(this.sink.config))) {
+      //   this.isYaml = false;
+      //   this.code = JSON.stringify(this.sink.config, null, 2);
+      // }
 
     }
   }
-  isJson(str: string) {
-    try {
-        JSON.parse(str);
-        return true;
-    } catch {
-        return false;
-    }
-}
+  // isJson(str: string) {
+  //   try {
+  //       JSON.parse(str);
+  //       return true;
+  //   } catch {
+  //       return false;
+  //   }
+  // }
 ngOnChanges(changes: SimpleChanges) {
   const { editMode, sinkBackend } = changes;
   if (editMode && !editMode.firstChange) {
@@ -143,23 +144,26 @@ ngOnChanges(changes: SimpleChanges) {
       ? this.sinkConfigSchemaPrometheus
       : this.sinkConfigSchemaOtlp;
       
-    this.code = this.isYaml
-      ? YAML.stringify(sinkConfigSchema, null)
-      : JSON.stringify(sinkConfigSchema, null, 2);
+    // this.code = this.isYaml
+    //   ? YAML.stringify(sinkConfigSchema, null)
+    //   : JSON.stringify(sinkConfigSchema, null, 2);
+    this.code = YAML.stringify(sinkConfigSchema, null);
   }
 }
 
 updateForm() {
-  const configData = this.sink.config_data;
-  const isYamlFormat = this.sink.format === 'yaml';
+  const configData = this.sink.config;
+  // const isYamlFormat = this.sink.format === 'yaml';
 
   if (this.editMode) {
-    this.isYaml = isYamlFormat;
-    this.code = isYamlFormat ? YAML.stringify(configData) : JSON.stringify(this.sink.config, null, 2);
+    // this.isYaml = isYamlFormat;
+    // this.code = isYamlFormat ? YAML.stringify(configData) : JSON.stringify(this.sink.config, null, 2);
+    this.code = YAML.stringify(configData);
   } else {
     this.formControl = this.fb.control(null, [Validators.required]);
-    this.isYaml = isYamlFormat;
-    this.code = isYamlFormat ? YAML.stringify(configData) : JSON.stringify(this.sink.config, null, 2);
+    // this.isYaml = isYamlFormat;
+    // this.code = isYamlFormat ? YAML.stringify(configData) : JSON.stringify(this.sink.config, null, 2);
+    this.code = YAML.stringify(configData);
   }
 
   this.formControl = this.fb.control(this.code, [Validators.required]);
@@ -173,21 +177,21 @@ updateForm() {
     else {
       this.orb.startPolling();
     }
-    this.editorOptions = { ...this.editorOptions, readOnly: !edit };
+    // this.editorOptions = { ...this.editorOptions, readOnly: !edit };
     this.editorOptionsYaml = { ...this.editorOptionsYaml, readOnly: !edit };
     this.updateForm();
     !!notify && this.editModeChange.emit(this.editMode);
   }
-  toggleLanguage() {
-    this.isYaml = !this.isYaml;
-    if (this.isYaml) {
-      const parsedCode = YAML.parse(this.code);
-      this.code = YAML.stringify(parsedCode);
-    }
-    else {
-      const parsedConfig = YAML.parse(this.code);
-      this.code = JSON.stringify(parsedConfig, null, 2);
-    }
-  }
+  // toggleLanguage() {
+  //   this.isYaml = !this.isYaml;
+  //   if (this.isYaml) {
+  //     const parsedCode = YAML.parse(this.code);
+  //     this.code = YAML.stringify(parsedCode);
+  //   }
+  //   else {
+  //     const parsedConfig = YAML.parse(this.code);
+  //     this.code = JSON.stringify(parsedConfig, null, 2);
+  //   }
+  // }
   
 }
