@@ -126,14 +126,14 @@ export class SinkConfigComponent implements OnInit, OnChanges {
 
     }
   }
-  // isJson(str: string) {
-  //   try {
-  //       JSON.parse(str);
-  //       return true;
-  //   } catch {
-  //       return false;
-  //   }
-  // }
+  isJson(str: string) {
+    try {
+        JSON.parse(str);
+        return true;
+    } catch {
+        return false;
+    }
+  }
 ngOnChanges(changes: SimpleChanges) {
   const { editMode, sinkBackend } = changes;
   if (editMode && !editMode.firstChange) {
@@ -144,9 +144,9 @@ ngOnChanges(changes: SimpleChanges) {
       ? this.sinkConfigSchemaPrometheus
       : this.sinkConfigSchemaOtlp;
       
-    // this.code = this.isYaml
-    //   ? YAML.stringify(sinkConfigSchema, null)
-    //   : JSON.stringify(sinkConfigSchema, null, 2);
+    this.code = this.isYaml
+      ? YAML.stringify(sinkConfigSchema, null)
+      : JSON.stringify(sinkConfigSchema, null, 2);
     this.code = YAML.stringify(sinkConfigSchema, null);
   }
 }
@@ -177,21 +177,21 @@ updateForm() {
     else {
       this.orb.startPolling();
     }
-    // this.editorOptions = { ...this.editorOptions, readOnly: !edit };
+    this.editorOptions = { ...this.editorOptions, readOnly: !edit };
     this.editorOptionsYaml = { ...this.editorOptionsYaml, readOnly: !edit };
     this.updateForm();
     !!notify && this.editModeChange.emit(this.editMode);
   }
-  // toggleLanguage() {
-  //   this.isYaml = !this.isYaml;
-  //   if (this.isYaml) {
-  //     const parsedCode = YAML.parse(this.code);
-  //     this.code = YAML.stringify(parsedCode);
-  //   }
-  //   else {
-  //     const parsedConfig = YAML.parse(this.code);
-  //     this.code = JSON.stringify(parsedConfig, null, 2);
-  //   }
-  // }
+  toggleLanguage() {
+    this.isYaml = !this.isYaml;
+    if (this.isYaml) {
+      const parsedCode = YAML.parse(this.code);
+      this.code = YAML.stringify(parsedCode);
+    }
+    else {
+      const parsedConfig = YAML.parse(this.code);
+      this.code = JSON.stringify(parsedConfig, null, 2);
+    }
+  }
   
 }

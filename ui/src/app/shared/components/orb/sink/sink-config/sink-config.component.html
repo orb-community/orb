@@ -29,14 +29,14 @@
     <nb-card-body>
       <!--    <div *ngIf="editMode; then updateView else readView"></div>-->
       <div class="code-editor-wrapper">
-        <!-- <ngx-monaco-editor
+        <ngx-monaco-editor
             #editorComponent
             [(ngModel)]="code"
             [options]="editorOptions"
             class="code-editor"
             ngDefaultControl
             *ngIf="!isYaml">
-        </ngx-monaco-editor> -->
+        </ngx-monaco-editor>
         <ngx-monaco-editor
           [(ngModel)]="code"
           [options]="editorOptionsYaml"
