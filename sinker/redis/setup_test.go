@@ -34,7 +34,7 @@ func TestMain(m *testing.M) {
 		})
 		return redisClient.Ping(context.Background()).Err()
 	}); err != nil {
-		logger.Fatal("could not conncet to docker: %s", zap.Error(err))
+		logger.Fatal("could not connect to docker: %s", zap.Error(err))
 	}
 
 	code := m.Run()
@@ -44,4 +44,19 @@ func TestMain(m *testing.M) {
 	}
 
 	os.Exit(code)
+}
+
+func NoopReceiver(streamID string) error {
+	go func() {
+		for {
+			// Redis Subscribe to stream
+			if redisClient != nil {
+				redisClient.XReadGroup(context.Background(), &redis.XReadGroupArgs{
+					Group:   "unit_test",
+					Streams: []string{streamID},
+				})
+			}
+		}
+	}()
+	return nil
 }

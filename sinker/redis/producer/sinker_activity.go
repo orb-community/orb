@@ -34,10 +34,10 @@ var _ SinkActivityProducer = (*sinkActivityProducer)(nil)
 
 type sinkActivityProducer struct {
 	logger            *zap.Logger
-	redisStreamClient redis.Client
+	redisStreamClient *redis.Client
 }
 
-func NewSinkActivityProducer(logger *zap.Logger, redisStreamClient redis.Client) SinkActivityProducer {
+func NewSinkActivityProducer(logger *zap.Logger, redisStreamClient *redis.Client) SinkActivityProducer {
 	return &sinkActivityProducer{logger: logger, redisStreamClient: redisStreamClient}
 }
 

@@ -35,10 +35,10 @@ type SinkerKeyService interface {
 
 type sinkerKeyService struct {
 	logger          *zap.Logger
-	cacheRepository redis.Client
+	cacheRepository *redis.Client
 }
 
-func NewSinkerKeyService(logger *zap.Logger, cacheRepository redis.Client) SinkerKeyService {
+func NewSinkerKeyService(logger *zap.Logger, cacheRepository *redis.Client) SinkerKeyService {
 	return &sinkerKeyService{logger: logger, cacheRepository: cacheRepository}
 }
 

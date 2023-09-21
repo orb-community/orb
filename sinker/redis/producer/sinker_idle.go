@@ -34,7 +34,11 @@ var _ SinkIdleProducer = (*sinkIdleProducer)(nil)
 
 type sinkIdleProducer struct {
 	logger            *zap.Logger
-	redisStreamClient redis.Client
+	redisStreamClient *redis.Client
+}
+
+func NewSinkIdleProducer(logger *zap.Logger, redisStreamClient *redis.Client) SinkIdleProducer {
+	return &sinkIdleProducer{logger: logger, redisStreamClient: redisStreamClient}
 }
 
 func (s *sinkIdleProducer) PublishSinkIdle(ctx context.Context, event SinkIdleEvent) error {
