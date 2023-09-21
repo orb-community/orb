@@ -89,6 +89,7 @@ export class AgentViewComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.agentSubscription?.unsubscribe();
+    this.orb.isPollingPaused ? this.orb.startPolling() : null;
     this.orb.killPolling.next();
   }
 

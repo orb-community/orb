@@ -53,11 +53,15 @@ export class OrbService implements OnDestroy {
   // next to force refresh
   private forceRefresh: Subject<number>;
 
+  isPollingPaused = false;
+
   pausePolling() {
+    this.isPollingPaused = true;
     this.pollController$.next(PollControls.PAUSE);
   }
 
   startPolling() {
+    this.isPollingPaused = false;
     this.pollController$.next(PollControls.RESUME);
   }
 
