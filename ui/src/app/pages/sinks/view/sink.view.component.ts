@@ -161,6 +161,7 @@ export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnDestroy(): void {
     this.sinkSubscription.unsubscribe();
+    this.orb.isPollingPaused ? this.orb.startPolling() : null;
     this.orb.killPolling.next();
   }
   openDeleteModal() {

@@ -29,6 +29,7 @@ import { PolicyDuplicateComponent } from '../duplicate/agent.policy.duplicate.co
 import { NbDialogService } from '@nebular/theme';
 import { updateMenuItems } from 'app/pages/pages-menu';
 import { AgentPolicyDeleteComponent } from '../delete/agent.policy.delete.component';
+import { error } from 'console';
 
 @Component({
   selector: 'ngx-agent-view',
@@ -162,13 +163,18 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
         backend,
       } as AgentPolicy;
 
-      this.policiesService.editAgentPolicy(payload).subscribe((resp) => {
+      this.policiesService.editAgentPolicy(payload).subscribe(
+        (resp) => {
         this.notifications.success('Agent Policy updated successfully', '');
         this.discard();
         this.policy = resp;
         this.orb.refreshNow();
         this.isRequesting = false;
-      });
+        },
+        (error) => {
+          this.isRequesting = false;
+        }
+        );
 
     } catch (err) {
       this.notifications.error(
@@ -220,6 +226,7 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.policySubscription?.unsubscribe();
+    this.orb.isPollingPaused ? this.orb.startPolling() : null;
     this.orb.killPolling.next();
   }
   openDeleteModal() {

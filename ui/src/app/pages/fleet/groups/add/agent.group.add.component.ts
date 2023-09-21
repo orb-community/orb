@@ -280,12 +280,16 @@ export class AgentGroupAddComponent
     if (this.isEdit) {
       this.agentGroupsService
         .editAgentGroup({ ...payload, id: this.agentGroupID })
-        .subscribe(() => {
+        .subscribe(
+          (resp) => {
           this.notificationsService.success(
             'Agent Group successfully updated',
             '',
           );
           this.goBack();
+        },
+        (error) => {
+          this.isRequesting = false;
         });
     } else {
       this.agentGroupsService.addAgentGroup(payload).subscribe(() => {

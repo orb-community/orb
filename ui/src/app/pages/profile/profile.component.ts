@@ -94,6 +94,9 @@ export class ProfileComponent implements OnInit {
         this.toggleEdit('');
         this.isRequesting = false;
       },
+      error => {
+        this.isRequesting = false;
+      }
     );
   }
   

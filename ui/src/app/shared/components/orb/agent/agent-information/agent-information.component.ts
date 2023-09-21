@@ -123,6 +123,9 @@ export class AgentInformationComponent implements OnInit {
       this.orb.refreshNow();
       this.toggleEdit(false);
       this.isRequesting = false;
+    },
+    (error) => {
+      this.isRequesting = false;
     });
   }
 
