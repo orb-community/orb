@@ -8,11 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mainflux/mainflux/pkg/uuid"
 	"github.com/stretchr/testify/require"
 )
-
-var idProvider = uuid.New()
 
 func TestSinkActivityStoreAndMessage(t *testing.T) {
 	// Create SinkActivityService
@@ -84,5 +81,4 @@ func TestSinkIdle(t *testing.T) {
 	}, 10*time.Second)
 	require.NoError(t, err, fmt.Sprintf("unexpected error: %s", err))
 	_ = OnceReceiver(ctx, "orb.sink_idle")
-	time.Sleep(12 * time.Second)
 }
