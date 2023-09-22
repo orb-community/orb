@@ -3,6 +3,7 @@ package bridgeservice
 import (
 	"context"
 	"fmt"
+	"github.com/orb-community/orb/sinker/redis/producer"
 	sinkspb "github.com/orb-community/orb/sinks/pb"
 	"sort"
 	"time"
@@ -10,7 +11,6 @@ import (
 	"github.com/go-kit/kit/metrics"
 	fleetpb "github.com/orb-community/orb/fleet/pb"
 	policiespb "github.com/orb-community/orb/policies/pb"
-	"github.com/orb-community/orb/sinker/config"
 	"github.com/patrickmn/go-cache"
 	"go.uber.org/zap"
 )
@@ -26,7 +26,7 @@ type BridgeService interface {
 
 func NewBridgeService(logger *zap.Logger,
 	defaultCacheExpiration time.Duration,
-	sinkerCache config.ConfigRepo,
+	sinkActivity producer.SinkActivityProducer,
 	policiesClient policiespb.PolicyServiceClient,
 	sinksClient sinkspb.SinkServiceClient,
 	fleetClient fleetpb.FleetServiceClient, messageInputCounter metrics.Counter) SinkerOtelBridgeService {
@@ -34,7 +34,7 @@ func NewBridgeService(logger *zap.Logger,
 		defaultCacheExpiration: defaultCacheExpiration,
 		inMemoryCache:          *cache.New(defaultCacheExpiration, defaultCacheExpiration*2),
 		logger:                 logger,
-		sinkerCache:            sinkerCache,
+		sinkerActivitySvc:      sinkActivity,
 		policiesClient:         policiesClient,
 		fleetClient:            fleetClient,
 		sinksClient:            sinksClient,
@@ -46,7 +46,7 @@ type SinkerOtelBridgeService struct {
 	inMemoryCache          cache.Cache
 	defaultCacheExpiration time.Duration
 	logger                 *zap.Logger
-	sinkerCache            config.ConfigRepo
+	sinkerActivitySvc      producer.SinkActivityProducer
 	policiesClient         policiespb.PolicyServiceClient
 	fleetClient            fleetpb.FleetServiceClient
 	sinksClient            sinkspb.SinkServiceClient
@@ -65,8 +65,15 @@ func (bs *SinkerOtelBridgeService) IncrementMessageCounter(publisher, subtopic, 
 	bs.messageInputCounter.With(labels...).Add(1)
 }
 
-func (bs *SinkerOtelBridgeService) NotifyActiveSink(ctx context.Context, mfOwnerId, sinkId, newState, message string) error {
-
+func (bs *SinkerOtelBridgeService) NotifyActiveSink(ctx context.Context, mfOwnerId, sinkId, size string) error {
+	event := producer.SinkActivityEvent{
+		OwnerID:   mfOwnerId,
+		SinkID:    sinkId,
+		State:     "active",
+		Size:      size,
+		Timestamp: time.Now(),
+	}
+	bs.sinkerActivitySvc.PublishSinkActivity(ctx, event)
 	return nil
 }
 

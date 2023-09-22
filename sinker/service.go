@@ -8,6 +8,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/orb-community/orb/sinker/redis/consumer"
+	"github.com/orb-community/orb/sinker/redis/producer"
 	"time"
 
 	"github.com/go-kit/kit/metrics"
@@ -16,7 +18,6 @@ import (
 	fleetpb "github.com/orb-community/orb/fleet/pb"
 	policiespb "github.com/orb-community/orb/policies/pb"
 	"github.com/orb-community/orb/sinker/backend/pktvisor"
-	"github.com/orb-community/orb/sinker/config"
 	"github.com/orb-community/orb/sinker/otel"
 	"github.com/orb-community/orb/sinker/otel/bridgeservice"
 	"github.com/orb-community/orb/sinker/prometheus"
@@ -49,9 +50,11 @@ type SinkerService struct {
 	otelLogsCancelFunct    context.CancelFunc
 	otelKafkaUrl           string
 
-	sinkerCache             config.ConfigRepo
 	inMemoryCacheExpiration time.Duration
-	esclient                *redis.Client
+	streamClient            *redis.Client
+	cacheClient             *redis.Client
+	sinkTTLSvc              producer.SinkerKeyService
+	sinkActivitySvc         producer.SinkActivityProducer
 	logger                  *zap.Logger
 
 	hbTicker *time.Ticker
@@ -87,9 +90,24 @@ func (svc SinkerService) Start() error {
 	svc.hbDone = make(chan bool)
 	go svc.checkSinker()
 
-	err := svc.startOtel(svc.asyncContext)
+	svc.sinkTTLSvc = producer.NewSinkerKeyService(svc.logger, svc.cacheClient)
+	svc.sinkActivitySvc = producer.NewSinkActivityProducer(svc.logger, svc.streamClient, svc.sinkTTLSvc)
+	// Create Handle and Listener to Redis Key Events
+	sinkerIdleProducer := producer.NewSinkIdleProducer(svc.logger, svc.streamClient)
+	sinkerKeyExpirationListener := consumer.NewSinkerKeyExpirationListener(svc.logger, svc.cacheClient, sinkerIdleProducer)
+	err := sinkerKeyExpirationListener.SubscribeToKeyExpiration(svc.asyncContext)
 	if err != nil {
 		svc.logger.Error("error on starting otel, exiting")
+		ctx.Done()
+		svc.cancelAsyncContext()
+		return err
+	}
+
+	err = svc.startOtel(svc.asyncContext)
+	if err != nil {
+		svc.logger.Error("error on starting otel, exiting")
+		ctx.Done()
+		svc.cancelAsyncContext()
 		return err
 	}
 
@@ -100,7 +118,7 @@ func (svc SinkerService) startOtel(ctx context.Context) error {
 	if svc.otel {
 		var err error
 
-		bridgeService := bridgeservice.NewBridgeService(svc.logger, svc.inMemoryCacheExpiration, svc.sinkerCache,
+		bridgeService := bridgeservice.NewBridgeService(svc.logger, svc.inMemoryCacheExpiration, svc.sinkActivitySvc,
 			svc.policiesClient, svc.sinksClient, svc.fleetClient, svc.messageInputCounter)
 		svc.otelMetricsCancelFunct, err = otel.StartOtelMetricsComponents(ctx, &bridgeService, svc.logger, svc.otelKafkaUrl, svc.pubSub)
 
@@ -140,8 +158,8 @@ func (svc SinkerService) Stop() error {
 // New instantiates the sinker service implementation.
 func New(logger *zap.Logger,
 	pubSub mfnats.PubSub,
-	esclient *redis.Client,
-	configRepo config.ConfigRepo,
+	streamsClient *redis.Client,
+	cacheClient *redis.Client,
 	policiesClient policiespb.PolicyServiceClient,
 	fleetClient fleetpb.FleetServiceClient,
 	sinksClient sinkspb.SinkServiceClient,
@@ -158,8 +176,8 @@ func New(logger *zap.Logger,
 		inMemoryCacheExpiration: defaultCacheExpiration,
 		logger:                  logger,
 		pubSub:                  pubSub,
-		esclient:                esclient,
-		sinkerCache:             configRepo,
+		streamClient:            streamsClient,
+		cacheClient:             cacheClient,
 		policiesClient:          policiesClient,
 		fleetClient:             fleetClient,
 		sinksClient:             sinksClient,
