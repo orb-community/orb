@@ -37,14 +37,15 @@ type sinkIdleProducer struct {
 	redisStreamClient *redis.Client
 }
 
-func NewSinkIdleProducer(logger *zap.Logger, redisStreamClient *redis.Client) SinkIdleProducer {
+func NewSinkIdleProducer(l *zap.Logger, redisStreamClient *redis.Client) SinkIdleProducer {
+	logger := l.Named("sink_idle_producer")
 	return &sinkIdleProducer{logger: logger, redisStreamClient: redisStreamClient}
 }
 
 func (s *sinkIdleProducer) PublishSinkIdle(ctx context.Context, event SinkIdleEvent) error {
 	const maxLen = 1000
 	record := &redis.XAddArgs{
-		Stream: "orb.sinker.sink_idle",
+		Stream: "orb.sink_idle",
 		Values: event.Encode(),
 		MaxLen: maxLen,
 		Approx: true,

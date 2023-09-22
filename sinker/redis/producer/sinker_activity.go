@@ -35,10 +35,12 @@ var _ SinkActivityProducer = (*sinkActivityProducer)(nil)
 type sinkActivityProducer struct {
 	logger            *zap.Logger
 	redisStreamClient *redis.Client
+	sinkTTL           SinkerKeyService
 }
 
-func NewSinkActivityProducer(logger *zap.Logger, redisStreamClient *redis.Client) SinkActivityProducer {
-	return &sinkActivityProducer{logger: logger, redisStreamClient: redisStreamClient}
+func NewSinkActivityProducer(l *zap.Logger, redisStreamClient *redis.Client, sinkTTL SinkerKeyService) SinkActivityProducer {
+	logger := l.Named("sink_activity_producer")
+	return &sinkActivityProducer{logger: logger, redisStreamClient: redisStreamClient, sinkTTL: sinkTTL}
 }
 
 // PublishSinkActivity BridgeService will notify stream of sink activity
@@ -54,5 +56,11 @@ func (sp *sinkActivityProducer) PublishSinkActivity(ctx context.Context, event S
 	if err != nil {
 		sp.logger.Error("error sending event to sinker event store", zap.Error(err))
 	}
+	err = sp.sinkTTL.AddNewSinkerKey(ctx, SinkerKey{
+		OwnerID:      event.OwnerID,
+		SinkID:       event.SinkID,
+		Size:         event.Size,
+		LastActivity: event.Timestamp,
+	})
 	return err
 }

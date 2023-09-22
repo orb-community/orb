@@ -31,6 +31,8 @@ type SinkerKeyService interface {
 	AddNewSinkerKey(ctx context.Context, key SinkerKey) error
 	// RenewSinkerKey Increment Expiration of Sinker Key
 	RenewSinkerKey(ctx context.Context, key SinkerKey) error
+	// RenewSinkerKeyInternal Increment Expiration of Sinker Key
+	RenewSinkerKeyInternal(ctx context.Context, sink SinkerKey, expiration time.Duration) error
 }
 
 type sinkerKeyService struct {
@@ -38,14 +40,28 @@ type sinkerKeyService struct {
 	cacheRepository *redis.Client
 }
 
-func NewSinkerKeyService(logger *zap.Logger, cacheRepository *redis.Client) SinkerKeyService {
+func NewSinkerKeyService(l *zap.Logger, cacheRepository *redis.Client) SinkerKeyService {
+	logger := l.Named("sinker_key_service")
 	return &sinkerKeyService{logger: logger, cacheRepository: cacheRepository}
 }
 
 // RenewSinkerKey Increment Expiration of Sinker Key
-func (s *sinkerKeyService) RenewSinkerKey(ctx context.Context, key SinkerKey) error {
+func (s *sinkerKeyService) RenewSinkerKey(ctx context.Context, sink SinkerKey) error {
 	// If key does not exist, create new entry
-	cmd := s.cacheRepository.Expire(ctx, "orb.sinker", DefaultExpiration)
+	key := fmt.Sprintf("orb.sinker.key-%s:%s", sink.OwnerID, sink.SinkID)
+	cmd := s.cacheRepository.Expire(ctx, key, DefaultExpiration)
+	if cmd.Err() != nil {
+		s.logger.Error("error sending event to sinker event store", zap.Error(cmd.Err()))
+		return cmd.Err()
+	}
+	return nil
+}
+
+// RenewSinkerKeyInternal Increment Expiration of Sinker Key using custom expiration
+func (s *sinkerKeyService) RenewSinkerKeyInternal(ctx context.Context, sink SinkerKey, expiration time.Duration) error {
+	// If key does not exist, create new entry
+	key := fmt.Sprintf("orb.sinker.key-%s:%s", sink.OwnerID, sink.SinkID)
+	cmd := s.cacheRepository.Expire(ctx, key, expiration)
 	if cmd.Err() != nil {
 		s.logger.Error("error sending event to sinker event store", zap.Error(cmd.Err()))
 		return cmd.Err()

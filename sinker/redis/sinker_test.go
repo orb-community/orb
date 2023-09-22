@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/orb-community/orb/pkg/types"
+	"github.com/orb-community/orb/sinker/redis/consumer"
 	"github.com/orb-community/orb/sinker/redis/producer"
 	"testing"
 	"time"
@@ -20,8 +21,8 @@ var idProvider = uuid.New()
 
 func TestSinkActivityStoreAndMessage(t *testing.T) {
 	// Create SinkActivityService
-	sinkActivitySvc := producer.NewSinkActivityProducer(logger, redisClient)
 	sinkTTLSvc := producer.NewSinkerKeyService(logger, redisClient)
+	sinkActivitySvc := producer.NewSinkActivityProducer(logger, redisClient, sinkTTLSvc)
 	args := []struct {
 		testCase string
 		event    producer.SinkActivityEvent
@@ -61,14 +62,32 @@ func TestSinkActivityStoreAndMessage(t *testing.T) {
 		ctx := context.WithValue(context.Background(), "test_case", tt.testCase)
 		err := sinkActivitySvc.PublishSinkActivity(ctx, tt.event)
 		require.NoError(t, err, fmt.Sprintf("%s: unexpected error: %s", tt.testCase, err))
-		sinkerKey := producer.SinkerKey{
-			OwnerID:      tt.event.OwnerID,
-			SinkID:       tt.event.SinkID,
-			Size:         tt.event.Size,
-			LastActivity: time.Now(),
-		}
-		err = sinkTTLSvc.AddNewSinkerKey(ctx, sinkerKey)
 	}
+	logger.Debug("debugging breakpoint")
+}
+
+func TestSinkIdle(t *testing.T) {
+	sinkTTLSvc := producer.NewSinkerKeyService(logger, redisClient)
+	sinkActivitySvc := producer.NewSinkActivityProducer(logger, redisClient, sinkTTLSvc)
+	sinkIdleSvc := producer.NewSinkIdleProducer(logger, redisClient)
+	sinkExpire := consumer.NewSinkerKeyExpirationListener(logger, redisClient, sinkIdleSvc)
+	event := producer.SinkActivityEvent{
+		OwnerID:   "1",
+		SinkID:    "1",
+		State:     "active",
+		Size:      "40",
+		Timestamp: time.Now(),
+	}
+	ctx := context.WithValue(context.Background(), "test", "TestSinkIdle")
+	err := sinkExpire.SubscribeToKeyExpiration(ctx)
+	require.NoError(t, err, fmt.Sprintf("unexpected error: %s", err))
+	err = sinkActivitySvc.PublishSinkActivity(ctx, event)
+	require.NoError(t, err, fmt.Sprintf("unexpected error: %s", err))
+	err = sinkTTLSvc.RenewSinkerKeyInternal(ctx, producer.SinkerKey{
+		OwnerID: "1",
+		SinkID:  "1",
+	}, 30*time.Second)
+	require.NoError(t, err, fmt.Sprintf("unexpected error: %s", err))
 }
 
 func TestSinkerConfigSave(t *testing.T) {
