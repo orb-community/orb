@@ -12,15 +12,15 @@
 
   <div *ngIf="!isLoading" style="margin-right: 10px;">
     <button (click)="discard()" class="policy-discard" nbButton shape="round" *ngIf="isEditMode()">
-      Discard Changes
+      Discard
     </button>
     <button (click)="save()" [disabled]="!canSave() || isRequesting || !hasChanges()" class="policy-save" nbButton *ngIf="isEditMode()" shape="round">
       <nb-icon icon="save-outline"></nb-icon>
-      Save Changes
+      Save
     </button>
     <button (click)="onOpenDuplicatePolicy()" class="policy-duplicate" data-orb-qa-id="button#reset" nbButton shape="round" *ngIf="!isEditMode()">
       <nb-icon icon="copy-outline"></nb-icon>
-      Duplicate Policy
+      Duplicate
     </button>
     <button (click)="openDeleteModal()" class="card-button delete-button" data-orb-qa-id="button#reset" nbButton shape="round" *ngIf="!isEditMode()"
     style="color: #df316f !important; margin-right: 20px;">
@@ -35,7 +35,7 @@
 </div>
 
 <div *ngIf="!isLoading" class="row" #content>
-  <div class="card-col col-4">
+  <div class="card-col col-4" style="padding-right: 10px !important;">
     <ngx-policy-details
       [(editMode)]="editMode.details"
       [policy]="policy"
@@ -43,7 +43,7 @@
     ></ngx-policy-details>
     <ngx-policy-groups [groups]="policy.groups" [policy]="policy"></ngx-policy-groups>
   </div>
-  <div class="card-col col-8">
+  <div class="card-col col-8"  style="padding-left: 10px !important;">
     <ngx-policy-interface
       [(editMode)]="editMode.interface"
       [policy]="policy"
