@@ -86,8 +86,10 @@ func TestSinkIdle(t *testing.T) {
 	err = sinkTTLSvc.RenewSinkerKeyInternal(ctx, producer.SinkerKey{
 		OwnerID: "1",
 		SinkID:  "1",
-	}, 30*time.Second)
+	}, 10*time.Second)
 	require.NoError(t, err, fmt.Sprintf("unexpected error: %s", err))
+	_ = OnceReceiver(ctx, "orb.sink_idle")
+	time.Sleep(12 * time.Second)
 }
 
 func TestSinkerConfigSave(t *testing.T) {

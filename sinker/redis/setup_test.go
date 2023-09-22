@@ -58,8 +58,8 @@ func OnceReceiver(ctx context.Context, streamID string) error {
 			if redisClient != nil {
 				// create the group, or ignore if it already exists
 				streams, err := redisClient.XReadGroup(ctx, &redis.XReadGroupArgs{
-					Consumer: "orb.sinker",
-					Group:    "unit_test",
+					Consumer: "test_consumer",
+					Group:    "unit-test",
 					Streams:  []string{streamID, ">"},
 					Count:    10,
 				}).Result()
