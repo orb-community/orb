@@ -12,7 +12,7 @@ type SinkerKeyExpirationListener interface {
 	// SubscribeToKeyExpiration Listen to the sinker key expiration
 	SubscribeToKeyExpiration(ctx context.Context) error
 	// ReceiveMessage to be used to receive the message from the sinker key expiration, async
-	ReceiveMessage(ctx context.Context, message interface{}) error
+	ReceiveMessage(ctx context.Context, message string) error
 }
 
 type sinkerKeyExpirationListener struct {
@@ -53,14 +53,18 @@ func (s *sinkerKeyExpirationListener) SubscribeToKeyExpiration(ctx context.Conte
 }
 
 // ReceiveMessage to be used to receive the message from the sinker key expiration
-func (s *sinkerKeyExpirationListener) ReceiveMessage(ctx context.Context, message interface{}) error {
+func (s *sinkerKeyExpirationListener) ReceiveMessage(ctx context.Context, message string) error {
 	// goroutine
-	//sinkID := msg.Payload
-	//event := producer.SinkIdleEvent{
-	//	OwnerID:  "owner_id",
-	//	SinkID: "sink_id",
-	//	State: "idle",
-	//}
-	//s.idleProducer.PublishSinkIdle(ctx, event)
+	go func(msg string) {
+		ownerID := message[16:52]
+		sinkID := message[53:]
+		event := producer.SinkIdleEvent{
+			OwnerID: ownerID,
+			SinkID:  sinkID,
+			State:   "idle",
+			Size:    "0",
+		}
+		_ = s.idleProducer.PublishSinkIdle(ctx, event)
+	}(message)
 	return nil
 }
