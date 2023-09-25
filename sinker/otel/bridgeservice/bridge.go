@@ -53,7 +53,7 @@ type SinkerOtelBridgeService struct {
 	messageInputCounter    metrics.Counter
 }
 
-// Implementar nova funcao
+// IncrementMessageCounter add to our metrics the number of messages received
 func (bs *SinkerOtelBridgeService) IncrementMessageCounter(publisher, subtopic, channel, protocol string) {
 	labels := []string{
 		"method", "handleMsgFromAgent",
@@ -65,6 +65,7 @@ func (bs *SinkerOtelBridgeService) IncrementMessageCounter(publisher, subtopic, 
 	bs.messageInputCounter.With(labels...).Add(1)
 }
 
+// NotifyActiveSink notify the sinker that a sink is active
 func (bs *SinkerOtelBridgeService) NotifyActiveSink(ctx context.Context, mfOwnerId, sinkId, size string) error {
 	event := producer.SinkActivityEvent{
 		OwnerID:   mfOwnerId,
@@ -73,10 +74,11 @@ func (bs *SinkerOtelBridgeService) NotifyActiveSink(ctx context.Context, mfOwner
 		Size:      size,
 		Timestamp: time.Now(),
 	}
-	bs.sinkerActivitySvc.PublishSinkActivity(ctx, event)
+	_ = bs.sinkerActivitySvc.PublishSinkActivity(ctx, event)
 	return nil
 }
 
+// ExtractAgent retrieve agent info from fleet, or cache
 func (bs *SinkerOtelBridgeService) ExtractAgent(ctx context.Context, channelID string) (*fleetpb.AgentInfoRes, error) {
 	cacheKey := fmt.Sprintf("agent-%s", channelID)
 	value, found := bs.inMemoryCache.Get(cacheKey)
@@ -91,6 +93,7 @@ func (bs *SinkerOtelBridgeService) ExtractAgent(ctx context.Context, channelID s
 	return value.(*fleetpb.AgentInfoRes), nil
 }
 
+// GetPolicyName retrieve policy info from policies service, or cache.
 func (bs *SinkerOtelBridgeService) GetPolicyName(ctx context.Context, policyId, ownerID string) (*policiespb.PolicyRes, error) {
 	cacheKey := fmt.Sprintf("policy-%s", policyId)
 	value, found := bs.inMemoryCache.Get(cacheKey)
@@ -105,6 +108,7 @@ func (bs *SinkerOtelBridgeService) GetPolicyName(ctx context.Context, policyId, 
 	return value.(*policiespb.PolicyRes), nil
 }
 
+// GetSinkIdsFromDatasetIDs retrieve sink_ids from datasets from policies service, or cache
 func (bs *SinkerOtelBridgeService) GetSinkIdsFromDatasetIDs(ctx context.Context, mfOwnerId string, datasetIDs []string) (map[string]string, error) {
 	// Here needs to retrieve datasets
 	mapSinkIdPolicy := make(map[string]string)

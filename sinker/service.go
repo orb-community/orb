@@ -6,7 +6,6 @@ package sinker
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/orb-community/orb/sinker/redis/consumer"
 	"github.com/orb-community/orb/sinker/redis/producer"
@@ -17,23 +16,14 @@ import (
 	mfnats "github.com/mainflux/mainflux/pkg/messaging/nats"
 	fleetpb "github.com/orb-community/orb/fleet/pb"
 	policiespb "github.com/orb-community/orb/policies/pb"
-	"github.com/orb-community/orb/sinker/backend/pktvisor"
 	"github.com/orb-community/orb/sinker/otel"
 	"github.com/orb-community/orb/sinker/otel/bridgeservice"
-	"github.com/orb-community/orb/sinker/prometheus"
 	sinkspb "github.com/orb-community/orb/sinks/pb"
 	"go.uber.org/zap"
 )
 
 const (
-	BackendMetricsTopic = "be.*.m.>"
-	OtelMetricsTopic    = "otlp.*.m.>"
-	MaxMsgPayloadSize   = 1048 * 1000
-)
-
-var (
-	ErrPayloadTooBig = errors.New("payload too big")
-	ErrNotFound      = errors.New("non-existent entity")
+	OtelMetricsTopic = "otlp.*.m.>"
 )
 
 type Service interface {
@@ -59,8 +49,6 @@ type SinkerService struct {
 
 	hbTicker *time.Ticker
 	hbDone   chan bool
-
-	promClient prometheus.Client
 
 	policiesClient policiespb.PolicyServiceClient
 	fleetClient    fleetpb.FleetServiceClient
@@ -123,16 +111,9 @@ func (svc SinkerService) startOtel(ctx context.Context) error {
 }
 
 func (svc SinkerService) Stop() error {
-	if svc.otel {
-		otelTopic := fmt.Sprintf("channels.*.%s", OtelMetricsTopic)
-		if err := svc.pubSub.Unsubscribe(otelTopic); err != nil {
-			return err
-		}
-	} else {
-		topic := fmt.Sprintf("channels.*.%s", BackendMetricsTopic)
-		if err := svc.pubSub.Unsubscribe(topic); err != nil {
-			return err
-		}
+	otelTopic := fmt.Sprintf("channels.*.%s", OtelMetricsTopic)
+	if err := svc.pubSub.Unsubscribe(otelTopic); err != nil {
+		return err
 	}
 
 	svc.logger.Info("unsubscribed from agent metrics")
@@ -159,8 +140,6 @@ func New(logger *zap.Logger,
 	inputCounter metrics.Counter,
 	defaultCacheExpiration time.Duration,
 ) Service {
-
-	pktvisor.Register(logger)
 	return &SinkerService{
 		inMemoryCacheExpiration: defaultCacheExpiration,
 		logger:                  logger,
