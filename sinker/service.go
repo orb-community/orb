@@ -78,17 +78,6 @@ func (svc SinkerService) Start() error {
 	ctx := context.WithValue(context.Background(), "routine", "async")
 	ctx = context.WithValue(ctx, "cache_expiry", svc.inMemoryCacheExpiration)
 	svc.asyncContext, svc.cancelAsyncContext = context.WithCancel(ctx)
-	if !svc.otel {
-		topic := fmt.Sprintf("channels.*.%s", BackendMetricsTopic)
-		if err := svc.pubSub.Subscribe(topic, svc.handleMsgFromAgent); err != nil {
-			return err
-		}
-		svc.logger.Info("started metrics consumer", zap.String("topic", topic))
-	}
-
-	svc.hbTicker = time.NewTicker(CheckerFreq)
-	svc.hbDone = make(chan bool)
-	go svc.checkSinker()
 
 	svc.sinkTTLSvc = producer.NewSinkerKeyService(svc.logger, svc.cacheClient)
 	svc.sinkActivitySvc = producer.NewSinkActivityProducer(svc.logger, svc.streamClient, svc.sinkTTLSvc)
