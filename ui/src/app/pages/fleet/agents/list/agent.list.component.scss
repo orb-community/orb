@@ -187,6 +187,8 @@ input[type=checkbox] {
   font-weight: 600;
   text-transform: none !important;
   width: 160px;
+  opacity: 0;
+  animation: appear 0.3s forwards;
 
   &.btn-disabled {
     background: #2b3148;

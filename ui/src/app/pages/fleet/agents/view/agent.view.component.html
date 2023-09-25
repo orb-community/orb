@@ -5,15 +5,9 @@
     <div><h4>Agent View</h4></div>
   </div>
   <div class="right-content" style="margin-right: 15px;">
-    <button nbButton ghost [className]="'refresh-button'" shape="round" (click)="refreshAgent()">
-      <i class="fa fa-redo" [ngClass]="isLoading == true ? 'rotate' : 'paused'" style="color: #3089fc;"></i>
-    </button>
-
-    <span class="last-update" *ngIf="lastUpdate !== null">
-      Last Update: {{ lastUpdate | date: 'HH:mm:ss a' }}
-    </span>
+    <ngx-poll-control></ngx-poll-control>
   </div>
-  <div *ngIf="!isLoading" style="margin-right: 10px;">
+  <div *ngIf="!isLoading" style="margin: 0 20px 0 10px;">
     <button (click)="openDeleteModal()" class="card-button delete-button" data-orb-qa-id="button#reset" nbButton shape="round" style="color: #df316f !important;">
       <nb-icon icon="trash-2-outline"></nb-icon>
       Delete Agent
@@ -44,9 +38,13 @@
   </div>
 </header>
 
+<div *ngIf="isLoading">
+  <div class="loading-spinner"></div>
+</div>
+
 <div *ngIf="!isLoading" class="row">
   <div class="card-col col-5">
-    <ngx-agent-information (refreshRequests)="onRefreshRequests($event)" [agent]="agent"></ngx-agent-information>
+    <ngx-agent-information [agent]="agent"></ngx-agent-information>
     <ngx-agent-backends [agent]="agent"></ngx-agent-backends>
   </div>
 

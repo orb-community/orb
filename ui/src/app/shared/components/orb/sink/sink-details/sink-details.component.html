@@ -30,7 +30,7 @@
             <label class="summary-accent">Name</label>
             <p>{{ sink?.name }}</p>
           </div>
-          <div class="flex-row">
+          <div class="flex-row" *ngIf="sink?.description">
             <label class="summary-accent">Description</label>
             <p>{{ sink?.description }}</p>
           </div>
@@ -50,12 +50,12 @@
         </div>
 
 
-        <div *ngSwitchCase="'edit'">
+        <div *ngSwitchCase="'edit'" style="margin-bottom: 20px;">
           <form [formGroup]="formGroup">
             <nb-form-field>
               <div class="d-flex flex-column">
                 <div>
-                  <label class="font-weight-bold">Sink Name</label>
+                  <label class="input-label">Sink Name</label>
                   <span class="required">*</span>
                 </div>
                 <input
@@ -83,29 +83,28 @@
             </nb-form-field>
             <nb-form-field>
               <div>
-                <label class="font-weight-bold">Sink Description</label>
+                <label class="input-label">Sink Description</label>
               </div>
               <input
-                [placeholder]="sink?.description"
                 data-orb-qa-id="description"
                 fieldSize="medium"
                 formControlName="description"
                 fullWidth="true"
-                nbInput/>
+                nbInput
+                placeholder="Sink Description"/>
             </nb-form-field>
           </form>
-          <label class="font-weight-bold">Tags</label>
+          <label class="input-label">Tags</label>
           <ngx-tag-control [(tags)]="selectedTags"></ngx-tag-control>
         </div>
 
 
-        <div *ngSwitchCase="'create'">
+        <div *ngSwitchCase="'create'" style="margin-bottom: 20px;">
           <form [formGroup]="formGroup">
             <nb-form-field>
               <div class="d-flex flex-column">
                 <div>
-                  <label class="font-weight-bold">Sink Name</label>
-                  <span class="required">*</span>
+                  <label class="input-label">Sink Name<span class="required">*</span></label>
                 </div>
                 <input
                   autofocus
@@ -117,7 +116,8 @@
                   required
                   pattern="^[a-zA-Z_][a-zA-Z0-9_-]*$"          
                   nbInput
-                  [status]="formGroup?.controls.name.dirty  ? (!formGroup.controls.name.valid  ? 'danger' : 'success') : 'basic'"/>
+                  [status]="formGroup?.controls.name.dirty  ? (!formGroup.controls.name.valid  ? 'danger' : 'success') : 'basic'"
+                  placeholder="Sink Name"/>
                   <div
                   *ngIf="formGroup.controls?.name.invalid
                   && formGroup.controls?.name.dirty"
@@ -133,18 +133,19 @@
             </nb-form-field>
             <nb-form-field>
               <div>
-                <label class="font-weight-bold">Sink Description</label>
+                <label class="input-label">Sink Description</label>
               </div>
               <input
                 data-orb-qa-id="description"
                 fieldSize="medium"
                 formControlName="description"
                 fullWidth="true"
-                nbInput/>
+                nbInput
+                placeholder="Sink Description"/>
             </nb-form-field>
             <nb-form-field>
               <div>
-                <label class="font-weight-bold">Sink Backend</label>
+                <label class="input-label">Sink Backend</label>
                 <span class="required">*</span>
               </div>
               <nb-select appearance="filled"
@@ -161,7 +162,7 @@
               </nb-select>
             </nb-form-field>
           </form>
-          <label class="font-weight-bold">Tags</label>
+          <label class="input-label">Tags</label>
           <ngx-tag-control [(tags)]="selectedTags"></ngx-tag-control>
         </div>
         

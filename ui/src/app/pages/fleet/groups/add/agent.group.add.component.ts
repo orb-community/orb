@@ -147,22 +147,16 @@ export class AgentGroupAddComponent
       {
         prop: 'name',
         name: 'Agent Name',
-        flexGrow: 3,
-        canAutoResize: true,
-        resizeable: false,
-        minWidth: 300,
-        width: 450,
-        maxWidth: 700,
+        width: 230,
+        canAutoResize: false,
+        resizeable: true,
       },
       {
         prop: 'combined_tags',
         name: 'Tags',
-        flexGrow: 3,
-        resizeable: false,
-        canAutoResize: true,
-        minWidth: 300,
-        width: 450,
-        maxWidth: 700,
+        resizeable: true,
+        canAutoResize: false,
+        width: 330,
         cellTemplate: this.agentTagsTemplateCell,
         comparator: (a, b) =>
           Object.entries(a)
@@ -177,8 +171,8 @@ export class AgentGroupAddComponent
       {
         prop: 'state',
         name: 'Status',
-        flexGrow: 1,
-        resizeable: false,
+        resizeable: true,
+        canAutoResize: false,
         width: 120,
         cellTemplate: this.agentStateTemplateRef,
       },
@@ -286,12 +280,16 @@ export class AgentGroupAddComponent
     if (this.isEdit) {
       this.agentGroupsService
         .editAgentGroup({ ...payload, id: this.agentGroupID })
-        .subscribe(() => {
+        .subscribe(
+          (resp) => {
           this.notificationsService.success(
             'Agent Group successfully updated',
             '',
           );
           this.goBack();
+        },
+        (error) => {
+          this.isRequesting = false;
         });
     } else {
       this.agentGroupsService.addAgentGroup(payload).subscribe(() => {

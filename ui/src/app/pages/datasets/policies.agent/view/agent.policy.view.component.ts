@@ -25,18 +25,18 @@ import { STRINGS } from 'assets/text/strings';
 import { Subscription } from 'rxjs';
 import yaml from 'js-yaml';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
-import { filter } from 'rxjs/operators';
 import { PolicyDuplicateComponent } from '../duplicate/agent.policy.duplicate.confirmation';
 import { NbDialogService } from '@nebular/theme';
 import { updateMenuItems } from 'app/pages/pages-menu';
 import { AgentPolicyDeleteComponent } from '../delete/agent.policy.delete.component';
+import { error } from 'console';
 
 @Component({
   selector: 'ngx-agent-view',
   templateUrl: './agent.policy.view.component.html',
   styleUrls: ['./agent.policy.view.component.scss'],
 })
-export class AgentPolicyViewComponent implements OnInit, OnDestroy, OnChanges {
+export class AgentPolicyViewComponent implements OnInit, OnDestroy {
   strings = STRINGS.agents;
 
   isLoading: boolean;
@@ -94,9 +94,6 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy, OnChanges {
     this.lastUpdate = new Date();
   }
 
-  ngOnChanges(): void {
-    this.fetchData();
-  }
 
   isEditMode() {
     return Object.values(this.editMode).reduce(
@@ -166,13 +163,18 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy, OnChanges {
         backend,
       } as AgentPolicy;
 
-      this.policiesService.editAgentPolicy(payload).subscribe((resp) => {
+      this.policiesService.editAgentPolicy(payload).subscribe(
+        (resp) => {
         this.notifications.success('Agent Policy updated successfully', '');
         this.discard();
         this.policy = resp;
-        this.fetchData();
+        this.orb.refreshNow();
         this.isRequesting = false;
-      });
+        },
+        (error) => {
+          this.isRequesting = false;
+        }
+        );
 
     } catch (err) {
       this.notifications.error(
@@ -224,6 +226,8 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy, OnChanges {
 
   ngOnDestroy() {
     this.policySubscription?.unsubscribe();
+    this.orb.isPollingPaused ? this.orb.startPolling() : null;
+    this.orb.killPolling.next();
   }
   openDeleteModal() {
     const { name: name, id } = this.policy as AgentPolicy;

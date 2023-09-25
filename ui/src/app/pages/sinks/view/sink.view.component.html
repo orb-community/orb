@@ -12,12 +12,7 @@
     <h4>{{ strings.sink.view.header }}</h4>
   </div>
   <div class="right-content">
-    <button nbButton ghost [className]="'refresh-button'" shape="round" (click)="fetchData()">
-      <i class="fa fa-redo" [ngClass]="isLoading == true ? 'rotate' : 'paused'" style="color: #3089fc;"></i>
-    </button>
-    <span class="last-update" *ngIf="lastUpdate !== null">
-      Last Update: {{ lastUpdate | date: 'HH:mm:ss a' }}
-    </span>
+    <ngx-poll-control></ngx-poll-control>
   </div>
   <div *ngIf="!isLoading" style="margin: 0 20px;">
     <button 
@@ -66,13 +61,17 @@
 
 </header>
 
+<div *ngIf="isLoading">
+  <div class="loading-spinner"></div>
+</div>
+
 <div *ngIf="!isLoading" class="row" #content>
   <div class="card-col col-4">
-    <ngx-sink-details [(editMode)]="editMode.details" [sink]="sink">
+    <ngx-sink-details [(editMode)]="editMode.details" [sink]="sink" [configEditMode]="editMode.config">
     </ngx-sink-details>
   </div>
   <div class="card-col col-8">
-    <ngx-sink-config [(editMode)]="editMode.config" [sink]="sink">
+    <ngx-sink-config [(editMode)]="editMode.config" [sink]="sink" [detailsEditMode]="editMode.details">
     </ngx-sink-config>
   </div>
 </div>

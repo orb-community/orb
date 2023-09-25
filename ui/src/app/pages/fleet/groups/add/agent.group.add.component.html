@@ -26,8 +26,7 @@
             <nb-form-field>
               <div class="d-flex flex-column">
                 <div>
-                  <label class="font-weight-bold">{{strings.propNames.name}}</label>
-                  <span class="required">*</span>
+                  <label class="input-label">{{strings.propNames.name}}<span class="required">*</span></label>
                 </div>
                 <input
                   autofocus
@@ -35,31 +34,33 @@
                   formControlName="name"
                   [status]="firstFormGroup?.controls.name.dirty ? (!firstFormGroup.controls.name.valid  ? 'danger' : 'success') : 'basic'"
                   fullWidth="true"
-                  nbInput/>
+                  nbInput
+                  placeholder="Agent Group Name"/>
               </div>
               <ng-container *ngIf="firstFormGroup?.controls.name.dirty && !firstFormGroup.controls.name.valid">
-                <p *ngIf="!firstFormGroup.controls.name.value" class="caption status-danger mb-1">
+                <div *ngIf="!firstFormGroup.controls.name.value" class="caption status-danger mb-1">
                   Name is required!
-                </p>
-                <p *ngIf="!!firstFormGroup.controls.name.errors?.pattern" class="caption status-danger mb-1">
+                </div>
+                <div *ngIf="!!firstFormGroup.controls.name.errors?.pattern" class="caption status-danger mb-1">
                   Name must start with a letter or "_" and contain only letters, numbers, "-" or "_"
-                </p>
-                <p *ngIf="firstFormGroup?.controls.name.errors?.maxlength" class="caption status-danger mb-1">
+                </div>
+                <div *ngIf="firstFormGroup?.controls.name.errors?.maxlength" class="caption status-danger mb-1">
                   Name must be less than {{firstFormGroup.controls.name.errors?.maxlength.requiredLength}} characters
-                </p>
+                </div>
               </ng-container>
             </nb-form-field>
             <hr/>
             <nb-form-field>
               <div>
-                <label class="font-weight-bold">{{strings.propNames.description}}</label>
+                <label class="input-label">{{strings.propNames.description}}</label>
               </div>
               <input
                 fieldSize="medium"
                 formControlName="description"
                 fullWidth="true"
                 [status]="firstFormGroup?.controls.description.touched ? (!firstFormGroup.controls.description.valid  ? 'danger' : 'success') : 'basic'"
-                nbInput/>
+                nbInput
+                placeholder="Agent Group Description"/>
                 <ng-container *ngIf="firstFormGroup?.controls.description.touched && !firstFormGroup.controls.description.valid">
                   <p *ngIf="firstFormGroup?.controls.description.errors?.maxlength" class="caption status-danger mb-1">
                     Description must be less than {{firstFormGroup.controls.description.errors?.maxlength.requiredLength}} characters
@@ -69,25 +70,25 @@
             <hr/>
             <div class="d-flex justify-content-end">
               <button
+                (click)="goBack()"
+                data-orb-qa-id="button#cancel"
+                ghost
+                class="cancel-back-button"
+                shape="round"
+                status="primary"
+                type="button">
+                {{ strings.stepper.cancel }}
+              </button>
+              <button
                 [disabled]="!firstFormGroup.valid"
                 class="next-button"
                 data-orb-qa-id="button#next"
-                nbButton
+                class="next-button"
                 nbStepperNext
                 shape="round"
                 status="primary"
                 type="submit">
                 {{ strings.stepper.next }}
-              </button>
-              <button
-                (click)="goBack()"
-                data-orb-qa-id="button#cancel"
-                ghost
-                nbButton
-                shape="round"
-                status="primary"
-                type="button">
-                {{ strings.stepper.cancel }}
               </button>
             </div>
           </form>
@@ -104,21 +105,20 @@
               (tagsChange)="updateMatches()"
               [(tags)]="selectedTags"></ngx-tag-control>
           </div>
-          <div class="d-flex row">
-            <div class="col-12">
-              <p *ngIf="tagMatch?.total && tagMatch.total > 0">
-                {{strings.match.matchAny}}&nbsp;{{tagMatch.total}}&nbsp;{{strings.match.agents}}
-                .&nbsp;<button
-                      (click)="toggleExpandMatches()"
-                      class="appearance-ghost size-small status-basic button-expand"
-                      nbButton>{{expanded
-                      ? strings.match.collapse
-                      : strings.match.expand}}</button>
-              </p>
-              <p *ngIf="!tagMatch.total || tagMatch.total === 0">
-                {{strings.match.matchNone}}
-              </p>
-            </div>
+          <div class="d-flex row" style="margin-top: 30px;">
+            <p *ngIf="tagMatch?.total && tagMatch.total > 0" class="summary-accent">
+              {{strings.match.matchAny}}&nbsp;<span style="color: #2a64f6; font-weight: 700;">{{tagMatch.total}}</span>
+              &nbsp;{{strings.match.agents}}&nbsp;
+              <button
+              style="color: #2a64f6 !important;"
+                (click)="toggleExpandMatches()"
+                class="appearance-ghost size-small status-basic button-expand"
+                nbButton>{{ expanded ? "Collapse": "Expand" }}
+              </button>
+            </p>
+            <p *ngIf="!tagMatch.total || tagMatch.total === 0" class="summary-accent">
+              {{strings.match.matchNone}}
+            </p>
           </div>
           <div
                   *ngIf="expanded"
@@ -129,33 +129,33 @@
           <hr/>
           <div class="d-flex justify-content-end">
             <button
+              (click)="goBack()"
+              data-orb-qa-id="button#cancel"
+              ghost
+              class="cancel-back-button"
+              status="primary"
+              type="button">
+              {{ strings.stepper.cancel }}
+            </button>
+            <button
+              data-orb-qa-id="button#back"
+              ghost
+              class="cancel-back-button"
+              nbStepperPrevious
+              status="primary">
+              {{ strings.stepper.back }}
+            </button>
+            <button
               [disabled]="!selectedTagsValid()"
               class="next-button"
               data-orb-qa-id="button#save"
-              nbButton
+              class="next-button"
               nbStepperNext
               shape="round"
               status="primary"
               (click)="expanded = false;"
               type="submit">
               {{ strings.stepper.next }}
-            </button>
-            <button
-              data-orb-qa-id="button#back"
-              ghost
-              nbButton
-              nbStepperPrevious
-              status="primary">
-              {{ strings.stepper.back }}
-            </button>
-            <button
-              (click)="goBack()"
-              data-orb-qa-id="button#cancel"
-              ghost
-              nbButton
-              status="primary"
-              type="button">
-              {{ strings.stepper.cancel }}
             </button>
           </div>
         </nb-step>
@@ -166,25 +166,26 @@
             </div>
           </ng-template>
           <div
-            *ngIf="!expanded"
             class="d-flex row column-direction">
             <div class="col-md-12 col-xl-6">
               <div class="max-width-vw">
-                <label class="font-weight-bold">{{strings.propNames.name}}</label>
+                <label class="review-label">{{strings.propNames.name}}</label>
                 <p>{{firstFormGroup.controls.name.value}}</p>
               </div>
             </div>
             <hr/>
             <div class="col-md-12 col-xl-6">
               <div class="max-width-vw">
-                <label class="font-weight-bold">{{strings.propNames.description}}</label>
-                <p>{{firstFormGroup.controls.description.value}}</p>
+                <label class="review-label">Description</label>
+                <p *ngIf="firstFormGroup.controls.description.value">{{firstFormGroup.controls.description.value}}</p>
+                <p *ngIf="!firstFormGroup.controls.description.value" style="font-style: italic; font-size: 14px;">No description added</p>
               </div>
             </div>
             <hr/>
           </div>
           <div class="d-flex row">
             <div class="col-8">
+              <label class="review-label" style="margin-bottom: 3px;">Tags</label>
               <ngx-tag-display [tags]="selectedTags"></ngx-tag-display>
             </div>
           </div>
@@ -192,14 +193,15 @@
           <div class="d-flex row">
             <div class="col-12">
               <div>
-                <p *ngIf="tagMatch?.total && tagMatch.total > 0">
-                  {{strings.match.matchAny}}&nbsp;{{tagMatch.total}}&nbsp;{{strings.match.agents}}
-                                            .&nbsp;<button
-                  (click)="toggleExpandMatches()"
-                  class="appearance-ghost size-small status-basic button-expand"
-                  nbButton>{{expanded
-                    ? strings.match.collapse
-                    : strings.match.expand}}</button>
+                <p *ngIf="tagMatch?.total && tagMatch.total > 0" class="summary-accent">
+                  {{strings.match.matchAny}}&nbsp;<span style="color: #2a64f6; font-weight: 700;">{{tagMatch.total}}</span>
+                  &nbsp;{{strings.match.agents}}&nbsp;
+                  <button
+                  style="color: #2a64f6 !important;"
+                    (click)="toggleExpandMatches()"
+                    class="appearance-ghost size-small status-basic button-expand"
+                    nbButton>{{ expanded ? "Collapse": "Expand" }}
+                  </button>
                 </p>
                 <p *ngIf="!tagMatch.total || tagMatch.total === 0">
                   {{strings.match.matchNone}}
@@ -216,32 +218,31 @@
           <hr/>
           <div class="d-flex justify-content-end">
             <button
-              (click)="onFormSubmit()"
-              class="next-button"
-              data-orb-qa-id="button#save"
-              nbButton
-              shape="round"
+              (click)="goBack()"
+              data-orb-qa-id="button#cancel"
+              ghost
+              class="cancel-back-button"
               status="primary"
-              type="submit"
-              [disabled]="isRequesting">
-              {{ strings.stepper.save }}
+              type="button">
+              {{ strings.stepper.cancel }}
             </button>
             <button
               data-orb-qa-id="button#back"
               ghost
-              nbButton
+              class="cancel-back-button"
               nbStepperPrevious
               status="primary">
               {{ strings.stepper.back }}
             </button>
             <button
-              (click)="goBack()"
-              data-orb-qa-id="button#cancel"
-              ghost
-              nbButton
+              (click)="onFormSubmit()"
+              class="next-button"
+              data-orb-qa-id="button#save"
+              shape="round"
               status="primary"
-              type="button">
-              {{ strings.stepper.cancel }}
+              type="submit"
+              [disabled]="isRequesting">
+              {{ strings.stepper.save }}
             </button>
           </div>
         </nb-step>
@@ -270,12 +271,23 @@
     let-i="index"
     let-row="row"
     let-value="value">
-  <mat-chip-list>
+<mat-chip-list nbTooltip="{{ value | json }}">
     <mat-chip
       *ngFor="let tag of value | keyvalue"
-      [style.background-color]="tag | tagcolor"
-      class="orb-tag-chip ">
-      {{tag | tagchip}}
+      style="background-color: #2B3148;"
+      class="orb-tag-chip"
+    >
+      <span [style.color]="tag.key | tagcolor">{{ tag.key }}</span><span style="color: #969FB9;">:</span>&nbsp;
+      <span [style.color]="tag.value | tagcolor">{{ tag.value }}</span>
+    </mat-chip>
+    <mat-chip
+      *ngIf="
+        (row?.tags | json) === '{}'
+      "
+      style="background-color: #2B3148;"
+      class="orb-tag-chip"
+    >
+      <span style="color: #df316f;">No tag were created</span>
     </mat-chip>
   </mat-chip-list>
 </ng-template>
@@ -296,7 +308,7 @@
   <ngx-datatable
           #table
           *ngIf="columns"
-          [columnMode]="columnMode.flex"
+          [columnMode]="columnMode.force"
           [columns]="columns"
           [footerHeight]="50"
           [headerHeight]="50"

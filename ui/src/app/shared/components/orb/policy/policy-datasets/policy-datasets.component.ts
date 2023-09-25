@@ -30,6 +30,7 @@ import { AgentGroupDetailsComponent } from 'app/pages/fleet/groups/details/agent
 import { SinkDetailsComponent } from 'app/pages/sinks/details/sink.details.component';
 import { Subscription } from 'rxjs';
 import { AgentMatchComponent } from 'app/pages/fleet/agents/match/agent.match.component';
+import { OrbService } from 'app/common/services/orb.service';
 
 @Component({
   selector: 'ngx-policy-datasets',
@@ -43,9 +44,6 @@ export class PolicyDatasetsComponent
 
   @Input()
   policy: AgentPolicy;
-
-  @Output()
-  refreshPolicy: EventEmitter<string>;
 
   isLoading: boolean;
 
@@ -86,8 +84,8 @@ export class PolicyDatasetsComponent
     protected route: ActivatedRoute,
     protected datasetService: DatasetPoliciesService,
     private notificationsService: NotificationsService,
+    private orb: OrbService,
     ) {
-    this.refreshPolicy = new EventEmitter<string>();
     this.datasets = [];
     this.errors = {};
   }
@@ -163,7 +161,7 @@ export class PolicyDatasetsComponent
       })
       .onClose.subscribe((resp) => {
         if (resp === DATASET_RESPONSE.CREATED) {
-          this.refreshPolicy.emit('refresh-from-dataset');
+          this.orb.refreshNow();
         }
       });
   }
@@ -182,7 +180,7 @@ export class PolicyDatasetsComponent
       })
       .onClose.subscribe((resp) => {
         if (resp !== DATASET_RESPONSE.CANCELED) {
-          this.refreshPolicy.emit('refresh-from-dataset');
+          this.orb.refreshNow();
         }
       });
   }
@@ -232,7 +230,7 @@ export class PolicyDatasetsComponent
               '',
             );
           });
-          this.refreshPolicy.emit('refresh-from-dataset');
+          this.orb.refreshNow();
         }
       });
   }
@@ -243,7 +241,7 @@ export class PolicyDatasetsComponent
 
   showAgentGroupMatches(agentGroup) {
     this.dialogService.open(AgentMatchComponent, {
-      context: { agentGroup },
+      context: { agentGroup: agentGroup, policy: this.policy },
       autoFocus: true,
       closeOnEsc: true,
     });

@@ -64,9 +64,15 @@
   let-row="row"
   let-value="value"
 >
-  <span nbTooltip="{{ value }}">
-    {{ value }}
-  </span>
+  <button
+  (click)="openDetailsModal(row)"
+  class="view-group-button"
+  nbTooltip="{{ value }}"
+  *ngIf="value"
+  >
+  {{ value }}
+  </button>
+  <span *ngIf="!value" style="font-style: italic; color: #969FB9;">No description was provided</span>
 </ng-template>
 
 <ng-template #agentGroupTemplateCell let-row="row">

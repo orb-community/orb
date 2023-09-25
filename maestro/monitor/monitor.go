@@ -71,7 +71,7 @@ func (svc *monitorService) Start(ctx context.Context, cancelFunc context.CancelF
 }
 
 func (svc *monitorService) getPodLogs(ctx context.Context, pod k8scorev1.Pod) ([]string, error) {
-	maxTailLines := int64(1)
+	maxTailLines := int64(10)
 	sinceSeconds := int64(300)
 	podLogOpts := k8scorev1.PodLogOptions{TailLines: &maxTailLines, SinceSeconds: &sinceSeconds}
 	config, err := rest.InClusterConfig()
