@@ -35,21 +35,8 @@ func NewEventService(logger *zap.Logger, service deployment.Service, _ kubecontr
 
 // HandleSinkCreate will create deployment entry in postgres, will create deployment in Redis, to prepare for SinkActivity
 func (d *eventService) HandleSinkCreate(ctx context.Context, event maestroredis.SinksUpdateEvent) error {
-	now := time.Now()
 	// Create Deployment Entry
-	entry := deployment.Deployment{
-		OwnerID:                 event.Owner,
-		SinkID:                  event.SinkID,
-		Config:                  event.Config,
-		Backend:                 event.Backend,
-		LastStatus:              "provisioning",
-		LastStatusUpdate:        &now,
-		LastErrorMessage:        "",
-		LastErrorTime:           nil,
-		CollectorName:           "",
-		LastCollectorDeployTime: nil,
-		LastCollectorStopTime:   nil,
-	}
+	entry := deployment.NewDeployment(event.Owner, event.SinkID, event.Config)
 	// Use deploymentService, which will create deployment in both postgres and redis
 	err := d.deploymentService.CreateDeployment(ctx, &entry)
 	if err != nil {
