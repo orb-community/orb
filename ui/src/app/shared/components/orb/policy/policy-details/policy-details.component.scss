@@ -1,6 +1,7 @@
 nb-card {
   border: transparent;
   border-radius: 0.5rem;
+  padding: 0 !important;
 
   nb-card-header {
     background-color: #232940;
@@ -11,6 +12,7 @@ nb-card {
   }
 
   nb-card-body {
+    padding-bottom: 0 !important;
     label {
       color: #969fb9;
     }
@@ -27,7 +29,11 @@ nb-card {
     }
   }
 }
-
+.italic {
+  font-style: italic; 
+  font-size: 0.9rem; 
+  color: #d9deee;
+}
 .summary-accent {
   color: #969fb9 !important;
 }
