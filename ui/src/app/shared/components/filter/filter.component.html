@@ -27,37 +27,30 @@
     <button
       (click)="addFilter()"
       [disabled]="!filterParam || filterParam === ''"
-      nbButton
       ghost
-      style="margin-right: 5px;"
       status="primary"
+      nbButton
     >
-      <nb-icon icon="plus-outline"></nb-icon>  
+      <i class="fa fa-plus">&nbsp;</i>
     </button>
   </ng-container>
-</ng-container>
-
-<div class="search-input-wrapper">
-  <nb-icon icon="search-outline" class="search-icon"></nb-icon>
-  <input type="text" 
-    placeholder="Search by name" 
-    [(ngModel)]="searchText"
-    nbInput
-    class="search-input custom-input"
-    (ngModelChange)="onSearchTextChange()">
-</div>
-
+</ng-container><button *ngIf="(activeFilters$|async).length > 0" nbButton ghost class="card-button clear-filter clear-all" (click)="clearAllFilters()">Clear all filters</button>
 <mat-chip-list>
-  <ng-container *ngFor="let filter of activeFilters$ | async; let index = index">
-    <mat-chip *ngIf="filter.name !== 'Name'" class="filter-chip">
-      {{ filter?.exact ? filter.name + ": '" + filter?.param + "'" : filter.name + ': ' + filter?.param }}
-      <button class="remove-tag-button" (click)="removeFilter(index)" nbButton shape="round">
-        <i class="fa fa-window-close" style="color: #3089fc;">&nbsp;</i>
-      </button>
-    </mat-chip>
-  </ng-container>
+  <mat-chip
+    *ngFor="let filter of activeFilters$ | async; let index = index"
+    class="filter-chip"
+  >
+    {{ filter?.exact ?  filter.name + ": '" + filter?.param + "'" : filter.name + ': ' +filter?.param}}
+    <button
+      class="remove-tag-button"
+      (click)="removeFilter(index)"
+      nbButton
+      shape="round"
+    >
+      <i class="fa fa-window-close" style="color: #3089fc;">&nbsp;</i>
+    </button>
+  </mat-chip>
 </mat-chip-list>
-
 <ng-template #input>
   <nb-form-field>
   <input
@@ -66,7 +59,6 @@
     required
     type="text"
     placeholder="{{ selectedFilter?.name }}"
-    style="max-width: 150px;"
   />
   <button nbSuffix nbButton ghost class="exact-match-button"
           [class]="selectedFilter.exact ? 'exact-match' : 'partial-match'"
@@ -94,7 +86,6 @@
       nbInput
       required
       placeholder="{{ selectedFilter?.name }}"
-      style="max-width: 150px;"
     />
   </nb-form-field>
 </ng-template>
@@ -117,7 +108,6 @@
     nbInput
     required
     type="text"
-    style="max-width: 150px;"
   />
   <button nbSuffix nbButton ghost class="exact-match-button"
           [class]="selectedFilter.exact ? 'exact-match' : 'partial-match'"

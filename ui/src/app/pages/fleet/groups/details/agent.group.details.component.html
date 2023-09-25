@@ -13,7 +13,7 @@
         <p class="detail-title">{{strings.propNames.name}}</p>
         <p>{{ agentGroup.name }}</p>
       </div>
-      <div class="col-6 d-flex flex-column align-items-start" *ngIf="agentGroup?.description">
+      <div class="col-6 d-flex flex-column align-items-start">
         <p class="detail-title">{{strings.propNames.description}}</p>
         <p>{{ agentGroup.description }}</p>
       </div>
@@ -27,24 +27,13 @@
     <div class="row">
       <div class="col-6 d-flex flex-column align-items-start">
         <p class="detail-title">{{strings.propNames.tags}}</p>
-        <div class="background">
+        <div>
           <mat-chip-list>
             <mat-chip
-              *ngFor="let tag of agentGroup.tags | keyvalue"
-              style="background-color: #2B3148;"
-              class="orb-tag-chip"
-            >
-              <span [style.color]="tag.key | tagcolor">{{ tag.key }}</span><span style="color: #969FB9;">:</span>&nbsp;
-              <span [style.color]="tag.value | tagcolor">{{ tag.value }}</span>
-            </mat-chip>
-            <mat-chip
-              *ngIf="
-                (agentGroup.tags | json) === '{}'
-              "
-              style="background-color: #2B3148;"
-              class="orb-tag-chip"
-            >
-              <span style="color: #df316f;">No tag were created</span>
+                class="orb-tag-chip "
+                *ngFor="let tag of agentGroup.tags | keyvalue"
+                [style.background-color]="tag | tagcolor">
+                {{tag | tagchip}}
             </mat-chip>
           </mat-chip-list>
         </div>

@@ -78,7 +78,7 @@ mat-chip nb-icon {
 
   .step.selected {
     p {
-      color: #969fb9;
+      color: #fff;
     }
 
     strong {
@@ -94,7 +94,7 @@ mat-chip nb-icon {
 
 
   .step-content {
-    width: 530px;
+    width: 500px;
   }
 
   .connector {
@@ -132,12 +132,6 @@ mat-chip nb-icon {
   text-align: end;
 }
 
-.summary-accent {
-  color: #969fb9 !important;
-}
-label {
-  color: #969FB9;
-}
 ::ng-deep .orb-breadcrumb {
   align-items: center;
 
@@ -201,10 +195,12 @@ tr div p {
 }
 
 .tag-table {
+  position: relative;
+  left: 0;
   min-height: 250px;
   height: 50%;
-  max-height: 250px;
-  width: max-content;
+  max-height: 30vw;
+  width: 200%;
 }
 
 .orb-service- {
@@ -275,10 +271,4 @@ mat-chip-list {
   to {
     transform: translateX(-70%);
   }
-}
-.review-label {
-  font-family: 'Montserrat';
-  font-size: 13px;
-  font-weight: 400 !important; 
-  margin: 0;
 }

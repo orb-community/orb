@@ -108,25 +108,3 @@ mat-chip-list {
 .clear-filter {
   margin-left: 1rem;
 }
-.search-input {
-  width: 300px !important;
-  height: 38px !important;
-  padding-left: 35px !important;
-}
-.filter-search-container {
-  display: flex;
-  justify-content: space-between;
-}
-.search-input-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.search-icon {
-  position: absolute;
-  left: 8px;
-  pointer-events: none;
-  color: #8f9bb3;
-}
-

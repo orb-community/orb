@@ -18,14 +18,14 @@
             <div [hidden]="!!group">
                 <nb-form-field *ngIf="isEdit">
                     <div>
-                        <label class="input-label">Agent Group</label>
+                        <label class="font-weight-bold">Agent Group</label>
                         <span class="required">*</span>
                     </div>
                     <input class="input-agent-group" nbInput disabled [value]="groupName"/>
                 </nb-form-field>
                 <nb-form-field *ngIf="!isEdit">
                     <div>
-                        <label class="input-label">Agent Group</label>
+                        <label class="font-weight-bold">Agent Group</label>
                         <span class="required">*</span>
                     </div>
 
@@ -69,7 +69,7 @@
             <div [hidden]="!!policy || isEdit">
                 <nb-form-field>
                     <div>
-                        <label class="input-label">Collection Policy</label>
+                        <label class="font-weight-bold">Collection Policy</label>
                         <span class="required">*</span>
                     </div>
                     <nb-select
@@ -102,7 +102,7 @@
             <!--      SINK-->
 
             <div>
-                <label class="input-label">Sinks</label>
+                <label class="font-weight-bold">Sinks</label>
                 <span class="required">*</span>
             </div>
             <div>

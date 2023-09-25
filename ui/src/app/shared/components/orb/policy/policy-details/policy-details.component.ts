@@ -10,7 +10,6 @@ import {
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Tags } from 'app/common/interfaces/orb/tag';
-import { OrbService } from 'app/common/services/orb.service';
 
 @Component({
   selector: 'ngx-policy-details',
@@ -27,22 +26,15 @@ export class PolicyDetailsComponent implements OnInit, OnChanges {
   @Output()
   editModeChange: EventEmitter<boolean>;
 
-  @Input()
-  interfaceEditMode: boolean;
-
   formGroup: FormGroup;
 
   selectedTags: Tags;
 
-  constructor(
-    private fb: FormBuilder,
-    private orb: OrbService,
-    ) {
+  constructor(private fb: FormBuilder) {
     this.policy = {};
     this.editMode = false;
     this.editModeChange = new EventEmitter<boolean>();
     this.updateForm();
-    this.interfaceEditMode = false;
   }
 
   ngOnInit(): void {
@@ -84,12 +76,6 @@ export class PolicyDetailsComponent implements OnInit, OnChanges {
 
   toggleEdit(value, notify = true) {
     this.editMode = value;
-    if (this.editMode || this.interfaceEditMode) {
-      this.orb.pausePolling();
-    }
-    else {
-      this.orb.startPolling();
-    }
     this.updateForm();
     !!notify && this.editModeChange.emit(this.editMode);
   }

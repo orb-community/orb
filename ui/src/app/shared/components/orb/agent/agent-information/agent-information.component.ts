@@ -4,7 +4,6 @@ import { Agent, AgentStates } from 'app/common/interfaces/orb/agent.interface';
 import { Tags } from 'app/common/interfaces/orb/tag';
 import { AgentsService } from 'app/common/services/agents/agents.service';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
-import { OrbService } from 'app/common/services/orb.service';
 
 @Component({
   selector: 'ngx-agent-information',
@@ -33,7 +32,6 @@ export class AgentInformationComponent implements OnInit {
     protected agentsService: AgentsService,
     protected notificationService: NotificationsService,
     private fb: FormBuilder,
-    private orb: OrbService
   ) {
     this.isResetting = false;
     this.isRequesting = false;
@@ -95,14 +93,7 @@ export class AgentInformationComponent implements OnInit {
     this.notificationService.success('Agent Reset Requested', '');
   }
   toggleEdit(value) {
-
     this.editMode = value;
-    if (this.editMode) {
-      this.orb.pausePolling();
-    }
-    else {
-      this.orb.startPolling();
-    }
     this.updateForm();
   }
   canSave() {
@@ -120,11 +111,8 @@ export class AgentInformationComponent implements OnInit {
     }
     this.agentsService.editAgent({ ...payload, id: this.agent.id }).subscribe(() => {
       this.notificationService.success('Agent successfully updated', '');
-      this.orb.refreshNow();
-      this.toggleEdit(false);
-      this.isRequesting = false;
-    },
-    (error) => {
+      this.refreshRequests.emit(true);
+      this.editMode = false;
       this.isRequesting = false;
     });
   }

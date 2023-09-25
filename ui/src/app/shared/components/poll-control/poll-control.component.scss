@@ -2,15 +2,12 @@
   color: #969fb9;
   font-size: 12px;
 }
-span {
-  font-size: 14px;
-}
+
 .refresh-button {
   border: none !important;
   box-sizing: border-box;
   box-shadow: none !important;
-  margin-right: 0.2rem;
-  margin-bottom: 0.2rem;
+  margin-right: 0.3rem;
 
   &:active, &:focus {
     background-color: unset !important;

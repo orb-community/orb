@@ -1,173 +1,61 @@
-<header>
-  <div class="left-content">
-    <p class="header-subtitle">Account Information</p>
-    <h4> User Profile / Settings</h4>
-  </div>
-</header>
-
-<div *ngIf="isLoading">
-  <div class="loading-spinner"></div>
-</div>
-
-<div class="card-row" *ngIf="!isLoading">
-  <div *ngIf="!isLoading" class="col-4" 
-  style="padding-left: 10px !important; margin-right: 15px; margin-top: 10px;">
-    <div class="info-container">
-      <img [src]="user.picture" class="circle">
-      <div style="margin-left: 12px; margin-top: 15px; width: 87%;">
-        <p class="user-name-title">User Name</p>
-        <div *ngIf="!editMode.profileName">
-          <p class="user-name"> {{ user?.fullName }} </p>
-        </div>
-        <div *ngIf="editMode.profileName">
-          <input nbInput  type="text"
-           style="width: 100%;" [(ngModel)]="userFullName">
-        </div>
-      </div>
-      
-      <button (click)="toggleEdit('name')" *ngIf="!editMode.profileName" class="edit-button-profile">
-        Edit
-      </button>
-      <button (click)="editUserDetails(userFullName, user.company)" *ngIf="editMode.profileName" class="edit-button-profile"
-      [disabled]="userFullName === '' || userFullName === user.fullName || isRequesting">
-        Save
-      </button>
-      <button (click)="toggleEdit('name')" *ngIf="editMode.profileName" style="color: #df316f !important; right: 3rem !important;" class="edit-button-profile">
-        Cancel
-      </button>
-    </div>
-    <br>
-    <div>
-      <p class="user-name-title">
-        Polling Control Configuration 
-
-        <nb-icon icon="info-outline"
-        nbTooltip="Define timer beetween pages automatic requests.">
-        </nb-icon>
-      </p>
-      <nb-select  appearance="filled"
-                  fullWidth="true"
-                  placeholder="Select timer"
-                  size="medium"
-                  [(ngModel)]="selectedTimer"
-                  (ngModelChange)="setPollInterval($event)">
-                <nb-option *ngFor="let timer of availableTimers"
-                           [value]="timer">{{timer}} seconds 
-                </nb-option>
-      </nb-select>
-    </div>
-  </div>
-  <!-- User Password -->
-  <div *ngIf="!isLoading" class="col-8">
-    <nb-card class="account-information-card">
-      <nb-card-header>Account Information</nb-card-header>
+<div class="card-row">
+  <div class="card-col">
+    <nb-card>
+      <nb-card-header>User Information</nb-card-header>
       <nb-card-body>
-        <div>
-          <div>
-            <label>Email</label>
-            <p>{{ user.email }}</p>
+        <div class="form-group col-sm-12">
+          <div class="row">
+            <label>Full Name</label>
+            <input type="text" class="form-control" [(ngModel)]="user.fullName">
           </div>
-          <div>
-            
-            <button (click)="toggleEdit('password')" *ngIf="!editMode.password" class="edit-button" style="color: #df316f !important; float: right;">
-              Change
-            </button>
-            <button (click)="changePassword()" *ngIf="editMode.password" class="edit-button" style="float: right;"
-            [disabled]="!canChangePassword() || isRequesting">
-              Save
-            </button>
-            <button (click)="toggleEdit('password')" *ngIf="editMode.password" class="edit-button" style="color: #df316f !important; float: right;">
-              Cancel
-            </button>
-            
-            <div *ngIf="!editMode.password">
-              <label>Password</label>
-              <p> ************ </p>
-            </div>
-            <div *ngIf="editMode.password">
-              <label style="margin-bottom: 15px;">Password</label>
-              <input  type="password" 
-                      placeholder="Old Password" 
-                      nbInput 
-                      style="width: 100%" 
-                      class="input-password" 
-                      [(ngModel)]="oldPasswordInput" 
-                      autocomplete="new-password" 
-                      [attr.type]="showPassword ? 'text' : 'password'">
-              <span nbSuffix 
-                    ghost 
-                    (click)="showPassword = !showPassword" 
-                    class="password-icon">
-                <nb-icon [icon]="showPassword ? 'eye-outline' : 'eye-off-2-outline'"
-                          pack="eva">
-                </nb-icon>
-              </span>
-              <input type="password" 
-                      placeholder="New Password" 
-                      nbInput style="width: 100%" 
-                      class="input-password" 
-                      [(ngModel)]="newPasswordInput" 
-                      autocomplete="new-password" 
-                      [attr.type]="showPassword2 ? 'text' : 'password'">
-              <span nbSuffix 
-                    ghost 
-                    (click)="showPassword2 = !showPassword2" 
-                    class="password-icon">
-                  <nb-icon [icon]="showPassword2 ? 'eye-outline' : 'eye-off-2-outline'"
-                            pack="eva">
-                  </nb-icon>
-              </span>
-              <input type="password" 
-                      placeholder="Confirm Password" 
-                      nbInput style="width: 100%" 
-                      class="input-password" 
-                      [(ngModel)]="confirmPasswordInput" 
-                      autocomplete="new-password" 
-                      [attr.type]="showPassword3 ? 'text' : 'password'">
-              <span nbSuffix 
-                    ghost 
-                    (click)="showPassword3 = !showPassword3" 
-                    class="password-icon">
-                  <nb-icon [icon]="showPassword3 ? 'eye-outline' : 'eye-off-2-outline'"
-                            pack="eva">
-                  </nb-icon>
-                </span>
-              <div *ngIf="!isPasswordValidSize && newPasswordInput !== ''">
-                <span>Password must be at least 8 characters long.</span>
-              </div>
-              <div *ngIf="!isPasswordValidMatch">
-                <span>New password and Confirmation password do not match.</span>
-              </div>
-            </div>
+          <br/>
+          <div class="row">
+            <label>Email</label>
+            <input type="email" class="form-control" [(ngModel)]="user.email" readonly>
+          </div>
+          <br/>
+          <div class="row">
+            <label>Company</label>
+            <input type="text" class="form-control" [(ngModel)]="user.company">
           </div>
         </div>
-      </nb-card-body>
-    </nb-card>
-    <nb-card class="account-information-card">
-      <nb-card-header>
-        Work Details
-        <button *ngIf="!editMode.work" class="edit-button-work" (click)="toggleEdit('work')">
-          Edit</button>
-        <button *ngIf="editMode.work" class="edit-button-work" (click)="editUserDetails(user.fullName, userCompany)" 
-        [disabled]="userCompany === '' || userCompany === user.company || isRequesting">
+        <button nbButton size="medium" class="button-blue"
+          (click)="onClickSaveInfos($event)">
+          <nb-icon icon="save-outline"></nb-icon>
           Save
         </button>
-        <button *ngIf="editMode.work" class="edit-button-work" style="color: #df316f !important;" (click)="toggleEdit('work')">
-          Cancel
-        </button>
-      </nb-card-header>
+      </nb-card-body>
+    </nb-card>
+  </div>
+  <!-- User Password -->
+  <div class="card-col">
+    <nb-card>
+      <nb-card-header>Change Password</nb-card-header>
       <nb-card-body>
-        <div>
-          <div>
-            <label>Company</label>
-            <div *ngIf="!editMode.work">
-              <p >{{ user.company }}</p>
-            </div>
-            <div *ngIf="editMode.work">
-              <input type="text" [value]="user.company" nbInput style="width: 100%" class="input-password" [(ngModel)]="userCompany">
-            </div>
+        <div class="form-group col-sm-12">
+          <div class="row">
+            <label>New Password</label>
+            <input type="password" [(ngModel)]="newPassword"
+                    class="form-control" placeholder="New Password">
+          </div>
+          <br/>
+          <div class="row">
+            <label>Confirm Password</label>
+            <input type="password" [(ngModel)]="confirmPassword"
+                    class="form-control" placeholder="Confirm Password">
+          </div>
+          <br/>
+          <div class="row">
+            <label>Old Password</label>
+            <input type="password" [(ngModel)]="oldPassword"
+                    class="form-control" placeholder="Old Password">
           </div>
         </div>
+        <button nbButton size="medium" class="button-blue"
+          (click)="onClickSavePassword($event)">
+          <nb-icon icon="save-outline"></nb-icon>
+          Save
+        </button>
       </nb-card-body>
     </nb-card>
   </div>

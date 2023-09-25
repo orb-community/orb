@@ -235,19 +235,7 @@ button {
   color: #969fb9;
   font-size: 14px;
 }
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.left-content {
-  flex: 1;
-  margin-left: 0.9rem;
-}
-
 .right-content {
   display: flex;
-  align-items: center;
+  justify-content: flex-end;
 }
-

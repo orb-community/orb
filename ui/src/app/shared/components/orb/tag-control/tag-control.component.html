@@ -29,7 +29,8 @@
     <div class="container d-flex row px-0 mx-0">
       <div class="d-flex flex-column col-5 px-0 mx-0">
         <div>
-          <label class="input-label">{{strings.key}}<span *ngIf="required" class="ns1red">*</span></label>
+          <label class="font-weight-bold">{{strings.key}}</label>
+          <span *ngIf="required" class="ns1red">*</span>
         </div>
         <div>
           <input #keyInput="ngModel"
@@ -43,8 +44,7 @@
                  [(ngModel)]="key"
                  fullWidth="true"
                  nbInput
-                 (keyup.enter)="onEnter()"
-                 placeholder="Tag Key"/>
+                 (keyup.enter)="onEnter()"/>
         </div>
       </div>
       <div class="d-flex justify-content-center align-items-center col-1 mt-4 px-0 mx-0">
@@ -52,8 +52,8 @@
       </div>
       <div class="d-flex flex-column col-5 px-0 mx-0">
         <div>
-          <label class="input-label">{{strings.value}}<span *ngIf="required" class="ns1red">*</span></label>
-          
+          <label class="font-weight-bold">{{strings.value}}</label>
+          <span *ngIf="required" class="ns1red">*</span>
         </div>
         <div>
           <input #valueInput="ngModel"
@@ -66,8 +66,7 @@
                  required
                  ngxEmptyInput
                  nbInput
-                 (keyup.enter)="onEnter()"
-                 placeholder="Tag Value"/>
+                 (keyup.enter)="onEnter()"/>
         </div>
       </div>
       <div class="d-flex col-1 align-items-center justify-content-center mx-0 pl-4 px-0"

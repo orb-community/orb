@@ -163,6 +163,7 @@ export class AgentGroupListComponent
   }
 
   ngAfterViewInit() {
+    this.orb.refreshNow();
     this.columns = [
       {
         name: '',
@@ -184,6 +185,15 @@ export class AgentGroupListComponent
         cellTemplate: this.agentGroupNameTemplateCell,
       },
       {
+        prop: 'description',
+        name: 'Description',
+        width: 350,
+        canAutoResize: true,
+        resizeable: true,
+        minWidth: 180,
+        cellTemplate: this.agentGroupNameTemplateCell,
+      },
+      {
         prop: 'matching_agents',
         name: 'Agents',
         width: 150,
@@ -192,15 +202,6 @@ export class AgentGroupListComponent
         minWidth: 80,
         comparator: (a, b) => a.total - b.total,
         cellTemplate: this.agentGroupsTemplateCell,
-      },
-      {
-        prop: 'description',
-        name: 'Description',
-        width: 350,
-        canAutoResize: true,
-        resizeable: true,
-        minWidth: 180,
-        cellTemplate: this.agentGroupNameTemplateCell,
       },
       {
         prop: 'tags',

@@ -140,7 +140,7 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
           this.specificPolicy = true;
           this.agents = resp.map((agent) => {
             const {policy_state} = agent;
-            const policy_agg_info = !!policy_state && policy_state[this.policy.id]?.state || AgentPolicyStates.failedToApply;
+            const policy_agg_info = !!policy_state && policy_state[this.policy.id].state || AgentPolicyStates.failedToApply;
             return {...agent, policy_agg_info };
           })
         } else {

@@ -24,10 +24,8 @@ import {
   NbInputModule,
   NbLayoutModule,
   NbMenuModule,
-  NbSelectModule,
   NbSidebarModule,
   NbToastrModule,
-  NbTooltipModule,
   NbWindowModule,
 } from '@nebular/theme';
 
@@ -52,8 +50,7 @@ import { CodeEditorService } from 'app/common/services/code.editor.service';
     HttpClientModule,
 
     AppRoutingModule,
-    NbTooltipModule,
-    NbSelectModule,
+
     ThemeModule.forRoot(),
     NbSidebarModule.forRoot(),
     NbMenuModule.forRoot(),

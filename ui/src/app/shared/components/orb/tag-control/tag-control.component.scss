@@ -17,7 +17,7 @@ mat-chip nb-icon {
 }
 .add-button {
   border: none !important;
-  background: #1e2941 !important;
+  background: #2F3D59 !important;
 }
 .add-button:disabled{
   background-color: transparent !important;
@@ -26,4 +26,7 @@ mat-chip nb-icon {
   color: #df316f !important;
   font-size: 20px;
   font-weight: 600;
+}
+label {
+  color: #969fb9;
 }

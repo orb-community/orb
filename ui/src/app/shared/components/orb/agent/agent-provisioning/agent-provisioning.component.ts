@@ -12,28 +12,25 @@ export class AgentProvisioningComponent implements OnInit {
 
   agentStates = AgentStates;
 
+  command2copy: string;
+
   copyCommandIcon: string;
 
   availableOS = [AvailableOS.DOCKER];
 
   selectedOS = AvailableOS.DOCKER;
 
-  defaultCommandCopy: string;
-  defaultCommandShow: string;
-  fileConfigCommandCopy: string;
-  fileConfigCommandShow: string;
+  command2show: string;
 
   hideCommand: boolean;
-  hideCommand2: boolean;
-  hideCommand3: boolean;
 
   constructor() {
+    this.command2copy = "";
+    this.command2show = "";
     this.copyCommandIcon = "copy-outline";
   }
 
   ngOnInit(): void {
-    this.hideCommand2 = false;
-    this.hideCommand3 = true;
     this.hideCommand = this.agent?.state !== this.agentStates.new;
     this.makeCommand2Copy();
   }
@@ -48,52 +45,27 @@ export class AgentProvisioningComponent implements OnInit {
   }
 
   makeCommand2Copy() {
-    this.defaultCommandCopy = `docker run -d --restart=always --net=host \\
--e ORB_CLOUD_ADDRESS=${ document.location.hostname } \\
--e ORB_CLOUD_MQTT_ID=${ this.agent.id } \\
--e ORB_CLOUD_MQTT_CHANNEL_ID=${ this.agent.channel_id } \\
+    // TODO: future - store this elsewhere
+    if (this.selectedOS === AvailableOS.DOCKER) {
+      this.command2copy = `docker run -d --restart=always --net=host \\
+-e ORB_CLOUD_ADDRESS=${document.location.hostname} \\
+-e ORB_CLOUD_MQTT_ID=${this.agent?.id} \\
+-e ORB_CLOUD_MQTT_CHANNEL_ID=${this.agent?.channel_id} \\
 -e ORB_CLOUD_MQTT_KEY="AGENT_KEY" \\
 -e PKTVISOR_PCAP_IFACE_DEFAULT=auto \\
 orbcommunity/orb-agent`;
 
-    this.defaultCommandShow = `docker run -d --restart=always --net=host \\
--e ORB_CLOUD_ADDRESS=${ document.location.hostname } \\
--e ORB_CLOUD_MQTT_ID=${ this.agent.id } \\
--e ORB_CLOUD_MQTT_CHANNEL_ID=${ this.agent.channel_id } \\
+      this.command2show = `docker run -d --restart=always --net=host \\
+-e ORB_CLOUD_ADDRESS=${document.location.hostname} \\
+-e ORB_CLOUD_MQTT_ID=${this.agent?.id} \\
+-e ORB_CLOUD_MQTT_CHANNEL_ID=${this.agent?.channel_id} \\
 -e ORB_CLOUD_MQTT_KEY=<mark>AGENT_KEY</mark> \\
 -e PKTVISOR_PCAP_IFACE_DEFAULT=<mark>auto</mark> \\
 orbcommunity/orb-agent`;
-
-  this.fileConfigCommandCopy = `docker run -d --restart=always --net=host \\
--e ORB_CLOUD_ADDRESS=${ document.location.hostname } \\
--e ORB_CLOUD_MQTT_ID=${ this.agent.id } \\
--e ORB_CLOUD_MQTT_CHANNEL_ID=${ this.agent.channel_id } \\
--e ORB_CLOUD_MQTT_KEY="AGENT_KEY" \\
--e PKTVISOR_PCAP_IFACE_DEFAULT=auto \\
--v \${PWD}/:/usr/local/orb/ \\
-orbcommunity/orb-agent run -c /usr/local/orb/agent.yaml`;
-
-  this.fileConfigCommandShow = `docker run -d --restart=always --net=host \\
--e ORB_CLOUD_ADDRESS=${ document.location.hostname } \\
--e ORB_CLOUD_MQTT_ID=${ this.agent.id } \\
--e ORB_CLOUD_MQTT_CHANNEL_ID=${ this.agent.channel_id } \\
--e ORB_CLOUD_MQTT_KEY=<mark>AGENT_KEY</mark> \\
--e PKTVISOR_PCAP_IFACE_DEFAULT=<mark>auto</mark> \\
--v \${PWD}/:/usr/local/orb/ \\
-orbcommunity/orb-agent run -c /usr/local/orb/agent.yaml`;
+    }
   }
 
-toggleProvisioningCommand(command: string) {
-  switch (command) {
-    case 'hideCommand':
-      this.hideCommand = !this.hideCommand;
-      break;
-    case 'hideCommand2':
-      this.hideCommand2 = !this.hideCommand2;
-      break;
-    case 'hideCommand3':
-      this.hideCommand3 = !this.hideCommand3;
-      break;
+  toggleProvisioningCommand() {
+    this.hideCommand = !this.hideCommand;
   }
-}
 }

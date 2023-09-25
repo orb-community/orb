@@ -192,6 +192,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
   }
 
   ngAfterViewInit() {
+    this.orb.refreshNow();
     this.columns = [
       {
         name: '',

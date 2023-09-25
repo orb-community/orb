@@ -31,7 +31,7 @@
       <label class="summary-accent">Name</label>
       <p>{{ policy?.name }}</p>
     </div>
-    <div class="flex-row" *ngIf="policy?.description">
+    <div class="flex-row">
       <label class="summary-accent">Description</label>
       <p>{{ policy?.description }}</p>
     </div>
@@ -55,7 +55,8 @@
     <nb-form-field>
       <div class="d-flex flex-column">
         <div>
-          <label class="input-label">Policy Name<span class="required">*</span></label>
+          <label class="font-weight-bold">Policy Name</label>
+          <span class="required">*</span>
         </div>
         <input
           [placeholder]="policy?.name"
@@ -87,17 +88,17 @@
     </nb-form-field>
     <nb-form-field>
       <div>
-        <label class="input-label" style="margin-top: 15px;">Policy Description</label>
+        <label class="font-weight-bold">Policy Description</label>
       </div>
       <input
+        [placeholder]="policy?.description"
         data-orb-qa-id="description"
         fieldSize="medium"
         formControlName="description"
         fullWidth="true"
-        nbInput
-        placeholder="Policy Description"/>
+        nbInput/>
     </nb-form-field>
   </form>
-  <label class="input-label" style="margin-top: 15px;">Tags</label>
+  <label class="font-weight-bold">Tags</label>
   <ngx-tag-control [(tags)]="selectedTags"></ngx-tag-control>
 </ng-template>

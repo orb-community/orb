@@ -163,6 +163,7 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
   }
 
   ngAfterViewInit() {
+    this.orb.refreshNow();
     this.columns = [
       {
         name: '',

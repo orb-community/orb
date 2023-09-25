@@ -45,10 +45,6 @@ export class AgentPolicyAddComponent {
 
   agentPolicyID: string;
 
-  reviewPolicyConfig: boolean;
-
-  editorVisible = true;
-
   @ViewChild('editorComponentYaml')
   editorYaml;
 
@@ -147,7 +143,6 @@ kind: collection`;
     private _formBuilder: FormBuilder,
     private editor: CodeEditorService,
   ) {
-    this.reviewPolicyConfig = false;
     this.isRequesting = false;
     this.agentPolicyID = this.route.snapshot.paramMap.get('id');
     this.agentPolicy = this.newAgent();
@@ -344,8 +339,4 @@ kind: collection`;
       return this.editor.isYaml(this.codeyaml);
     }
   }
-  refreshEditor() {
-    this.editorVisible = false; setTimeout(() => { this.editorVisible = true; }, 0); 
-  }
-  
 }

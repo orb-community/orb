@@ -18,12 +18,12 @@
           style="color: #df316f !important;">
           Discard
         </button>
-        <!-- <button 
+        <button 
           (click)="toggleLanguage()"
           class="switch-button"
           *ngIf="editMode || createMode">
           Switch to {{isJson(this.code) ? "YAML" : "JSON"}}
-        </button> -->
+        </button>
       </div>
     </nb-card-header>
     <nb-card-body>
@@ -41,7 +41,8 @@
           [(ngModel)]="code"
           [options]="editorOptionsYaml"
           class="code-editor"
-          ngDefaultControl>
+          ngDefaultControl
+          *ngIf="isYaml">
         </ngx-monaco-editor>
       </div>
     </nb-card-body>

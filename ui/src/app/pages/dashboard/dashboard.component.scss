@@ -96,16 +96,16 @@ h6 {
       line-height: 24px !important;
 
       & > a {
-        white-space: nowrap !important;
-        padding: 0 0.3rem !important;
-        background-color: #3089fc !important;
+        white-space: nowrap;
+        padding: 0 0.3rem;
+        background-color: #3089fc;
         font-weight: 700 !important;
         text-decoration: none !important;
-        text-underline: none !important;
+        text-underline: none;
         color: #ffffff !important;
         border-radius: 10px;
-        link: #ffffff !important;
-        fill: #3089fc !important;
+        link: #ffffff;
+        fill: #3089fc;
       }
     }
   }

@@ -83,7 +83,7 @@
       <nb-form-field>
         <div class="d-flex flex-column">
           <div>
-            <label class="input-label">Agent Name</label>
+            <label class="font-weight-bold">Agent Name</label>
             <span class="required">*</span>
           </div>
           <input
@@ -94,8 +94,7 @@
             fieldSize="medium"
             formControlName="name"
             fullWidth="true"
-            nbInput
-            [status]="formGroup.controls?.name.dirty ? (!formGroup.controls.name.valid  ? 'danger' : 'success') : 'basic'"/>
+            nbInput/>
           <div
             *ngIf="formGroup.controls?.name.invalid
             && (formGroup.controls?.name.dirty || formGroup.controls?.name.touched)"
@@ -116,7 +115,7 @@
         </div>
       </nb-form-field>
     </form>
-    <label class="input-label" style="color: #fff !important; margin-top: 15px;">Orb Tags</label>
+    <label class="font-weight-bold" style="color: #fff !important; margin-top: 5px;">Orb Tags</label>
     <ngx-tag-control [(tags)]="selectedTags"></ngx-tag-control>
   </div>
  

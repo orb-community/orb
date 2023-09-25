@@ -64,16 +64,8 @@
     (click)="onOpenView(row)"
     class="view-sink-button"
     nbTooltip="{{ value }}"
-    *ngIf="value"
   >
     {{ value }}
-  </button>
-  <button
-    (click)="onOpenView(row)"
-    class="view-sink-button"
-    *ngIf="!value"
-  >
-    <span style="font-style: italic; color: #969FB9;">No description was provided</span>
   </button>
 </ng-template>
 

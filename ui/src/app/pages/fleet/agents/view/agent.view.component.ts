@@ -89,10 +89,17 @@ export class AgentViewComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.agentSubscription?.unsubscribe();
-    this.orb.isPollingPaused ? this.orb.startPolling() : null;
-    this.orb.killPolling.next();
+  }
+  refreshAgent() {
+    this.isLoading = true;
+    this.retrieveAgent();
   }
 
+  onRefreshRequests(value: boolean) {
+    if (value) {
+      this.refreshAgent();
+    }
+  }
   openDeleteModal() {
     const { name, id } = this.agent;
     this.dialogService

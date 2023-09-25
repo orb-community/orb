@@ -74,10 +74,6 @@ export class FilterService {
     }
   }
 
-  removeFilterByParam(param: string) {
-    this.removeFilter(this._filters.findIndex((filter) => filter.param === param && filter.name === 'Name' && filter));
-  }
-
   // make a decorator out of this?
   createFilteredList() {
     return (

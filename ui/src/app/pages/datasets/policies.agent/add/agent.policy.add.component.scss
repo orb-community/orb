@@ -22,47 +22,9 @@ nb-card-footer {
 mat-chip nb-icon {
   font-size: 1rem;
 }
-label {
-  color: #969FB9;
-}
 
 ngx-tag-control, ngx-tag-display {
   margin-top: 20px;
-}
-
-.review-label {
-  font-family: 'Montserrat';
-  font-size: 13px;
-  font-weight: 400 !important; 
-  margin: 0;
-  color: #969fb9 !important;
-}
-.language-button {
-  border-radius: 16px;
-
-  padding: 8px 24px; 
-  color: #fff;
-  border: none; 
-  outline: none;
-  font-size: 14px;
-  font-weight: 600;
-  transition: background-color 0.2s ease;
-  margin: 8px 4px 8px 4px;
-  width: 90px;
-
-}
-.div-language-button {
-  background-color: #24293E;
-  width: fit-content;
-  padding: 0 4px 0 4px;
-  border-radius: 25px;
-  margin-bottom: 20px;
-}
-.true {
-  background: #3089FC; 
-}
-.false {
-  background-color: #181C2F;
 }
 
 ::ng-deep {
@@ -93,39 +55,22 @@ ngx-tag-control, ngx-tag-display {
   .step {
     flex-direction: row-reverse !important;
     align-items: start !important;
-
-    &-label {
-      p {
-        font-family: 'Montserrat', sans-serif;
-        font-weight: 400;
-        color: #969fb9;
-      }
-      strong {
-        font-family: 'Montserrat', sans-serif;
-        font-weight: 700;
-        color: #969fb9;
-      }
-    }
   }
 
   .step.selected {
-    p {
-      color: #fff;
-    }
-    strong {
-      color: #fff;
-    }
+    -webkit-text-stroke-color: rgba(255, 255, 255, 0.15);
+    -webkit-text-stroke-width: 1px;
+    text-shadow: 0 0 20px #ffffff8f;
 
     & > .label-index {
-        box-shadow: 0 0 12px 1px #df316f;
-        background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTEiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDExIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0wLjUgMy45OTY1MUw0LjE4NjgyIDcuNjgzMzNMMTAuODIzMSAxLjA0NzA2TDkuNzgzNDEgMEw0LjE4NjgyIDUuNTk2NTlMMS41Mzk2OCAyLjk1NjgzTDAuNSAzLjk5NjUxWiIgZmlsbD0iI2ZmZiIvPgo8L3N2Zz4K');
-        background-color: #df316f;
+      box-shadow: 0 0 12px 1px #df316f;
+      background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTEiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDExIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0wLjUgMy45OTY1MUw0LjE4NjgyIDcuNjgzMzNMMTAuODIzMSAxLjA0NzA2TDkuNzgzNDEgMEw0LjE4NjgyIDUuNTk2NTlMMS41Mzk2OCAyLjk1NjgzTDAuNSAzLjk5NjUxWiIgZmlsbD0iI2ZmZiIvPgo8L3N2Zz4K');
+      background-color: #df316f;
     }
   }
 
-
   .step-content {
-    width: 500px;
+    width: 500px !important;
   }
 
   .connector {
@@ -134,8 +79,8 @@ ngx-tag-control, ngx-tag-display {
 
     &::after {
       content: '';
-      height: 70px;
-      transform: translateY(-70px);
+      height: 40px;
+      transform: translateY(-40px);
       width: 1px;
       border-left: solid 1px #969fb9b3;
       position: absolute;
@@ -145,6 +90,7 @@ ngx-tag-control, ngx-tag-display {
 
   .connector.connector-past {
     transition: background 0.5s 0s ease-in-out;
+
     &::after {
       transition: border 0.5s 0s ease-in-out;
       border-left: solid 1px #df316f;
@@ -160,9 +106,6 @@ ngx-tag-control, ngx-tag-display {
 .step-label {
   width: 214px;
   text-align: end;
-  p {
-    font-size: 0.9375rem;
-  }
 }
 
 ::ng-deep .orb-breadcrumb {
@@ -225,20 +168,18 @@ ngx-tag-control, ngx-tag-display {
 }
 
 .code-editor {
-  height: calc(90%);
+  height: calc(100%);
   width: calc(100%);
 }
 
 .code-editor-wrapper {
-  min-height: 300px;
+  min-height: 350px;
   min-width: 200px;
-  height: calc(50vh);
+  height: calc(58vh);
   width: calc(100%);
+  display: block;
 }
-.stepper {
-  margin: 0 !important;
-  padding-top: 0 !important;
-}
+
 .handlers-list {
   display: flex;
   flex-direction: column;
