@@ -373,10 +373,10 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
   }
 
   onOpenResetAgents() {
-    const size = this.selected.length;
+    const selected = this.selected;
     this.dialogService
       .open(AgentResetComponent, {
-        context: { size },
+        context: { selected },
         autoFocus: true,
         closeOnEsc: true,
       })
