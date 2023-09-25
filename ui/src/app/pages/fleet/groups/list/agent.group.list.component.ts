@@ -309,12 +309,8 @@ export class AgentGroupListComponent
     });
   }
   public onCheckboxChange(event: any, row: any): void { 
-    let selectedGroup = {
-      id: row.id,
-      name: row.name,
-    }
     if (this.getChecked(row) === false) {
-      this.selected.push(selectedGroup);
+      this.selected.push(row);
     } 
     else {
       for (let i = 0; i < this.selected.length; i++) {
@@ -336,11 +332,7 @@ export class AgentGroupListComponent
       this.groupsSubscription = this.filteredGroups$.subscribe(rows => {
         this.selected = [];
         rows.forEach(row => {
-          const policySelected = {
-            id: row.id,
-            name: row.name,
-          }
-          this.selected.push(policySelected);
+          this.selected.push(row);
         });
       });
     } else {

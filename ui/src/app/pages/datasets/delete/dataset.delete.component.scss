@@ -1,5 +1,6 @@
 nb-card {
   max-width: 38rem !important;
+  padding: 0 !important;
   
   nb-card-header {
     background: #232940 !important;
@@ -12,6 +13,10 @@ nb-card {
   
     p {
       color: #969fb9 !important;
+      margin-bottom: 1rem !important;
+      font-weight: 500 !important;
+      font-size: 14px !important;
+      line-height: 24px !important;
     }
   
     .ns1-red {
