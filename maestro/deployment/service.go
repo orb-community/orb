@@ -3,9 +3,9 @@ package deployment
 import (
 	"context"
 	"errors"
-	"github.com/orb-community/orb/maestro/authentication"
 	"github.com/orb-community/orb/maestro/config"
 	"github.com/orb-community/orb/maestro/kubecontrol"
+	"github.com/orb-community/orb/maestro/password"
 	"github.com/orb-community/orb/maestro/redis/producer"
 	"github.com/orb-community/orb/pkg/types"
 	"go.uber.org/zap"
@@ -38,14 +38,14 @@ type deploymentService struct {
 	maestroProducer   producer.Producer
 	kubecontrol       kubecontrol.Service
 	configBuilder     config.ConfigBuilder
-	encryptionService EncryptionService
+	encryptionService password.EncryptionService
 }
 
 var _ Service = (*deploymentService)(nil)
 
 func NewDeploymentService(logger *zap.Logger, repository Repository, kafkaUrl string, encryptionKey string) Service {
 	namedLogger := logger.Named("deployment-service")
-	es := NewEncryptionService(logger, encryptionKey)
+	es := password.NewEncryptionService(logger, encryptionKey)
 	cb := config.NewConfigBuilder(namedLogger, kafkaUrl, es)
 	return &deploymentService{logger: namedLogger, dbRepository: repository, configBuilder: cb, encryptionService: es}
 }
@@ -73,8 +73,8 @@ func (d *deploymentService) CreateDeployment(ctx context.Context, deployment *De
 	return nil
 }
 
-func (d *deploymentService) getAuthBuilder(authType string) authentication.AuthBuilderService {
-	return authentication.GetAuthService(authType, d.encryptionService)
+func (d *deploymentService) getAuthBuilder(authType string) config.AuthBuilderService {
+	return config.GetAuthService(authType, d.encryptionService)
 }
 
 func (d *deploymentService) encodeConfig(deployment *Deployment) (types.Metadata, error) {
@@ -98,7 +98,14 @@ func (d *deploymentService) GetDeployment(ctx context.Context, ownerID string, s
 		return nil, "", err
 	}
 	deployment.Config = decodedDeployment
-	manifest, err := d.configBuilder.BuildDeploymentConfig(deployment)
+	deployReq := &config.DeploymentRequest{
+		OwnerID: ownerID,
+		SinkID:  sinkId,
+		Config:  deployment.Config,
+		Backend: deployment.Backend,
+		Status:  deployment.LastStatus,
+	}
+	manifest, err := d.configBuilder.BuildDeploymentConfig(deployReq)
 	if err != nil {
 		return nil, "", err
 	}
@@ -153,7 +160,14 @@ func (d *deploymentService) NotifyCollector(ctx context.Context, ownerID string,
 		if got.LastCollectorDeployTime != nil || got.LastCollectorDeployTime.Before(now) {
 			if got.LastCollectorStopTime != nil || got.LastCollectorStopTime.Before(now) {
 				d.logger.Debug("collector is not running deploying")
-				manifest, err := d.configBuilder.BuildDeploymentConfig(got)
+				deployReq := &config.DeploymentRequest{
+					OwnerID: ownerID,
+					SinkID:  sinkId,
+					Config:  got.Config,
+					Backend: got.Backend,
+					Status:  got.LastStatus,
+				}
+				manifest, err := d.configBuilder.BuildDeploymentConfig(deployReq)
 				if err != nil {
 					d.logger.Error("error during build deployment config", zap.Error(err))
 					return "", err

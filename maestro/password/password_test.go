@@ -1,4 +1,4 @@
-package deployment
+package password
 
 import (
 	"github.com/stretchr/testify/assert"

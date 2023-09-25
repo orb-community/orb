@@ -1,8 +1,7 @@
-package authentication
+package config
 
 import (
-	"github.com/orb-community/orb/maestro/config"
-	"github.com/orb-community/orb/maestro/deployment"
+	"github.com/orb-community/orb/maestro/password"
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks/authentication_type/basicauth"
 )
@@ -10,12 +9,12 @@ import (
 const AuthenticationKey = "authentication"
 
 type AuthBuilderService interface {
-	GetExtensionsFromMetadata(config types.Metadata) (config.Extensions, string)
+	GetExtensionsFromMetadata(config types.Metadata) (Extensions, string)
 	DecodeAuth(config types.Metadata) (types.Metadata, error)
 	EncodeAuth(config types.Metadata) (types.Metadata, error)
 }
 
-func GetAuthService(authType string, service deployment.EncryptionService) AuthBuilderService {
+func GetAuthService(authType string, service password.EncryptionService) AuthBuilderService {
 	switch authType {
 	case basicauth.AuthType:
 		return &BasicAuthBuilder{
@@ -26,16 +25,16 @@ func GetAuthService(authType string, service deployment.EncryptionService) AuthB
 }
 
 type BasicAuthBuilder struct {
-	encryptionService deployment.EncryptionService
+	encryptionService password.EncryptionService
 }
 
-func (b *BasicAuthBuilder) GetExtensionsFromMetadata(c types.Metadata) (config.Extensions, string) {
+func (b *BasicAuthBuilder) GetExtensionsFromMetadata(c types.Metadata) (Extensions, string) {
 	authcfg := c.GetSubMetadata(AuthenticationKey)
 	username := authcfg["username"].(string)
 	password := authcfg["password"].(string)
-	return config.Extensions{
-		BasicAuth: &config.BasicAuthenticationExtension{
-			ClientAuth: &config.ClientAuth{
+	return Extensions{
+		BasicAuth: &BasicAuthenticationExtension{
+			ClientAuth: &ClientAuth{
 				Username: username,
 				Password: password,
 			},

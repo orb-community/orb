@@ -3,7 +3,7 @@ package config
 import (
 	"context"
 	"fmt"
-	"github.com/orb-community/orb/maestro/deployment"
+	"github.com/orb-community/orb/maestro/password"
 	"github.com/orb-community/orb/pkg/types"
 	"go.uber.org/zap"
 	"testing"
@@ -13,7 +13,7 @@ func TestReturnConfigYamlFromSink(t *testing.T) {
 	type args struct {
 		in0            context.Context
 		kafkaUrlConfig string
-		sink           *deployment.Deployment
+		sink           *DeploymentRequest
 		key            string
 	}
 	tests := []struct {
@@ -27,7 +27,7 @@ func TestReturnConfigYamlFromSink(t *testing.T) {
 			args: args{
 				in0:            context.Background(),
 				kafkaUrlConfig: "kafka:9092",
-				sink: &deployment.Deployment{
+				sink: &DeploymentRequest{
 					SinkID:  "sink-id-11",
 					OwnerID: "11",
 					Backend: "prometheus",
@@ -51,7 +51,7 @@ func TestReturnConfigYamlFromSink(t *testing.T) {
 			args: args{
 				in0:            context.Background(),
 				kafkaUrlConfig: "kafka:9092",
-				sink: &deployment.Deployment{
+				sink: &DeploymentRequest{
 					SinkID:  "sink-id-11",
 					OwnerID: "11",
 					Backend: "prometheus",
@@ -78,7 +78,7 @@ func TestReturnConfigYamlFromSink(t *testing.T) {
 			args: args{
 				in0:            context.Background(),
 				kafkaUrlConfig: "kafka:9092",
-				sink: &deployment.Deployment{
+				sink: &DeploymentRequest{
 					SinkID:  "sink-id-22",
 					OwnerID: "22",
 					Backend: "otlphttp",
@@ -103,7 +103,7 @@ func TestReturnConfigYamlFromSink(t *testing.T) {
 		c := configBuilder{
 			logger:            logger,
 			kafkaUrl:          tt.args.kafkaUrlConfig,
-			encryptionService: deployment.NewEncryptionService(logger, tt.args.key),
+			encryptionService: password.NewEncryptionService(logger, tt.args.key),
 		}
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := c.ReturnConfigYamlFromSink(tt.args.in0, tt.args.kafkaUrlConfig, tt.args.sink)

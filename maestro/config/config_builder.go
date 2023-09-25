@@ -3,8 +3,6 @@ package config
 import (
 	"context"
 	"fmt"
-	"github.com/orb-community/orb/maestro/authentication"
-	"github.com/orb-community/orb/maestro/deployment"
 	"strings"
 
 	"github.com/orb-community/orb/pkg/errors"
@@ -355,7 +353,7 @@ var JsonDeployment = `
     }
 `
 
-func (c *configBuilder) BuildDeploymentConfig(deployment *deployment.Deployment) (string, error) {
+func (c *configBuilder) BuildDeploymentConfig(deployment *DeploymentRequest) (string, error) {
 	// prepare manifest
 	manifest := strings.Replace(k8sOtelCollector, "SINK_ID", deployment.SinkID, -1)
 	ctx := context.WithValue(context.Background(), "sink_id", deployment.SinkID)
@@ -368,14 +366,14 @@ func (c *configBuilder) BuildDeploymentConfig(deployment *deployment.Deployment)
 }
 
 // ReturnConfigYamlFromSink this is the main method, which will generate the YAML file from the
-func (c *configBuilder) ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig string, deployment *deployment.Deployment) (string, error) {
-	authType := deployment.Config.GetSubMetadata(authentication.AuthenticationKey)["type"]
+func (c *configBuilder) ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig string, deployment *DeploymentRequest) (string, error) {
+	authType := deployment.Config.GetSubMetadata(AuthenticationKey)["type"]
 	authTypeStr, ok := authType.(string)
 	if !ok {
 		return "", errors.New("failed to create config invalid authentication type")
 	}
 	// TODO move this into somewhere else
-	authBuilder := authentication.GetAuthService(authTypeStr, c.encryptionService)
+	authBuilder := GetAuthService(authTypeStr, c.encryptionService)
 	if authBuilder == nil {
 		return "", errors.New("invalid authentication type")
 	}
