@@ -28,7 +28,7 @@ type eventService struct {
 
 var _ EventService = (*eventService)(nil)
 
-func NewEventService(logger *zap.Logger, service deployment.Service, kubecontrol kubecontrol.Service) EventService {
+func NewEventService(logger *zap.Logger, service deployment.Service, _ kubecontrol.Service) EventService {
 	namedLogger := logger.Named("deploy-service")
 	return &eventService{logger: namedLogger, deploymentService: service}
 }
