@@ -168,17 +168,8 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 		if sink == nil {
 			svc.logger.Warn("collector not found for sink, depleting collector", zap.String("collector name", collector.Name))
 			sinkId := collector.Name[5:41]
-			deploymentEntry, err := svc.deploymentSvc.GetDeploymentByCollectorName(ctx, collector.Name)
-			if err != nil {
-				svc.logger.Error("did not find collector entry for sink", zap.String("sink-id", sinkId))
-				deploymentName := "otel-" + sinkId
-				err = svc.kubecontrol.KillOtelCollector(ctx, deploymentName, sinkId)
-				if err != nil {
-					svc.logger.Error("error removing otel collector, manual intervention required", zap.Error(err))
-				}
-				continue
-			}
-			err = svc.kubecontrol.DeleteOtelCollector(ctx, "", sinkId, deploymentEntry)
+			deploymentName := "otel-" + sinkId
+			err = svc.kubecontrol.KillOtelCollector(ctx, deploymentName, sinkId)
 			if err != nil {
 				svc.logger.Error("error removing otel collector", zap.Error(err))
 			}
@@ -203,27 +194,7 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			svc.logger.Error("error during analyze logs", zap.Error(logsErr))
 			continue
 		}
-		lastActivity, activityErr := svc.eventStore.GetActivity(sink.Id)
-		// if logs reported 'active' status
-		// here we should check if LastActivity is up-to-date, otherwise we need to set sink as idle
-		idleLimit := time.Now().Unix() - idleTimeSeconds // within 10 minutes
-		if idleLimit >= lastActivity {
-			//changing state on sinks
-			svc.eventStore.PublishSinkStateChange(sink, "idle", logsErr, err)
-			//changing state on redis sinker
-			data.State.SetFromString("idle")
-			svc.eventStore.UpdateSinkStateCache(ctx, data)
-			deploymentEntry, errDeploy := svc.eventStore.GetDeploymentEntryFromSinkId(ctx, sink.Id)
-			if errDeploy != nil {
-				svc.logger.Error("Remove collector: error on getting collector deployment from redis", zap.Error(activityErr))
-				continue
-			}
-			err = svc.kubecontrol.DeleteOtelCollector(ctx, sink.OwnerID, sink.Id, deploymentEntry)
-			if err != nil {
-				svc.logger.Error("error removing otel collector", zap.Error(err))
-			}
-			continue
-		}
+
 		//set the new sink status if changed during checks
 		if sink.GetState() != status && status != "" {
 			svc.logger.Info("changing sink status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
@@ -231,11 +202,7 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 				svc.logger.Error("error updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("error_message (opt)", err.Error()), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
 			} else {
 				svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
-				// changing state on sinks
-				svc.eventStore.PublishSinkStateChange(sink, status, logsErr, err)
-				// changing state on redis sinker
-				data.State.SetFromString(status)
-				svc.eventStore.UpdateSinkStateCache(ctx, data)
+				_ = svc.deploymentSvc.UpdateStatus(ctx, sink.OwnerID, sink.Id, status, logsErr.Error())
 			}
 		}
 	}
