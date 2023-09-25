@@ -76,7 +76,8 @@ func (es eventStore) Subscribe(context context.Context) error {
 }
 
 func (es eventStore) handleSinkerStateUpdate(ctx context.Context, event redis2.StateUpdateEvent) error {
-	err := es.sinkService.ChangeSinkStateInternal(ctx, event.SinkID, event.Msg, event.OwnerID, event.State)
+	state := sinks.NewStateFromString(event.State)
+	err := es.sinkService.ChangeSinkStateInternal(ctx, event.SinkID, event.Msg, event.OwnerID, state)
 	if err != nil {
 		return err
 	}
@@ -90,11 +91,7 @@ func (es eventStore) decodeSinkerStateUpdate(event map[string]interface{}) redis
 		Msg:       read(event, "msg", ""),
 		Timestamp: time.Time{},
 	}
-	err := val.State.Scan(event["state"])
-	if err != nil {
-		es.logger.Error("error parsing the state", zap.Error(err))
-		return redis2.StateUpdateEvent{}
-	}
+	val.State = event["state"].(string)
 	return val
 }
 
