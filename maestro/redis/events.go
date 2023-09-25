@@ -1,10 +1,3 @@
-// Copyright (c) Mainflux
-// SPDX-License-Identifier: Apache-2.0
-
-// Adapted for Orb project, modifications licensed under MPL v. 2.0:
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 package redis
 
 import (
@@ -15,6 +8,13 @@ import (
 const (
 	SinkerPrefix = "sinker."
 	SinkerUpdate = SinkerPrefix + "update"
+	SinkPrefix   = "sinks."
+	SinkCreate   = SinkPrefix + "create"
+	SinkDelete   = SinkPrefix + "remove"
+	SinkUpdate   = SinkPrefix + "update"
+	StreamSinks  = "orb.sinks"
+	GroupMaestro = "orb.maestro"
+	Exists       = "BUSYGROUP Consumer Group name already exists"
 )
 
 type SinksUpdateEvent struct {
@@ -30,6 +30,14 @@ type SinkerUpdateEvent struct {
 	Owner     string
 	State     string
 	Timestamp time.Time
+}
+
+func (sue SinksUpdateEvent) Decode(values map[string]interface{}) {
+	sue.SinkID = values["sink_id"].(string)
+	sue.Owner = values["owner"].(string)
+	sue.Config = values["config"].(types.Metadata)
+	sue.Backend = values["backend"].(string)
+	sue.Timestamp = time.Unix(values["timestamp"].(int64), 0)
 }
 
 func (cse SinkerUpdateEvent) Encode() map[string]interface{} {

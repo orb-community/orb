@@ -5,21 +5,14 @@ import (
 	"fmt"
 	"github.com/go-redis/redis/v8"
 	"github.com/orb-community/orb/sinks"
+	redis2 "github.com/orb-community/orb/sinks/redis"
+
 	"go.uber.org/zap"
 )
-
-const exists2 = "BUSYGROUP Consumer Group name already exists"
 
 type SinkStatusListener interface {
 	SubscribeToMaestroSinkStatus(ctx context.Context) error
 	ReceiveMessage(ctx context.Context, message redis.XMessage) error
-}
-
-type sinkUpdateStatusEvent struct {
-	ownerId      string
-	sinkId       string
-	status       string
-	errorMessage string
 }
 
 type sinkStatusListener struct {
@@ -43,7 +36,7 @@ func (s *sinkStatusListener) SubscribeToMaestroSinkStatus(ctx context.Context) e
 	streamName := "orb.maestro.sink_status"
 	consumerName := "sinks_consumer"
 	err := s.streamClient.XGroupCreateMkStream(ctx, streamName, groupName, "$").Err()
-	if err != nil && err.Error() != exists2 {
+	if err != nil && err.Error() != redis2.Exists {
 		s.logger.Error("failed to create group", zap.Error(err))
 		return err
 	}
@@ -79,20 +72,20 @@ func (s *sinkStatusListener) ReceiveMessage(ctx context.Context, message redis.X
 	logger := s.logger.Named(fmt.Sprintf("sink_status_msg:%s", message.ID))
 	go func(ctx context.Context, logger *zap.Logger, message redis.XMessage) {
 		event := s.decodeMessage(message.Values)
-		gotSink, err := s.sinkService.ViewSinkInternal(ctx, event.ownerId, event.sinkId)
+		gotSink, err := s.sinkService.ViewSinkInternal(ctx, event.OwnerID, event.SinkID)
 		if err != nil {
-			logger.Error("failed to get sink for sink_id from message", zap.String("owner_id", event.ownerId),
-				zap.String("sink_id", event.sinkId), zap.Error(err))
+			logger.Error("failed to get sink for sink_id from message", zap.String("owner_id", event.OwnerID),
+				zap.String("sink_id", event.SinkID), zap.Error(err))
 			return
 		}
-		newState := sinks.NewStateFromString(event.status)
+		newState := sinks.NewStateFromString(event.State)
 		if newState == sinks.Error || newState == sinks.ProvisioningError || newState == sinks.Warning {
-			gotSink.Error = event.errorMessage
+			gotSink.Error = event.Msg
 		}
 		_, err = s.sinkService.UpdateSinkInternal(ctx, gotSink)
 		if err != nil {
-			logger.Error("failed to update sink", zap.String("owner_id", event.ownerId),
-				zap.String("sink_id", event.sinkId), zap.Error(err))
+			logger.Error("failed to update sink", zap.String("owner_id", event.OwnerID),
+				zap.String("sink_id", event.SinkID), zap.Error(err))
 			return
 		}
 	}(ctx, logger, message)
@@ -100,11 +93,11 @@ func (s *sinkStatusListener) ReceiveMessage(ctx context.Context, message redis.X
 }
 
 // func (es eventStore) decodeSinkerStateUpdate(event map[string]interface{}) *sinks.SinkerStateUpdate {
-func (s *sinkStatusListener) decodeMessage(content map[string]interface{}) sinkUpdateStatusEvent {
-	return sinkUpdateStatusEvent{
-		ownerId:      content["owner_id"].(string),
-		sinkId:       content["sink_id"].(string),
-		status:       content["status"].(string),
-		errorMessage: content["error_message"].(string),
+func (s *sinkStatusListener) decodeMessage(content map[string]interface{}) redis2.StateUpdateEvent {
+	return redis2.StateUpdateEvent{
+		OwnerID: content["owner_id"].(string),
+		SinkID:  content["sink_id"].(string),
+		State:   content["status"].(string),
+		Msg:     content["error_message"].(string),
 	}
 }
