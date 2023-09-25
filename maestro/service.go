@@ -31,6 +31,7 @@ type maestroService struct {
 
 	deploymentService   deployment.Service
 	sinkListenerService rediscons1.SinksListener
+	activityListener    rediscons1.SinkerActivityListener
 
 	kubecontrol       kubecontrol.Service
 	monitor           monitor.Service
@@ -52,6 +53,7 @@ func NewMaestroService(logger *zap.Logger, streamRedisClient *redis.Client, sink
 	monitorService := monitor.NewMonitorService(logger, &sinksGrpcClient, ps, &kubectr)
 	eventService := service.NewEventService(logger, deploymentService, kubectr)
 	sinkListenerService := rediscons1.NewSinksListenerController(logger, eventService, sinkerRedisClient, sinksGrpcClient)
+	activityListener := rediscons1.NewSinkerActivityListener(logger, eventService, sinkerRedisClient)
 	return &maestroService{
 		logger:              logger,
 		deploymentService:   deploymentService,
@@ -59,6 +61,7 @@ func NewMaestroService(logger *zap.Logger, streamRedisClient *redis.Client, sink
 		sinkerRedisClient:   sinkerRedisClient,
 		sinksClient:         sinksGrpcClient,
 		sinkListenerService: sinkListenerService,
+		activityListener:    activityListener,
 		kubecontrol:         kubectr,
 		monitor:             monitorService,
 		kafkaUrl:            otelCfg.KafkaUrl,
@@ -104,7 +107,7 @@ func (svc *maestroService) subscribeToSinksEvents(ctx context.Context) {
 }
 
 func (svc *maestroService) subscribeToSinkerEvents(ctx context.Context) {
-	if err := svc.eventStore.SubscribeSinkerEvents(ctx); err != nil {
+	if err := svc.activityListener.SubscribeSinksEvents(ctx); err != nil {
 		svc.logger.Error("Bootstrap service failed to subscribe to event sourcing", zap.Error(err))
 		return
 	}
