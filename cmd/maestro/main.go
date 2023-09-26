@@ -225,7 +225,7 @@ func loadStreamEsConfig(prefix string) config.EsConfig {
 	cfg.AllowEmptyEnv(true)
 	cfg.AutomaticEnv()
 	var esC config.EsConfig
-	cfg.Unmarshal(&esC)
+	_ = cfg.Unmarshal(&esC)
 	return esC
 }
 
@@ -240,6 +240,6 @@ func loadSinkerEsConfig(prefix string) config.EsConfig {
 	cfg.AllowEmptyEnv(true)
 	cfg.AutomaticEnv()
 	var esC config.EsConfig
-	cfg.Unmarshal(&esC)
+	_ = cfg.Unmarshal(&esC)
 	return esC
 }

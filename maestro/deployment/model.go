@@ -22,12 +22,14 @@ type Deployment struct {
 
 func NewDeployment(ownerID string, sinkID string, config types.Metadata) Deployment {
 	now := time.Now()
+	deploymentName := "otel-" + sinkID
 	return Deployment{
 		OwnerID:          ownerID,
 		SinkID:           sinkID,
 		Config:           config,
 		LastStatus:       "pending",
 		LastStatusUpdate: &now,
+		CollectorName:    deploymentName,
 	}
 }
 

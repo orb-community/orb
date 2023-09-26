@@ -77,8 +77,6 @@ func (d *eventService) HandleSinkDelete(ctx context.Context, event maestroredis.
 	if deploymentEntry.LastCollectorDeployTime != nil || deploymentEntry.LastCollectorDeployTime.Before(time.Now()) {
 		if deploymentEntry.LastCollectorStopTime != nil || deploymentEntry.LastCollectorStopTime.Before(time.Now()) {
 			d.logger.Warn("collector is not running, skipping")
-		} else {
-			//
 		}
 	}
 	err = d.deploymentService.RemoveDeployment(ctx, event.Owner, event.SinkID)
