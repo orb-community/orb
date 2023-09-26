@@ -204,7 +204,6 @@ export class AgentPolicyListComponent
 
   ngAfterViewInit() {
 
-    this.orb.refreshNow();
     this.columns = [
       {
         name: '',

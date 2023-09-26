@@ -149,7 +149,7 @@ tr div p {
     color: #df316f;
   }
   &idle {
-    color: #f2dc4a; 
+    color: #f2994a; 
   }
 }
 
@@ -207,14 +207,6 @@ mat-chip-list {
   flex-direction: row;
   align-items: center;
   gap: 10px;
-}
-.delete-selected {
-  color: #ffffff !important; 
-  font-family: 'Montserrat', sans-serif;
-  font-weight: 600;
-  text-transform: none !important;
-  width: 90px;
-  background-color: #df316f !important;
 }
 input[type=checkbox] {
   margin-left: 10px;

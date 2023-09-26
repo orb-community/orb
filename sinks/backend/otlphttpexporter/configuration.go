@@ -31,6 +31,7 @@ import (
 //      insecure_skip_verify: true
 
 const EndpointFieldName = "endpoint"
+const ExporterFieldName = "exporter"
 const CustomHeadersConfigFeature = "headers"
 
 var invalidCustomHeaders = []string{
@@ -109,14 +110,11 @@ func (b *OTLPHTTPBackend) ValidateConfiguration(config types.Metadata) error {
 
 func (b *OTLPHTTPBackend) ParseConfig(format string, config string) (retConfig types.Metadata, err error) {
 	if format == "yaml" {
-		var parsedConfig OTLPHTTPBackend
-		err = yaml.Unmarshal([]byte(config), &parsedConfig)
+		retConfig = make(types.Metadata)
+		err = yaml.Unmarshal([]byte(config), &retConfig)
 		if err != nil {
 			return nil, errors.Wrap(errors.New("failed to unmarshal config"), err)
 		}
-		retConfig = make(types.Metadata)
-		retConfig[EndpointFieldName] = parsedConfig.Endpoint
-
 	} else {
 		return nil, errors.New("format not supported")
 	}

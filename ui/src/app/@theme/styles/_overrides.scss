@@ -94,7 +94,25 @@
   }
 
   nb-card {
-    border: none;
+      /* width */
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+      background: rgba(150, 159, 185, 0.5);
+    }
+
+    /* Track */
+    ::-webkit-scrollbar-track {
+      border-radius: 16px;
+    }
+
+    /* Handle */
+    ::-webkit-scrollbar-thumb {
+      background: #969fb9;
+      border-radius: 16px;
+    }
+    scrollbar-color: #969fb9 #969fb980; 
+    margin: 20px 0 !important;
   }
 
   nb-card nb-list {
@@ -125,14 +143,35 @@
 .card-button {
   border-radius: 15px !important;
   float: right !important;
-  color: #fff !important;
+  color: #3089fc !important;
   font-family: 'Montserrat', sans-serif;
   font-weight: 600;
   text-transform: none !important;
+  background-color: transparent !important;
 
   &.btn-disabled {
     background: #2b3148;
   }
+}
+.card-button:hover {
+  background-color: #171c30 !important;
+}
+
+.add-button {
+  border-radius: 15px !important;
+  float: right !important;
+  color: #fff !important;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  text-transform: none !important;
+  background-color: #3089fc !important;
+
+  &.btn-disabled {
+    background: #2b3148;
+  }
+}
+.delete-button:hover {
+ background-color: #2b3148 !important;
 }
 
 .tableWrapper {
@@ -166,13 +205,143 @@
   &online, &healthy {
     color: #6fcf97;
   }
-  &stale, &none {
+  &stale {
     color: #f2994a;
   }
   &error, &failure {
     color: #df316f;
   }
-  &offline {
+  &offline, &none {
     color: #969fb9;
+  }
+}
+.required {
+  color: #df316f;
+  padding-left: 2px;
+}
+.refresh-button {
+  border: none !important;
+  box-sizing: border-box;
+  box-shadow: none !important;
+  margin-right: 0.3rem;
+
+  &:active, &:focus {
+    background-color: unset !important;
+  }
+
+  &:hover {
+    background-color: rgba(143, 155, 179, 0.16);
+  }
+}
+
+.paused {
+  animation: rotation 750ms linear infinite;
+  animation-play-state: paused;
+}
+
+.rotate {
+  animation: rotation 750ms linear infinite;
+  animation-play-state: running;
+
+  &:hover {
+    background: unset !important;
+  }
+}
+
+@keyframes rotation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(359deg);
+  }
+}
+.delete-selected {
+  color: #ffffff !important; 
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  text-transform: none !important;
+  width: 110px;
+  background-color: #df316f !important;
+  opacity: 0;
+  animation: appear 0.3s forwards;
+}
+
+@keyframes appear {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+p {
+  font-family: 'Montserrat' !important;
+}
+
+label {
+  font-family: 'Montserrat' !important;
+}
+.input-label {
+  color: #fff !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+}
+input {
+  background-color: transparent !important;
+}
+.next-button {
+  border-radius: 16px !important;
+  background: #3089FC !important; 
+  padding: 8px 24px !important;
+  color: #fff !important;
+  border: none !important; 
+  outline: none !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  transition: background-color 0.3s ease !important;
+}
+.next-button:hover {
+  background-color: #509afc!important;
+}
+.next-button:disabled {
+  background: #2b3148 !important;
+}
+.cancel-back-button {
+  border-radius: 16px !important;; 
+  padding: 8px 24px !important;
+  background-color: transparent !important;
+  color: #3089FC !important;
+  border: none !important;
+  outline: none !important;
+  font-size: 14px !important;
+  font-weight: 600 !important; 
+  transition: background-color 0.3s ease !important;
+  margin-right: 0 !important;
+}
+.cancel-back-button:hover {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+.loading-spinner {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 5px solid #404a70;
+  border-top: 5px solid #21316e;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
   }
 }

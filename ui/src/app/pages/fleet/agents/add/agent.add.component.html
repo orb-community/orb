@@ -25,49 +25,48 @@
             <nb-form-field>
               <div class="d-flex flex-column">
                 <div>
-                  <label class="font-weight-bold">{{strings.propNames.name}}</label>
-                  <span class="required">*</span>
+                  <label class="input-label">{{strings.propNames.name}}<span class="required">*</span></label>
                 </div>
                 <input autofocus
                        data-orb-qa-id="input#name"
                        fieldSize="medium"
                        formControlName="name"
                        fullWidth="true"
-                       [status]="firstFormGroup?.controls.name.touched ? (!firstFormGroup.controls.name.valid  ? 'danger' : 'success') : 'basic'"
-                       nbInput/>
-                <ng-container *ngIf="firstFormGroup?.controls.name.touched && !firstFormGroup.controls.name.valid">
-                  <p *ngIf="!firstFormGroup.controls.name.value" class="caption status-danger mb-1">
+                       [status]="firstFormGroup.controls?.name.dirty ? (!firstFormGroup.controls.name.valid  ? 'danger' : 'success') : 'basic'"
+                       nbInput
+                       placeholder="Agent Name"/>
+                <ng-container *ngIf="firstFormGroup.controls?.name.invalid
+                && firstFormGroup.controls?.name.dirty ">
+                  <div *ngIf="!firstFormGroup.controls.name.value" class="caption status-danger mb-1">
                     Name is required!
-                  </p>
-                  <p *ngIf="!!firstFormGroup.controls.name.errors?.pattern" class="caption status-danger mb-1">
+                  </div>
+                  <div *ngIf="!!firstFormGroup.controls.name.errors?.pattern" class="caption status-danger mb-1">
                     Name must start with a letter or "_" and contain only letters, numbers, "-" or "_"
-                  </p>
-                  <p *ngIf="firstFormGroup?.controls.name.errors?.maxlength" class="caption status-danger mb-1">
+                  </div>
+                  <div *ngIf="firstFormGroup?.controls.name.errors?.maxlength" class="caption status-danger mb-1">
                     Name must be less than {{firstFormGroup.controls.name.errors?.maxlength.requiredLength}} characters
-                  </p>
+                  </div>
                 </ng-container>
               </div>
             </nb-form-field>
             <hr/>
             <div class="d-flex justify-content-end">
-              <button [disabled]="!firstFormGroup.valid"
-                      class="next-button"
-                      data-orb-qa-id="button#next"
-                      nbButton
-                      nbStepperNext
-                      shape="round"
-                      status="primary"
-                      type="submit">
-                {{ strings.stepper.next }}
-              </button>
               <button (click)="goBack()"
+                      class="cancel-back-button"
                       data-orb-qa-id="button#cancel"
                       ghost
-                      nbButton
-                      shape="round"
                       status="primary"
                       type="button">
                 {{ strings.stepper.cancel }}
+              </button>
+              <button [disabled]="!firstFormGroup.valid"
+                class="next-button"
+                data-orb-qa-id="button#next"
+                nbStepperNext
+                shape="round"
+                status="primary"
+                type="submit">
+                {{ strings.stepper.next }}
               </button>
             </div>
           </form>
@@ -88,31 +87,31 @@
             <hr>
           </div>
           <div class="d-flex justify-content-end">
-            <button class="next-button"
-                    data-orb-qa-id="button#next"
-                    nbButton
-                    nbStepperNext
-                    shape="round"
-                    status="primary"
-                    type="submit">
-              {{ strings.stepper.next }}
-            </button>
-            <button data-orb-qa-id="button#back"
-                    ghost
-                    nbButton
-                    nbStepperPrevious
-                    shape="round"
-                    status="primary">
-              {{ strings.stepper.back }}
-            </button>
             <button (click)="goBack()"
                     data-orb-qa-id="button#cancel"
                     ghost
-                    nbButton
                     shape="round"
                     status="primary"
-                    type="button">
+                    type="button"
+                    class="cancel-back-button">
               {{ strings.stepper.cancel }}
+            </button>
+            <button data-orb-qa-id="button#back"
+              ghost
+              class="cancel-back-button"
+              nbStepperPrevious
+              shape="round"
+              status="primary">
+              {{ strings.stepper.back }}
+            </button>
+            <button class="next-button"
+              data-orb-qa-id="button#next"
+              class="next-button"
+              nbStepperNext
+              shape="round"
+              status="primary"
+              type="submit">
+              {{ strings.stepper.next }}
             </button>
           </div>
         </nb-step>
@@ -126,7 +125,7 @@
           <div class="d-flex row">
             <div class="col-12">
               <div>
-                <label class="font-weight-bold">{{strings.propNames.name}}</label>
+                <label class="review-label">{{strings.propNames.name}}</label>
                 <p data-orb-qa-id="review-name">{{firstFormGroup.controls.name.value}}</p>
               </div>
             </div>
@@ -134,39 +133,40 @@
           <hr/>
           <div class="d-flex row">
             <div class="col-12">
-              <label class="font-weight-bold">Orb Tags</label>
+              <label class="review-label" style="margin-bottom: 3px;">Orb Tags</label>
               <ngx-tag-display [tags]="selectedTags"></ngx-tag-display>
             </div>
           </div>
           <hr/>
           <div class="d-flex justify-content-end">
-            <button (click)="onFormSubmit()"
-                    autofocus
-                    class="next-button"
-                    data-orb-qa-id="button#save"
-                    nbButton
-                    shape="round"
-                    status="primary"
-                    type="submit">
-              {{ strings.stepper.save }}
-            </button>
-            <button data-orb-qa-id="button#back"
-                    ghost
-                    nbButton
-                    nbStepperPrevious
-                    shape="round"
-                    status="primary">
-              {{ strings.stepper.back }}
-            </button>
             <button (click)="goBack()"
                     data-orb-qa-id="button#cancel"
                     ghost
-                    nbButton
+                    class="cancel-back-button"
                     shape="round"
                     status="primary"
                     type="button">
               {{ strings.stepper.cancel }}
             </button>
+            <button data-orb-qa-id="button#back"
+                    ghost
+                    class="cancel-back-button"
+                    nbStepperPrevious
+                    shape="round"
+                    status="primary">
+              {{ strings.stepper.back }}
+            </button>
+            <button (click)="onFormSubmit()"
+              autofocus
+              class="next-button"
+              data-orb-qa-id="button#save"
+              class="next-button"
+              shape="round"
+              status="primary"
+              type="submit"
+              [disabled]="isRequesting">
+              {{ strings.stepper.save }}
+            </button>           
           </div>
         </nb-step>
       </nb-stepper>

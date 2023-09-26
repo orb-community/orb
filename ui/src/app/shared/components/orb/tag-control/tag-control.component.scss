@@ -15,3 +15,15 @@ mat-chip nb-icon {
 .ns1red {
   color: #df316f;
 }
+.add-button {
+  border: none !important;
+  background: #1e2941 !important;
+}
+.add-button:disabled{
+  background-color: transparent !important;
+}
+.two-dot {
+  color: #df316f !important;
+  font-size: 20px;
+  font-weight: 600;
+}

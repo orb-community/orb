@@ -25,6 +25,7 @@ h4 {
 nb-card {
   border: transparent;
   border-radius: 0.5rem;
+  padding: 0 !important;
 
   nb-card-header {
     background-color: #232940;
@@ -198,3 +199,18 @@ nb-card {
   color: #969fb9;
   font-size: 14px;
 }
+.state {
+  font-size: 15px;
+  font-weight: 700;
+}
+.fa.fa-circle {
+  font-size: 11px;
+}
+.offline-circle {
+  width: 10px;
+  height: 10px;
+  border: 2px solid #969fb9;
+  border-radius: 50%;
+  background-color: transparent;
+}
+

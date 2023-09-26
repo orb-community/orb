@@ -3,8 +3,8 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Sink, SinkBackends, SinkStates } from 'app/common/interfaces/orb/sink.interface';
 import { SinkFeature } from 'app/common/interfaces/orb/sink/sink.feature.interface';
 import { Tags } from 'app/common/interfaces/orb/tag';
+import { OrbService } from 'app/common/services/orb.service';
 import { SinksService } from 'app/common/services/sinks/sinks.service';
-import { SinkConfigComponent } from '../sink-config/sink-config.component';
 
 
 @Component({
@@ -30,6 +30,9 @@ export class SinkDetailsComponent implements OnInit, OnChanges {
   @Output()
   editModeChange: EventEmitter<boolean>;
 
+  @Input()
+  configEditMode: boolean;
+
   formGroup: FormGroup;
 
   selectedTags: Tags;
@@ -43,6 +46,7 @@ export class SinkDetailsComponent implements OnInit, OnChanges {
   constructor(
     private fb: FormBuilder,
     private sinksService: SinksService,
+    private orb: OrbService,
     ) { 
     this.sink = {};
     this.createMode = false;
@@ -50,6 +54,7 @@ export class SinkDetailsComponent implements OnInit, OnChanges {
     this.mode = 'read';
     this.sinkBackend = new EventEmitter<string>();
     this.editModeChange = new EventEmitter<boolean>();
+    this.configEditMode = false;
     this.updateForm();
     Promise.all([this.getSinkBackends()]).then((responses) => {
       const backends = responses[0];
@@ -111,6 +116,12 @@ export class SinkDetailsComponent implements OnInit, OnChanges {
 
   toggleEdit(value, notify = true) {
     this.editMode = value;
+    if (this.editMode || this.configEditMode) {
+      this.orb.pausePolling();
+    }
+    else {
+      this.orb.startPolling();
+    }
     this.updateForm();
     !!notify && this.editModeChange.emit(this.editMode);
   }

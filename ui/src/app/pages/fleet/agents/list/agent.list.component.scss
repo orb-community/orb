@@ -186,7 +186,9 @@ input[type=checkbox] {
   font-family: 'Montserrat', sans-serif;
   font-weight: 600;
   text-transform: none !important;
-  width: 125px;
+  width: 160px;
+  opacity: 0;
+  animation: appear 0.3s forwards;
 
   &.btn-disabled {
     background: #2b3148;
@@ -201,12 +203,4 @@ input[type=checkbox] {
   flex-direction: row;
   align-items: center;
   gap: 10px;
-}
-.delete-selected {
-  color: #ffffff !important; 
-  font-family: 'Montserrat', sans-serif;
-  font-weight: 600;
-  text-transform: none !important;
-  width: 90px;
-  background-color: #df316f !important;
 }

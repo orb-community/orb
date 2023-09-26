@@ -145,7 +145,7 @@ nb-card {
 
 button {
   margin: 0 3px;
-
+  max-height: 36px;
   &.policy-duplicate {
     float: right;
     color: #fff !important;
@@ -166,7 +166,7 @@ button {
     float: right;
     color: #fff !important;
     font-family: 'Montserrat', sans-serif;
-    font-weight: 500;
+    font-weight: 700;
     text-transform: none !important;
 
     &.btn-disabled {
@@ -182,7 +182,7 @@ button {
     float: right;
     color: #fff !important;
     font-family: 'Montserrat', sans-serif;
-    font-weight: 500;
+    font-weight: 700;
     text-transform: none !important;
 
     &.btn-disabled {
@@ -235,7 +235,19 @@ button {
   color: #969fb9;
   font-size: 14px;
 }
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.left-content {
+  flex: 1;
+  margin-left: 0.9rem;
+}
+
 .right-content {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
 }
+

@@ -7,6 +7,7 @@
         nbButton
         shape="round"
         status="primary">
+        <nb-icon icon="edit-outline"></nb-icon>
         Edit
       </button>
       <button
@@ -15,7 +16,7 @@
         class="card-button"
         nbButton
         shape="round"
-        status="danger">
+        style="color: #df316f !important;">
         Discard
       </button>
     </nb-card-header>
@@ -29,7 +30,7 @@
             <label class="summary-accent">Name</label>
             <p>{{ sink?.name }}</p>
           </div>
-          <div class="flex-row">
+          <div class="flex-row" *ngIf="sink?.description">
             <label class="summary-accent">Description</label>
             <p>{{ sink?.description }}</p>
           </div>
@@ -49,12 +50,12 @@
         </div>
 
 
-        <div *ngSwitchCase="'edit'">
+        <div *ngSwitchCase="'edit'" style="margin-bottom: 20px;">
           <form [formGroup]="formGroup">
             <nb-form-field>
               <div class="d-flex flex-column">
                 <div>
-                  <label class="font-weight-bold">Sink Name</label>
+                  <label class="input-label">Sink Name</label>
                   <span class="required">*</span>
                 </div>
                 <input
@@ -65,7 +66,8 @@
                   fieldSize="medium"
                   formControlName="name"
                   fullWidth="true"
-                  nbInput/>
+                  nbInput
+                  [status]="formGroup?.controls.name.dirty  ? (!formGroup.controls.name.valid  ? 'danger' : 'success') : 'basic'"/>
                 <div
                   *ngIf="formGroup.controls?.name.invalid
                   && (formGroup.controls?.name.dirty || formGroup.controls?.name.touched)"
@@ -74,36 +76,35 @@
                     Name is required.
                   </div>
                   <div *ngIf="formGroup.controls?.name.errors?.pattern">
-                    Name does not match the pattern.
+                    Name must start with a letter or "_" and contain only letters, numbers, "-" or "_"
                   </div>
                 </div>
               </div>
             </nb-form-field>
             <nb-form-field>
               <div>
-                <label class="font-weight-bold">Sink Description</label>
+                <label class="input-label">Sink Description</label>
               </div>
               <input
-                [placeholder]="sink?.description"
                 data-orb-qa-id="description"
                 fieldSize="medium"
                 formControlName="description"
                 fullWidth="true"
-                nbInput/>
+                nbInput
+                placeholder="Sink Description"/>
             </nb-form-field>
           </form>
-          <label class="font-weight-bold">Tags</label>
+          <label class="input-label">Tags</label>
           <ngx-tag-control [(tags)]="selectedTags"></ngx-tag-control>
         </div>
 
 
-        <div *ngSwitchCase="'create'">
+        <div *ngSwitchCase="'create'" style="margin-bottom: 20px;">
           <form [formGroup]="formGroup">
             <nb-form-field>
               <div class="d-flex flex-column">
                 <div>
-                  <label class="font-weight-bold">Sink Name</label>
-                  <span class="required">*</span>
+                  <label class="input-label">Sink Name<span class="required">*</span></label>
                 </div>
                 <input
                   autofocus
@@ -114,10 +115,12 @@
                   fullWidth="true"
                   required
                   pattern="^[a-zA-Z_][a-zA-Z0-9_-]*$"          
-                  nbInput/>
+                  nbInput
+                  [status]="formGroup?.controls.name.dirty  ? (!formGroup.controls.name.valid  ? 'danger' : 'success') : 'basic'"
+                  placeholder="Sink Name"/>
                   <div
                   *ngIf="formGroup.controls?.name.invalid
-                  && (formGroup.controls?.name.dirty || formGroup.controls?.name.touched)"
+                  && formGroup.controls?.name.dirty"
                   class="required">
                   <div *ngIf="formGroup.controls?.name.errors?.required">
                     Name is required.
@@ -130,18 +133,19 @@
             </nb-form-field>
             <nb-form-field>
               <div>
-                <label class="font-weight-bold">Sink Description</label>
+                <label class="input-label">Sink Description</label>
               </div>
               <input
                 data-orb-qa-id="description"
                 fieldSize="medium"
                 formControlName="description"
                 fullWidth="true"
-                nbInput/>
+                nbInput
+                placeholder="Sink Description"/>
             </nb-form-field>
             <nb-form-field>
               <div>
-                <label class="font-weight-bold">Sink Backend</label>
+                <label class="input-label">Sink Backend</label>
                 <span class="required">*</span>
               </div>
               <nb-select appearance="filled"
@@ -158,7 +162,7 @@
               </nb-select>
             </nb-form-field>
           </form>
-          <label class="font-weight-bold">Tags</label>
+          <label class="input-label">Tags</label>
           <ngx-tag-control [(tags)]="selectedTags"></ngx-tag-control>
         </div>
         

@@ -1,7 +1,7 @@
 nb-card {
   border: transparent;
   border-radius: 0.5rem;
-
+  padding: 0 !important;
   nb-card-header {
     background-color: #232940;
     border-bottom: transparent;
@@ -70,7 +70,7 @@ nb-card {
 .code-editor-wrapper {
   min-height: 350px;
   min-width: 200px;
-  height: calc(50vh);
+  height: 367px;
   width: calc(100%);
   display: block;
 }

@@ -1,7 +1,10 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import { Sink, SinkBackends } from 'app/common/interfaces/orb/sink.interface';
+import * as YAML from 'yaml';
 import IStandaloneEditorConstructionOptions = monaco.editor.IStandaloneEditorConstructionOptions;
+import { OrbService } from 'app/common/services/orb.service';
+
 @Component({
   selector: 'ngx-sink-config',
   templateUrl: './sink-config.component.html',
@@ -23,6 +26,9 @@ export class SinkConfigComponent implements OnInit, OnChanges {
   
   @Output()
   editModeChange: EventEmitter<boolean>;
+
+  @Input()
+  detailsEditMode: boolean;
 
   @ViewChild('editorComponent')
   editor;
@@ -48,7 +54,16 @@ export class SinkConfigComponent implements OnInit, OnChanges {
     lineDecorationsWidth: 0,
     lineNumbersMinChars: 0,
   };
-
+  editorOptionsYaml = {
+    theme: 'vs-dark',
+    language: 'yaml',
+    automaticLayout: true,
+    glyphMargin: false,
+    folding: true,
+    lineDecorationsWidth: 0,
+    lineNumbersMinChars: 0,
+    readOnly: true,
+  };
   code = '';
 
   sinkConfigSchemaPrometheus: any;
@@ -57,10 +72,17 @@ export class SinkConfigComponent implements OnInit, OnChanges {
 
   formControl: FormControl;
 
-  constructor(private fb: FormBuilder) { 
+  isYaml: boolean;
+
+  constructor(
+    private fb: FormBuilder,
+    private orb: OrbService,
+    ) { 
+    this.isYaml = true; 
     this.sink = {};
     this.editMode = false;
     this.editModeChange = new EventEmitter<boolean>();
+    this.detailsEditMode = false;
     this.updateForm();
     this.sinkConfigSchemaPrometheus = {
       "authentication" : {
@@ -89,43 +111,87 @@ export class SinkConfigComponent implements OnInit, OnChanges {
   ngOnInit(): void {
     if (this.createMode) {
       this.toggleEdit(true);
-      this.code = JSON.stringify(this.sinkConfigSchemaOtlp, null, 2);
+      this.code = YAML.stringify(this.sinkConfigSchemaOtlp);
     }
     else {
-      this.code = JSON.stringify(this.sink.config, null, 2);
+      // if (this.sink.config_data && this.sink.format === 'yaml') {
+      // this.isYaml = true;
+      const parsedCode = YAML.parse(JSON.stringify(this.sink.config));
+      this.code = YAML.stringify(parsedCode);
+      // }
+      // else if (this.isJson(JSON.stringify(this.sink.config))) {
+      //   this.isYaml = false;
+      //   this.code = JSON.stringify(this.sink.config, null, 2);
+      // }
+
     }
+  }
+  isJson(str: string) {
+    try {
+        JSON.parse(str);
+        return true;
+    } catch {
+        return false;
+    }
+  }
+ngOnChanges(changes: SimpleChanges) {
+  const { editMode, sinkBackend } = changes;
+  if (editMode && !editMode.firstChange) {
+    this.toggleEdit(editMode.currentValue, false);
+  }
+  if (sinkBackend) {
+    const sinkConfigSchema = this.sinkBackend === SinkBackends.prometheus
+      ? this.sinkConfigSchemaPrometheus
+      : this.sinkConfigSchemaOtlp;
+      
+    this.code = this.isYaml
+      ? YAML.stringify(sinkConfigSchema, null)
+      : JSON.stringify(sinkConfigSchema, null, 2);
+    this.code = YAML.stringify(sinkConfigSchema, null);
+  }
+}
+
+updateForm() {
+  const configData = this.sink.config;
+  // const isYamlFormat = this.sink.format === 'yaml';
+
+  if (this.editMode) {
+    // this.isYaml = isYamlFormat;
+    // this.code = isYamlFormat ? YAML.stringify(configData) : JSON.stringify(this.sink.config, null, 2);
+    this.code = YAML.stringify(configData);
+  } else {
+    this.formControl = this.fb.control(null, [Validators.required]);
+    // this.isYaml = isYamlFormat;
+    // this.code = isYamlFormat ? YAML.stringify(configData) : JSON.stringify(this.sink.config, null, 2);
+    this.code = YAML.stringify(configData);
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes?.editMode && !changes?.editMode.firstChange) {
-      this.toggleEdit(changes.editMode.currentValue, false);
-    }
-    if (changes?.sinkBackend) {
-      if (this.sinkBackend === SinkBackends.prometheus) {
-        this.code = JSON.stringify(this.sinkConfigSchemaPrometheus, null, 2);
-      }
-      else {
-        this.code = JSON.stringify(this.sinkConfigSchemaOtlp, null, 2);
-      }
-    }
-  }
-
-  updateForm() {
-    const { config } = this.sink;
-    if (this.editMode) {
-      this.code = JSON.stringify(config, null, 2);
-      this.formControl = this.fb.control(this.code, [Validators.required]);
-    } else {
-      this.formControl = this.fb.control(null, [Validators.required]);
-      this.code = JSON.stringify(config, null, 2);
-    }
-  }
+  this.formControl = this.fb.control(this.code, [Validators.required]);
+}
 
   toggleEdit(edit, notify = true) {
     this.editMode = edit;
+    if ((this.editMode || this.detailsEditMode) && !this.createMode) {
+      this.orb.pausePolling();
+    }
+    else {
+      this.orb.startPolling();
+    }
     this.editorOptions = { ...this.editorOptions, readOnly: !edit };
+    this.editorOptionsYaml = { ...this.editorOptionsYaml, readOnly: !edit };
     this.updateForm();
     !!notify && this.editModeChange.emit(this.editMode);
   }
-
+  toggleLanguage() {
+    this.isYaml = !this.isYaml;
+    if (this.isYaml) {
+      const parsedCode = YAML.parse(this.code);
+      this.code = YAML.stringify(parsedCode);
+    }
+    else {
+      const parsedConfig = YAML.parse(this.code);
+      this.code = JSON.stringify(parsedConfig, null, 2);
+    }
+  }
+  
 }

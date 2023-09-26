@@ -3,10 +3,11 @@ import { MatSelectChange } from '@angular/material/select';
 import {
   FilterOption,
   FilterTypes,
+  filterString,
 } from 'app/common/interfaces/orb/filter-option';
 import { FilterService } from 'app/common/services/filter.service';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, tap } from 'rxjs/operators';
 
 @Component({
   selector: 'ngx-filter',
@@ -27,12 +28,36 @@ export class FilterComponent {
 
   exact: boolean;
 
+  searchText: string;
+
+  lastSearchText: string;
+
   constructor(private filter: FilterService) {
     this.exact = false;
     this.availableFilters = [];
     this.activeFilters$ = filter.getFilters().pipe(map((filters) => filters));
+    this.searchText = '';
   }
-
+  
+  ngOnInit() {
+    this.availableFilters = this.availableFilters.filter(filter => filter.name !== 'Name');
+  }
+  onSearchTextChange() {
+    if (this.lastSearchText !== '') {
+      this.filter.removeFilterByParam(this.lastSearchText);
+    }
+    if (this.searchText !== '') {
+      const filterOptions: FilterOption = {
+        name: 'Name',
+        prop: 'name',
+        param: this.searchText,
+        type: FilterTypes.Input,
+        filter: filterString,
+      }
+      this.filter.addFilter(filterOptions);
+    }
+    this.lastSearchText = this.searchText;
+  }
   addFilter(): void {
     if (!this.selectedFilter) return;
 

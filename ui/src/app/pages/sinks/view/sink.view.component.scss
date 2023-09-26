@@ -2,7 +2,6 @@ button {
   margin: 0 3px;
 
   &.policy-duplicate {
-    float: right;
     color: #fff !important;
     font-family: "Montserrat", sans-serif;
     font-weight: 700;
@@ -18,10 +17,9 @@ button {
   }
 
   &.policy-save {
-    float: right;
     color: #fff !important;
     font-family: "Montserrat", sans-serif;
-    font-weight: 500;
+    font-weight: 700;
     text-transform: none !important;
 
     &.btn-disabled {
@@ -34,10 +32,9 @@ button {
   }
 
   &.policy-discard {
-    float: right;
     color: #fff !important;
     font-family: "Montserrat", sans-serif;
-    font-weight: 500;
+    font-weight: 700;
     text-transform: none !important;
 
     &.btn-disabled {
@@ -50,27 +47,20 @@ button {
   }
 }
 
-ngx-sink-details {
-  flex: 0 1 22rem;
-}
-
-ngx-sink-config {
-  flex: 2 1 auto;
-  min-height: 30rem !important;
-
-   nb-card {
-    height: 30rem !important;
-  }
-}
-
-.row {
-  gap: 10px;
-}
-
 header {
+  display: flex;
   justify-content: space-between;
+  align-items: center;
 }
 
+.left-content {
+  flex: 1;
+}
+
+.right-content {
+  display: flex;
+  align-items: center;
+}
 h4 {
   font-family: 'Montserrat', sans-serif;
   font-size: 1.5rem;
@@ -79,3 +69,57 @@ h4 {
   line-height: 2rem;
   margin-bottom: 1.5rem;
 }
+::ng-deep {
+  .orb-breadcrumb {
+    display: flex;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 12px;
+
+    ::ng-deep {
+      .xng-breadcrumb-trail {
+        color: #fff !important;
+        margin-bottom: 0 !important;
+      }
+
+      .xng-breadcrumb-link {
+        color: #969fb9 !important;
+        text-decoration: none !important;
+      }
+
+      .xng-breadcrumb-separator {
+        color: #969fb9 !important;
+        text-decoration: none !important;
+      }
+    }
+  }
+}
+.fa.fa-circle {
+  font-size: 11px;
+}
+.state {
+  font-size: 16px;
+  font-weight: 700;
+}
+.orb-service- {
+  &active {
+    color: #6fcf97;
+  }
+  &unknown {
+    color: #9b51e0;
+  }
+  &error {
+    color: #df316f;
+  }
+  &idle {
+    color: #f2994a; 
+  }
+}
+
+.last-update {
+  color: #969fb9;
+  font-size: 14px;
+}
+

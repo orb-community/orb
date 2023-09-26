@@ -4,18 +4,24 @@
     </xng-breadcrumb>
     <div><h4>Agent View</h4></div>
   </div>
-  <div class="right-content" style="margin-right: 10px;">
-    <button nbButton ghost [className]="'refresh-button'" shape="round" (click)="refreshAgent()">
-      <i class="fa fa-redo" [ngClass]="isLoading == true ? 'rotate' : 'paused'" style="color: #3089fc;"></i>
-    </button>
-
-    <span class="last-update" *ngIf="lastUpdate !== null">
-      Last Update: {{ lastUpdate | date: 'HH:mm:ss a' }}
-    </span>
+  <div class="right-content" style="margin-right: 15px;">
+    <ngx-poll-control></ngx-poll-control>
   </div>
-  <div *ngIf="!isLoading">
-    <span class="right-content last-update">
-      <span class="agent-{{ agent?.state }}">{{ agent?.state | ngxCapitalize }}. &nbsp;</span>
+  <div *ngIf="!isLoading" style="margin: 0 20px 0 10px;">
+    <button (click)="openDeleteModal()" class="card-button delete-button" data-orb-qa-id="button#reset" nbButton shape="round" style="color: #df316f !important;">
+      <nb-icon icon="trash-2-outline"></nb-icon>
+      Delete Agent
+    </button>
+  </div>
+  <div *ngIf="!isLoading" style="margin-bottom: 23px;">
+    <div style="float: right;">
+      <span class="orb-service-{{ agent?.state }} state">
+        <i aria-hidden="true" *ngIf="agent?.state !== agentStates.offline" class="fa fa-circle orb-service-{{ agent?.state }}"></i>
+        <i aria-hidden="true" *ngIf="agent?.state === agentStates.offline" class="fa offline-circle"></i>
+        {{ agent?.state | ngxCapitalize }}
+      </span>
+    </div>
+    <div style="font-size: 14px; font-weight: 400; margin-top: 23px;">
       <span *ngIf="agent?.state !== agentStates.new">
         Last activity
         <span *ngIf="isToday()">
@@ -28,18 +34,21 @@
       <span *ngIf="agent?.state === agentStates.new">
         This Agent has been provisioned but never connected.
       </span>
-    </span>
+    </div>
   </div>
-  
 </header>
 
+<div *ngIf="isLoading">
+  <div class="loading-spinner"></div>
+</div>
+
 <div *ngIf="!isLoading" class="row">
-  <div class="card-col col-5">
+  <div class="card-col col-5" style="padding-right: 10px !important;">
     <ngx-agent-information [agent]="agent"></ngx-agent-information>
     <ngx-agent-backends [agent]="agent"></ngx-agent-backends>
   </div>
 
-  <div class="card-col col-7">
+  <div class="card-col col-7" style="padding-left: 10px !important;">
     <ngx-agent-policies-datasets
       [agent]="agent"
       [datasets]="datasets"

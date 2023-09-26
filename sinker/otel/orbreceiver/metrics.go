@@ -114,7 +114,6 @@ func (r *OrbReceiver) ProccessMetricsContext(scope pmetric.ScopeMetrics, channel
 		err := r.cfg.SinkerService.NotifyActiveSink(r.ctx, agentPb.OwnerID, sinkId, "active", "")
 		if err != nil {
 			r.cfg.Logger.Error("error notifying metrics sink active, changing state, skipping sink", zap.String("sink-id", sinkId), zap.Error(err))
-			continue
 		}
 		attributeCtx = context.WithValue(attributeCtx, "sink_id", sinkId)
 		mr := pmetric.NewMetrics()

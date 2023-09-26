@@ -1,4 +1,5 @@
 nb-card {
+  margin: 10px 10px !important;
   nb-card-header {
     text-align: center;
     background: #232940;
@@ -95,16 +96,16 @@ h6 {
       line-height: 24px !important;
 
       & > a {
-        white-space: nowrap;
-        padding: 0 0.3rem;
-        background-color: #3089fc;
+        white-space: nowrap !important;
+        padding: 0 0.3rem !important;
+        background-color: #3089fc !important;
         font-weight: 700 !important;
         text-decoration: none !important;
-        text-underline: none;
+        text-underline: none !important;
         color: #ffffff !important;
         border-radius: 10px;
-        link: #ffffff;
-        fill: #3089fc;
+        link: #ffffff !important;
+        fill: #3089fc !important;
       }
     }
   }

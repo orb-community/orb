@@ -23,13 +23,14 @@
         class="delete-selected"
         nbButton
         shape="round">
+        <nb-icon icon="trash-2-outline"></nb-icon>
         Delete
       </button>
     </div>
     <div class="add-agent-container">
       <button
         (click)="onOpenAdd()"
-        class="card-button"
+        class="add-button"
         shape="round"
         nbButton
         status="primary"
@@ -63,9 +64,15 @@
   let-row="row"
   let-value="value"
 >
-  <span nbTooltip="{{ value }}">
-    {{ value }}
-  </span>
+  <button
+  (click)="openDetailsModal(row)"
+  class="view-group-button"
+  nbTooltip="{{ value }}"
+  *ngIf="value"
+  >
+  {{ value }}
+  </button>
+  <span *ngIf="!value" style="font-style: italic; color: #969FB9;">No description was provided</span>
 </ng-template>
 
 <ng-template #agentGroupTemplateCell let-row="row">
@@ -87,17 +94,20 @@
   <mat-chip-list nbTooltip="{{ value | json }}">
     <mat-chip
       *ngFor="let tag of value | keyvalue"
-      [style.background-color]="tag | tagcolor"
+      style="background-color: #2B3148;"
       class="orb-tag-chip"
     >
-      {{ tag | tagchip }}
+      <span [style.color]="tag.key | tagcolor">{{ tag.key }}</span><span style="color: #969FB9;">:</span>&nbsp;
+      <span [style.color]="tag.value | tagcolor">{{ tag.value }}</span>
     </mat-chip>
     <mat-chip
-      *ngIf="(row?.tags | json) === '{}'"
-      [style.background-color]="'notag' | tagcolor"
+      *ngIf="
+        (row?.tags | json) === '{}'
+      "
+      style="background-color: #2B3148;"
       class="orb-tag-chip"
     >
-      No tags were created
+      <span style="color: #df316f;">No tag were created</span>
     </mat-chip>
   </mat-chip-list>
 </ng-template>

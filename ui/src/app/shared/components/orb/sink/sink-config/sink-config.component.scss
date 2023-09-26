@@ -4,12 +4,49 @@ ngx-monaco-editor {
 .summary-accent {
     color: #969fb9 !important;
 }
+
+.switch-button {
+    color: #3089fc;
+    background-color: transparent;
+    border: none;
+    font-weight: 600;
+    outline: none;
+    margin-right: 20px;
+    margin-top: 7px;
+    display: inline-block;
+}
+.switch-button:hover {
+    color: #75a5e2;
+}
+.flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.align-items {
+    margin-left: auto;
+}
 nb-card {
-    width: 50vw;
-    min-width: 340px;
-}
-@media (max-width: 1500px) {
-    nb-card {
-      width: 35vw; 
+    margin: 15px 0 !important;
+    padding: 0 !important;
+    border: transparent;
+    border-radius: 0.5rem;
+  
+    nb-card-header {
+      background-color: #232940;
+      border-bottom: transparent;
+      border-radius: 0.5rem;
+      color: #969fb9;
+      padding: 0.5rem 1rem;
     }
-}
+  
+    nb-card-body {
+      label {
+        color: #969fb9;
+      }
+  
+      span {
+        text-align: end;
+      }
+    }
+  }

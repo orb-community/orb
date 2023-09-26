@@ -192,7 +192,6 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
   }
 
   ngAfterViewInit() {
-    this.orb.refreshNow();
     this.columns = [
       {
         name: '',
@@ -331,13 +330,6 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
     });
   }
 
-  onOpenEdit(agent: any) {
-    this.router.navigate([`edit/${agent.id}`], {
-      state: { agent: agent, edit: true },
-      relativeTo: this.route,
-    });
-  }
-
   openDeleteModal(row: any) {
     const { name, id } = row;
     this.dialogService
@@ -381,10 +373,10 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
   }
 
   onOpenResetAgents() {
-    const size = this.selected.length;
+    const selected = this.selected;
     this.dialogService
       .open(AgentResetComponent, {
-        context: { size },
+        context: { selected },
         autoFocus: true,
         closeOnEsc: true,
       })
@@ -431,19 +423,6 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
     this.canResetAgents = reset.length > 0 ? true : false;
   }
 
-  openDetailsModal(row: any) {
-    this.dialogService
-      .open(AgentDetailsComponent, {
-        context: { agent: row },
-        autoFocus: true,
-        closeOnEsc: true,
-      })
-      .onClose.subscribe((resp) => {
-        if (resp) {
-          this.onOpenEdit(row);
-        }
-      });
-  }
 
   filterByError = (agent) => !!agent && agent?.error_state && agent.error_state;
 
