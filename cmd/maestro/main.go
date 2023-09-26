@@ -118,7 +118,7 @@ func main() {
 	db := connectToDB(dbCfg, logger)
 	defer db.Close()
 
-	svc := maestro.NewMaestroService(logger, streamEsClient, sinkerEsClient, sinksGRPCClient, streamEsCfg, otelCfg, db)
+	svc := maestro.NewMaestroService(logger, streamEsClient, sinkerEsClient, sinksGRPCClient, otelCfg, db, svcCfg)
 	errs := make(chan error, 2)
 
 	mainContext, mainCancelFunction := context.WithCancel(context.Background())
