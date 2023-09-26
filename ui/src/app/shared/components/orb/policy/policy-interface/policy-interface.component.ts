@@ -8,11 +8,14 @@ import {
   Output,
   SimpleChanges,
   ViewChild,
+  Renderer2,
 } from '@angular/core';
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import IStandaloneEditorConstructionOptions = monaco.editor.IStandaloneEditorConstructionOptions;
 import { OrbService } from 'app/common/services/orb.service';
+import { EditorComponent } from 'ngx-monaco-editor';
+
 
 @Component({
   selector: 'ngx-policy-interface',
@@ -32,8 +35,8 @@ export class PolicyInterfaceComponent implements OnInit, AfterViewInit, OnChange
   @Input()
   detailsEditMode: boolean;
 
-  @ViewChild('editorComponent')
-  editor;
+  @ViewChild(EditorComponent, { static: true })
+  editorComponent: EditorComponent;
 
   editorOptions: IStandaloneEditorConstructionOptions = {
     theme: 'vs-dark',
@@ -63,6 +66,7 @@ export class PolicyInterfaceComponent implements OnInit, AfterViewInit, OnChange
   constructor(
     private fb: FormBuilder,
     private orb: OrbService,
+    private renderer: Renderer2,
   ) {
     this.policy = {};
     this.code = '';
@@ -72,6 +76,17 @@ export class PolicyInterfaceComponent implements OnInit, AfterViewInit, OnChange
     this.detailsEditMode = false;
   }
 
+  getCodeLineCount() {
+    const editorInstance = this.editorComponent['_editor'];
+    if (editorInstance) {
+      const model = editorInstance.getModel();
+      editorInstance.layout();
+      return model ? model.getLineCount() : 0;
+      
+    }
+    return 0;
+  }
+  
   ngOnInit(): void {
     this.code = this.policy.policy_data || JSON.stringify(this.policy.policy, null, 2);
   }

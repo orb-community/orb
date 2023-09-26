@@ -34,25 +34,39 @@
   <div class="loading-spinner"></div>
 </div>
 
-<div *ngIf="!isLoading" class="row" #content>
-  <div class="card-col col-4" style="padding-right: 10px !important;">
-    <ngx-policy-details
-      [(editMode)]="editMode.details"
-      [policy]="policy"
-      [interfaceEditMode]="editMode.interface"
-    ></ngx-policy-details>
-    <ngx-policy-groups [groups]="policy.groups" [policy]="policy"></ngx-policy-groups>
-  </div>
-  <div class="card-col col-8"  style="padding-left: 10px !important;">
-    <ngx-policy-interface
-      [(editMode)]="editMode.interface"
-      [policy]="policy"
-      [detailsEditMode]="editMode.details"
-    ></ngx-policy-interface>
-    <ngx-policy-datasets
-      (refreshPolicy)="retrievePolicy()"
-      [datasets]="datasets"
-      [policy]="policy"
-    ></ngx-policy-datasets>
-  </div>
+<div *ngIf="!isLoading" #content>
+  <nb-tabset>
+    <nb-tab tabTitle="Details & Configuration">
+      <div class="row">
+        <div class="col-4">
+          <ngx-policy-details
+            [(editMode)]="editMode.details"
+            [policy]="policy"
+            [interfaceEditMode]="editMode.interface"
+          ></ngx-policy-details>
+        </div>
+        <div class="col-8" style="padding-left: 0 !important;">
+          <ngx-policy-interface
+            [(editMode)]="editMode.interface"
+            [policy]="policy"
+            [detailsEditMode]="editMode.details"
+          ></ngx-policy-interface>
+        </div>
+      </div>
+    </nb-tab>
+    <nb-tab tabTitle="Datasets">
+      <div class="row">
+        <div class="col-8">
+          <ngx-policy-datasets
+            (refreshPolicy)="retrievePolicy()"
+            [datasets]="datasets"
+            [policy]="policy"
+          ></ngx-policy-datasets>
+        </div>
+        <div class="col-4" style="padding-left: 0 !important;">
+          <ngx-policy-groups [groups]="policy.groups" [policy]="policy"></ngx-policy-groups>
+        </div>
+      </div>
+    </nb-tab>
+  </nb-tabset>
 </div>
