@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq" // required for SQL access
 	"github.com/orb-community/orb/pkg/errors"
 	"go.uber.org/zap"
 	"time"
