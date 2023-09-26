@@ -121,7 +121,8 @@ func (d *deploymentService) UpdateDeployment(ctx context.Context, deployment *De
 		return errors.New("could not find deployment to update")
 	}
 	// Spin down the collector if it is running
-	err = d.kubecontrol.KillOtelCollector(ctx, got.OwnerID, got.SinkID)
+	deploymentName := "otel-" + got.SinkID
+	err = d.kubecontrol.KillOtelCollector(ctx, deploymentName, got.SinkID)
 	if err != nil {
 		d.logger.Warn("could not stop running collector, will try to update anyway", zap.Error(err))
 	}
