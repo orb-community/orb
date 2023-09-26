@@ -3,6 +3,7 @@ package postgres
 import (
 	"fmt"
 	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq" // required for SQL access
 	"github.com/orb-community/orb/pkg/config"
 	migrate "github.com/rubenv/sql-migrate"
 )
