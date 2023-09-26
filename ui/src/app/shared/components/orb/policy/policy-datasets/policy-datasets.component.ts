@@ -100,8 +100,8 @@ export class PolicyDatasetsComponent
         prop: 'agent_group',
         name: 'Agent Group',
         resizeable: true,
-        canAutoResize: true, // Allow auto-resizing
-        flexGrow: 3, // Set flexGrow for auto-adjustment
+        canAutoResize: true,
+        flexGrow: 3,
         cellTemplate: this.groupTemplateCell,
       },
       {

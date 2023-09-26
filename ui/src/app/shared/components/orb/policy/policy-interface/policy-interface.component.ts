@@ -8,7 +8,6 @@ import {
   Output,
   SimpleChanges,
   ViewChild,
-  Renderer2,
 } from '@angular/core';
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 import { FormBuilder, FormControl, Validators } from '@angular/forms';
@@ -66,7 +65,6 @@ export class PolicyInterfaceComponent implements OnInit, AfterViewInit, OnChange
   constructor(
     private fb: FormBuilder,
     private orb: OrbService,
-    private renderer: Renderer2,
   ) {
     this.policy = {};
     this.code = '';
