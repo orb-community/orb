@@ -20,15 +20,14 @@
   </nb-card-header>
   <nb-card-body>
     <!--    <div *ngIf="editMode; then updateView else readView"></div>-->
-    <div class="code-editor-wrapper">
-      <ngx-monaco-editor
-          #editorComponent
-          [(ngModel)]="code"
-          [options]="editorOptions"
-          class="code-editor"
-          ngDefaultControl>
-      </ngx-monaco-editor>
-    </div>
+    <ngx-monaco-editor
+      [style.height.px]="getCodeLineCount() * 21.6"
+      #editorComponent
+      [(ngModel)]="code"
+      [options]="editorOptions"
+      class="code-editor"
+      ngDefaultControl>
+    </ngx-monaco-editor>
   </nb-card-body>
 </nb-card>
 

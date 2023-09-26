@@ -101,7 +101,7 @@ export class PolicyDatasetsComponent
         name: 'Agent Group',
         resizeable: true,
         canAutoResize: true,
-        width: 250,
+        flexGrow: 3,
         cellTemplate: this.groupTemplateCell,
       },
       {
@@ -109,8 +109,7 @@ export class PolicyDatasetsComponent
         name: 'Valid',
         resizeable: true,
         canAutoResize: true,
-        minWidth: 80,        
-        width: 80,
+        flexGrow: 1,
         cellTemplate: this.validTemplateCell,
       },
       {
@@ -118,7 +117,7 @@ export class PolicyDatasetsComponent
         name: 'Sinks',
         resizeable: true,
         canAutoResize: true,
-        width: 450,
+        flexGrow: 3,
         cellTemplate: this.sinksTemplateCell,
       },
       {
@@ -126,7 +125,8 @@ export class PolicyDatasetsComponent
         prop: 'actions',
         resizeable: true,
         sortable: false,
-        width: 200,
+        canAutoResize: true,
+        flexGrow: 3,
         cellTemplate: this.actionsTemplateCell,
       },
     ];
