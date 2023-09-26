@@ -116,12 +116,12 @@ func (d *deploymentService) GetDeployment(ctx context.Context, ownerID string, s
 // it will wait for the next sink.activity
 func (d *deploymentService) UpdateDeployment(ctx context.Context, deployment *Deployment) error {
 	now := time.Now()
-	got, err := d.dbRepository.FindByOwnerAndSink(ctx, deployment.OwnerID, deployment.SinkID)
+	got, deployName, err := d.GetDeployment(ctx, deployment.OwnerID, deployment.SinkID)
 	if err != nil {
 		return errors.New("could not find deployment to update")
 	}
 	// Spin down the collector if it is running
-	err = d.kubecontrol.KillOtelCollector(ctx, got.CollectorName, got.SinkID)
+	err = d.kubecontrol.KillOtelCollector(ctx, deployName, got.SinkID)
 	if err != nil {
 		d.logger.Warn("could not stop running collector, will try to update anyway", zap.Error(err))
 	}
@@ -144,14 +144,14 @@ func (d *deploymentService) UpdateDeployment(ctx context.Context, deployment *De
 }
 
 func (d *deploymentService) NotifyCollector(ctx context.Context, ownerID string, sinkId string, operation string, status string, errorMessage string) (string, error) {
-	got, err := d.dbRepository.FindByOwnerAndSink(ctx, ownerID, sinkId)
+	got, deployName, err := d.GetDeployment(ctx, ownerID, sinkId)
 	if err != nil {
 		return "", errors.New("could not find deployment to update")
 	}
 	now := time.Now()
 	if operation == "delete" {
 		got.LastCollectorStopTime = &now
-		err = d.kubecontrol.KillOtelCollector(ctx, got.OwnerID, got.SinkID)
+		err = d.kubecontrol.KillOtelCollector(ctx, deployName, got.SinkID)
 		if err != nil {
 			d.logger.Warn("could not stop running collector, will try to update anyway", zap.Error(err))
 		}
@@ -201,7 +201,7 @@ func (d *deploymentService) NotifyCollector(ctx context.Context, ownerID string,
 
 // UpdateStatus this will change the status in postgres and notify sinks service to show new status to user
 func (d *deploymentService) UpdateStatus(ctx context.Context, ownerID string, sinkId string, status string, errorMessage string) error {
-	got, err := d.dbRepository.FindByOwnerAndSink(ctx, ownerID, sinkId)
+	got, _, err := d.GetDeployment(ctx, ownerID, sinkId)
 	if err != nil {
 		return errors.New("could not find deployment to update")
 	}
