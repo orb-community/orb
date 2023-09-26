@@ -46,11 +46,10 @@ type InMemoryCacheConfig struct {
 }
 
 type EsConfig struct {
-	URL           string `mapstructure:"url"`
-	Pass          string `mapstructure:"pass"`
-	DB            string `mapstructure:"db"`
-	Consumer      string `mapstructure:"consumer"`
-	EncryptionKey string `mapstructure:"encryption_key"`
+	URL      string `mapstructure:"url"`
+	Pass     string `mapstructure:"pass"`
+	DB       string `mapstructure:"db"`
+	Consumer string `mapstructure:"consumer"`
 }
 
 type JaegerConfig struct {
@@ -66,6 +65,7 @@ type BaseSvcConfig struct {
 	HttpPort       string `mapstructure:"http_port"`
 	HttpServerCert string `mapstructure:"server_cert"`
 	HttpServerKey  string `mapstructure:"server_key"`
+	EncryptionKey  string `mapstructure:"encryption_key"`
 }
 
 type PostgresConfig struct {

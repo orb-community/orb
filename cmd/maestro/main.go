@@ -51,6 +51,8 @@ func main() {
 	jCfg := config.LoadJaegerConfig(envPrefix)
 	sinksGRPCCfg := config.LoadGRPCConfig("orb", "sinks")
 	dbCfg := config.LoadPostgresConfig(envPrefix, svcName)
+	encryptionKey := config.LoadEncryptionKey(envPrefix)
+	svcCfg.EncryptionKey = encryptionKey.Key
 
 	// logger
 	var logger *zap.Logger
