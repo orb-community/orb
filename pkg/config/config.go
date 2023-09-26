@@ -65,6 +65,7 @@ type BaseSvcConfig struct {
 	HttpPort       string `mapstructure:"http_port"`
 	HttpServerCert string `mapstructure:"server_cert"`
 	HttpServerKey  string `mapstructure:"server_key"`
+	EncryptionKey  string `mapstructure:"encryption_key"`
 }
 
 type PostgresConfig struct {

@@ -193,7 +193,7 @@ func newSinkService(auth mainflux.AuthServiceClient, logger *zap.Logger, esClien
 	mfsdk := mfsdk.NewSDK(config)
 
 	svc := sinks.NewSinkService(logger, auth, repoSink, mfsdk, passwordService)
-	svc = redisprod.NewEventStoreMiddleware(svc, esClient)
+	svc = redisprod.NewSinkStreamProducerMiddleware(svc, esClient)
 	svc = sinkshttp.NewLoggingMiddleware(svc, logger)
 	svc = sinkshttp.MetricsMiddleware(
 		auth,

@@ -52,6 +52,8 @@ const (
 	Error
 	Idle
 	Warning
+	Provisioning
+	ProvisioningError
 )
 
 type State int
@@ -62,6 +64,8 @@ var stateMap = [...]string{
 	"error",
 	"idle",
 	"warning",
+	"provisioning",
+	"provisioning_error",
 }
 
 const MetadataLabelOtel = "opentelemetry"
@@ -72,11 +76,13 @@ type Filter struct {
 }
 
 var stateRevMap = map[string]State{
-	"unknown": Unknown,
-	"active":  Active,
-	"error":   Error,
-	"idle":    Idle,
-	"warning": Warning,
+	"unknown":            Unknown,
+	"active":             Active,
+	"error":              Error,
+	"idle":               Idle,
+	"warning":            Warning,
+	"provisioning":       Provisioning,
+	"provisioning_error": ProvisioningError,
 }
 
 func (s State) String() string {
@@ -96,6 +102,10 @@ func (s *State) Scan(value interface{}) error {
 	return nil
 }
 func (s State) Value() (driver.Value, error) { return s.String(), nil }
+
+func NewStateFromString(state string) State {
+	return stateRevMap[state]
+}
 
 func NewConfigBackends(e backend.Backend, a authentication_type.AuthenticationType) Configuration {
 	return Configuration{

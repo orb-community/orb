@@ -2,9 +2,8 @@ package bridgeservice
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"github.com/orb-community/orb/pkg/types"
+	"github.com/orb-community/orb/sinker/redis/producer"
 	sinkspb "github.com/orb-community/orb/sinks/pb"
 	"sort"
 	"time"
@@ -12,7 +11,6 @@ import (
 	"github.com/go-kit/kit/metrics"
 	fleetpb "github.com/orb-community/orb/fleet/pb"
 	policiespb "github.com/orb-community/orb/policies/pb"
-	"github.com/orb-community/orb/sinker/config"
 	"github.com/patrickmn/go-cache"
 	"go.uber.org/zap"
 )
@@ -28,7 +26,7 @@ type BridgeService interface {
 
 func NewBridgeService(logger *zap.Logger,
 	defaultCacheExpiration time.Duration,
-	sinkerCache config.ConfigRepo,
+	sinkActivity producer.SinkActivityProducer,
 	policiesClient policiespb.PolicyServiceClient,
 	sinksClient sinkspb.SinkServiceClient,
 	fleetClient fleetpb.FleetServiceClient, messageInputCounter metrics.Counter) SinkerOtelBridgeService {
@@ -36,7 +34,7 @@ func NewBridgeService(logger *zap.Logger,
 		defaultCacheExpiration: defaultCacheExpiration,
 		inMemoryCache:          *cache.New(defaultCacheExpiration, defaultCacheExpiration*2),
 		logger:                 logger,
-		sinkerCache:            sinkerCache,
+		sinkerActivitySvc:      sinkActivity,
 		policiesClient:         policiesClient,
 		fleetClient:            fleetClient,
 		sinksClient:            sinksClient,
@@ -48,14 +46,14 @@ type SinkerOtelBridgeService struct {
 	inMemoryCache          cache.Cache
 	defaultCacheExpiration time.Duration
 	logger                 *zap.Logger
-	sinkerCache            config.ConfigRepo
+	sinkerActivitySvc      producer.SinkActivityProducer
 	policiesClient         policiespb.PolicyServiceClient
 	fleetClient            fleetpb.FleetServiceClient
 	sinksClient            sinkspb.SinkServiceClient
 	messageInputCounter    metrics.Counter
 }
 
-// Implementar nova funcao
+// IncrementMessageCounter add to our metrics the number of messages received
 func (bs *SinkerOtelBridgeService) IncrementMessageCounter(publisher, subtopic, channel, protocol string) {
 	labels := []string{
 		"method", "handleMsgFromAgent",
@@ -67,71 +65,20 @@ func (bs *SinkerOtelBridgeService) IncrementMessageCounter(publisher, subtopic, 
 	bs.messageInputCounter.With(labels...).Add(1)
 }
 
-func (bs *SinkerOtelBridgeService) NotifyActiveSink(ctx context.Context, mfOwnerId, sinkId, newState, message string) error {
-	cfgRepo, err := bs.sinkerCache.Get(mfOwnerId, sinkId)
-	if err != nil {
-		bs.logger.Error("unable to retrieve the sink config", zap.Error(err))
-		sinkData, _ := bs.sinksClient.RetrieveSink(ctx, &sinkspb.SinkByIDReq{
-			SinkID:  sinkId,
-			OwnerID: mfOwnerId,
-		})
-		var metadata types.Metadata
-		_ = json.Unmarshal(sinkData.Config, &metadata)
-		cfgRepo = config.SinkConfig{
-			SinkID:  sinkId,
-			OwnerID: mfOwnerId,
-			Config:  metadata,
-			State:   config.Active,
-			Msg:     "",
-		}
-		err = bs.sinkerCache.DeployCollector(ctx, cfgRepo)
-		if err != nil {
-			bs.logger.Error("error during update sink cache", zap.String("sinkId", sinkId), zap.Error(err))
-			return err
-		}
+// NotifyActiveSink notify the sinker that a sink is active
+func (bs *SinkerOtelBridgeService) NotifyActiveSink(ctx context.Context, mfOwnerId, sinkId, size string) error {
+	event := producer.SinkActivityEvent{
+		OwnerID:   mfOwnerId,
+		SinkID:    sinkId,
+		State:     "active",
+		Size:      size,
+		Timestamp: time.Now(),
 	}
-
-	// only updates sink state if status Idle or Unknown
-	if cfgRepo.State == config.Idle || cfgRepo.State == config.Unknown {
-		cfgRepo.LastRemoteWrite = time.Now()
-		// only deploy collector if new state is "active" and current state "not active"
-		if newState == "active" && cfgRepo.State != config.Active {
-			err = cfgRepo.State.SetFromString(newState)
-			if err != nil {
-				bs.logger.Error("unable to set state", zap.String("new_state", newState), zap.Error(err))
-				return err
-			}
-			err = bs.sinkerCache.AddActivity(mfOwnerId, sinkId)
-			if err != nil {
-				bs.logger.Error("error during update last remote write", zap.String("sinkId", sinkId), zap.Error(err))
-				return err
-			}
-			err = bs.sinkerCache.DeployCollector(ctx, cfgRepo)
-			if err != nil {
-				bs.logger.Error("error during update sink cache", zap.String("sinkId", sinkId), zap.Error(err))
-				return err
-			}
-			bs.logger.Info("waking up sink to active", zap.String("sinkID", sinkId), zap.String("newState", newState), zap.Any("currentState", cfgRepo.State))
-		} else {
-			err = bs.sinkerCache.AddActivity(mfOwnerId, sinkId)
-			if err != nil {
-				bs.logger.Error("error during update last remote write", zap.String("sinkId", sinkId), zap.Error(err))
-				return err
-			}
-			bs.logger.Info("registering sink activity", zap.String("sinkID", sinkId), zap.String("newState", newState), zap.Any("currentState", cfgRepo.State))
-		}
-	} else {
-		err = bs.sinkerCache.AddActivity(mfOwnerId, sinkId)
-		if err != nil {
-			bs.logger.Error("error during update last remote write", zap.String("sinkId", sinkId), zap.Error(err))
-			return err
-		}
-		bs.logger.Info("registering sink activity", zap.String("sinkID", sinkId), zap.String("newState", newState), zap.Any("currentState", cfgRepo.State))
-	}
-
+	_ = bs.sinkerActivitySvc.PublishSinkActivity(ctx, event)
 	return nil
 }
 
+// ExtractAgent retrieve agent info from fleet, or cache
 func (bs *SinkerOtelBridgeService) ExtractAgent(ctx context.Context, channelID string) (*fleetpb.AgentInfoRes, error) {
 	cacheKey := fmt.Sprintf("agent-%s", channelID)
 	value, found := bs.inMemoryCache.Get(cacheKey)
@@ -146,6 +93,7 @@ func (bs *SinkerOtelBridgeService) ExtractAgent(ctx context.Context, channelID s
 	return value.(*fleetpb.AgentInfoRes), nil
 }
 
+// GetPolicyName retrieve policy info from policies service, or cache.
 func (bs *SinkerOtelBridgeService) GetPolicyName(ctx context.Context, policyId, ownerID string) (*policiespb.PolicyRes, error) {
 	cacheKey := fmt.Sprintf("policy-%s", policyId)
 	value, found := bs.inMemoryCache.Get(cacheKey)
@@ -160,6 +108,7 @@ func (bs *SinkerOtelBridgeService) GetPolicyName(ctx context.Context, policyId, 
 	return value.(*policiespb.PolicyRes), nil
 }
 
+// GetSinkIdsFromDatasetIDs retrieve sink_ids from datasets from policies service, or cache
 func (bs *SinkerOtelBridgeService) GetSinkIdsFromDatasetIDs(ctx context.Context, mfOwnerId string, datasetIDs []string) (map[string]string, error) {
 	// Here needs to retrieve datasets
 	mapSinkIdPolicy := make(map[string]string)

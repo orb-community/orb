@@ -10,15 +10,14 @@ package maestro
 
 import (
 	"context"
-	"encoding/json"
-	"github.com/orb-community/orb/maestro/monitor"
-	"github.com/orb-community/orb/pkg/types"
-	"strings"
-
 	"github.com/go-redis/redis/v8"
-	maestroconfig "github.com/orb-community/orb/maestro/config"
+	"github.com/jmoiron/sqlx"
+	"github.com/orb-community/orb/maestro/deployment"
 	"github.com/orb-community/orb/maestro/kubecontrol"
+	"github.com/orb-community/orb/maestro/monitor"
 	rediscons1 "github.com/orb-community/orb/maestro/redis/consumer"
+	"github.com/orb-community/orb/maestro/redis/producer"
+	"github.com/orb-community/orb/maestro/service"
 	"github.com/orb-community/orb/pkg/config"
 	sinkspb "github.com/orb-community/orb/sinks/pb"
 	"go.uber.org/zap"
@@ -30,30 +29,42 @@ type maestroService struct {
 	serviceContext    context.Context
 	serviceCancelFunc context.CancelFunc
 
+	deploymentService   deployment.Service
+	sinkListenerService rediscons1.SinksListener
+	activityListener    rediscons1.SinkerActivityListener
+
 	kubecontrol       kubecontrol.Service
 	monitor           monitor.Service
 	logger            *zap.Logger
 	streamRedisClient *redis.Client
 	sinkerRedisClient *redis.Client
 	sinksClient       sinkspb.SinkServiceClient
+	eventService      service.EventService
 	esCfg             config.EsConfig
-	eventStore        rediscons1.Subscriber
 	kafkaUrl          string
 }
 
-func NewMaestroService(logger *zap.Logger, streamRedisClient *redis.Client, sinkerRedisClient *redis.Client, sinksGrpcClient sinkspb.SinkServiceClient, esCfg config.EsConfig, otelCfg config.OtelConfig) Service {
+func NewMaestroService(logger *zap.Logger, streamRedisClient *redis.Client, sinkerRedisClient *redis.Client,
+	sinksGrpcClient sinkspb.SinkServiceClient, otelCfg config.OtelConfig, db *sqlx.DB, svcCfg config.BaseSvcConfig) Service {
 	kubectr := kubecontrol.NewService(logger)
-	eventStore := rediscons1.NewEventStore(streamRedisClient, sinkerRedisClient, otelCfg.KafkaUrl, kubectr, esCfg.Consumer, sinksGrpcClient, logger)
-	monitorService := monitor.NewMonitorService(logger, &sinksGrpcClient, eventStore, &kubectr)
+	repo := deployment.NewRepositoryService(db, logger)
+	deploymentService := deployment.NewDeploymentService(logger, repo, otelCfg.KafkaUrl, svcCfg.EncryptionKey)
+	ps := producer.NewMaestroProducer(logger, streamRedisClient)
+	monitorService := monitor.NewMonitorService(logger, &sinksGrpcClient, ps, &kubectr)
+	eventService := service.NewEventService(logger, deploymentService, kubectr)
+	sinkListenerService := rediscons1.NewSinksListenerController(logger, eventService, sinkerRedisClient, sinksGrpcClient)
+	activityListener := rediscons1.NewSinkerActivityListener(logger, eventService, sinkerRedisClient)
 	return &maestroService{
-		logger:            logger,
-		streamRedisClient: streamRedisClient,
-		sinkerRedisClient: sinkerRedisClient,
-		sinksClient:       sinksGrpcClient,
-		kubecontrol:       kubectr,
-		monitor:           monitorService,
-		eventStore:        eventStore,
-		kafkaUrl:          otelCfg.KafkaUrl,
+		logger:              logger,
+		deploymentService:   deploymentService,
+		streamRedisClient:   streamRedisClient,
+		sinkerRedisClient:   sinkerRedisClient,
+		sinksClient:         sinksGrpcClient,
+		sinkListenerService: sinkListenerService,
+		activityListener:    activityListener,
+		kubecontrol:         kubectr,
+		monitor:             monitorService,
+		kafkaUrl:            otelCfg.KafkaUrl,
 	}
 }
 
@@ -63,91 +74,31 @@ func NewMaestroService(logger *zap.Logger, streamRedisClient *redis.Client, sink
 //	And for each sink with active state, deploy OtelCollector
 func (svc *maestroService) Start(ctx context.Context, cancelFunction context.CancelFunc) error {
 
-	loadCtx, loadCancelFunction := context.WithCancel(ctx)
-	defer loadCancelFunction()
 	svc.serviceContext = ctx
 	svc.serviceCancelFunc = cancelFunction
-
-	sinksRes, err := svc.sinksClient.RetrieveSinks(loadCtx, &sinkspb.SinksFilterReq{OtelEnabled: "enabled"})
-	if err != nil {
-		loadCancelFunction()
-		return err
-	}
-
-	pods, err := svc.monitor.GetRunningPods(ctx)
-	if err != nil {
-		loadCancelFunction()
-		return err
-	}
-
-	for _, sinkRes := range sinksRes.Sinks {
-		sinkContext := context.WithValue(loadCtx, "sink-id", sinkRes.Id)
-		var metadata types.Metadata
-		if err := json.Unmarshal(sinkRes.Config, &metadata); err != nil {
-			svc.logger.Warn("failed to unmarshal sink, skipping", zap.String("sink-id", sinkRes.Id))
-			continue
-		}
-		if val, _ := svc.eventStore.GetDeploymentEntryFromSinkId(ctx, sinkRes.Id); val != "" {
-			svc.logger.Info("Skipping deploymentEntry because it is already created")
-		} else {
-			var data maestroconfig.SinkData
-			data.SinkID = sinkRes.Id
-			data.Config = metadata
-			data.Backend = sinkRes.Backend
-			err := svc.eventStore.CreateDeploymentEntry(sinkContext, data)
-			if err != nil {
-				svc.logger.Warn("failed to create deploymentEntry for sink, skipping", zap.String("sink-id", sinkRes.Id))
-				continue
-			}
-			err = svc.eventStore.UpdateSinkCache(ctx, data)
-			if err != nil {
-				svc.logger.Warn("failed to update cache for sink", zap.String("sink-id", sinkRes.Id))
-				continue
-			}
-			svc.logger.Info("successfully created deploymentEntry for sink", zap.String("sink-id", sinkRes.Id), zap.String("state", sinkRes.State))
-		}
-
-		isDeployed := false
-		if len(pods) > 0 {
-			for _, pod := range pods {
-				if strings.Contains(pod, sinkRes.Id) {
-					isDeployed = true
-					break
-				}
-			}
-		}
-		// if State is Active, deploy OtelCollector
-		if sinkRes.State == "active" && !isDeployed {
-			deploymentEntry, err := svc.eventStore.GetDeploymentEntryFromSinkId(sinkContext, sinkRes.Id)
-			if err != nil {
-				svc.logger.Warn("failed to fetch deploymentEntry for sink, skipping", zap.String("sink-id", sinkRes.Id), zap.Error(err))
-				continue
-			}
-			err = svc.kubecontrol.CreateOtelCollector(sinkContext, sinkRes.OwnerID, sinkRes.Id, deploymentEntry)
-			if err != nil {
-				svc.logger.Warn("failed to deploy OtelCollector for sink, skipping", zap.String("sink-id", sinkRes.Id), zap.Error(err))
-				continue
-			}
-			svc.logger.Info("successfully created otel collector for sink", zap.String("sink-id", sinkRes.Id))
-		}
-	}
 
 	go svc.subscribeToSinksEvents(ctx)
 	go svc.subscribeToSinkerEvents(ctx)
 
 	monitorCtx := context.WithValue(ctx, "routine", "monitor")
-	err = svc.monitor.Start(monitorCtx, cancelFunction)
+	err := svc.monitor.Start(monitorCtx, cancelFunction)
 	if err != nil {
 		svc.logger.Error("error during monitor routine start", zap.Error(err))
 		cancelFunction()
 		return err
 	}
+	svc.logger.Info("Maestro service started")
 
 	return nil
 }
 
+func (svc *maestroService) Stop() {
+	svc.serviceCancelFunc()
+	svc.logger.Info("Maestro service stopped")
+}
+
 func (svc *maestroService) subscribeToSinksEvents(ctx context.Context) {
-	if err := svc.eventStore.SubscribeSinksEvents(ctx); err != nil {
+	if err := svc.sinkListenerService.SubscribeSinksEvents(ctx); err != nil {
 		svc.logger.Error("Bootstrap service failed to subscribe to event sourcing", zap.Error(err))
 		return
 	}
@@ -156,7 +107,7 @@ func (svc *maestroService) subscribeToSinksEvents(ctx context.Context) {
 }
 
 func (svc *maestroService) subscribeToSinkerEvents(ctx context.Context) {
-	if err := svc.eventStore.SubscribeSinkerEvents(ctx); err != nil {
+	if err := svc.activityListener.SubscribeSinksEvents(ctx); err != nil {
 		svc.logger.Error("Bootstrap service failed to subscribe to event sourcing", zap.Error(err))
 		return
 	}

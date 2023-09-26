@@ -6,6 +6,7 @@ package orbreceiver
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/mainflux/mainflux/pkg/messaging"
@@ -107,7 +108,6 @@ func (r *OrbReceiver) ProccessLogsContext(scope plog.ScopeLogs, channel string) 
 	attributeCtx = context.WithValue(attributeCtx, "agent_groups", agentPb.AgentGroupIDs)
 	attributeCtx = context.WithValue(attributeCtx, "agent_ownerID", agentPb.OwnerID)
 	for sinkId := range sinkIds {
-		err := r.cfg.SinkerService.NotifyActiveSink(r.ctx, agentPb.OwnerID, sinkId, "active", "")
 		if err != nil {
 			r.cfg.Logger.Error("error notifying logs sink active, changing state, skipping sink", zap.String("sink-id", sinkId), zap.Error(err))
 			continue
@@ -118,11 +118,15 @@ func (r *OrbReceiver) ProccessLogsContext(scope plog.ScopeLogs, channel string) 
 		lr.ResourceLogs().At(0).Resource().Attributes().PutStr("service.name", agentPb.AgentName)
 		lr.ResourceLogs().At(0).Resource().Attributes().PutStr("service.instance.id", polID)
 		request := plogotlp.NewExportRequestFromLogs(lr)
+		sizeable, _ := request.MarshalProto()
 		_, err = r.exportLogs(attributeCtx, request)
 		if err != nil {
 			r.cfg.Logger.Error("error during logs export, skipping sink", zap.Error(err))
-			_ = r.cfg.SinkerService.NotifyActiveSink(r.ctx, agentPb.OwnerID, sinkId, "error", err.Error())
+			_ = r.cfg.SinkerService.NotifyActiveSink(r.ctx, agentPb.OwnerID, sinkId, "0")
 			continue
+		} else {
+			size := fmt.Sprintf("%d", len(sizeable))
+			_ = r.cfg.SinkerService.NotifyActiveSink(r.ctx, agentPb.OwnerID, sinkId, size)
 		}
 	}
 }

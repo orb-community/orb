@@ -106,8 +106,9 @@ func (r *OrbReceiver) ProccessTracesContext(scope ptrace.ScopeSpans, channel str
 	attributeCtx = context.WithValue(attributeCtx, "orb_tags", agentPb.OrbTags)
 	attributeCtx = context.WithValue(attributeCtx, "agent_groups", agentPb.AgentGroupIDs)
 	attributeCtx = context.WithValue(attributeCtx, "agent_ownerID", agentPb.OwnerID)
+	size := string(rune(scope.Spans().Len()))
 	for sinkId := range sinkIds {
-		err := r.cfg.SinkerService.NotifyActiveSink(r.ctx, agentPb.OwnerID, sinkId, "active", "")
+		err := r.cfg.SinkerService.NotifyActiveSink(r.ctx, agentPb.OwnerID, sinkId, size)
 		if err != nil {
 			r.cfg.Logger.Error("error notifying sink active, changing state, skipping sink", zap.String("sink-id", sinkId), zap.Error(err))
 			continue
@@ -121,7 +122,6 @@ func (r *OrbReceiver) ProccessTracesContext(scope ptrace.ScopeSpans, channel str
 		_, err = r.exportTraces(attributeCtx, request)
 		if err != nil {
 			r.cfg.Logger.Error("error during export, skipping sink", zap.Error(err))
-			_ = r.cfg.SinkerService.NotifyActiveSink(r.ctx, agentPb.OwnerID, sinkId, "error", err.Error())
 			continue
 		}
 	}
