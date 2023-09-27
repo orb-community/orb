@@ -6,7 +6,7 @@ package orbreceiver
 
 import (
 	"context"
-	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/mainflux/mainflux/pkg/messaging"
@@ -32,6 +32,7 @@ func (r *OrbReceiver) MessageLogsInbound(msg messaging.Message) error {
 			zap.Int64("created", msg.Created),
 			zap.String("publisher", msg.Publisher))
 		r.cfg.Logger.Info("received log message, pushing to kafka exporter")
+		size := len(msg.Payload)
 		decompressedPayload := r.DecompressBrotli(msg.Payload)
 		lr, err := r.encoder.unmarshalLogsRequest(decompressedPayload)
 		if err != nil {
@@ -48,13 +49,13 @@ func (r *OrbReceiver) MessageLogsInbound(msg messaging.Message) error {
 
 		scopes := lr.Logs().ResourceLogs().At(0).ScopeLogs()
 		for i := 0; i < scopes.Len(); i++ {
-			r.ProccessLogsContext(scopes.At(i), msg.Channel)
+			r.ProccessLogsContext(scopes.At(i), msg.Channel, size)
 		}
 	}()
 	return nil
 }
 
-func (r *OrbReceiver) ProccessLogsContext(scope plog.ScopeLogs, channel string) {
+func (r *OrbReceiver) ProccessLogsContext(scope plog.ScopeLogs, channel string, size int) {
 	// Extract Datasets
 	attrDataset, ok := scope.Scope().Attributes().Get("dataset_ids")
 	if !ok {
@@ -118,15 +119,13 @@ func (r *OrbReceiver) ProccessLogsContext(scope plog.ScopeLogs, channel string) 
 		lr.ResourceLogs().At(0).Resource().Attributes().PutStr("service.name", agentPb.AgentName)
 		lr.ResourceLogs().At(0).Resource().Attributes().PutStr("service.instance.id", polID)
 		request := plogotlp.NewExportRequestFromLogs(lr)
-		sizeable, _ := request.MarshalProto()
 		_, err = r.exportLogs(attributeCtx, request)
 		if err != nil {
 			r.cfg.Logger.Error("error during logs export, skipping sink", zap.Error(err))
 			_ = r.cfg.SinkerService.NotifyActiveSink(r.ctx, agentPb.OwnerID, sinkId, "0")
 			continue
 		} else {
-			size := fmt.Sprintf("%d", len(sizeable))
-			_ = r.cfg.SinkerService.NotifyActiveSink(r.ctx, agentPb.OwnerID, sinkId, size)
+			_ = r.cfg.SinkerService.NotifyActiveSink(r.ctx, agentPb.OwnerID, sinkId, strconv.Itoa(size))
 		}
 	}
 }

@@ -35,7 +35,7 @@ func NewEventService(logger *zap.Logger, service deployment.Service, _ kubecontr
 
 // HandleSinkCreate will create deployment entry in postgres, will create deployment in Redis, to prepare for SinkActivity
 func (d *eventService) HandleSinkCreate(ctx context.Context, event maestroredis.SinksUpdateEvent) error {
-	d.logger.Info("handling sink create event", zap.String("sink-id", event.SinkID))
+	d.logger.Debug("handling sink create event", zap.String("sink-id", event.SinkID))
 	// Create Deployment Entry
 	entry := deployment.NewDeployment(event.Owner, event.SinkID, event.Config)
 	// Use deploymentService, which will create deployment in both postgres and redis
@@ -49,7 +49,7 @@ func (d *eventService) HandleSinkCreate(ctx context.Context, event maestroredis.
 
 func (d *eventService) HandleSinkUpdate(ctx context.Context, event maestroredis.SinksUpdateEvent) error {
 	now := time.Now()
-	d.logger.Info("handling sink update event", zap.String("sink-id", event.SinkID))
+	d.logger.Debug("handling sink update event", zap.String("sink-id", event.SinkID))
 	// check if exists deployment entry from postgres
 	entry, _, err := d.deploymentService.GetDeployment(ctx, event.Owner, event.SinkID)
 	if err != nil {
@@ -71,7 +71,7 @@ func (d *eventService) HandleSinkUpdate(ctx context.Context, event maestroredis.
 }
 
 func (d *eventService) HandleSinkDelete(ctx context.Context, event maestroredis.SinksUpdateEvent) error {
-	d.logger.Info("handling sink delete event", zap.String("sink-id", event.SinkID))
+	d.logger.Debug("handling sink delete event", zap.String("sink-id", event.SinkID))
 	deploymentEntry, _, err := d.deploymentService.GetDeployment(ctx, event.Owner, event.SinkID)
 	if err != nil {
 		d.logger.Warn("did not find collector entry for sink", zap.String("sink-id", event.SinkID))
@@ -93,7 +93,7 @@ func (d *eventService) HandleSinkActivity(ctx context.Context, event maestroredi
 	if event.State != "active" {
 		return errors.New("trying to deploy sink that is not active")
 	}
-	d.logger.Info("handling sink activity event", zap.String("sink-id", event.SinkID))
+	d.logger.Debug("handling sink activity event", zap.String("sink-id", event.SinkID))
 	// check if exists deployment entry from postgres
 	_, _, err := d.deploymentService.GetDeployment(ctx, event.OwnerID, event.SinkID)
 	if err != nil {
@@ -121,7 +121,7 @@ func (d *eventService) HandleSinkActivity(ctx context.Context, event maestroredi
 
 func (d *eventService) HandleSinkIdle(ctx context.Context, event maestroredis.SinkerUpdateEvent) error {
 	// check if exists deployment entry from postgres
-	d.logger.Info("handling sink idle event", zap.String("sink-id", event.SinkID))
+	d.logger.Debug("handling sink idle event", zap.String("sink-id", event.SinkID))
 	_, _, err := d.deploymentService.GetDeployment(ctx, event.OwnerID, event.SinkID)
 	if err != nil {
 		d.logger.Error("error trying to get deployment entry", zap.Error(err))

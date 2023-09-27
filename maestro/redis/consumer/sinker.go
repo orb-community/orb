@@ -40,7 +40,7 @@ func (s *sinkerActivityListenerService) SubscribeSinksEvents(ctx context.Context
 	if err != nil && err.Error() != maestroredis.Exists {
 		return err
 	}
-	s.logger.Info("Reading Sinker Events", zap.String("stream", redis2.StreamSinks))
+	s.logger.Debug("Reading Sinker Events", zap.String("stream", redis2.StreamSinks))
 	for {
 		const activityStream = "orb.sink_activity"
 		const idleStream = "orb.sink_idle"
@@ -58,7 +58,7 @@ func (s *sinkerActivityListenerService) SubscribeSinksEvents(ctx context.Context
 					for _, message := range stream.Messages {
 						event := maestroredis.SinkerUpdateEvent{}
 						event.Decode(message.Values)
-						s.logger.Info("Reading message from activity stream", zap.String("message_id", message.ID),
+						s.logger.Debug("Reading message from activity stream", zap.String("message_id", message.ID),
 							zap.String("sink_id", event.SinkID), zap.String("owner_id", event.OwnerID))
 						err := s.eventService.HandleSinkActivity(ctx, event)
 						if err != nil {
@@ -69,7 +69,7 @@ func (s *sinkerActivityListenerService) SubscribeSinksEvents(ctx context.Context
 					for _, message := range stream.Messages {
 						event := maestroredis.SinkerUpdateEvent{}
 						event.Decode(message.Values)
-						s.logger.Info("Reading message from idle stream", zap.String("message_id", message.ID),
+						s.logger.Debug("Reading message from idle stream", zap.String("message_id", message.ID),
 							zap.String("sink_id", event.SinkID), zap.String("owner_id", event.OwnerID))
 						err := s.eventService.HandleSinkIdle(ctx, event)
 						if err != nil {
