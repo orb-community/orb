@@ -8,7 +8,7 @@ h4 {
 }
 
 nb-tab {
-  padding: 1rem 0.5rem !important;
+  padding-bottom: 0 !important;
 }
 
 nb-card {
@@ -150,8 +150,4 @@ nb-card {
   &:not(.btn-disabled) {
     background-color: #3089fc !important;
   }
-}
-
-.summary-accent {
-  color: #969fb9 !important;
 }
