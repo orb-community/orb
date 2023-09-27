@@ -41,7 +41,7 @@ func (ls *sinksListenerService) SubscribeSinksEvents(ctx context.Context) error 
 	if err != nil && err.Error() != redis2.Exists {
 		return err
 	}
-
+	ls.logger.Debug("Reading Sinks Events", zap.String("stream", redis2.StreamSinks))
 	for {
 		streams, err := ls.redisClient.XReadGroup(ctx, &redis.XReadGroupArgs{
 			Group:    redis2.GroupMaestro,
@@ -62,7 +62,7 @@ func (ls *sinksListenerService) SubscribeSinksEvents(ctx context.Context) error 
 }
 
 func (ls *sinksListenerService) ReceiveMessage(ctx context.Context, msg redis.XMessage) error {
-	logger := ls.logger.With(zap.String("maestro_sinks_listener_msg", msg.ID))
+	logger := ls.logger.Named("sinks_listener:" + msg.ID)
 	event := msg.Values
 	rte, err := redis2.DecodeSinksEvent(event, event["operation"].(string))
 	if err != nil {
@@ -106,7 +106,7 @@ func (ls *sinksListenerService) ReceiveMessage(ctx context.Context, msg redis.XM
 
 // handleSinksUpdate logic moved to deployment.EventService
 func (ls *sinksListenerService) handleSinksUpdate(ctx context.Context, event maestroredis.SinksUpdateEvent) error {
-	ls.logger.Info("Received maestro UPDATE event from sinks ID", zap.String("sinkID", event.SinkID), zap.String("owner", event.Owner))
+	ls.logger.Debug("Received sinks UPDATE event from sinks ID", zap.String("sinkID", event.SinkID), zap.String("owner", event.Owner))
 	err := ls.deploymentService.HandleSinkUpdate(ctx, event)
 	if err != nil {
 		return err
@@ -117,7 +117,7 @@ func (ls *sinksListenerService) handleSinksUpdate(ctx context.Context, event mae
 
 // handleSinksDelete logic moved to deployment.EventService
 func (ls *sinksListenerService) handleSinksDelete(ctx context.Context, event maestroredis.SinksUpdateEvent) error {
-	ls.logger.Info("Received maestro DELETE event from sinks ID", zap.String("sinkID", event.SinkID), zap.String("owner", event.Owner))
+	ls.logger.Debug("Received sinks DELETE event from sinks ID", zap.String("sinkID", event.SinkID), zap.String("owner", event.Owner))
 	err := ls.deploymentService.HandleSinkDelete(ctx, event)
 	if err != nil {
 		return err
@@ -127,7 +127,7 @@ func (ls *sinksListenerService) handleSinksDelete(ctx context.Context, event mae
 
 // handleSinksCreate logic moved to deployment.EventService
 func (ls *sinksListenerService) handleSinksCreate(ctx context.Context, event maestroredis.SinksUpdateEvent) error {
-	ls.logger.Info("Received event to CREATE event from sinks ID", zap.String("sinkID", event.SinkID), zap.String("owner", event.Owner))
+	ls.logger.Debug("Received sinks to CREATE event from sinks ID", zap.String("sinkID", event.SinkID), zap.String("owner", event.Owner))
 	err := ls.deploymentService.HandleSinkCreate(ctx, event)
 	if err != nil {
 		return err
