@@ -57,6 +57,8 @@ func (s *sinkerActivityListenerService) SubscribeSinksEvents(ctx context.Context
 					for _, message := range stream.Messages {
 						event := maestroredis.SinkerUpdateEvent{}
 						event.Decode(message.Values)
+						s.logger.Info("Reading message from activity stream", zap.String("message_id", message.ID),
+							zap.String("sink_id", event.SinkID), zap.String("owner_id", event.OwnerID))
 						err := s.eventService.HandleSinkActivity(ctx, event)
 						if err != nil {
 							s.logger.Error("error receiving message", zap.Error(err))
@@ -66,6 +68,8 @@ func (s *sinkerActivityListenerService) SubscribeSinksEvents(ctx context.Context
 					for _, message := range stream.Messages {
 						event := maestroredis.SinkerUpdateEvent{}
 						event.Decode(message.Values)
+						s.logger.Info("Reading message from idle stream", zap.String("message_id", message.ID),
+							zap.String("sink_id", event.SinkID), zap.String("owner_id", event.OwnerID))
 						err := s.eventService.HandleSinkIdle(ctx, event)
 						if err != nil {
 							s.logger.Error("error receiving message", zap.Error(err))
