@@ -5,6 +5,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	maestroredis "github.com/orb-community/orb/maestro/redis"
 	"github.com/orb-community/orb/maestro/service"
+	redis2 "github.com/orb-community/orb/sinks/redis"
 	"go.uber.org/zap"
 )
 
@@ -39,7 +40,7 @@ func (s *sinkerActivityListenerService) SubscribeSinksEvents(ctx context.Context
 	if err != nil && err.Error() != maestroredis.Exists {
 		return err
 	}
-
+	s.logger.Info("Reading Sinker Events", zap.String("stream", redis2.StreamSinks))
 	for {
 		const activityStream = "orb.sink_activity"
 		const idleStream = "orb.sink_idle"

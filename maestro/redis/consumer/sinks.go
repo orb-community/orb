@@ -41,7 +41,7 @@ func (ls *sinksListenerService) SubscribeSinksEvents(ctx context.Context) error 
 	if err != nil && err.Error() != redis2.Exists {
 		return err
 	}
-
+	ls.logger.Info("Reading Sinks Events", zap.String("stream", redis2.StreamSinks))
 	for {
 		streams, err := ls.redisClient.XReadGroup(ctx, &redis.XReadGroupArgs{
 			Group:    redis2.GroupMaestro,
