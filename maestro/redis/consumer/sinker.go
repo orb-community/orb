@@ -29,6 +29,7 @@ func NewSinkerActivityListener(l *zap.Logger, eventService service.EventService,
 	}
 }
 
+// SubscribeSinksEvents will listen to both sink_activity and sink_idle stream and handle each message separately
 func (s *sinkerActivityListenerService) SubscribeSinksEvents(ctx context.Context) error {
 	//listening sinker events
 	err := s.redisClient.XGroupCreateMkStream(ctx, maestroredis.SinksActivityStream, maestroredis.GroupMaestro, "$").Err()

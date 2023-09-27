@@ -67,6 +67,8 @@ func (bs *SinkerOtelBridgeService) IncrementMessageCounter(publisher, subtopic, 
 
 // NotifyActiveSink notify the sinker that a sink is active
 func (bs *SinkerOtelBridgeService) NotifyActiveSink(ctx context.Context, mfOwnerId, sinkId, size string) error {
+	bs.logger.Debug("notifying active sink", zap.String("sink_id", sinkId), zap.String("owner_id", mfOwnerId),
+		zap.String("payload_size", size))
 	event := producer.SinkActivityEvent{
 		OwnerID:   mfOwnerId,
 		SinkID:    sinkId,
@@ -74,7 +76,10 @@ func (bs *SinkerOtelBridgeService) NotifyActiveSink(ctx context.Context, mfOwner
 		Size:      size,
 		Timestamp: time.Now(),
 	}
-	_ = bs.sinkerActivitySvc.PublishSinkActivity(ctx, event)
+	err := bs.sinkerActivitySvc.PublishSinkActivity(ctx, event)
+	if err != nil {
+		bs.logger.Error("error publishing sink activity", zap.Error(err))
+	}
 	return nil
 }
 
