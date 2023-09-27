@@ -32,8 +32,8 @@ func migrateDB(db *sqlx.DB) error {
 			{
 				Id: "1",
 				Up: []string{
-					`CREATE TABLE deployments (
-					    id                      VARCHAR(255),
+					`CREATE TABLE IF NOT EXISTS deployments (
+					    id			    UUID NOT NULL DEFAULT gen_random_uuid(),
 					    owner_id                VARCHAR(255),
 					    sink_id                 VARCHAR(255),
 					    config                  JSONB,
@@ -43,7 +43,7 @@ func migrateDB(db *sqlx.DB) error {
 					    last_error_time         TIMESTAMP,
 					    collector_name          VARCHAR(255),
 					    last_collector_deploy_time TIMESTAMP,
-					    last_collector_stop_time   TIMESTAMP,
+					    last_collector_stop_time   TIMESTAMP
 					);`,
 				},
 				Down: []string{
