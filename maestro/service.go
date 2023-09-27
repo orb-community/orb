@@ -10,6 +10,7 @@ package maestro
 
 import (
 	"context"
+	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
 	"github.com/go-redis/redis/v8"
 	"github.com/jmoiron/sqlx"
 	"github.com/orb-community/orb/maestro/deployment"
@@ -20,6 +21,7 @@ import (
 	"github.com/orb-community/orb/maestro/service"
 	"github.com/orb-community/orb/pkg/config"
 	sinkspb "github.com/orb-community/orb/sinks/pb"
+	stdprometheus "github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
 )
 
@@ -52,6 +54,19 @@ func NewMaestroService(logger *zap.Logger, streamRedisClient *redis.Client, sink
 	ps := producer.NewMaestroProducer(logger, streamRedisClient)
 	monitorService := monitor.NewMonitorService(logger, &sinksGrpcClient, ps, &kubectr)
 	eventService := service.NewEventService(logger, deploymentService, kubectr)
+	eventService = service.NewTracingService(logger, eventService,
+		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+			Namespace: "maestro",
+			Subsystem: "comms",
+			Name:      "message_count",
+			Help:      "Number of messages received.",
+		}, []string{"method", "sink_id", "owner_id"}),
+		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
+			Namespace: "maestro",
+			Subsystem: "comms",
+			Name:      "message_latency_microseconds",
+			Help:      "Total duration of messages processed in microseconds.",
+		}, []string{"method", "sink_id", "owner_id"}))
 	sinkListenerService := rediscons1.NewSinksListenerController(logger, eventService, sinkerRedisClient, sinksGrpcClient)
 	activityListener := rediscons1.NewSinkerActivityListener(logger, eventService, sinkerRedisClient)
 	return &maestroService{
