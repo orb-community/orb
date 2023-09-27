@@ -8,7 +8,9 @@ import { Agent, AgentStates } from "app/common/interfaces/orb/agent.interface";
   styleUrls: ["./agent-provisioning.component.scss"],
 })
 export class AgentProvisioningComponent implements OnInit {
+
   @Input() agent: Agent;
+  @Input() provisioningType: string;
 
   agentStates = AgentStates;
 
@@ -23,18 +25,24 @@ export class AgentProvisioningComponent implements OnInit {
   fileConfigCommandCopy: string;
   fileConfigCommandShow: string;
 
-  hideCommand: boolean;
-  hideCommand2: boolean;
-  hideCommand3: boolean;
+  provisioningTypeMode = {
+    default: false,
+    configFile: false,
+  }
 
   constructor() {
     this.copyCommandIcon = "copy-outline";
   }
 
   ngOnInit(): void {
-    this.hideCommand2 = false;
-    this.hideCommand3 = true;
-    this.hideCommand = this.agent?.state !== this.agentStates.new;
+    console.log(this.provisioningType);
+    if (this.provisioningType === 'default') {
+      this.provisioningTypeMode.default = true;
+    }
+    else if (this.provisioningType === 'configFile') {
+      this.provisioningTypeMode.configFile = true;
+
+    }
     this.makeCommand2Copy();
   }
 
@@ -82,18 +90,4 @@ orbcommunity/orb-agent run -c /usr/local/orb/agent.yaml`;
 -v \${PWD}/:/usr/local/orb/ \\
 orbcommunity/orb-agent run -c /usr/local/orb/agent.yaml`;
   }
-
-toggleProvisioningCommand(command: string) {
-  switch (command) {
-    case 'hideCommand':
-      this.hideCommand = !this.hideCommand;
-      break;
-    case 'hideCommand2':
-      this.hideCommand2 = !this.hideCommand2;
-      break;
-    case 'hideCommand3':
-      this.hideCommand3 = !this.hideCommand3;
-      break;
-  }
-}
 }
