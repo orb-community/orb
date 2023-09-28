@@ -50,7 +50,8 @@ func NewMaestroService(logger *zap.Logger, streamRedisClient *redis.Client, sink
 	sinksGrpcClient sinkspb.SinkServiceClient, otelCfg config.OtelConfig, db *sqlx.DB, svcCfg config.BaseSvcConfig) Service {
 	kubectr := kubecontrol.NewService(logger)
 	repo := deployment.NewRepositoryService(db, logger)
-	deploymentService := deployment.NewDeploymentService(logger, repo, otelCfg.KafkaUrl, svcCfg.EncryptionKey)
+	maestroProducer := producer.NewMaestroProducer(logger, streamRedisClient)
+	deploymentService := deployment.NewDeploymentService(logger, repo, otelCfg.KafkaUrl, svcCfg.EncryptionKey, maestroProducer)
 	ps := producer.NewMaestroProducer(logger, streamRedisClient)
 	monitorService := monitor.NewMonitorService(logger, &sinksGrpcClient, ps, &kubectr)
 	eventService := service.NewEventService(logger, deploymentService, kubectr)
