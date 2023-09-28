@@ -5,6 +5,7 @@ import (
 	"github.com/orb-community/orb/maestro/deployment"
 	"github.com/orb-community/orb/maestro/redis"
 	"github.com/orb-community/orb/pkg/types"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 	"testing"
 	"time"
@@ -162,11 +163,47 @@ func TestEventService_HandleSinkDelete(t *testing.T) {
 					},
 				},
 			},
+			wantErr: true,
+		},
+		{
+			name: "delete event success",
+			args: args{
+				event: redis.SinksUpdateEvent{
+					SinkID: "sink2",
+					Owner:  "owner2",
+					Config: types.Metadata{
+						"exporter": types.Metadata{
+							"remote_host": "https://acme.com/prom/push",
+						},
+						"authentication": types.Metadata{
+							"type":     "basicauth",
+							"username": "prom-user-2",
+							"password": "dbpass-2",
+						},
+					},
+				},
+			},
+			wantErr: true,
 		},
 	}
 	logger := zap.NewNop()
 	deploymentService := deployment.NewDeploymentService(logger, NewFakeRepository(logger), "kafka:9092", "MY_SECRET", NewTestProducer(logger))
 	d := NewEventService(logger, deploymentService, nil)
+	err := d.HandleSinkDelete(context.Background(), redis.SinksUpdateEvent{
+		SinkID: "sink2",
+		Owner:  "owner2",
+		Config: types.Metadata{
+			"exporter": types.Metadata{
+				"remote_host": "https://acme.com/prom/push",
+			},
+			"authentication": types.Metadata{
+				"type":     "basicauth",
+				"username": "prom-user-2",
+				"password": "dbpass-2",
+			},
+		},
+	})
+	require.NoError(t, err, "should not error")
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.WithValue(context.Background(), "test", tt.name)
