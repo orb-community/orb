@@ -182,8 +182,8 @@
   align-content: flex-start;
   justify-content: flex-start;
   align-items: stretch;
-  overflow-x: auto;
   min-width: 800px;
+  overflow-x: hidden !important;
 }
 
 .orb-table {
@@ -193,9 +193,9 @@
 }
 
 .orb-table-small {
-  min-height: calc(25vh);
+  min-height: calc(40vh);
   min-width: 600px;
-  max-height: calc(25vh);
+  max-height: calc(40vh);
 }
 
 .orb-service- {
