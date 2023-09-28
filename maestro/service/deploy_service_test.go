@@ -11,7 +11,6 @@ import (
 )
 
 func Test_eventService_HandleSinkCreate(t *testing.T) {
-
 	type args struct {
 		event redis.SinksUpdateEvent
 	}
@@ -42,6 +41,19 @@ func Test_eventService_HandleSinkCreate(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "create event without config",
+			args: args{
+				event: redis.SinksUpdateEvent{
+					SinkID:    "sink1",
+					Owner:     "owner1",
+					Config:    nil,
+					Backend:   "prometheus",
+					Timestamp: time.Now(),
+				},
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -50,6 +62,73 @@ func Test_eventService_HandleSinkCreate(t *testing.T) {
 			d := NewEventService(logger, deploymentService, nil)
 			ctx := context.WithValue(context.Background(), "test", tt.name)
 			if err := d.HandleSinkCreate(ctx, tt.args.event); (err != nil) != tt.wantErr {
+				t.Errorf("HandleSinkCreate() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestEventService_HandleSinkUpdate(t *testing.T) {
+	type args struct {
+		event redis.SinksUpdateEvent
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "update event when there is none in db",
+			args: args{
+				event: redis.SinksUpdateEvent{
+					SinkID: "sink1",
+					Owner:  "owner1",
+					Config: types.Metadata{
+						"exporter": types.Metadata{
+							"remote_host": "https://acme.com/prom/push",
+						},
+						"authentication": types.Metadata{
+							"type":     "basicauth",
+							"username": "prom-user",
+							"password": "dbpass",
+						},
+					},
+					Backend:   "prometheus",
+					Timestamp: time.Now(),
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "update event success",
+			args: args{
+				event: redis.SinksUpdateEvent{
+					SinkID: "sink1",
+					Owner:  "owner1",
+					Config: types.Metadata{
+						"exporter": types.Metadata{
+							"remote_host": "https://acme.com/prom/push",
+						},
+						"authentication": types.Metadata{
+							"type":     "basicauth",
+							"username": "prom-user-2",
+							"password": "dbpass-2",
+						},
+					},
+					Backend:   "prometheus",
+					Timestamp: time.Now(),
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			logger := zap.NewNop()
+			deploymentService := deployment.NewDeploymentService(logger, NewFakeRepository(logger), "kafka:9092", "MY_SECRET", NewTestProducer(logger))
+			d := NewEventService(logger, deploymentService, nil)
+			ctx := context.WithValue(context.Background(), "test", tt.name)
+			if err := d.HandleSinkUpdate(ctx, tt.args.event); (err != nil) != tt.wantErr {
 				t.Errorf("HandleSinkCreate() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

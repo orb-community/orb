@@ -53,8 +53,18 @@ func (d *eventService) HandleSinkUpdate(ctx context.Context, event maestroredis.
 	// check if exists deployment entry from postgres
 	entry, _, err := d.deploymentService.GetDeployment(ctx, event.Owner, event.SinkID)
 	if err != nil {
-		d.logger.Error("error trying to get deployment entry", zap.Error(err))
-		return err
+		if err.Error() != "not found" {
+			d.logger.Error("error trying to get deployment entry", zap.Error(err))
+			return err
+		} else {
+			newEntry := deployment.NewDeployment(event.Owner, event.SinkID, event.Config)
+			err := d.deploymentService.CreateDeployment(ctx, &newEntry)
+			if err != nil {
+				d.logger.Error("error trying to recreate deployment entry", zap.Error(err))
+				return err
+			}
+			entry = &newEntry
+		}
 	}
 	// async update sink status to provisioning
 	go func() {
