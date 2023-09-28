@@ -52,9 +52,9 @@ func (r *repositoryService) FetchAll(ctx context.Context) ([]Deployment, error) 
 func (r *repositoryService) Add(ctx context.Context, deployment *Deployment) (*Deployment, error) {
 	tx := r.db.MustBeginTx(ctx, nil)
 	cmd, err := tx.NamedExecContext(ctx,
-		`INSERT INTO deployments (id, owner_id, sink_id, backend, config, last_status, last_status_update, last_error_message, 
+		`INSERT INTO deployments (owner_id, sink_id, backend, config, last_status, last_status_update, last_error_message, 
 				last_error_time, collector_name, last_collector_deploy_time, last_collector_stop_time) 
-				VALUES (:id, :owner_id, :sink_id, :backend, :config, :last_status, :last_status_update, :last_error_message, 
+				VALUES (:owner_id, :sink_id, :backend, :config, :last_status, :last_status_update, :last_error_message, 
 				        :last_error_time, :collector_name, :last_collector_deploy_time, :last_collector_stop_time)`,
 		deployment)
 	if err != nil {
