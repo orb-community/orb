@@ -43,7 +43,8 @@ type deploymentService struct {
 
 var _ Service = (*deploymentService)(nil)
 
-func NewDeploymentService(logger *zap.Logger, repository Repository, kafkaUrl string, encryptionKey string, maestroProducer producer.Producer) Service {
+func NewDeploymentService(logger *zap.Logger, repository Repository, kafkaUrl string, encryptionKey string,
+	maestroProducer producer.Producer, kubecontrol kubecontrol.Service) Service {
 	namedLogger := logger.Named("deployment-service")
 	es := password.NewEncryptionService(logger, encryptionKey)
 	cb := config.NewConfigBuilder(namedLogger, kafkaUrl, es)
@@ -52,6 +53,7 @@ func NewDeploymentService(logger *zap.Logger, repository Repository, kafkaUrl st
 		configBuilder:     cb,
 		encryptionService: es,
 		maestroProducer:   maestroProducer,
+		kubecontrol:       kubecontrol,
 	}
 }
 
