@@ -36,6 +36,7 @@ func migrateDB(db *sqlx.DB) error {
 					    id			    UUID NOT NULL DEFAULT gen_random_uuid(),
 					    owner_id                VARCHAR(255),
 					    sink_id                 VARCHAR(255),
+					    backend                 VARCHAR(255), 
 					    config                  JSONB,
 					    last_status             VARCHAR(255),
 					    last_status_update      TIMESTAMP,
