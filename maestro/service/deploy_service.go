@@ -61,7 +61,10 @@ func (d *eventService) HandleSinkUpdate(ctx context.Context, event maestroredis.
 		_ = d.deploymentService.UpdateStatus(ctx, event.Owner, event.SinkID, "provisioning", "")
 	}()
 	// update deployment entry in postgres
-	entry.Config = event.Config
+	err = entry.SetConfig(event.Config)
+	if err != nil {
+		return err
+	}
 	entry.LastCollectorStopTime = &now
 	entry.LastStatus = "provisioning"
 	entry.LastStatusUpdate = &now
