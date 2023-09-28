@@ -100,15 +100,23 @@ func (r *repositoryService) Update(ctx context.Context, deployment *Deployment) 
 func (r *repositoryService) UpdateStatus(ctx context.Context, ownerID string, sinkId string, status string, errorMessage string) error {
 	tx := r.db.MustBeginTx(ctx, nil)
 	now := time.Now()
+	fields := map[string]interface{}{
+		"last_status":        status,
+		"last_status_update": now,
+		"last_error_message": errorMessage,
+		"last_error_time":    now,
+		"owner_id":           ownerID,
+		"sink_id":            sinkId,
+	}
 	_, err := tx.ExecContext(ctx,
 		`UPDATE deployments 
 				SET 
-					   last_status = $1, 
-					   last_status_update = $2, 
-					   last_error_message = $3,
-					   last_error_time = $4
-				WHERE owner_id = $5 AND sink_id = $6`,
-		status, now, errorMessage, now, ownerID, sinkId)
+					   last_status = :last_status, 
+					   last_status_update = :last_status_update, 
+					   last_error_message = :last_error_message,
+					   last_error_time = :last_error_time
+				WHERE owner_id = :owner_id AND sink_id = :sink_id`,
+		fields)
 	if err != nil {
 		_ = tx.Rollback()
 		return err
