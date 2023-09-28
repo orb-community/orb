@@ -58,7 +58,10 @@ func (d *deploymentService) CreateDeployment(ctx context.Context, deployment *De
 	if err != nil {
 		return err
 	}
-	deployment.Config = codedConfig
+	err = deployment.SetConfig(codedConfig)
+	if err != nil {
+		return err
+	}
 	// store with config encrypted
 	added, err := d.dbRepository.Add(ctx, deployment)
 	if err != nil {
@@ -78,12 +81,16 @@ func (d *deploymentService) getAuthBuilder(authType string) config.AuthBuilderSe
 }
 
 func (d *deploymentService) encodeConfig(deployment *Deployment) (types.Metadata, error) {
-	authType := deployment.Config.GetSubMetadata(AuthenticationKey)["type"].(string)
-	authBuilder := d.getAuthBuilder(authType)
+	authType := deployment.GetConfig()
+	if authType != nil {
+		return nil, errors.New("deployment do not have authentication information")
+	}
+	value := authType.GetSubMetadata(AuthenticationKey)["type"].(string)
+	authBuilder := d.getAuthBuilder(value)
 	if authBuilder != nil {
 		return nil, errors.New("deployment do not have authentication information")
 	}
-	return authBuilder.EncodeAuth(deployment.Config)
+	return authBuilder.EncodeAuth(deployment.GetConfig())
 }
 
 func (d *deploymentService) GetDeployment(ctx context.Context, ownerID string, sinkId string) (*Deployment, string, error) {
@@ -91,17 +98,24 @@ func (d *deploymentService) GetDeployment(ctx context.Context, ownerID string, s
 	if err != nil {
 		return nil, "", err
 	}
-	authType := deployment.Config.GetSubMetadata(AuthenticationKey)["type"].(string)
-	authBuilder := d.getAuthBuilder(authType)
-	decodedDeployment, err := authBuilder.DecodeAuth(deployment.Config)
+	authType := deployment.GetConfig()
+	if authType != nil {
+		return nil, "", errors.New("deployment do not have authentication information")
+	}
+	value := authType.GetSubMetadata(AuthenticationKey)["type"].(string)
+	authBuilder := d.getAuthBuilder(value)
+	decodedDeployment, err := authBuilder.DecodeAuth(deployment.GetConfig())
 	if err != nil {
 		return nil, "", err
 	}
-	deployment.Config = decodedDeployment
+	err = deployment.SetConfig(decodedDeployment)
+	if err != nil {
+		return nil, "", err
+	}
 	deployReq := &config.DeploymentRequest{
 		OwnerID: ownerID,
 		SinkID:  sinkId,
-		Config:  deployment.Config,
+		Config:  deployment.GetConfig(),
 		Backend: deployment.Backend,
 		Status:  deployment.LastStatus,
 	}
@@ -163,7 +177,7 @@ func (d *deploymentService) NotifyCollector(ctx context.Context, ownerID string,
 				deployReq := &config.DeploymentRequest{
 					OwnerID: ownerID,
 					SinkID:  sinkId,
-					Config:  got.Config,
+					Config:  got.GetConfig(),
 					Backend: got.Backend,
 					Status:  got.LastStatus,
 				}

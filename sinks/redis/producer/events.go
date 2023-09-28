@@ -33,6 +33,7 @@ var (
 type createSinkEvent struct {
 	sinkID    string
 	owner     string
+	backend   string
 	config    types.Metadata
 	timestamp time.Time
 }
@@ -45,6 +46,7 @@ func (cce createSinkEvent) Encode() (map[string]interface{}, error) {
 	return map[string]interface{}{
 		"sink_id":   cce.sinkID,
 		"owner":     cce.owner,
+		"backend":   cce.backend,
 		"config":    config,
 		"timestamp": cce.timestamp.Unix(),
 		"operation": SinkCreate,
@@ -68,6 +70,7 @@ type updateSinkEvent struct {
 	sinkID    string
 	owner     string
 	config    types.Metadata
+	backend   string
 	timestamp time.Time
 }
 
@@ -80,6 +83,7 @@ func (cce updateSinkEvent) Encode() (map[string]interface{}, error) {
 		"sink_id":   cce.sinkID,
 		"owner":     cce.owner,
 		"config":    config,
+		"backend":   cce.backend,
 		"timestamp": cce.timestamp.Unix(),
 		"operation": SinkUpdate,
 	}, nil
