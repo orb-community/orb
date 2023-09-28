@@ -46,7 +46,7 @@ func Test_eventService_HandleSinkCreate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			logger := zap.NewNop()
-			deploymentService := deployment.NewDeploymentService(logger, NewFakeRepository(logger), "kafka:9092", "MY_SECRET")
+			deploymentService := deployment.NewDeploymentService(logger, NewFakeRepository(logger), "kafka:9092", "MY_SECRET", NewTestProducer(logger))
 			d := NewEventService(logger, deploymentService, nil)
 			ctx := context.WithValue(context.Background(), "test", tt.name)
 			if err := d.HandleSinkCreate(ctx, tt.args.event); (err != nil) != tt.wantErr {

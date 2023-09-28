@@ -43,11 +43,16 @@ type deploymentService struct {
 
 var _ Service = (*deploymentService)(nil)
 
-func NewDeploymentService(logger *zap.Logger, repository Repository, kafkaUrl string, encryptionKey string) Service {
+func NewDeploymentService(logger *zap.Logger, repository Repository, kafkaUrl string, encryptionKey string, maestroProducer producer.Producer) Service {
 	namedLogger := logger.Named("deployment-service")
 	es := password.NewEncryptionService(logger, encryptionKey)
 	cb := config.NewConfigBuilder(namedLogger, kafkaUrl, es)
-	return &deploymentService{logger: namedLogger, dbRepository: repository, configBuilder: cb, encryptionService: es}
+	return &deploymentService{logger: namedLogger,
+		dbRepository:      repository,
+		configBuilder:     cb,
+		encryptionService: es,
+		maestroProducer:   maestroProducer,
+	}
 }
 
 func (d *deploymentService) CreateDeployment(ctx context.Context, deployment *Deployment) error {
@@ -82,12 +87,12 @@ func (d *deploymentService) getAuthBuilder(authType string) config.AuthBuilderSe
 
 func (d *deploymentService) encodeConfig(deployment *Deployment) (types.Metadata, error) {
 	authType := deployment.GetConfig()
-	if authType != nil {
+	if authType == nil {
 		return nil, errors.New("deployment do not have authentication information")
 	}
 	value := authType.GetSubMetadata(AuthenticationKey)["type"].(string)
 	authBuilder := d.getAuthBuilder(value)
-	if authBuilder != nil {
+	if authBuilder == nil {
 		return nil, errors.New("deployment do not have authentication information")
 	}
 	return authBuilder.EncodeAuth(deployment.GetConfig())
