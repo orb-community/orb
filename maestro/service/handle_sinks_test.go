@@ -104,8 +104,9 @@ func TestEventService_HandleSinkUpdate(t *testing.T) {
 			name: "update event success",
 			args: args{
 				event: redis.SinksUpdateEvent{
-					SinkID: "sink1",
-					Owner:  "owner1",
+					SinkID:  "sink1",
+					Owner:   "owner1",
+					Backend: "prometheus",
 					Config: types.Metadata{
 						"exporter": types.Metadata{
 							"remote_host": "https://acme.com/prom/push",
@@ -116,7 +117,6 @@ func TestEventService_HandleSinkUpdate(t *testing.T) {
 							"password": "dbpass-2",
 						},
 					},
-					Backend:   "prometheus",
 					Timestamp: time.Now(),
 				},
 			},
@@ -149,8 +149,9 @@ func TestEventService_HandleSinkDelete(t *testing.T) {
 			name: "delete event when there is none in db",
 			args: args{
 				event: redis.SinksUpdateEvent{
-					SinkID: "sink1",
-					Owner:  "owner1",
+					SinkID:  "sink1",
+					Owner:   "owner1",
+					Backend: "prometheus",
 					Config: types.Metadata{
 						"exporter": types.Metadata{
 							"remote_host": "https://acme.com/prom/push",
@@ -169,8 +170,9 @@ func TestEventService_HandleSinkDelete(t *testing.T) {
 			name: "delete event success",
 			args: args{
 				event: redis.SinksUpdateEvent{
-					SinkID: "sink2",
-					Owner:  "owner2",
+					SinkID:  "sink2",
+					Owner:   "owner2",
+					Backend: "prometheus",
 					Config: types.Metadata{
 						"exporter": types.Metadata{
 							"remote_host": "https://acme.com/prom/push",
@@ -190,8 +192,9 @@ func TestEventService_HandleSinkDelete(t *testing.T) {
 	deploymentService := deployment.NewDeploymentService(logger, NewFakeRepository(logger), "kafka:9092", "MY_SECRET", NewTestProducer(logger), nil)
 	d := NewEventService(logger, deploymentService, nil)
 	err := d.HandleSinkCreate(context.Background(), redis.SinksUpdateEvent{
-		SinkID: "sink2",
-		Owner:  "owner2",
+		SinkID:  "sink2",
+		Owner:   "owner2",
+		Backend: "prometheus",
 		Config: types.Metadata{
 			"exporter": types.Metadata{
 				"remote_host": "https://acme.com/prom/push",

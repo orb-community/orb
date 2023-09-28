@@ -37,7 +37,7 @@ func NewEventService(logger *zap.Logger, service deployment.Service, _ kubecontr
 func (d *eventService) HandleSinkCreate(ctx context.Context, event maestroredis.SinksUpdateEvent) error {
 	d.logger.Debug("handling sink create event", zap.String("sink-id", event.SinkID), zap.String("owner-id", event.Owner))
 	// Create Deployment Entry
-	entry := deployment.NewDeployment(event.Owner, event.SinkID, event.Config)
+	entry := deployment.NewDeployment(event.Owner, event.SinkID, event.Config, event.Backend)
 	// Use deploymentService, which will create deployment in both postgres and redis
 	err := d.deploymentService.CreateDeployment(ctx, &entry)
 	if err != nil {
@@ -57,7 +57,7 @@ func (d *eventService) HandleSinkUpdate(ctx context.Context, event maestroredis.
 			d.logger.Error("error trying to get deployment entry", zap.Error(err))
 			return err
 		} else {
-			newEntry := deployment.NewDeployment(event.Owner, event.SinkID, event.Config)
+			newEntry := deployment.NewDeployment(event.Owner, event.SinkID, event.Config, event.Backend)
 			err := d.deploymentService.CreateDeployment(ctx, &newEntry)
 			if err != nil {
 				d.logger.Error("error trying to recreate deployment entry", zap.Error(err))

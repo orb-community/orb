@@ -51,8 +51,9 @@ func TestEventService_HandleSinkActivity(t *testing.T) {
 		"MY_SECRET", NewTestProducer(logger), NewTestKubeCtr(logger))
 	d := NewEventService(logger, deploymentService, nil)
 	err := d.HandleSinkCreate(context.Background(), redis.SinksUpdateEvent{
-		SinkID: "sink2",
-		Owner:  "owner2",
+		SinkID:  "sink2",
+		Owner:   "owner2",
+		Backend: "prometheus",
 		Config: types.Metadata{
 			"exporter": types.Metadata{
 				"remote_host": "https://acme.com/prom/push",
@@ -114,8 +115,9 @@ func TestEventService_HandleSinkIdle(t *testing.T) {
 	deploymentService := deployment.NewDeploymentService(logger, NewFakeRepository(logger), "kafka:9092", "MY_SECRET", NewTestProducer(logger), nil)
 	d := NewEventService(logger, deploymentService, NewTestKubeCtr(logger))
 	err := d.HandleSinkCreate(context.Background(), redis.SinksUpdateEvent{
-		SinkID: "sink2",
-		Owner:  "owner2",
+		SinkID:  "sink2",
+		Owner:   "owner2",
+		Backend: "prometheus",
 		Config: types.Metadata{
 			"exporter": types.Metadata{
 				"remote_host": "https://acme.com/prom/push",
