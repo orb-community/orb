@@ -67,8 +67,8 @@ func NewMaestroService(logger *zap.Logger, streamRedisClient *redis.Client, sink
 			Name:      "message_latency_microseconds",
 			Help:      "Total duration of messages processed in microseconds.",
 		}, []string{"method", "sink_id", "owner_id"}))
-	sinkListenerService := rediscons1.NewSinksListenerController(logger, eventService, sinkerRedisClient, sinksGrpcClient)
-	activityListener := rediscons1.NewSinkerActivityListener(logger, eventService, sinkerRedisClient)
+	sinkListenerService := rediscons1.NewSinksListenerController(logger, eventService, streamRedisClient, sinksGrpcClient)
+	activityListener := rediscons1.NewSinkerActivityListener(logger, eventService, streamRedisClient)
 	return &maestroService{
 		logger:              logger,
 		deploymentService:   deploymentService,
