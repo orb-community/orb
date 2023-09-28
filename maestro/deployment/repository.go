@@ -3,11 +3,12 @@ package deployment
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq" // required for SQL access
 	"github.com/orb-community/orb/pkg/errors"
 	"go.uber.org/zap"
-	"time"
 )
 
 type Repository interface {
@@ -51,7 +52,7 @@ func (r *repositoryService) FetchAll(ctx context.Context) ([]Deployment, error) 
 
 func (r *repositoryService) Add(ctx context.Context, deployment *Deployment) (*Deployment, error) {
 	tx := r.db.MustBeginTx(ctx, nil)
-	cmd, err := tx.NamedExecContext(ctx,
+	_, err := tx.NamedExecContext(ctx,
 		`INSERT INTO deployments (owner_id, sink_id, backend, config, last_status, last_status_update, last_error_message, 
 				last_error_time, collector_name, last_collector_deploy_time, last_collector_stop_time) 
 				VALUES (:owner_id, :sink_id, :backend, :config, :last_status, :last_status_update, :last_error_message, 
@@ -61,12 +62,7 @@ func (r *repositoryService) Add(ctx context.Context, deployment *Deployment) (*D
 		_ = tx.Rollback()
 		return nil, err
 	}
-	newId, err := cmd.LastInsertId()
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	deployment.Id = fmt.Sprintf("%d", newId)
+
 	r.logger.Debug("added deployment", zap.String("owner-id", deployment.OwnerID), zap.String("sink-id", deployment.SinkID))
 	return deployment, tx.Commit()
 }
