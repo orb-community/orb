@@ -47,9 +47,10 @@ func (es sinksStreamProducer) ViewSinkInternal(ctx context.Context, ownerID stri
 func (es sinksStreamProducer) CreateSink(ctx context.Context, token string, s sinks.Sink) (sink sinks.Sink, err error) {
 	defer func() {
 		event := createSinkEvent{
-			sinkID: sink.ID,
-			owner:  sink.MFOwnerID,
-			config: sink.Config,
+			sinkID:  sink.ID,
+			owner:   sink.MFOwnerID,
+			config:  sink.Config,
+			backend: sink.Backend,
 		}
 
 		encode, err := event.Encode()
@@ -77,9 +78,10 @@ func (es sinksStreamProducer) CreateSink(ctx context.Context, token string, s si
 func (es sinksStreamProducer) UpdateSinkInternal(ctx context.Context, s sinks.Sink) (sink sinks.Sink, err error) {
 	defer func() {
 		event := updateSinkEvent{
-			sinkID: sink.ID,
-			owner:  sink.MFOwnerID,
-			config: sink.Config,
+			sinkID:  sink.ID,
+			owner:   sink.MFOwnerID,
+			config:  sink.Config,
+			backend: sink.Backend,
 		}
 
 		encode, err := event.Encode()
