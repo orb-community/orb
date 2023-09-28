@@ -55,11 +55,11 @@ func Test_eventService_HandleSinkCreate(t *testing.T) {
 			wantErr: true,
 		},
 	}
+	logger := zap.NewNop()
+	deploymentService := deployment.NewDeploymentService(logger, NewFakeRepository(logger), "kafka:9092", "MY_SECRET", NewTestProducer(logger))
+	d := NewEventService(logger, deploymentService, nil)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			logger := zap.NewNop()
-			deploymentService := deployment.NewDeploymentService(logger, NewFakeRepository(logger), "kafka:9092", "MY_SECRET", NewTestProducer(logger))
-			d := NewEventService(logger, deploymentService, nil)
 			ctx := context.WithValue(context.Background(), "test", tt.name)
 			if err := d.HandleSinkCreate(ctx, tt.args.event); (err != nil) != tt.wantErr {
 				t.Errorf("HandleSinkCreate() error = %v, wantErr %v", err, tt.wantErr)
@@ -122,13 +122,55 @@ func TestEventService_HandleSinkUpdate(t *testing.T) {
 			wantErr: false,
 		},
 	}
+	logger := zap.NewNop()
+	deploymentService := deployment.NewDeploymentService(logger, NewFakeRepository(logger), "kafka:9092", "MY_SECRET", NewTestProducer(logger))
+	d := NewEventService(logger, deploymentService, nil)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			logger := zap.NewNop()
-			deploymentService := deployment.NewDeploymentService(logger, NewFakeRepository(logger), "kafka:9092", "MY_SECRET", NewTestProducer(logger))
-			d := NewEventService(logger, deploymentService, nil)
 			ctx := context.WithValue(context.Background(), "test", tt.name)
 			if err := d.HandleSinkUpdate(ctx, tt.args.event); (err != nil) != tt.wantErr {
+				t.Errorf("HandleSinkCreate() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestEventService_HandleSinkDelete(t *testing.T) {
+	type args struct {
+		event redis.SinksUpdateEvent
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "delete event when there is none in db",
+			args: args{
+				event: redis.SinksUpdateEvent{
+					SinkID: "sink1",
+					Owner:  "owner1",
+					Config: types.Metadata{
+						"exporter": types.Metadata{
+							"remote_host": "https://acme.com/prom/push",
+						},
+						"authentication": types.Metadata{
+							"type":     "basicauth",
+							"username": "prom-user-2",
+							"password": "dbpass-2",
+						},
+					},
+				},
+			},
+		},
+	}
+	logger := zap.NewNop()
+	deploymentService := deployment.NewDeploymentService(logger, NewFakeRepository(logger), "kafka:9092", "MY_SECRET", NewTestProducer(logger))
+	d := NewEventService(logger, deploymentService, nil)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.WithValue(context.Background(), "test", tt.name)
+			if err := d.HandleSinkDelete(ctx, tt.args.event); (err != nil) != tt.wantErr {
 				t.Errorf("HandleSinkCreate() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
