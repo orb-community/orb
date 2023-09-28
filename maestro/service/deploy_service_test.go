@@ -130,7 +130,7 @@ func TestEventService_HandleSinkUpdate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.WithValue(context.Background(), "test", tt.name)
 			if err := d.HandleSinkUpdate(ctx, tt.args.event); (err != nil) != tt.wantErr {
-				t.Errorf("HandleSinkCreate() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("HandleSinkUpdate() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
@@ -183,13 +183,13 @@ func TestEventService_HandleSinkDelete(t *testing.T) {
 					},
 				},
 			},
-			wantErr: true,
+			wantErr: false,
 		},
 	}
 	logger := zap.NewNop()
 	deploymentService := deployment.NewDeploymentService(logger, NewFakeRepository(logger), "kafka:9092", "MY_SECRET", NewTestProducer(logger))
 	d := NewEventService(logger, deploymentService, nil)
-	err := d.HandleSinkDelete(context.Background(), redis.SinksUpdateEvent{
+	err := d.HandleSinkCreate(context.Background(), redis.SinksUpdateEvent{
 		SinkID: "sink2",
 		Owner:  "owner2",
 		Config: types.Metadata{
@@ -208,7 +208,7 @@ func TestEventService_HandleSinkDelete(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.WithValue(context.Background(), "test", tt.name)
 			if err := d.HandleSinkDelete(ctx, tt.args.event); (err != nil) != tt.wantErr {
-				t.Errorf("HandleSinkCreate() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("HandleSinkDelete() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

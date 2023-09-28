@@ -104,7 +104,7 @@ func (d *deploymentService) GetDeployment(ctx context.Context, ownerID string, s
 		return nil, "", err
 	}
 	authType := deployment.GetConfig()
-	if authType != nil {
+	if authType == nil {
 		return nil, "", errors.New("deployment do not have authentication information")
 	}
 	value := authType.GetSubMetadata(AuthenticationKey)["type"].(string)
