@@ -50,6 +50,7 @@ func (b *BasicAuthBuilder) DecodeAuth(config types.Metadata) (types.Metadata, er
 		return nil, err
 	}
 	authCfg["password"] = decodedPassword
+	config[AuthenticationKey] = authCfg
 	return config, nil
 }
 
@@ -61,5 +62,6 @@ func (b *BasicAuthBuilder) EncodeAuth(config types.Metadata) (types.Metadata, er
 		return nil, err
 	}
 	authcfg["password"] = encodedPassword
+	config[AuthenticationKey] = authcfg
 	return config, nil
 }

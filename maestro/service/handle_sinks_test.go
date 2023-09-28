@@ -57,7 +57,7 @@ func Test_eventService_HandleSinkCreate(t *testing.T) {
 		},
 	}
 	logger := zap.NewNop()
-	deploymentService := deployment.NewDeploymentService(logger, NewFakeRepository(logger), "kafka:9092", "MY_SECRET", NewTestProducer(logger))
+	deploymentService := deployment.NewDeploymentService(logger, NewFakeRepository(logger), "kafka:9092", "MY_SECRET", NewTestProducer(logger), nil)
 	d := NewEventService(logger, deploymentService, nil)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -124,7 +124,7 @@ func TestEventService_HandleSinkUpdate(t *testing.T) {
 		},
 	}
 	logger := zap.NewNop()
-	deploymentService := deployment.NewDeploymentService(logger, NewFakeRepository(logger), "kafka:9092", "MY_SECRET", NewTestProducer(logger))
+	deploymentService := deployment.NewDeploymentService(logger, NewFakeRepository(logger), "kafka:9092", "MY_SECRET", NewTestProducer(logger), nil)
 	d := NewEventService(logger, deploymentService, nil)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -187,7 +187,7 @@ func TestEventService_HandleSinkDelete(t *testing.T) {
 		},
 	}
 	logger := zap.NewNop()
-	deploymentService := deployment.NewDeploymentService(logger, NewFakeRepository(logger), "kafka:9092", "MY_SECRET", NewTestProducer(logger))
+	deploymentService := deployment.NewDeploymentService(logger, NewFakeRepository(logger), "kafka:9092", "MY_SECRET", NewTestProducer(logger), nil)
 	d := NewEventService(logger, deploymentService, nil)
 	err := d.HandleSinkCreate(context.Background(), redis.SinksUpdateEvent{
 		SinkID: "sink2",
