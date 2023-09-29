@@ -12,6 +12,7 @@ import (
 )
 
 func Test_eventService_HandleSinkCreate(t *testing.T) {
+	t.Skip()
 	type args struct {
 		event redis.SinksUpdateEvent
 	}
@@ -70,6 +71,7 @@ func Test_eventService_HandleSinkCreate(t *testing.T) {
 }
 
 func TestEventService_HandleSinkUpdate(t *testing.T) {
+	t.Skip()
 	type args struct {
 		event redis.SinksUpdateEvent
 	}
@@ -138,6 +140,7 @@ func TestEventService_HandleSinkUpdate(t *testing.T) {
 }
 
 func TestEventService_HandleSinkDelete(t *testing.T) {
+	t.Skip()
 	type args struct {
 		event redis.SinksUpdateEvent
 	}

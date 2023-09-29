@@ -152,8 +152,13 @@ func (d *deploymentService) UpdateDeployment(ctx context.Context, deployment *De
 		return err
 	}
 	deployment.LastCollectorStopTime = &now
-	if deployment == nil {
-		return errors.New("deployment is nil")
+	codedConfig, err := d.encodeConfig(deployment)
+	if err != nil {
+		return err
+	}
+	err = deployment.SetConfig(codedConfig)
+	if err != nil {
+		return err
 	}
 	updated, err := d.dbRepository.Update(ctx, deployment)
 	if err != nil {

@@ -90,8 +90,8 @@ func (d *eventService) HandleSinkDelete(ctx context.Context, event maestroredis.
 		d.logger.Warn("did not find collector entry for sink", zap.String("sink-id", event.SinkID))
 		return err
 	}
-	if deploymentEntry.LastCollectorDeployTime != nil || deploymentEntry.LastCollectorDeployTime.Before(time.Now()) {
-		if deploymentEntry.LastCollectorStopTime != nil || deploymentEntry.LastCollectorStopTime.Before(time.Now()) {
+	if deploymentEntry.LastCollectorDeployTime == nil || deploymentEntry.LastCollectorDeployTime.Before(time.Now()) {
+		if deploymentEntry.LastCollectorStopTime == nil || deploymentEntry.LastCollectorStopTime.Before(time.Now()) {
 			d.logger.Warn("collector is not running, skipping")
 		}
 	}
