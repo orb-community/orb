@@ -124,8 +124,9 @@ func TestEventService_HandleSinkUpdate(t *testing.T) {
 		},
 	}
 	logger := zap.NewNop()
-	deploymentService := deployment.NewDeploymentService(logger, NewFakeRepository(logger), "kafka:9092", "MY_SECRET", NewTestProducer(logger), nil)
-	d := NewEventService(logger, deploymentService, nil)
+	deploymentService := deployment.NewDeploymentService(logger, NewFakeRepository(logger), "kafka:9092", "MY_SECRET", NewTestProducer(logger),
+		NewTestKubeCtr(logger))
+	d := NewEventService(logger, deploymentService, NewTestKubeCtr(logger))
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.WithValue(context.Background(), "test", tt.name)
