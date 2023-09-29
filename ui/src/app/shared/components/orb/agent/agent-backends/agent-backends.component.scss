@@ -9,6 +9,7 @@ h4 {
 
 nb-tab {
   padding-bottom: 0 !important;
+  padding-left: 1rem !important;
 }
 
 nb-card {
@@ -25,6 +26,8 @@ nb-card {
   }
 
   nb-card-body {
+    padding-top: 0;
+    padding-bottom: 0 !important;
     label {
       color: #969fb9;
     }
