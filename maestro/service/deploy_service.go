@@ -120,15 +120,14 @@ func (d *eventService) HandleSinkActivity(ctx context.Context, event maestroredi
 	_, err = d.deploymentService.NotifyCollector(ctx, event.OwnerID, event.SinkID, "deploy", "", "")
 	if err != nil {
 		d.logger.Error("error trying to notify collector", zap.Error(err))
+		err2 := d.deploymentService.UpdateStatus(ctx, event.OwnerID, event.SinkID, "provisioning_error", err.Error())
+		if err2 != nil {
+			d.logger.Warn("error during notifying provisioning error, customer will not be notified of error")
+			d.logger.Error("error during update provisioning error status", zap.Error(err))
+			return err
+		}
 		return err
 	}
-	err2 := d.deploymentService.UpdateStatus(ctx, event.OwnerID, event.SinkID, "provisioning_error", err.Error())
-	if err2 != nil {
-		d.logger.Warn("error during notifying provisioning error, customer will not be notified of error")
-		d.logger.Error("error during update status", zap.Error(err))
-		return err
-	}
-
 	return nil
 }
 

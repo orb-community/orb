@@ -178,8 +178,8 @@ func (d *deploymentService) NotifyCollector(ctx context.Context, ownerID string,
 		}
 	} else if operation == "deploy" {
 		// Spin up the collector
-		if got.LastCollectorDeployTime != nil || got.LastCollectorDeployTime.Before(now) {
-			if got.LastCollectorStopTime != nil || got.LastCollectorStopTime.Before(now) {
+		if got.LastCollectorDeployTime == nil || got.LastCollectorDeployTime.Before(now) {
+			if got.LastCollectorStopTime == nil || got.LastCollectorStopTime.Before(now) {
 				d.logger.Debug("collector is not running deploying")
 				deployReq := &config.DeploymentRequest{
 					OwnerID: ownerID,
