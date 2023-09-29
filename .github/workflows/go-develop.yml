@@ -643,6 +643,7 @@ jobs:
       - package-policies
       - package-sinker
       - package-sinks
+      - package-maestro
       - package-ui
 
     runs-on: ubuntu-latest
