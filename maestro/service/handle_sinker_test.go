@@ -38,7 +38,7 @@ func TestEventService_HandleSinkActivity(t *testing.T) {
 			args: args{
 				event: redis.SinkerUpdateEvent{
 					OwnerID:   "owner2",
-					SinkID:    "sink2",
+					SinkID:    "sink22",
 					State:     "active",
 					Size:      "22",
 					Timestamp: time.Now(),
@@ -51,7 +51,7 @@ func TestEventService_HandleSinkActivity(t *testing.T) {
 		"MY_SECRET", NewTestProducer(logger), NewTestKubeCtr(logger))
 	d := NewEventService(logger, deploymentService, nil)
 	err := d.HandleSinkCreate(context.Background(), redis.SinksUpdateEvent{
-		SinkID:  "sink2",
+		SinkID:  "sink22",
 		Owner:   "owner2",
 		Backend: "prometheus",
 		Config: types.Metadata{
@@ -103,7 +103,7 @@ func TestEventService_HandleSinkIdle(t *testing.T) {
 			args: args{
 				event: redis.SinkerUpdateEvent{
 					OwnerID:   "owner2",
-					SinkID:    "sink2",
+					SinkID:    "sink222",
 					State:     "idle",
 					Size:      "22",
 					Timestamp: time.Now(),
@@ -112,10 +112,11 @@ func TestEventService_HandleSinkIdle(t *testing.T) {
 		},
 	}
 	logger := zap.NewNop()
-	deploymentService := deployment.NewDeploymentService(logger, NewFakeRepository(logger), "kafka:9092", "MY_SECRET", NewTestProducer(logger), nil)
+	deploymentService := deployment.NewDeploymentService(logger, NewFakeRepository(logger), "kafka:9092", "MY_SECRET", NewTestProducer(logger),
+		NewTestKubeCtr(logger))
 	d := NewEventService(logger, deploymentService, NewTestKubeCtr(logger))
 	err := d.HandleSinkCreate(context.Background(), redis.SinksUpdateEvent{
-		SinkID:  "sink2",
+		SinkID:  "sink222",
 		Owner:   "owner2",
 		Backend: "prometheus",
 		Config: types.Metadata{
