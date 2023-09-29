@@ -11,6 +11,7 @@ nb-card {
   border: transparent;
   border-radius: 0.5rem;
   padding: 0 !important;
+  height: calc(100% - 40px) !important;
 
   nb-card-header {
     background-color: #232940;

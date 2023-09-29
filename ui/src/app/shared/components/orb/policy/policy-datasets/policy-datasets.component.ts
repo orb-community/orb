@@ -146,7 +146,11 @@ export class PolicyDatasetsComponent
       window.dispatchEvent(new Event('resize'));
     }
   }
-
+  getTableHeight() {
+    const rowHeight = 50; 
+    const headerHeight = 50; 
+    return (this.datasets.length * rowHeight) + headerHeight + 'px';
+  }
   onCreateDataset() {
     this.dialogService
       .open(DatasetFromComponent, {
