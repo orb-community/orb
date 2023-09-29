@@ -43,7 +43,8 @@ type deploymentService struct {
 
 var _ Service = (*deploymentService)(nil)
 
-func NewDeploymentService(logger *zap.Logger, repository Repository, kafkaUrl string, encryptionKey string, maestroProducer producer.Producer) Service {
+func NewDeploymentService(logger *zap.Logger, repository Repository, kafkaUrl string, encryptionKey string,
+	maestroProducer producer.Producer, kubecontrol kubecontrol.Service) Service {
 	namedLogger := logger.Named("deployment-service")
 	es := password.NewEncryptionService(logger, encryptionKey)
 	cb := config.NewConfigBuilder(namedLogger, kafkaUrl, es)
@@ -52,6 +53,7 @@ func NewDeploymentService(logger *zap.Logger, repository Repository, kafkaUrl st
 		configBuilder:     cb,
 		encryptionService: es,
 		maestroProducer:   maestroProducer,
+		kubecontrol:       kubecontrol,
 	}
 }
 
@@ -104,7 +106,7 @@ func (d *deploymentService) GetDeployment(ctx context.Context, ownerID string, s
 		return nil, "", err
 	}
 	authType := deployment.GetConfig()
-	if authType != nil {
+	if authType == nil {
 		return nil, "", errors.New("deployment do not have authentication information")
 	}
 	value := authType.GetSubMetadata(AuthenticationKey)["type"].(string)
@@ -176,8 +178,8 @@ func (d *deploymentService) NotifyCollector(ctx context.Context, ownerID string,
 		}
 	} else if operation == "deploy" {
 		// Spin up the collector
-		if got.LastCollectorDeployTime != nil || got.LastCollectorDeployTime.Before(now) {
-			if got.LastCollectorStopTime != nil || got.LastCollectorStopTime.Before(now) {
+		if got.LastCollectorDeployTime == nil || got.LastCollectorDeployTime.Before(now) {
+			if got.LastCollectorStopTime == nil || got.LastCollectorStopTime.Before(now) {
 				d.logger.Debug("collector is not running deploying")
 				deployReq := &config.DeploymentRequest{
 					OwnerID: ownerID,

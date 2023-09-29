@@ -37,7 +37,7 @@ func NewEventService(logger *zap.Logger, service deployment.Service, _ kubecontr
 func (d *eventService) HandleSinkCreate(ctx context.Context, event maestroredis.SinksUpdateEvent) error {
 	d.logger.Debug("handling sink create event", zap.String("sink-id", event.SinkID), zap.String("owner-id", event.Owner))
 	// Create Deployment Entry
-	entry := deployment.NewDeployment(event.Owner, event.SinkID, event.Config)
+	entry := deployment.NewDeployment(event.Owner, event.SinkID, event.Config, event.Backend)
 	// Use deploymentService, which will create deployment in both postgres and redis
 	err := d.deploymentService.CreateDeployment(ctx, &entry)
 	if err != nil {
@@ -53,8 +53,18 @@ func (d *eventService) HandleSinkUpdate(ctx context.Context, event maestroredis.
 	// check if exists deployment entry from postgres
 	entry, _, err := d.deploymentService.GetDeployment(ctx, event.Owner, event.SinkID)
 	if err != nil {
-		d.logger.Error("error trying to get deployment entry", zap.Error(err))
-		return err
+		if err.Error() != "not found" {
+			d.logger.Error("error trying to get deployment entry", zap.Error(err))
+			return err
+		} else {
+			newEntry := deployment.NewDeployment(event.Owner, event.SinkID, event.Config, event.Backend)
+			err := d.deploymentService.CreateDeployment(ctx, &newEntry)
+			if err != nil {
+				d.logger.Error("error trying to recreate deployment entry", zap.Error(err))
+				return err
+			}
+			entry = &newEntry
+		}
 	}
 	// async update sink status to provisioning
 	go func() {
@@ -110,15 +120,14 @@ func (d *eventService) HandleSinkActivity(ctx context.Context, event maestroredi
 	_, err = d.deploymentService.NotifyCollector(ctx, event.OwnerID, event.SinkID, "deploy", "", "")
 	if err != nil {
 		d.logger.Error("error trying to notify collector", zap.Error(err))
+		err2 := d.deploymentService.UpdateStatus(ctx, event.OwnerID, event.SinkID, "provisioning_error", err.Error())
+		if err2 != nil {
+			d.logger.Warn("error during notifying provisioning error, customer will not be notified of error")
+			d.logger.Error("error during update provisioning error status", zap.Error(err))
+			return err
+		}
 		return err
 	}
-	err2 := d.deploymentService.UpdateStatus(ctx, event.OwnerID, event.SinkID, "provisioning_error", err.Error())
-	if err2 != nil {
-		d.logger.Warn("error during notifying provisioning error, customer will not be notified of error")
-		d.logger.Error("error during update status", zap.Error(err))
-		return err
-	}
-
 	return nil
 }
 

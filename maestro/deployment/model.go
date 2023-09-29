@@ -21,13 +21,14 @@ type Deployment struct {
 	LastCollectorStopTime   *time.Time `db:"last_collector_stop_time" json:"lastCollectorStopTime"`
 }
 
-func NewDeployment(ownerID string, sinkID string, config types.Metadata) Deployment {
+func NewDeployment(ownerID string, sinkID string, config types.Metadata, backend string) Deployment {
 	now := time.Now()
 	deploymentName := "otel-" + sinkID
 	configAsByte := toByte(config)
 	return Deployment{
 		OwnerID:          ownerID,
 		SinkID:           sinkID,
+		Backend:          backend,
 		Config:           configAsByte,
 		LastStatus:       "pending",
 		LastStatusUpdate: &now,
