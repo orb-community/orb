@@ -36,6 +36,20 @@ type repositoryService struct {
 func (r *repositoryService) FetchAll(ctx context.Context) ([]Deployment, error) {
 	tx := r.db.MustBeginTx(ctx, nil)
 	var deployments []Deployment
+	query := `
+	SELECT id,
+		   owner_id,
+		   sink_id,
+		   backend,
+		   config,
+		   last_status,
+		   last_status_update,
+		   last_error_message,
+		   last_error_time,
+		   collector_name,
+		   last_collector_deploy_time,
+		   last_collector_stop_time
+	FROM deployments`
 	err := tx.SelectContext(ctx, &deployments, "SELECT * FROM deployments", nil)
 	if err != nil {
 		_ = tx.Rollback()
