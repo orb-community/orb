@@ -17,6 +17,16 @@
       style="color: #df316f !important;">
       Discard
     </button>
+    <button 
+      class="upload-button" 
+      (click)="fileInput.click()"
+      *ngIf="editMode">
+      <nb-icon icon="upload-outline" pack="eva">
+      </nb-icon>
+        Upload file
+    </button>
+    <input type="file" (change)="onFileSelected($event)" #fileInput style="display: none" class="upload-input">
+
   </nb-card-header>
   <nb-card-body>
     <!--    <div *ngIf="editMode; then updateView else readView"></div>-->

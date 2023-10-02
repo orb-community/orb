@@ -154,8 +154,8 @@
               YAML
             </button>
           </div>
-          <div style="display: flex; margin-top: 10px; margin-bottom: 10px; gap: 34px;">
-            <p class="summary-accent align">Paste or Upload your {{isJsonMode ? 'Json' : 'Yaml'}} configuration</p>
+          <div style="display: flex; margin-top: 10px; margin-bottom: 10px; gap: 60px;">
+            <span class="summary-accent align">Paste or Upload your {{isJsonMode ? 'Json' : 'Yaml'}} configuration</span>
             <button class="upload-button align" (click)="fileInput.click()">
               <nb-icon [icon]="uploadIconKey" pack="eva">
               </nb-icon>
@@ -181,7 +181,9 @@
                   class="code-editor">
                 </ngx-monaco-editor>
               </ng-container>
+              <span class="errorMessage">{{ errorConfigMessage }}</span>
             </div>
+            
           </div>
           <div class="d-flex justify-content-end">
             <button
