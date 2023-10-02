@@ -50,7 +50,7 @@ func (r *repositoryService) FetchAll(ctx context.Context) ([]Deployment, error) 
 		   last_collector_deploy_time,
 		   last_collector_stop_time
 	FROM deployments`
-	err := tx.SelectContext(ctx, &deployments, "SELECT * FROM deployments", nil)
+	err := tx.SelectContext(ctx, &deployments, query, nil)
 	if err != nil {
 		_ = tx.Rollback()
 		return nil, err
