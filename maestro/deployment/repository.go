@@ -149,7 +149,6 @@ func (r *repositoryService) Remove(ctx context.Context, ownerId string, sinkId s
 func (r *repositoryService) FindByOwnerAndSink(ctx context.Context, ownerId string, sinkId string) (*Deployment, error) {
 	tx := r.db.MustBeginTx(ctx, nil)
 	var rows []Deployment
-	args := []interface{}{ownerId, sinkId}
 	query := `
 		SELECT id, 
 		       owner_id, 
@@ -165,7 +164,7 @@ func (r *repositoryService) FindByOwnerAndSink(ctx context.Context, ownerId stri
 		       last_collector_stop_time
 		       FROM deployments WHERE owner_id = ? AND sink_id = ?
 		     `
-	err := tx.SelectContext(ctx, &rows, query, args)
+	err := tx.SelectContext(ctx, &rows, query, ownerId, sinkId)
 	if err != nil {
 		_ = tx.Rollback()
 		return nil, err
