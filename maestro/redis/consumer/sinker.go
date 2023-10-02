@@ -42,7 +42,10 @@ func (s *sinkerActivityListenerService) ReadSinksActivity(ctx context.Context) e
 				Streams:  []string{activityStream, ">"},
 			}).Result()
 			if err != nil || len(streams) == 0 {
-				return
+				if err != nil {
+					s.logger.Error("error reading idle stream", zap.Error(err))
+				}
+				continue
 			}
 			for _, msg := range streams[0].Messages {
 				event := maestroredis.SinkerUpdateEvent{}
@@ -75,8 +78,11 @@ func (s *sinkerActivityListenerService) ReadSinksIdle(ctx context.Context) error
 				Consumer: "orb_maestro-es-consumer",
 				Streams:  []string{idleStream, ">"},
 			}).Result()
-			if err != nil {
-				return
+			if err != nil || len(streams) == 0 {
+				if err != nil {
+					s.logger.Error("error reading idle stream", zap.Error(err))
+				}
+				continue
 			}
 			for _, msg := range streams[0].Messages {
 				event := maestroredis.SinkerUpdateEvent{}
