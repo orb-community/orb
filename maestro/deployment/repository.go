@@ -135,8 +135,23 @@ func (r *repositoryService) Remove(ctx context.Context, ownerId string, sinkId s
 func (r *repositoryService) FindByOwnerAndSink(ctx context.Context, ownerId string, sinkId string) (*Deployment, error) {
 	tx := r.db.MustBeginTx(ctx, nil)
 	var rows []Deployment
-	err := tx.SelectContext(ctx, &rows, "SELECT * FROM deployments WHERE owner_id = :owner_id AND sink_id = :sink_id",
-		map[string]interface{}{"owner_id": ownerId, "sink_id": sinkId})
+	args := []interface{}{ownerId, sinkId}
+	query := `
+		SELECT id, 
+		       owner_id, 
+		       sink_id, 
+		       backend,
+		       config,
+		       last_status,
+		       last_status_update,
+		       last_error_message,
+		       last_error_time,
+		       collector_name,
+		       last_collector_deploy_time,
+		       last_collector_stop_time
+		       FROM deployments WHERE owner_id = $1 AND sink_id = $2
+		     `
+	err := tx.SelectContext(ctx, &rows, query, args)
 	if err != nil {
 		_ = tx.Rollback()
 		return nil, err
