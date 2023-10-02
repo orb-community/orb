@@ -76,6 +76,7 @@ func (r *repositoryService) Add(ctx context.Context, deployment *Deployment) (*D
 		_ = tx.Rollback()
 		return nil, err
 	}
+
 	r.logger.Debug("added deployment", zap.String("owner-id", deployment.OwnerID), zap.String("sink-id", deployment.SinkID))
 	err = tx.Commit()
 	if err != nil {
