@@ -121,4 +121,16 @@ export class PolicyInterfaceComponent implements OnInit, AfterViewInit, OnChange
     this.updateForm();
     !!notify && this.editModeChange.emit(this.editMode);
   }
+
+  onFileSelected(event: any) {
+    const file: File = event.target.files[0];
+    const reader: FileReader = new FileReader();
+  
+    reader.onload = (e: any) => {
+    const fileContent = e.target.result;
+    this.code = fileContent;
+    };
+  
+    reader.readAsText(file);
+  }
 }

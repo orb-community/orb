@@ -49,6 +49,8 @@ export class AgentPolicyAddComponent {
 
   editorVisible = true;
 
+  errorConfigMessage: string;
+
   @ViewChild('editorComponentYaml')
   editorYaml;
 
@@ -152,6 +154,7 @@ kind: collection`;
     this.agentPolicyID = this.route.snapshot.paramMap.get('id');
     this.agentPolicy = this.newAgent();
     this.isEdit = !!this.agentPolicyID;
+    this.errorConfigMessage = '';
 
     this.readyForms();
 
@@ -339,9 +342,23 @@ kind: collection`;
   }
   canCreate() {
     if (this.isJsonMode) {
-      return this.editor.isJson(this.codejson);
+      if (this.editor.isJson(this.codejson)) {
+        this.errorConfigMessage = '';
+        return true;
+      }
+      else {
+        this.errorConfigMessage = 'Invalid JSON configuration, check syntax errors';
+        return false;
+      }
     } else {
-      return this.editor.isYaml(this.codeyaml);
+      if (this.editor.isYaml(this.codeyaml) && !this.editor.isJson(this.codeyaml)) {
+        this.errorConfigMessage = '';
+        return true;
+      }
+      else {
+        this.errorConfigMessage = 'Invalid YAML configuration, check syntax errors';
+        return false;
+      }
     }
   }
   refreshEditor() {

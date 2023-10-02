@@ -142,6 +142,9 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
 
     try {
       if (format === 'yaml') {
+        if (this.editor.isJson(policyInterface)) {
+          throw new Error('Invalid YAML format');
+        }
         yaml.load(policyInterface);
 
         interfacePartial = {
@@ -181,6 +184,7 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
         'Failed to edit Agent Policy',
         `Error: Invalid ${format.toUpperCase()}`,
       );
+      this.isRequesting = false;
     }
   }
 
