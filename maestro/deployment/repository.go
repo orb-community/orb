@@ -149,7 +149,7 @@ func (r *repositoryService) FindByOwnerAndSink(ctx context.Context, ownerId stri
 		       collector_name,
 		       last_collector_deploy_time,
 		       last_collector_stop_time
-		       FROM deployments WHERE owner_id = $1 AND sink_id = $2
+		       FROM deployments WHERE owner_id = ? AND sink_id = ?
 		     `
 	err := tx.SelectContext(ctx, &rows, query, args)
 	if err != nil {
