@@ -35,7 +35,11 @@ func (sue SinksUpdateEvent) Decode(values map[string]interface{}) {
 	sue.Owner = values["owner"].(string)
 	sue.Config = types.FromMap(values["config"].(map[string]interface{}))
 	sue.Backend = values["backend"].(string)
-	sue.Timestamp = values["timestamp"].(time.Time)
+	var err error
+	sue.Timestamp, err = time.Parse(time.RFC3339, values["timestamp"].(string))
+	if err != nil {
+		sue.Timestamp = time.Now()
+	}
 }
 
 func (cse SinkerUpdateEvent) Decode(values map[string]interface{}) {
@@ -43,7 +47,11 @@ func (cse SinkerUpdateEvent) Decode(values map[string]interface{}) {
 	cse.SinkID = values["sink_id"].(string)
 	cse.State = values["state"].(string)
 	cse.Size = values["size"].(string)
-	cse.Timestamp = values["timestamp"].(time.Time)
+	var err error
+	cse.Timestamp, err = time.Parse(time.RFC3339, values["timestamp"].(string))
+	if err != nil {
+		cse.Timestamp = time.Now()
+	}
 }
 
 func (cse SinkerUpdateEvent) Encode() map[string]interface{} {
