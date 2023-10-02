@@ -76,9 +76,17 @@ func (r *repositoryService) Add(ctx context.Context, deployment *Deployment) (*D
 		_ = tx.Rollback()
 		return nil, err
 	}
-
 	r.logger.Debug("added deployment", zap.String("owner-id", deployment.OwnerID), zap.String("sink-id", deployment.SinkID))
-	return deployment, tx.Commit()
+	err = tx.Commit()
+	if err != nil {
+		return nil, err
+	}
+	got, err := r.FindByOwnerAndSink(ctx, deployment.OwnerID, deployment.SinkID)
+	if err != nil {
+		return nil, err
+	}
+	deployment.Id = got.Id
+	return deployment, nil
 }
 
 func (r *repositoryService) Update(ctx context.Context, deployment *Deployment) (*Deployment, error) {
@@ -149,30 +157,14 @@ func (r *repositoryService) Remove(ctx context.Context, ownerId string, sinkId s
 func (r *repositoryService) FindByOwnerAndSink(ctx context.Context, ownerId string, sinkId string) (*Deployment, error) {
 	tx := r.db.MustBeginTx(ctx, nil)
 	var rows []Deployment
-	args := []interface{}{ownerId, sinkId}
-	query := `
-		SELECT id, 
-		       owner_id, 
-		       sink_id, 
-		       backend,
-		       config,
-		       last_status,
-		       last_status_update,
-		       last_error_message,
-		       last_error_time,
-		       collector_name,
-		       last_collector_deploy_time,
-		       last_collector_stop_time
-		       FROM deployments WHERE owner_id = ? AND sink_id = ?
-		     `
-	err := tx.SelectContext(ctx, &rows, query, args)
+	query := `SELECT * FROM deployments WHERE owner_id = $1 AND sink_id = $2`
+	err := tx.SelectContext(ctx, &rows, query, ownerId, sinkId)
 	if err != nil {
 		_ = tx.Rollback()
 		return nil, err
 	}
 	err = tx.Commit()
 	if err != nil {
-		_ = tx.Rollback()
 		return nil, err
 	}
 	if len(rows) == 0 {
