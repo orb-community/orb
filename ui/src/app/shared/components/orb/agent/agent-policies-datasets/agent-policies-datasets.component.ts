@@ -51,6 +51,10 @@ export class AgentPoliciesDatasetsComponent implements OnInit, OnChanges {
     this.amountRunningPolicies = 0;
   }
 
+  identify(index, item) {
+    return item.id;
+  }
+
   ngOnInit(): void { 
     this.getAmountRunningPolicies();
   }
