@@ -72,6 +72,8 @@ func (s *sinkStatusListener) ReceiveMessage(ctx context.Context, message redis.X
 	logger := s.logger.Named(fmt.Sprintf("sink_status_msg:%s", message.ID))
 	go func(ctx context.Context, logger *zap.Logger, message redis.XMessage) {
 		event := s.decodeMessage(message.Values)
+		logger.Info("received message from maestro", zap.String("owner_id", event.OwnerID),
+			zap.String("sink_id", event.SinkID), zap.String("state", event.State), zap.String("msg", event.Msg))
 		gotSink, err := s.sinkService.ViewSinkInternal(ctx, event.OwnerID, event.SinkID)
 		if err != nil {
 			logger.Error("failed to get sink for sink_id from message", zap.String("owner_id", event.OwnerID),
