@@ -281,10 +281,10 @@ func (svc sinkService) UpdateSinkStatusInternal(ctx context.Context, sink Sink) 
 		Exporter:       be,
 	}
 
-	currentSink.State = sink.State
-	currentSink.Error = sink.Error
-
-	err = svc.sinkRepo.Update(ctx, currentSink)
+	err = svc.sinkRepo.UpdateSinkState(ctx, sink.ID, sink.Error, currentSink.MFOwnerID, sink.State)
+	if err != nil {
+		return Sink{}, errors.Wrap(ErrUpdateEntity, err)
+	}
 	if err != nil {
 		return Sink{}, errors.Wrap(ErrUpdateEntity, err)
 	}
