@@ -2,13 +2,14 @@ package producer
 
 import (
 	"context"
+	"time"
+
 	"github.com/go-redis/redis/v8"
 	"go.uber.org/zap"
-	"time"
 )
 
 const (
-	streamID  = "orb.maestro"
+	streamID  = "orb.maestro.sink_status"
 	streamLen = 1000
 )
 
