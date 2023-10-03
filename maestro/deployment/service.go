@@ -170,14 +170,14 @@ func (d *deploymentService) UpdateDeployment(ctx context.Context, deployment *De
 }
 
 func (d *deploymentService) NotifyCollector(ctx context.Context, ownerID string, sinkId string, operation string, status string, errorMessage string) (string, error) {
-	got, deployName, err := d.GetDeployment(ctx, ownerID, sinkId)
+	got, _, err := d.GetDeployment(ctx, ownerID, sinkId)
 	if err != nil {
 		return "", errors.New("could not find deployment to update")
 	}
 	now := time.Now()
 	if operation == "delete" {
 		got.LastCollectorStopTime = &now
-		err = d.kubecontrol.KillOtelCollector(ctx, deployName, got.SinkID)
+		err = d.kubecontrol.KillOtelCollector(ctx, got.CollectorName, got.SinkID)
 		if err != nil {
 			d.logger.Warn("could not stop running collector, will try to update anyway", zap.Error(err))
 		}

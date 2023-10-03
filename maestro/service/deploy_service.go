@@ -104,6 +104,8 @@ func (d *eventService) HandleSinkDelete(ctx context.Context, event maestroredis.
 
 func (d *eventService) HandleSinkActivity(ctx context.Context, event maestroredis.SinkerUpdateEvent) error {
 	if event.State != "active" {
+		d.logger.Error("trying to deploy sink that is not active", zap.String("sink-id", event.SinkID),
+			zap.String("status", event.State))
 		return errors.New("trying to deploy sink that is not active")
 	}
 	d.logger.Debug("handling sink activity event", zap.String("sink-id", event.SinkID))
