@@ -167,10 +167,12 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			}
 		}
 		if sink == nil {
-			svc.logger.Warn("collector not found for sink, depleting collector", zap.String("collector name", collector.Name))
+			svc.logger.Warn("sink not found for collector, depleting collector", zap.String("collector name", collector.Name))
 			sinkId := collector.Name[5:41]
 			deploymentName := "otel-" + sinkId
-			err = svc.kubecontrol.KillOtelCollector(ctx, deploymentName, sinkId)
+			svc.logger.Debug("compare deploymentName with collector name", zap.String("deploy name", deploymentName),
+				zap.String("collector name", collector.Name))
+			err = svc.kubecontrol.KillOtelCollector(ctx, collector.Name, sinkId)
 			if err != nil {
 				svc.logger.Error("error removing otel collector", zap.Error(err))
 			}
