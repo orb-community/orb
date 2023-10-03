@@ -67,19 +67,28 @@ func (bs *SinkerOtelBridgeService) IncrementMessageCounter(publisher, subtopic, 
 
 // NotifyActiveSink notify the sinker that a sink is active
 func (bs *SinkerOtelBridgeService) NotifyActiveSink(ctx context.Context, mfOwnerId, sinkId, size string) error {
-	bs.logger.Debug("notifying active sink", zap.String("sink_id", sinkId), zap.String("owner_id", mfOwnerId),
-		zap.String("payload_size", size))
-	event := producer.SinkActivityEvent{
-		OwnerID:   mfOwnerId,
-		SinkID:    sinkId,
-		State:     "active",
-		Size:      size,
-		Timestamp: time.Now(),
+	cacheKey := fmt.Sprintf("active_sink-%s-%s", mfOwnerId, sinkId)
+	_, found := bs.inMemoryCache.Get(cacheKey)
+	if !found {
+		bs.logger.Debug("notifying active sink", zap.String("sink_id", sinkId), zap.String("owner_id", mfOwnerId),
+			zap.String("payload_size", size))
+		event := producer.SinkActivityEvent{
+			OwnerID:   mfOwnerId,
+			SinkID:    sinkId,
+			State:     "active",
+			Size:      size,
+			Timestamp: time.Now(),
+		}
+		err := bs.sinkerActivitySvc.PublishSinkActivity(ctx, event)
+		if err != nil {
+			bs.logger.Error("error publishing sink activity", zap.Error(err))
+		}
+		bs.inMemoryCache.Set(cacheKey, true, cache.DefaultExpiration)
+	} else {
+		bs.logger.Debug("active sink already notified", zap.String("sink_id", sinkId), zap.String("owner_id", mfOwnerId),
+			zap.String("payload_size", size))
 	}
-	err := bs.sinkerActivitySvc.PublishSinkActivity(ctx, event)
-	if err != nil {
-		bs.logger.Error("error publishing sink activity", zap.Error(err))
-	}
+
 	return nil
 }
 
