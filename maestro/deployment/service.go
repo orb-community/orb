@@ -169,7 +169,8 @@ func (d *deploymentService) UpdateDeployment(ctx context.Context, deployment *De
 	return nil
 }
 
-func (d *deploymentService) NotifyCollector(ctx context.Context, ownerID string, sinkId string, operation string, status string, errorMessage string) (string, error) {
+func (d *deploymentService) NotifyCollector(ctx context.Context, ownerID string, sinkId string, operation string,
+	status string, errorMessage string) (string, error) {
 	got, _, err := d.GetDeployment(ctx, ownerID, sinkId)
 	if err != nil {
 		return "", errors.New("could not find deployment to update")
