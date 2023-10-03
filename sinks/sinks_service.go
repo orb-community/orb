@@ -218,8 +218,9 @@ func (svc sinkService) UpdateSinkInternal(ctx context.Context, sink Sink) (Sink,
 		defaultMetadata := make(types.Metadata, 1)
 		defaultMetadata["opentelemetry"] = "enabled"
 		sink.Config.Merge(defaultMetadata)
-		sink.State = Unknown
+
 		sink.Error = ""
+		sink.State = Unknown
 		if sink.Format == "yaml" {
 			configDataByte, err := yaml.Marshal(sink.Config)
 			if err != nil {
@@ -250,6 +251,40 @@ func (svc sinkService) UpdateSinkInternal(ctx context.Context, sink Sink) (Sink,
 		return Sink{}, errors.Wrap(ErrUpdateEntity, err)
 	}
 	err = svc.sinkRepo.Update(ctx, sink)
+	if err != nil {
+		return Sink{}, errors.Wrap(ErrUpdateEntity, err)
+	}
+	sinkEdited, err := svc.sinkRepo.RetrieveById(ctx, sink.ID)
+	if err != nil {
+		return Sink{}, errors.Wrap(ErrUpdateEntity, err)
+	}
+	sinkEdited, err = svc.decryptMetadata(cfg, sinkEdited)
+	if err != nil {
+		return Sink{}, errors.Wrap(ErrUpdateEntity, err)
+	}
+
+	return sinkEdited, nil
+}
+
+func (svc sinkService) UpdateSinkStatusInternal(ctx context.Context, sink Sink) (Sink, error) {
+	var currentSink Sink
+	currentSink, err := svc.sinkRepo.RetrieveById(ctx, sink.ID)
+	if err != nil {
+		return Sink{}, errors.Wrap(ErrUpdateEntity, err)
+	}
+	var cfg Configuration
+	authType, _ := authentication_type.GetAuthType(currentSink.GetAuthenticationTypeName())
+	be := backend.GetBackend(currentSink.Backend)
+
+	cfg = Configuration {
+		Authentication: authType,
+		Exporter:       be,
+	}
+
+	currentSink.State = sink.State
+	currentSink.Error = sink.Error
+
+	err = svc.sinkRepo.Update(ctx, currentSink)
 	if err != nil {
 		return Sink{}, errors.Wrap(ErrUpdateEntity, err)
 	}
