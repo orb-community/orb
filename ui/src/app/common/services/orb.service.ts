@@ -74,7 +74,7 @@ export class OrbService implements OnDestroy {
       this.pollController$.pipe(
         switchMap((control) => {
           if (control === PollControls.RESUME)
-            return defer(() => timer(1, this.pollInterval)); 
+            return defer(() => timer(1, this.pollInterval));
           return EMPTY;
         }),
       ),
@@ -116,12 +116,11 @@ export class OrbService implements OnDestroy {
 
     if (localStorage.getItem(pollIntervalKey)) {
       pollInterval = Number(localStorage.getItem(pollIntervalKey));
-    } 
-    else {
+    } else {
       pollInterval = 60000;
       localStorage.setItem(pollIntervalKey, pollInterval.toString());
     }
-  
+
     return pollInterval;
   }
 
@@ -209,7 +208,7 @@ export class OrbService implements OnDestroy {
               : of([]);
           return groups$.pipe(map((groups) => ({ agent, groups, datasets })));
         }),
-      )
+      ),
     );
   }
 
@@ -267,8 +266,8 @@ export class OrbService implements OnDestroy {
           policy: { ...policy, groups, datasets },
           groups,
         })),
-      )
-    ); 
+      ),
+    );
   }
 
   getSinkView(id: string) {

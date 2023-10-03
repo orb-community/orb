@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Agent, AgentStates } from 'app/common/interfaces/orb/agent.interface';
 import { Tags } from 'app/common/interfaces/orb/tag';
@@ -11,7 +11,7 @@ import { OrbService } from 'app/common/services/orb.service';
   templateUrl: './agent-information.component.html',
   styleUrls: ['./agent-information.component.scss'],
 })
-export class AgentInformationComponent implements OnInit {
+export class AgentInformationComponent implements OnInit, OnChanges {
   @Input() agent: Agent;
 
   isResetting: boolean;
@@ -33,7 +33,7 @@ export class AgentInformationComponent implements OnInit {
     protected agentsService: AgentsService,
     protected notificationService: NotificationsService,
     private fb: FormBuilder,
-    private orb: OrbService
+    private orb: OrbService,
   ) {
     this.isResetting = false;
     this.isRequesting = false;
@@ -74,7 +74,7 @@ export class AgentInformationComponent implements OnInit {
       this.selectedTags = this.agent?.orb_tags || {};
     }
   }
-  
+
   resetAgent() {
     if (!this.isResetting) {
       this.isResetting = true;
@@ -99,8 +99,7 @@ export class AgentInformationComponent implements OnInit {
     this.editMode = value;
     if (this.editMode) {
       this.orb.pausePolling();
-    }
-    else {
+    } else {
       this.orb.startPolling();
     }
     this.updateForm();
@@ -117,7 +116,7 @@ export class AgentInformationComponent implements OnInit {
     const payload = {
       name: name,
       orb_tags: { ...this.selectedTags },
-    }
+    };
     this.agentsService.editAgent({ ...payload, id: this.agent.id }).subscribe(() => {
       this.notificationService.success('Agent successfully updated', '');
       this.orb.refreshNow();
@@ -132,8 +131,8 @@ export class AgentInformationComponent implements OnInit {
   hasChanges() {
     const name = this.formGroup.controls.name.value;
 
-    let selectedTags = JSON.stringify(this.selectedTags);
-    let orb_tags = JSON.stringify(this.agent.orb_tags);
+    const selectedTags = JSON.stringify(this.selectedTags);
+    const orb_tags = JSON.stringify(this.agent.orb_tags);
 
     if (this.agent.name !== name || selectedTags !== orb_tags) {
       return true;

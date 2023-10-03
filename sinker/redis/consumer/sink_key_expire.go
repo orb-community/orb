@@ -2,7 +2,6 @@ package consumer
 
 import (
 	"context"
-	"fmt"
 	"github.com/go-redis/redis/v8"
 	"github.com/orb-community/orb/sinker/redis/producer"
 	"go.uber.org/zap"
@@ -39,7 +38,7 @@ func (s *sinkerKeyExpirationListener) SubscribeToKeyExpiration(ctx context.Conte
 			case <-ctx.Done():
 				return
 			case msg := <-ch:
-				s.logger.Info(fmt.Sprintf("key %s expired", msg.Payload))
+				s.logger.Info("key expired", zap.String("key", msg.Payload))
 				subCtx := context.WithValue(ctx, "msg", msg.Payload)
 				err := s.ReceiveMessage(subCtx, msg.Payload)
 				if err != nil {

@@ -23,7 +23,7 @@ export enum SinkStates {
  */
 export enum SinkBackends {
   prometheus = 'prometheus',
-  otlp = 'otlphttp'
+  otlp = 'otlphttp',
 }
 
 /**
