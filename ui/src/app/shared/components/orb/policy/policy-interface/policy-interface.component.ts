@@ -80,11 +80,11 @@ export class PolicyInterfaceComponent implements OnInit, AfterViewInit, OnChange
       const model = editorInstance.getModel();
       editorInstance.layout();
       return model ? model.getLineCount() : 0;
-      
+
     }
     return 0;
   }
-  
+
   ngOnInit(): void {
     this.code = this.policy.policy_data || JSON.stringify(this.policy.policy, null, 2);
   }
@@ -113,8 +113,7 @@ export class PolicyInterfaceComponent implements OnInit, AfterViewInit, OnChange
     this.editMode = edit;
     if (this.editMode || this.detailsEditMode) {
       this.orb.pausePolling();
-    }
-    else {
+    } else {
       this.orb.startPolling();
     }
     this.editorOptions = { ...this.editorOptions, readOnly: !edit };
@@ -125,12 +124,12 @@ export class PolicyInterfaceComponent implements OnInit, AfterViewInit, OnChange
   onFileSelected(event: any) {
     const file: File = event.target.files[0];
     const reader: FileReader = new FileReader();
-  
+
     reader.onload = (e: any) => {
     const fileContent = e.target.result;
     this.code = fileContent;
     };
-  
+
     reader.readAsText(file);
   }
 }

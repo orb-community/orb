@@ -38,8 +38,8 @@ export class AgentViewComponent implements OnInit, OnDestroy {
 
   agentSubscription: Subscription;
 
-  configFile = 'configFile'
-  default = 'default'
+  configFile = 'configFile';
+  default = 'default';
 
   constructor(
     protected agentsService: AgentsService,

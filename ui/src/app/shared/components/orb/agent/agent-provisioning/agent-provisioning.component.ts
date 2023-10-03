@@ -1,11 +1,11 @@
-import { Component, Input, OnInit } from "@angular/core";
-import { AvailableOS } from "app/common/services/agents/agents.service";
-import { Agent, AgentStates } from "app/common/interfaces/orb/agent.interface";
+import { Component, Input, OnInit } from '@angular/core';
+import { AvailableOS } from 'app/common/services/agents/agents.service';
+import { Agent, AgentStates } from 'app/common/interfaces/orb/agent.interface';
 
 @Component({
-  selector: "ngx-agent-provisioning",
-  templateUrl: "./agent-provisioning.component.html",
-  styleUrls: ["./agent-provisioning.component.scss"],
+  selector: 'ngx-agent-provisioning',
+  templateUrl: './agent-provisioning.component.html',
+  styleUrls: ['./agent-provisioning.component.scss'],
 })
 export class AgentProvisioningComponent implements OnInit {
 
@@ -28,18 +28,16 @@ export class AgentProvisioningComponent implements OnInit {
   provisioningTypeMode = {
     default: false,
     configFile: false,
-  }
+  };
 
   constructor() {
-    this.copyCommandIcon = "copy-outline";
+    this.copyCommandIcon = 'copy-outline';
   }
 
   ngOnInit(): void {
-    console.log(this.provisioningType);
     if (this.provisioningType === 'default') {
       this.provisioningTypeMode.default = true;
-    }
-    else if (this.provisioningType === 'configFile') {
+    } else if (this.provisioningType === 'configFile') {
       this.provisioningTypeMode.configFile = true;
 
     }
@@ -47,10 +45,10 @@ export class AgentProvisioningComponent implements OnInit {
   }
 
   toggleIcon(target) {
-    if (target === "command") {
-      this.copyCommandIcon = "checkmark-outline";
+    if (target === 'command') {
+      this.copyCommandIcon = 'checkmark-outline';
       setTimeout(() => {
-        this.copyCommandIcon = "copy-outline";
+        this.copyCommandIcon = 'copy-outline';
       }, 2000);
     }
   }
