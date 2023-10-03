@@ -4,6 +4,10 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"os"
+	"os/exec"
+	"strings"
+
 	_ "github.com/orb-community/orb/maestro/config"
 	"github.com/orb-community/orb/pkg/errors"
 	"go.uber.org/zap"
@@ -11,9 +15,6 @@ import (
 	k8smetav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"os"
-	"os/exec"
-	"strings"
 )
 
 const namespace = "otelcollectors"
@@ -94,7 +95,7 @@ func (svc *deployService) collectorDeploy(ctx context.Context, operation, ownerI
 		svc.logger.Info(fmt.Sprintf("successfully %s the otel-collector for sink-id: %s", operation, sinkId))
 	}
 	// TODO this will be retrieved once we move to K8s SDK
-	collectorName := fmt.Sprintf("otelcol-%s-%s", ownerID, sinkId)
+	collectorName := fmt.Sprintf("otel-%s", sinkId)
 	return collectorName, nil
 }
 
