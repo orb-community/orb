@@ -4,36 +4,41 @@
     </xng-breadcrumb>
     <div><h4>Agent View</h4></div>
   </div>
-  <div class="right-content" style="margin-right: 15px;">
-    <ngx-poll-control></ngx-poll-control>
-  </div>
-  <div *ngIf="!isLoading" style="margin: 0 20px 0 10px;">
-    <button (click)="openDeleteModal()" class="card-button delete-button" data-orb-qa-id="button#reset" nbButton shape="round" style="color: #df316f !important;">
-      <nb-icon icon="trash-2-outline"></nb-icon>
-      Delete Agent
-    </button>
-  </div>
-  <div *ngIf="!isLoading" style="margin-bottom: 23px;">
-    <div style="float: right;">
-      <span class="orb-service-{{ agent?.state }} state">
-        <i aria-hidden="true" *ngIf="agent?.state !== agentStates.offline" class="fa fa-circle orb-service-{{ agent?.state }}"></i>
-        <i aria-hidden="true" *ngIf="agent?.state === agentStates.offline" class="fa offline-circle"></i>
-        {{ agent?.state | ngxCapitalize }}
-      </span>
+  <div class="right-content">
+    <ngx-poll-control style="margin-top: 3px;"></ngx-poll-control>
+    <div *ngIf="!isLoading">
+      <button 
+        (click)="openDeleteModal()" 
+        class="card-button delete-button" 
+        nbButton 
+        shape="round" 
+        style="color: #df316f !important; margin: 0 20px;">
+        <nb-icon icon="trash-2-outline"></nb-icon>
+        Delete Agent
+      </button>
     </div>
-    <div style="font-size: 14px; font-weight: 400; margin-top: 23px;">
-      <span *ngIf="agent?.state !== agentStates.new">
-        Last activity
-        <span *ngIf="isToday()">
-          today, at {{ agent?.ts_last_hb | date: 'HH:mm z' }}
+    <div *ngIf="!isLoading" class="state-div">
+      <div style="float: right;">
+        <span class="orb-service-{{ agent?.state }} state">
+          <i aria-hidden="true" *ngIf="agent?.state !== agentStates.offline" class="fa state-circle orb-service-background-{{ agent?.state }}"></i>
+          <i aria-hidden="true" *ngIf="agent?.state === agentStates.offline" class="fa offline-circle"></i>
+          {{ agent?.state | ngxCapitalize }}
         </span>
-        <span *ngIf="!isToday()">
-          on {{ agent?.ts_last_hb | date: 'M/d/yy, HH:mm z' }}
+      </div>
+      <div class="date">
+        <span *ngIf="agent?.state !== agentStates.new">
+          Last activity
+          <span *ngIf="isToday()">
+            today, at {{ agent?.ts_last_hb | date: 'HH:mm z' }}
+          </span>
+          <span *ngIf="!isToday()">
+            on {{ agent?.ts_last_hb | date: 'M/d/yy, HH:mm z' }}
+          </span>
         </span>
-      </span>
-      <span *ngIf="agent?.state === agentStates.new">
-        This Agent has been provisioned but never connected.
-      </span>
+        <span *ngIf="agent?.state === agentStates.new">
+          This Agent has been provisioned but never connected.
+        </span>
+      </div>
     </div>
   </div>
 </header>

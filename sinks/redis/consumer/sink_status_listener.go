@@ -55,6 +55,9 @@ func (s *sinkStatusListener) SubscribeToMaestroSinkStatus(ctx context.Context) e
 					Count:    1000,
 				}).Result()
 				if err != nil || len(streams) == 0 {
+					if err != nil {
+						rLogger.Error("failed to read group", zap.Error(err))
+					}
 					continue
 				}
 				for _, msg := range streams[0].Messages {

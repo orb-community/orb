@@ -199,13 +199,13 @@
 }
 
 .orb-service- {
-  &new {
+  &new, &unknown {
     color: #9b51e0;
   }
-  &online, &healthy {
+  &online, &healthy, &active {
     color: #6fcf97;
   }
-  &stale {
+  &stale, &idle {
     color: #f2994a;
   }
   &error, &failure {
@@ -213,6 +213,23 @@
   }
   &offline, &none {
     color: #969fb9;
+  }
+}
+.orb-service-background- {
+  &new, &unknown {
+    background-color: #9b51e0;
+  }
+  &online, &healthy, &active {
+    background-color: #6fcf97;
+  }
+  &stale, &idle {
+    background-color: #f2994a;
+  }
+  &error, &failure {
+    background-color: #df316f;
+  }
+  &offline, &none {
+    background-color: #969fb9;
   }
 }
 .required {
