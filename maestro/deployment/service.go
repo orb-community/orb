@@ -203,6 +203,14 @@ func (d *deploymentService) NotifyCollector(ctx context.Context, ownerID string,
 		got.LastErrorMessage = errorMessage
 		got.LastErrorTime = &now
 	}
+	codedConfig, err := d.encodeConfig(got)
+	if err != nil {
+		return "", err
+	}
+	err = got.SetConfig(codedConfig)
+	if err != nil {
+		return "", err
+	}
 	updated, err := d.dbRepository.Update(ctx, got)
 	if err != nil {
 		return "", err
@@ -228,6 +236,15 @@ func (d *deploymentService) UpdateStatus(ctx context.Context, ownerID string, si
 	if errorMessage != "" {
 		got.LastErrorMessage = errorMessage
 		got.LastErrorTime = &now
+	}
+
+	codedConfig, err := d.encodeConfig(got)
+	if err != nil {
+		return err
+	}
+	err = got.SetConfig(codedConfig)
+	if err != nil {
+		return err
 	}
 	updated, err := d.dbRepository.Update(ctx, got)
 	if err != nil {
