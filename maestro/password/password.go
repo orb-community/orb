@@ -31,6 +31,7 @@ type encryptionService struct {
 }
 
 func (ps *encryptionService) EncodePassword(plainText string) (string, error) {
+	ps.logger.Debug("debugging ps key", zap.String("key", ps.key))
 	cipherText, err := encrypt([]byte(plainText), ps.key)
 	if err != nil {
 		ps.logger.Error("failed to encrypt password", zap.Error(err))
@@ -40,6 +41,7 @@ func (ps *encryptionService) EncodePassword(plainText string) (string, error) {
 }
 
 func (ps *encryptionService) DecodePassword(cipheredText string) (string, error) {
+	ps.logger.Debug("debugging ps key", zap.String("key", ps.key))
 	hexedByte, err := hex.DecodeString(cipheredText)
 	if err != nil {
 		ps.logger.Error("failed to decode password", zap.Error(err))

@@ -189,10 +189,14 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			svc.logger.Error("error on getting logs, skipping", zap.Error(err))
 			continue
 		}
+		var logErrMsg string
 		status, logsErr = svc.analyzeLogs(logs)
 		if status == "fail" {
 			svc.logger.Error("error during analyze logs", zap.Error(logsErr))
 			continue
+		}
+		if logsErr != nil {
+			logErrMsg = logsErr.Error()
 		}
 
 		//set the new sink status if changed during checks
@@ -202,7 +206,7 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 				svc.logger.Error("error updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("error_message (opt)", err.Error()), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
 			} else {
 				svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
-				_ = svc.deploymentSvc.UpdateStatus(ctx, sink.OwnerID, sink.Id, status, logsErr.Error())
+				err = svc.deploymentSvc.UpdateStatus(ctx, sink.OwnerID, sink.Id, status, logErrMsg)
 			}
 		}
 	}
