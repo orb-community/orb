@@ -94,11 +94,11 @@ func (l loggingMiddleware) UpdateSinkInternal(ctx context.Context, s sinks.Sink)
 func (l loggingMiddleware) UpdateSinkStatusInternal(ctx context.Context, s sinks.Sink) (sink sinks.Sink, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			l.logger.Warn("method call: edit_internal_sink",
+			l.logger.Warn("method call: edit_sink_status_internal",
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: edit_internal_sink",
+			l.logger.Debug("method call: edit_sink_status_internal",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
