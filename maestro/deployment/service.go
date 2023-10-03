@@ -137,12 +137,12 @@ func (d *deploymentService) GetDeployment(ctx context.Context, ownerID string, s
 // it will wait for the next sink.activity
 func (d *deploymentService) UpdateDeployment(ctx context.Context, deployment *Deployment) error {
 	now := time.Now()
-	got, deployName, err := d.GetDeployment(ctx, deployment.OwnerID, deployment.SinkID)
+	got, _, err := d.GetDeployment(ctx, deployment.OwnerID, deployment.SinkID)
 	if err != nil {
 		return errors.New("could not find deployment to update")
 	}
 	// Spin down the collector if it is running
-	err = d.kubecontrol.KillOtelCollector(ctx, deployName, got.SinkID)
+	err = d.kubecontrol.KillOtelCollector(ctx, got.CollectorName, got.SinkID)
 	if err != nil {
 		d.logger.Warn("could not stop running collector, will try to update anyway", zap.Error(err))
 	}
