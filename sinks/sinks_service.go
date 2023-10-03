@@ -220,7 +220,6 @@ func (svc sinkService) UpdateSinkInternal(ctx context.Context, sink Sink) (Sink,
 		sink.Config.Merge(defaultMetadata)
 		sink.State = Unknown
 		sink.Error = ""
-
 		if sink.Format == "yaml" {
 			configDataByte, err := yaml.Marshal(sink.Config)
 			if err != nil {
