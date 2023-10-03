@@ -3,6 +3,7 @@ package consumer
 import (
 	"context"
 	"fmt"
+
 	"github.com/go-redis/redis/v8"
 	"github.com/orb-community/orb/sinks"
 	redis2 "github.com/orb-community/orb/sinks/redis"
@@ -84,6 +85,7 @@ func (s *sinkStatusListener) ReceiveMessage(ctx context.Context, message redis.X
 		if newState == sinks.Error || newState == sinks.ProvisioningError || newState == sinks.Warning {
 			gotSink.Error = event.Msg
 		}
+		gotSink.State = newState
 		_, err = s.sinkService.UpdateSinkInternal(ctx, gotSink)
 		if err != nil {
 			logger.Error("failed to update sink", zap.String("owner_id", event.OwnerID),
