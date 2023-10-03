@@ -112,7 +112,10 @@ func (d *eventService) HandleSinkActivity(ctx context.Context, event maestroredi
 
 	// async update sink status to provisioning
 	go func() {
-		_ = d.deploymentService.UpdateStatus(ctx, event.OwnerID, event.SinkID, "provisioning", "")
+		err := d.deploymentService.UpdateStatus(ctx, event.OwnerID, event.SinkID, "provisioning", "")
+		if err != nil {
+			d.logger.Error("error updating status to provisioning", zap.Error(err))
+		}
 	}()
 	_, err := d.deploymentService.NotifyCollector(ctx, event.OwnerID, event.SinkID, "deploy", "", "")
 	if err != nil {
