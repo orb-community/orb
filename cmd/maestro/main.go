@@ -38,9 +38,10 @@ import (
 )
 
 const (
-	svcName   = "maestro"
-	envPrefix = "orb_maestro"
-	httpPort  = "8500"
+	svcName    = "maestro"
+	envPrefix  = "orb_maestro"
+	sinkPrefix = "orb_sinks"
+	httpPort   = "8500"
 )
 
 func main() {
@@ -51,7 +52,7 @@ func main() {
 	jCfg := config.LoadJaegerConfig(envPrefix)
 	sinksGRPCCfg := config.LoadGRPCConfig("orb", "sinks")
 	dbCfg := config.LoadPostgresConfig(envPrefix, svcName)
-	encryptionKey := config.LoadEncryptionKey(envPrefix)
+	encryptionKey := config.LoadEncryptionKey(sinkPrefix)
 	svcCfg.EncryptionKey = encryptionKey.Key
 
 	// logger
