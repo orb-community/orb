@@ -5,11 +5,12 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/orb-community/orb/maestro/deployment"
-	"github.com/orb-community/orb/maestro/redis/producer"
 	"io"
 	"strings"
 	"time"
+
+	"github.com/orb-community/orb/maestro/deployment"
+	"github.com/orb-community/orb/maestro/redis/producer"
 
 	maestroconfig "github.com/orb-community/orb/maestro/config"
 	"github.com/orb-community/orb/maestro/kubecontrol"
@@ -172,7 +173,7 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			deploymentName := "otel-" + sinkId
 			svc.logger.Debug("compare deploymentName with collector name", zap.String("deploy name", deploymentName),
 				zap.String("collector name", collector.Name))
-			err = svc.kubecontrol.KillOtelCollector(ctx, collector.Name, sinkId)
+			err = svc.kubecontrol.KillOtelCollector(ctx, deploymentName, sinkId)
 			if err != nil {
 				svc.logger.Error("error removing otel collector", zap.Error(err))
 			}
