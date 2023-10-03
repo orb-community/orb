@@ -87,8 +87,8 @@ func (s *sinkerActivityListenerService) ReadSinksIdle(ctx context.Context) error
 			}
 			for _, msg := range streams[0].Messages {
 				event := maestroredis.SinkerUpdateEvent{}
-				s.logger.Debug("Debug Message", zap.Any("message", msg.Values))
 				event.Decode(msg.Values)
+				s.logger.Debug("Debug Message", zap.Any("message", msg.Values), zap.Any("event", event))
 				s.logger.Debug("Reading message from idle stream",
 					zap.String("message_id", msg.ID),
 					zap.String("sink_id", event.SinkID),

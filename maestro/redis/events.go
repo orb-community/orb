@@ -6,12 +6,10 @@ import (
 )
 
 const (
-	SinkerPrefix        = "sinker."
-	SinkerUpdate        = SinkerPrefix + "update"
-	SinksActivityStream = "orb.sink_activity"
-	SinksIdleStream     = "orb.sink_idle"
-	GroupMaestro        = "orb.maestro"
-	Exists              = "BUSYGROUP Consumer Group name already exists"
+	SinkerPrefix = "sinker."
+	SinkerUpdate = SinkerPrefix + "update"
+	GroupMaestro = "orb.maestro"
+	Exists       = "BUSYGROUP Consumer Group name already exists"
 )
 
 type SinksUpdateEvent struct {
@@ -30,7 +28,7 @@ type SinkerUpdateEvent struct {
 	Timestamp time.Time
 }
 
-func (sue SinksUpdateEvent) Decode(values map[string]interface{}) {
+func (sue *SinksUpdateEvent) Decode(values map[string]interface{}) {
 	sue.SinkID = values["sink_id"].(string)
 	sue.Owner = values["owner"].(string)
 	sue.Config = types.FromMap(values["config"].(map[string]interface{}))
@@ -42,7 +40,7 @@ func (sue SinksUpdateEvent) Decode(values map[string]interface{}) {
 	}
 }
 
-func (cse SinkerUpdateEvent) Decode(values map[string]interface{}) {
+func (cse *SinkerUpdateEvent) Decode(values map[string]interface{}) {
 	cse.OwnerID = values["owner_id"].(string)
 	cse.SinkID = values["sink_id"].(string)
 	cse.State = values["state"].(string)
@@ -54,7 +52,7 @@ func (cse SinkerUpdateEvent) Decode(values map[string]interface{}) {
 	}
 }
 
-func (cse SinkerUpdateEvent) Encode() map[string]interface{} {
+func (cse *SinkerUpdateEvent) Encode() map[string]interface{} {
 	return map[string]interface{}{
 		"sink_id":   cse.SinkID,
 		"owner":     cse.OwnerID,
