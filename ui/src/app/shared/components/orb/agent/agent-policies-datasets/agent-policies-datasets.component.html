@@ -6,7 +6,7 @@
       policies are running.
     </label>
     <div class="scroll">
-      <nb-accordion *ngFor="let policy of policies">
+      <nb-accordion *ngFor="let policy of policies; trackBy: identify">
         <nb-accordion-item>
           <nb-accordion-item-header>
             <span class="summary-accent">Policy:&nbsp;</span>
