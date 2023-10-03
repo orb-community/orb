@@ -6,6 +6,8 @@ package http
 
 import (
 	"context"
+	"time"
+
 	"github.com/go-kit/kit/metrics"
 	"github.com/mainflux/mainflux"
 	"github.com/orb-community/orb/pkg/errors"
@@ -13,7 +15,6 @@ import (
 	"github.com/orb-community/orb/sinks/authentication_type"
 	"github.com/orb-community/orb/sinks/backend"
 	"go.uber.org/zap"
-	"time"
 )
 
 var _ sinks.SinkService = (*metricsMiddleware)(nil)
@@ -92,6 +93,11 @@ func (m metricsMiddleware) UpdateSink(ctx context.Context, token string, s sinks
 }
 
 func (m metricsMiddleware) UpdateSinkInternal(ctx context.Context, s sinks.Sink) (sink sinks.Sink, err error) {
+
+	return m.svc.UpdateSinkInternal(ctx, s)
+}
+
+func (m metricsMiddleware) UpdateSinkStatusInternal(ctx context.Context, s sinks.Sink) (sink sinks.Sink, err error) {
 
 	return m.svc.UpdateSinkInternal(ctx, s)
 }

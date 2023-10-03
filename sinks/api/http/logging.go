@@ -6,11 +6,12 @@ package http
 
 import (
 	"context"
+	"time"
+
 	"github.com/orb-community/orb/sinks"
 	"github.com/orb-community/orb/sinks/authentication_type"
 	"github.com/orb-community/orb/sinks/backend"
 	"go.uber.org/zap"
-	"time"
 )
 
 var _ sinks.SinkService = (*loggingMiddleware)(nil)
@@ -77,6 +78,20 @@ func (l loggingMiddleware) UpdateSink(ctx context.Context, token string, s sinks
 }
 
 func (l loggingMiddleware) UpdateSinkInternal(ctx context.Context, s sinks.Sink) (sink sinks.Sink, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			l.logger.Warn("method call: edit_internal_sink",
+				zap.Error(err),
+				zap.Duration("duration", time.Since(begin)))
+		} else {
+			l.logger.Debug("method call: edit_internal_sink",
+				zap.Duration("duration", time.Since(begin)))
+		}
+	}(time.Now())
+	return l.svc.UpdateSinkInternal(ctx, s)
+}
+
+func (l loggingMiddleware) UpdateSinkStatusInternal(ctx context.Context, s sinks.Sink) (sink sinks.Sink, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			l.logger.Warn("method call: edit_internal_sink",
