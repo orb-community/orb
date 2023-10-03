@@ -171,7 +171,7 @@ func (d *deploymentService) UpdateDeployment(ctx context.Context, deployment *De
 
 func (d *deploymentService) NotifyCollector(ctx context.Context, ownerID string, sinkId string, operation string,
 	status string, errorMessage string) (string, error) {
-	got, _, err := d.GetDeployment(ctx, ownerID, sinkId)
+	got, manifest, err := d.GetDeployment(ctx, ownerID, sinkId)
 	if err != nil {
 		return "", errors.New("could not find deployment to update")
 	}
@@ -187,18 +187,6 @@ func (d *deploymentService) NotifyCollector(ctx context.Context, ownerID string,
 		if got.LastCollectorDeployTime == nil || got.LastCollectorDeployTime.Before(now) {
 			if got.LastCollectorStopTime == nil || got.LastCollectorStopTime.Before(now) {
 				d.logger.Debug("collector is not running deploying")
-				deployReq := &config.DeploymentRequest{
-					OwnerID: ownerID,
-					SinkID:  sinkId,
-					Config:  got.GetConfig(),
-					Backend: got.Backend,
-					Status:  got.LastStatus,
-				}
-				manifest, err := d.configBuilder.BuildDeploymentConfig(deployReq)
-				if err != nil {
-					d.logger.Error("error during build deployment config", zap.Error(err))
-					return "", err
-				}
 				got.CollectorName, err = d.kubecontrol.CreateOtelCollector(ctx, got.OwnerID, got.SinkID, manifest)
 				got.LastCollectorDeployTime = &now
 			} else {
