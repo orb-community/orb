@@ -137,12 +137,12 @@ func (d *deploymentService) GetDeployment(ctx context.Context, ownerID string, s
 // it will wait for the next sink.activity
 func (d *deploymentService) UpdateDeployment(ctx context.Context, deployment *Deployment) error {
 	now := time.Now()
-	got, deployName, err := d.GetDeployment(ctx, deployment.OwnerID, deployment.SinkID)
+	got, _, err := d.GetDeployment(ctx, deployment.OwnerID, deployment.SinkID)
 	if err != nil {
 		return errors.New("could not find deployment to update")
 	}
 	// Spin down the collector if it is running
-	err = d.kubecontrol.KillOtelCollector(ctx, deployName, got.SinkID)
+	err = d.kubecontrol.KillOtelCollector(ctx, got.CollectorName, got.SinkID)
 	if err != nil {
 		d.logger.Warn("could not stop running collector, will try to update anyway", zap.Error(err))
 	}
@@ -169,15 +169,16 @@ func (d *deploymentService) UpdateDeployment(ctx context.Context, deployment *De
 	return nil
 }
 
-func (d *deploymentService) NotifyCollector(ctx context.Context, ownerID string, sinkId string, operation string, status string, errorMessage string) (string, error) {
-	got, deployName, err := d.GetDeployment(ctx, ownerID, sinkId)
+func (d *deploymentService) NotifyCollector(ctx context.Context, ownerID string, sinkId string, operation string,
+	status string, errorMessage string) (string, error) {
+	got, manifest, err := d.GetDeployment(ctx, ownerID, sinkId)
 	if err != nil {
 		return "", errors.New("could not find deployment to update")
 	}
 	now := time.Now()
 	if operation == "delete" {
 		got.LastCollectorStopTime = &now
-		err = d.kubecontrol.KillOtelCollector(ctx, deployName, got.SinkID)
+		err = d.kubecontrol.KillOtelCollector(ctx, got.CollectorName, got.SinkID)
 		if err != nil {
 			d.logger.Warn("could not stop running collector, will try to update anyway", zap.Error(err))
 		}
@@ -186,18 +187,6 @@ func (d *deploymentService) NotifyCollector(ctx context.Context, ownerID string,
 		if got.LastCollectorDeployTime == nil || got.LastCollectorDeployTime.Before(now) {
 			if got.LastCollectorStopTime == nil || got.LastCollectorStopTime.Before(now) {
 				d.logger.Debug("collector is not running deploying")
-				deployReq := &config.DeploymentRequest{
-					OwnerID: ownerID,
-					SinkID:  sinkId,
-					Config:  got.GetConfig(),
-					Backend: got.Backend,
-					Status:  got.LastStatus,
-				}
-				manifest, err := d.configBuilder.BuildDeploymentConfig(deployReq)
-				if err != nil {
-					d.logger.Error("error during build deployment config", zap.Error(err))
-					return "", err
-				}
 				got.CollectorName, err = d.kubecontrol.CreateOtelCollector(ctx, got.OwnerID, got.SinkID, manifest)
 				got.LastCollectorDeployTime = &now
 			} else {
