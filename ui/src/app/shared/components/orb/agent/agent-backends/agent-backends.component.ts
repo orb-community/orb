@@ -15,7 +15,7 @@ export class AgentBackendsComponent implements OnInit {
   identify(index, item) {
     return item.id;
   }
-  
+
   constructor(
     protected notificationService: NotificationsService,
   ) {

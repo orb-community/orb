@@ -86,8 +86,7 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     if (newPolicyId) {
       this.policyId = newPolicyId;
-    }
-    else {
+    } else {
       this.policyId = this.route.snapshot.paramMap.get('id');
     }
     this.retrievePolicy();
@@ -107,7 +106,7 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
       ? this.detailsComponent?.formGroup?.status === 'VALID'
       : true;
 
-    let config = this.interfaceComponent?.code
+    const config = this.interfaceComponent?.code;
     let interfaceValid = false;
 
     if (this.editor.isJson(config)) {
@@ -174,9 +173,9 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
         this.orb.refreshNow();
         this.isRequesting = false;
         },
-        (error) => {
+        (err) => {
           this.isRequesting = false;
-        }
+        },
         );
 
     } catch (err) {
@@ -211,7 +210,7 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
         if (confirm) {
           this.duplicatePolicy(this.policy);
         }
-      })
+      });
   }
   duplicatePolicy(agentPolicy: any) {
     this.policiesService
@@ -258,14 +257,14 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
   }
 
   hasChanges() {
-    let policyDetails = this.detailsComponent.formGroup?.value;
+    const policyDetails = this.detailsComponent.formGroup?.value;
     const tags = this.detailsComponent.selectedTags;
 
-    const description = this.policy.description ? this.policy.description : "";
-    const formsDescription = policyDetails.description === null ? "" : policyDetails.description
+    const description = this.policy.description ? this.policy.description : '';
+    const formsDescription = policyDetails.description === null ? '' : policyDetails.description;
 
-    let selectedTags = JSON.stringify(tags);
-    let orb_tags = JSON.stringify(this.policy.tags);
+    const selectedTags = JSON.stringify(tags);
+    const orb_tags = JSON.stringify(this.policy.tags);
 
     if (policyDetails.name !== this.policy.name || formsDescription !== description || selectedTags !== orb_tags) {
       return true;

@@ -55,18 +55,18 @@ export class AgentPoliciesDatasetsComponent implements OnInit, OnChanges {
     return item.id;
   }
 
-  ngOnInit(): void { 
+  ngOnInit(): void {
     this.getAmountRunningPolicies();
   }
-  
+
   getAmountRunningPolicies() {
     this.policies.forEach(element => {
-      if (element.state == 'running') {
+      if (element.state === 'running') {
         this.amountRunningPolicies++;
       }
-    }); 
+    });
   }
-  
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.agent) {
       const policiesStates = this.agent?.last_hb_data?.policy_state;
