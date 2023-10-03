@@ -3,13 +3,14 @@ package deployment
 import (
 	"context"
 	"errors"
+	"time"
+
 	"github.com/orb-community/orb/maestro/config"
 	"github.com/orb-community/orb/maestro/kubecontrol"
 	"github.com/orb-community/orb/maestro/password"
 	"github.com/orb-community/orb/maestro/redis/producer"
 	"github.com/orb-community/orb/pkg/types"
 	"go.uber.org/zap"
-	"time"
 )
 
 const AuthenticationKey = "authentication"
@@ -253,7 +254,10 @@ func (d *deploymentService) UpdateStatus(ctx context.Context, ownerID string, si
 	d.logger.Info("updated deployment status",
 		zap.String("ownerID", updated.OwnerID), zap.String("sinkID", updated.SinkID),
 		zap.String("status", updated.LastStatus), zap.String("errorMessage", updated.LastErrorMessage))
-
+	err = d.maestroProducer.PublishSinkStatus(ctx, updated.OwnerID, updated.SinkID, updated.LastStatus, "")
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
