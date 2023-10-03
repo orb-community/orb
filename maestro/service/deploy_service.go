@@ -68,7 +68,10 @@ func (d *eventService) HandleSinkUpdate(ctx context.Context, event maestroredis.
 	}
 	// async update sink status to provisioning
 	go func() {
-		_ = d.deploymentService.UpdateStatus(ctx, event.Owner, event.SinkID, "provisioning", "")
+		err = d.deploymentService.UpdateStatus(ctx, event.Owner, event.SinkID, "provisioning", "")
+		if err != nil {
+			d.logger.Error("error updating status to provisioning", zap.Error(err))
+		}
 	}()
 	// update deployment entry in postgres
 	err = entry.SetConfig(event.Config)
@@ -97,6 +100,7 @@ func (d *eventService) HandleSinkDelete(ctx context.Context, event maestroredis.
 	}
 	err = d.deploymentService.RemoveDeployment(ctx, event.Owner, event.SinkID)
 	if err != nil {
+		d.logger.Warn("error removing deployment entry, deployment will be orphan", zap.Error(err))
 		return err
 	}
 	return nil
@@ -136,7 +140,10 @@ func (d *eventService) HandleSinkIdle(ctx context.Context, event maestroredis.Si
 	d.logger.Debug("handling sink idle event", zap.String("sink-id", event.SinkID))
 	// async update sink status to idle
 	go func() {
-		_ = d.deploymentService.UpdateStatus(ctx, event.OwnerID, event.SinkID, "idle", "")
+		err := d.deploymentService.UpdateStatus(ctx, event.OwnerID, event.SinkID, "idle", "")
+		if err != nil {
+			d.logger.Error("error updating status to idle", zap.Error(err))
+		}
 	}()
 	_, err := d.deploymentService.NotifyCollector(ctx, event.OwnerID, event.SinkID, "deploy", "", "")
 	if err != nil {
