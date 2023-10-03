@@ -96,12 +96,15 @@ h4 {
     }
   }
 }
-.fa.fa-circle {
-  font-size: 11px;
+.state-circle {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
 }
 .state {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
+  font-family: 'Montserrat';
 }
 .orb-service- {
   &active {
@@ -122,4 +125,13 @@ h4 {
   color: #969fb9;
   font-size: 14px;
 }
+.state-div {
+  margin-bottom: 23px;
+}
+.date {
+  font-size: 14px;
+  font-weight: 400;
+  margin-top: 23px;
+  line-height: 1.25rem;
+} 
 
