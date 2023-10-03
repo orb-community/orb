@@ -27,12 +27,13 @@ const (
 	namespace       = "otelcollectors"
 )
 
-func NewMonitorService(logger *zap.Logger, sinksClient *sinkspb.SinkServiceClient, mp producer.Producer, kubecontrol *kubecontrol.Service) Service {
+func NewMonitorService(logger *zap.Logger, sinksClient *sinkspb.SinkServiceClient, mp producer.Producer, kubecontrol *kubecontrol.Service, deploySvc deployment.Service) Service {
 	return &monitorService{
 		logger:          logger,
 		sinksClient:     *sinksClient,
 		maestroProducer: mp,
 		kubecontrol:     *kubecontrol,
+		deploymentSvc:   deploySvc,
 	}
 }
 
