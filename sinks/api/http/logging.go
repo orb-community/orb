@@ -27,7 +27,7 @@ func (l loggingMiddleware) ListSinksInternal(ctx context.Context, filter sinks.F
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Info("method call: list_sinks_internal",
+			l.logger.Debug("method call: list_sinks_internal",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -41,7 +41,7 @@ func (l loggingMiddleware) ChangeSinkStateInternal(ctx context.Context, sinkID s
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Info("method call: change_sink_state_internal",
+			l.logger.Debug("method call: change_sink_state_internal",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -55,7 +55,7 @@ func (l loggingMiddleware) CreateSink(ctx context.Context, token string, s sinks
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Info("method call: create_sink",
+			l.logger.Debug("method call: create_sink",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -69,7 +69,7 @@ func (l loggingMiddleware) UpdateSink(ctx context.Context, token string, s sinks
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Info("method call: edit_sink",
+			l.logger.Debug("method call: edit_sink",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -83,7 +83,7 @@ func (l loggingMiddleware) UpdateSinkInternal(ctx context.Context, s sinks.Sink)
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Info("method call: edit_internal_sink",
+			l.logger.Debug("method call: edit_internal_sink",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -97,7 +97,7 @@ func (l loggingMiddleware) ListSinks(ctx context.Context, token string, pm sinks
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Info("method call: list_sinks",
+			l.logger.Debug("method call: list_sinks",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -111,7 +111,7 @@ func (l loggingMiddleware) ListBackends(ctx context.Context, token string) (_ []
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Info("method call: list_backends",
+			l.logger.Debug("method call: list_backends",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -125,7 +125,7 @@ func (l loggingMiddleware) ViewBackend(ctx context.Context, token string, key st
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Info("method call: view_backend",
+			l.logger.Debug("method call: view_backend",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -139,7 +139,7 @@ func (l loggingMiddleware) ViewSink(ctx context.Context, token string, key strin
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Warn("method call: view_sink",
+			l.logger.Debug("method call: view_sink",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -153,7 +153,7 @@ func (l loggingMiddleware) ViewSinkInternal(ctx context.Context, ownerID string,
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Warn("method call: view_sink_internal",
+			l.logger.Debug("method call: view_sink_internal",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -167,7 +167,7 @@ func (l loggingMiddleware) DeleteSink(ctx context.Context, token string, key str
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Warn("method call: delete_sink",
+			l.logger.Debug("method call: delete_sink",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -181,7 +181,7 @@ func (l loggingMiddleware) ValidateSink(ctx context.Context, token string, s sin
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Info("method call: validate_sink",
+			l.logger.Debug("method call: validate_sink",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
