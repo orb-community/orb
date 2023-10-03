@@ -192,7 +192,6 @@ nb-list-item {
   line-height: 1;
   max-width: 360px !important;
   white-space: nowrap;
-  overflow: hidden;
   text-overflow: ellipsis;
 }
 // nb-accordion-item-header {
@@ -201,9 +200,9 @@ nb-list-item {
 .scroll {
   max-height: 20em;
 }
-.field{ 
+.field {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  min-width: 5ch;
+  min-width: 5rem;
 }
