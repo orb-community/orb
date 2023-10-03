@@ -43,14 +43,15 @@ func (s *sinkerActivityListenerService) ReadSinksActivity(ctx context.Context) e
 			}).Result()
 			if err != nil || len(streams) == 0 {
 				if err != nil {
-					s.logger.Error("error reading idle stream", zap.Error(err))
+					s.logger.Error("error reading activity stream", zap.Error(err))
 				}
 				continue
 			}
 			for _, msg := range streams[0].Messages {
 				event := maestroredis.SinkerUpdateEvent{}
+				s.logger.Debug("Debug Message", zap.Any("message", msg.Values))
 				event.Decode(msg.Values)
-				s.logger.Debug("Reading message from idle stream",
+				s.logger.Debug("Reading message from activity stream",
 					zap.String("message_id", msg.ID),
 					zap.String("sink_id", event.SinkID),
 					zap.String("owner_id", event.OwnerID))
@@ -86,6 +87,7 @@ func (s *sinkerActivityListenerService) ReadSinksIdle(ctx context.Context) error
 			}
 			for _, msg := range streams[0].Messages {
 				event := maestroredis.SinkerUpdateEvent{}
+				s.logger.Debug("Debug Message", zap.Any("message", msg.Values))
 				event.Decode(msg.Values)
 				s.logger.Debug("Reading message from idle stream",
 					zap.String("message_id", msg.ID),
@@ -118,21 +120,6 @@ func (s *sinkerActivityListenerService) SubscribeSinksEvents(ctx context.Context
 	return nil
 }
 
-// readStreams - read streams
-func (s *sinkerActivityListenerService) readStreams(ctx context.Context) ([]redis.XStream, error) {
-	const activityStream = "orb.sink_activity"
-	const idleStream = "orb.sink_idle"
-	streams, err := s.redisClient.XReadGroup(ctx, &redis.XReadGroupArgs{
-		Group:    maestroredis.GroupMaestro,
-		Consumer: "orb_maestro-es-consumer",
-		Streams:  []string{activityStream, idleStream, ">"},
-	}).Result()
-	if err != nil {
-		return nil, err
-	}
-	return streams, nil
-}
-
 func (s *sinkerActivityListenerService) processActivity(ctx context.Context, stream redis.XStream) {
 	for _, message := range stream.Messages {
 		event := maestroredis.SinkerUpdateEvent{}
@@ -159,40 +146,6 @@ func (s *sinkerActivityListenerService) processIdle(ctx context.Context, stream 
 		err := s.eventService.HandleSinkIdle(ctx, event)
 		if err != nil {
 			s.logger.Error("error receiving message", zap.Error(err))
-		}
-	}
-}
-
-// processStream - process stream
-func (s *sinkerActivityListenerService) processStream(ctx context.Context, stream redis.XStream) {
-	eventType := ""
-	if stream.Stream == "orb.sink_activity" {
-		eventType = "activity"
-	} else if stream.Stream == "orb.sink_idle" {
-		eventType = "idle"
-	}
-	for _, message := range stream.Messages {
-		event := maestroredis.SinkerUpdateEvent{}
-		event.Decode(message.Values)
-		switch eventType {
-		case "activity":
-			s.logger.Debug("Reading message from activity stream",
-				zap.String("message_id", message.ID),
-				zap.String("sink_id", event.SinkID),
-				zap.String("owner_id", event.OwnerID))
-			err := s.eventService.HandleSinkActivity(ctx, event)
-			if err != nil {
-				s.logger.Error("error receiving message", zap.Error(err))
-			}
-		case "idle":
-			s.logger.Debug("Reading message from idle stream",
-				zap.String("message_id", message.ID),
-				zap.String("sink_id", event.SinkID),
-				zap.String("owner_id", event.OwnerID))
-			err := s.eventService.HandleSinkIdle(ctx, event)
-			if err != nil {
-				s.logger.Error("error receiving message", zap.Error(err))
-			}
 		}
 	}
 }
