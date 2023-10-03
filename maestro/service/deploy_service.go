@@ -66,13 +66,6 @@ func (d *eventService) HandleSinkUpdate(ctx context.Context, event maestroredis.
 			entry = &newEntry
 		}
 	}
-	// async update sink status to provisioning
-	go func() {
-		err = d.deploymentService.UpdateStatus(ctx, event.Owner, event.SinkID, "provisioning", "")
-		if err != nil {
-			d.logger.Error("error updating status to provisioning", zap.Error(err))
-		}
-	}()
 	// update deployment entry in postgres
 	err = entry.SetConfig(event.Config)
 	if err != nil {
