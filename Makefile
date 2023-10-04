@@ -153,7 +153,7 @@ install-helm:
 
 install-kubectl:
 	cd /tmp && \
-	curl -LO "https://dl.k8s.io/release/v1.22.1/bin/linux/amd64/kubectl" && \
+	curl -LO "https://dl.k8s.io/release/v1.27.4/bin/linux/amd64/kubectl" && \
 	chmod a+x ./kubectl && \
 	sudo mv ./kubectl /usr/local/bin/kubectl
 
@@ -182,7 +182,7 @@ kind-create-all: kind-create-cluster kind-install-orb
 kind-upgrade-all: kind-load-images kind-upgrade-orb
 
 kind-create-cluster:
-	kind create cluster --image kindest/node:v1.22.15 --config=./kind/config.yaml
+	kind create cluster --image kindest/node:v1.27.3 --config=./kind/config.yaml
 
 kind-delete-cluster:
 	kind delete cluster
