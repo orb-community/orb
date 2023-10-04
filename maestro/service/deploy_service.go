@@ -2,12 +2,13 @@ package service
 
 import (
 	"context"
+	"time"
+
 	"github.com/orb-community/orb/maestro/deployment"
 	"github.com/orb-community/orb/maestro/kubecontrol"
 	maestroredis "github.com/orb-community/orb/maestro/redis"
 	"github.com/orb-community/orb/pkg/errors"
 	"go.uber.org/zap"
-	"time"
 )
 
 // EventService will hold the business logic of the handling events from both Listeners
@@ -117,13 +118,18 @@ func (d *eventService) HandleSinkActivity(ctx context.Context, event maestroredi
 		d.logger.Warn("collector is in error state, skipping")
 		return nil
 	}
-	// async update sink status to provisioning
+
+
+	// async update sink status to provisioning ...
+	// only if state is active and collector does not exist
+	d.deploymentService.CheckDeploymentState(ctx, event.OwnerID, event.SinkID)
 	go func() {
 		err := d.deploymentService.UpdateStatus(ctx, event.OwnerID, event.SinkID, "provisioning", "")
 		if err != nil {
 			d.logger.Error("error updating status to provisioning", zap.Error(err))
 		}
 	}()
+
 	_, err = d.deploymentService.NotifyCollector(ctx, event.OwnerID, event.SinkID, "deploy", "", "")
 	if err != nil {
 		d.logger.Error("error trying to notify collector", zap.Error(err))

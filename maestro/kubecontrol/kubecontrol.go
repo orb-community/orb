@@ -59,6 +59,8 @@ func NewService(logger *zap.Logger) Service {
 type Service interface {
 	// CreateOtelCollector - create an existing collector by id
 	CreateOtelCollector(ctx context.Context, ownerID, sinkID, deploymentEntry string) (string, error)
+	// CheckDeploymentState - check the state of the deployment
+	CheckDeploymentState(ctx context.Context, deploymentName string) (exists bool)
 
 	// KillOtelCollector - kill an existing collector by id, terminating by the ownerID, sinkID without the file
 	KillOtelCollector(ctx context.Context, deploymentName, sinkID string) error
@@ -140,6 +142,23 @@ func (svc *deployService) getDeploymentState(ctx context.Context, _, sinkId stri
 	status = "deleted"
 	return "", "deleted", nil
 }
+
+
+func (svc *deployService) CheckDeploymentState(ctx context.Context, deploymentName string) (exists bool) {
+	deploymentClient := svc.clientSet.AppsV1().Deployments(namespace)
+	deploy, err := deploymentClient.Get(context.Background(), deploymentName, k8smetav1.GetOptions{})
+	if err != nil {
+		panic(err)
+	}
+	if deploy != nil &&
+		deploy.Spec.Replicas != nil &&
+		*deploy.Spec.Replicas == deploy.Status.ReadyReplicas {
+		return true
+	} else {
+		return false
+	}
+}
+
 
 func (svc *deployService) CreateOtelCollector(ctx context.Context, ownerID, sinkID, deploymentEntry string) (string, error) {
 	col, err := svc.collectorDeploy(ctx, "apply", ownerID, sinkID, deploymentEntry)

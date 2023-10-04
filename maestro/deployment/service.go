@@ -282,3 +282,8 @@ func (d *deploymentService) GetDeploymentByCollectorName(ctx context.Context, co
 	}
 	return deployment, nil
 }
+
+func (d *deploymentService) CheckDeploymentState(ctx context.Context, collectorName string) (state bool) {
+	state = d.kubecontrol.CheckDeploymentState(ctx, collectorName)
+	return state
+}
