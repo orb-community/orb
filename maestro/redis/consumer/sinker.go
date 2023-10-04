@@ -23,6 +23,11 @@ type sinkerActivityListenerService struct {
 	eventService service.EventService
 }
 
+const (
+	idleStream = "orb.sink_idle"
+	activityStream = "orb.sink_activity"
+)
+
 func NewSinkerActivityListener(l *zap.Logger, eventService service.EventService, redisClient *redis.Client) SinkerActivityListener {
 	logger := l.Named("sinker-activity-listener")
 	return &sinkerActivityListenerService{
@@ -33,7 +38,6 @@ func NewSinkerActivityListener(l *zap.Logger, eventService service.EventService,
 }
 
 func (s *sinkerActivityListenerService) SubscribeSinksActivity(ctx context.Context) error {
-	const activityStream = "orb.sink_activity"
 	err := s.redisClient.XGroupCreateMkStream(ctx, activityStream, maestroredis.GroupMaestro, "$").Err()
 	if err != nil && err.Error() != maestroredis.Exists {
 		return err
@@ -82,7 +86,6 @@ func (s *sinkerActivityListenerService) SubscribeSinksActivity(ctx context.Conte
 }
 
 func (s *sinkerActivityListenerService) SubscribeSinksIdle(ctx context.Context) error {
-	const idleStream = "orb.sink_idle"
 	err := s.redisClient.XGroupCreateMkStream(ctx, idleStream, maestroredis.GroupMaestro, "$").Err()
 	if err != nil && err.Error() != maestroredis.Exists {
 		return err
@@ -145,34 +148,4 @@ func (s *sinkerActivityListenerService) SubscribeSinkerIdleEvents(ctx context.Co
 		return err
 	}
 	return nil
-}
-
-func (s *sinkerActivityListenerService) processActivity(ctx context.Context, stream redis.XStream) {
-	for _, message := range stream.Messages {
-		event := maestroredis.SinkerUpdateEvent{}
-		event.Decode(message.Values)
-		s.logger.Debug("Reading message from activity stream",
-			zap.String("message_id", message.ID),
-			zap.String("sink_id", event.SinkID),
-			zap.String("owner_id", event.OwnerID))
-		err := s.eventService.HandleSinkActivity(ctx, event)
-		if err != nil {
-			s.logger.Error("error receiving message", zap.Error(err))
-		}
-	}
-}
-
-func (s *sinkerActivityListenerService) processIdle(ctx context.Context, stream redis.XStream) {
-	for _, message := range stream.Messages {
-		event := maestroredis.SinkerUpdateEvent{}
-		event.Decode(message.Values)
-		s.logger.Debug("Reading message from activity stream",
-			zap.String("message_id", message.ID),
-			zap.String("sink_id", event.SinkID),
-			zap.String("owner_id", event.OwnerID))
-		err := s.eventService.HandleSinkIdle(ctx, event)
-		if err != nil {
-			s.logger.Error("error receiving message", zap.Error(err))
-		}
-	}
 }
