@@ -30,13 +30,6 @@ orb:
       repository: "orbcommunity"
       tag: "develop"
 
-  sinker:
-    image:
-      name: "orb-sinker"
-      pullPolicy: "IfNotPresent"
-      repository: "orbcommunity"
-      tag: "develop"
-
   sinkerOtel:
     image:
       name: "orb-sinker"
