@@ -2,8 +2,9 @@ package deployment
 
 import (
 	"encoding/json"
-	"github.com/orb-community/orb/pkg/types"
 	"time"
+
+	"github.com/orb-community/orb/pkg/types"
 )
 
 type Deployment struct {
@@ -40,7 +41,7 @@ func (d *Deployment) Merge(other Deployment) error {
 	if other.Id != "" {
 		d.Id = other.Id
 	}
-	if other.LastErrorMessage != "" {
+	if other.LastErrorMessage != d.LastErrorMessage {
 		d.LastErrorMessage = other.LastErrorMessage
 		d.LastErrorTime = other.LastErrorTime
 	}
@@ -49,7 +50,7 @@ func (d *Deployment) Merge(other Deployment) error {
 		d.LastCollectorDeployTime = other.LastCollectorDeployTime
 		d.LastCollectorStopTime = other.LastCollectorStopTime
 	}
-	if other.LastStatus != "" {
+	if other.LastStatus != d.LastStatus {
 		d.LastStatus = other.LastStatus
 		d.LastStatusUpdate = other.LastStatusUpdate
 	}
