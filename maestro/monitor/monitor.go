@@ -205,11 +205,24 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 
 		//set the new sink status if changed during checks
 		if sink.GetState() != status && status != "" {
-			svc.logger.Info("changing sink status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
+			svc.logger.Info("changing sink status",
+				zap.Any("before", sink.GetState()),
+				zap.String("new status", status),
+				zap.String("SinkID", sink.Id),
+				zap.String("ownerID", sink.OwnerID))
 			if err != nil {
-				svc.logger.Error("error updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("error_message (opt)", err.Error()), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
+				svc.logger.Error("error updating status",
+					zap.Any("before", sink.GetState()),
+					zap.String("new status", status),
+					zap.String("error_message (opt)", err.Error()),
+					zap.String("SinkID", sink.Id),
+					zap.String("ownerID", sink.OwnerID))
 			} else {
-				svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
+				svc.logger.Info("updating status",
+					zap.Any("before", sink.GetState()),
+					zap.String("new status", status),
+					zap.String("SinkID", sink.Id),
+					zap.String("ownerID", sink.OwnerID))
 				err = svc.deploymentSvc.UpdateStatus(ctx, sink.OwnerID, sink.Id, status, logErrMsg)
 			}
 		}
