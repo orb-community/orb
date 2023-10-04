@@ -134,5 +134,5 @@ func (svc *maestroService) subscribeToSinkerActivityEvents(ctx context.Context) 
 	if err := svc.activityListener.SubscribeSinkerActivityEvents(ctx); err != nil {
 		svc.logger.Error("Bootstrap service failed to subscribe to event sourcing", zap.Error(err))
 	}
-	s.logger.Info("finished reading sinker_activity events")
+	svc.logger.Info("finished reading sinker_activity events")
 }
