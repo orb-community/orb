@@ -39,33 +39,46 @@ func (s *sinkerActivityListenerService) SubscribeSinksActivity(ctx context.Conte
 		return err
 	}
 	s.logger.Debug("Reading Sinks Activity Events", zap.String("stream", activityStream))
-		for {
-				streams, err := s.redisClient.XReadGroup(ctx, &redis.XReadGroupArgs{
-					Group:    maestroredis.GroupMaestro,
-					Consumer: "orb_maestro-es-consumer",
-					Streams:  []string{activityStream, ">"},
-					Count:    1000,
-				}).Result()
-				if err != nil || len(streams) == 0 {
-					if err != nil {
-						s.logger.Error("error reading activity stream", zap.Error(err))
-					}
-					continue
+	for {
+		select {
+		case <-ctx.Done():
+			s.logger.Info("closing sinker_activity_listener routine")
+			return nil
+		default:
+			streams, err := s.redisClient.XReadGroup(ctx, &redis.XReadGroupArgs{
+				Group:    maestroredis.GroupMaestro,
+				Consumer: "orb_maestro-es-consumer",
+				Streams:  []string{activityStream, ">"},
+				Count:    1000,
+			}).Result()
+			if err != nil || len(streams) == 0 {
+				if err != nil {
+					s.logger.Error("error reading activity stream", zap.Error(err))
 				}
-				for _, msg := range streams[0].Messages {
-					event := maestroredis.SinkerUpdateEvent{}
-					event.Decode(msg.Values)
-					s.logger.Debug("Reading message from activity stream",
-						zap.String("message_id", msg.ID),
-						zap.String("sink_id", event.SinkID),
-						zap.String("owner_id", event.OwnerID))
+				continue
+			}
+			for _, msg := range streams[0].Messages {
+				event := maestroredis.SinkerUpdateEvent{}
+				event.Decode(msg.Values)
+				s.logger.Debug("Reading message from activity stream",
+					zap.String("message_id", msg.ID),
+					zap.String("sink_id", event.SinkID),
+					zap.String("owner_id", event.OwnerID))
+				go func() {
 					err := s.eventService.HandleSinkActivity(ctx, event)
 					if err != nil {
-						s.logger.Error("error receiving message", zap.Error(err))
-						return err
+						s.logger.Error("Failed to handle sinks event", zap.Error(err))
+					} else {
+						s.redisClient.XAck(ctx, activityStream, maestroredis.GroupMaestro, msg.ID)
 					}
+				}()
+				if err != nil {
+					s.logger.Error("error receiving message", zap.Error(err))
+					return err
 				}
 			}
+		}
+	}
 }
 
 func (s *sinkerActivityListenerService) SubscribeSinksIdle(ctx context.Context) error {
@@ -74,8 +87,12 @@ func (s *sinkerActivityListenerService) SubscribeSinksIdle(ctx context.Context) 
 	if err != nil && err.Error() != maestroredis.Exists {
 		return err
 	}
-	go func() {
-		for {
+	for {
+		select {
+		case <-ctx.Done():
+			s.logger.Info("closing sinker_idle_listener routine")
+			return nil
+		default:
 			streams, err := s.redisClient.XReadGroup(ctx, &redis.XReadGroupArgs{
 				Group:    maestroredis.GroupMaestro,
 				Consumer: "orb_maestro-es-consumer",
@@ -94,28 +111,37 @@ func (s *sinkerActivityListenerService) SubscribeSinksIdle(ctx context.Context) 
 					zap.String("message_id", msg.ID),
 					zap.String("sink_id", event.SinkID),
 					zap.String("owner_id", event.OwnerID))
-				err := s.eventService.HandleSinkIdle(ctx, event)
+				go func() {
+					err := s.eventService.HandleSinkIdle(ctx, event)
+					if err != nil {
+						s.logger.Error("Failed to handle sinks event", zap.Error(err))
+					} else {
+						s.redisClient.XAck(ctx, idleStream, maestroredis.GroupMaestro, msg.ID)
+					}
+				}()
 				if err != nil {
 					s.logger.Error("error receiving message", zap.Error(err))
-					return
+					return err
 				}
 			}
 		}
-	}()
-	return nil
+	}
 }
 
 func (s *sinkerActivityListenerService) SubscribeSinkerActivityEvents(ctx context.Context) error {
 	err := s.SubscribeSinksActivity(ctx)
 	if err != nil {
 		s.logger.Error("error reading activity stream", zap.Error(err))
+		return err
 	}
+	return nil
 }
 
 func (s *sinkerActivityListenerService) SubscribeSinkerIdleEvents(ctx context.Context) error {
 	err := s.SubscribeSinksIdle(ctx)
 	if err != nil {
 		s.logger.Error("error reading idle stream", zap.Error(err))
+		return err
 	}
 	return nil
 }
