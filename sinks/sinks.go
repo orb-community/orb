@@ -159,8 +159,6 @@ type SinkService interface {
 	UpdateSink(ctx context.Context, token string, s Sink) (Sink, error)
 	// UpdateSinkInternal by id
 	UpdateSinkInternal(ctx context.Context, s Sink) (Sink, error)
-	// UpdateSinkStatusInternal by id
-	UpdateSinkStatusInternal(ctx context.Context, s Sink) (Sink, error)
 	// ListSinks retrieves data about sinks
 	ListSinks(ctx context.Context, token string, pm PageMetadata) (Page, error)
 	// ListSinksInternal retrieves data from sinks filtered by SinksFilter for Services like Maestro, to build DeploymentEntries

@@ -91,19 +91,6 @@ func (l loggingMiddleware) UpdateSinkInternal(ctx context.Context, s sinks.Sink)
 	return l.svc.UpdateSinkInternal(ctx, s)
 }
 
-func (l loggingMiddleware) UpdateSinkStatusInternal(ctx context.Context, s sinks.Sink) (sink sinks.Sink, err error) {
-	defer func(begin time.Time) {
-		if err != nil {
-			l.logger.Warn("method call: edit_sink_status_internal",
-				zap.Error(err),
-				zap.Duration("duration", time.Since(begin)))
-		} else {
-			l.logger.Debug("method call: edit_sink_status_internal",
-				zap.Duration("duration", time.Since(begin)))
-		}
-	}(time.Now())
-	return l.svc.UpdateSinkStatusInternal(ctx, s)
-}
 func (l loggingMiddleware) ListSinks(ctx context.Context, token string, pm sinks.PageMetadata) (_ sinks.Page, err error) {
 	defer func(begin time.Time) {
 		if err != nil {

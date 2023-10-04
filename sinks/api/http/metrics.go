@@ -97,11 +97,6 @@ func (m metricsMiddleware) UpdateSinkInternal(ctx context.Context, s sinks.Sink)
 	return m.svc.UpdateSinkInternal(ctx, s)
 }
 
-func (m metricsMiddleware) UpdateSinkStatusInternal(ctx context.Context, s sinks.Sink) (sink sinks.Sink, err error) {
-
-	return m.svc.UpdateSinkInternal(ctx, s)
-}
-
 func (m metricsMiddleware) ListSinks(ctx context.Context, token string, pm sinks.PageMetadata) (sink sinks.Page, err error) {
 	ownerID, err := m.identify(token)
 	if err != nil {

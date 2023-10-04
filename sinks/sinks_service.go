@@ -265,40 +265,6 @@ func (svc sinkService) UpdateSinkInternal(ctx context.Context, sink Sink) (Sink,
 	return sinkEdited, nil
 }
 
-func (svc sinkService) UpdateSinkStatusInternal(ctx context.Context, sink Sink) (Sink, error) {
-	var currentSink Sink
-	currentSink, err := svc.sinkRepo.RetrieveById(ctx, sink.ID)
-	if err != nil {
-		return Sink{}, errors.Wrap(ErrUpdateEntity, err)
-	}
-	var cfg Configuration
-	authType, _ := authentication_type.GetAuthType(currentSink.GetAuthenticationTypeName())
-	be := backend.GetBackend(currentSink.Backend)
-
-	cfg = Configuration {
-		Authentication: authType,
-		Exporter:       be,
-	}
-
-	err = svc.sinkRepo.UpdateSinkState(ctx, sink.ID, sink.Error, currentSink.MFOwnerID, sink.State)
-	if err != nil {
-		return Sink{}, errors.Wrap(ErrUpdateEntity, err)
-	}
-	if err != nil {
-		return Sink{}, errors.Wrap(ErrUpdateEntity, err)
-	}
-	sinkEdited, err := svc.sinkRepo.RetrieveById(ctx, sink.ID)
-	if err != nil {
-		return Sink{}, errors.Wrap(ErrUpdateEntity, err)
-	}
-	sinkEdited, err = svc.decryptMetadata(cfg, sinkEdited)
-	if err != nil {
-		return Sink{}, errors.Wrap(ErrUpdateEntity, err)
-	}
-
-	return sinkEdited, nil
-}
-
 func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) (Sink, error) {
 	skOwnerID, err := svc.identify(token)
 	if err != nil {

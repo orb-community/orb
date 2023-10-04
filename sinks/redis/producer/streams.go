@@ -105,11 +105,6 @@ func (es sinksStreamProducer) UpdateSinkInternal(ctx context.Context, s sinks.Si
 	return es.svc.UpdateSinkInternal(ctx, s)
 }
 
-func (es sinksStreamProducer) UpdateSinkStatusInternal(ctx context.Context, s sinks.Sink) (sink sinks.Sink, err error) {
-	
-	return es.svc.UpdateSinkStatusInternal(ctx, s)
-}
-
 func (es sinksStreamProducer) UpdateSink(ctx context.Context, token string, s sinks.Sink) (sink sinks.Sink, err error) {
 	defer func() {
 		event := updateSinkEvent{
