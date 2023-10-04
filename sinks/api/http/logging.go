@@ -103,7 +103,7 @@ func (l loggingMiddleware) UpdateSinkStatusInternal(ctx context.Context, s sinks
 		}
 	}(time.Now())
 	return l.svc.UpdateSinkStatusInternal(ctx, s)
-
+}
 func (l loggingMiddleware) ListSinks(ctx context.Context, token string, pm sinks.PageMetadata) (_ sinks.Page, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
