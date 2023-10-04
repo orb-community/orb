@@ -31,7 +31,7 @@ func NewDeployment(ownerID string, sinkID string, config types.Metadata, backend
 		SinkID:           sinkID,
 		Backend:          backend,
 		Config:           configAsByte,
-		LastStatus:       "pending",
+		LastStatus:       "unknown",
 		LastStatusUpdate: &now,
 		CollectorName:    deploymentName,
 	}
