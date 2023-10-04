@@ -74,6 +74,8 @@ func (d *eventService) HandleSinkUpdate(ctx context.Context, event maestroredis.
 	entry.LastCollectorStopTime = &now
 	entry.LastStatus = "provisioning"
 	entry.LastStatusUpdate = &now
+	entry.LastErrorMessage = ""
+	entry.LastErrorTime = nil
 	err = d.deploymentService.UpdateDeployment(ctx, entry)
 
 	return nil
