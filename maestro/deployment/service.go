@@ -147,11 +147,12 @@ func (d *deploymentService) UpdateDeployment(ctx context.Context, deployment *De
 	if err != nil {
 		d.logger.Warn("could not stop running collector, will try to update anyway", zap.Error(err))
 	}
-	err = deployment.Merge(*got)
+	err = got.Merge(*deployment)
 	if err != nil {
 		d.logger.Error("error during merge of deployments", zap.Error(err))
 		return err
 	}
+	deployment = got
 	deployment.LastCollectorStopTime = &now
 	codedConfig, err := d.encodeConfig(deployment)
 	if err != nil {
