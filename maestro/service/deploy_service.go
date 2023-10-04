@@ -72,7 +72,7 @@ func (d *eventService) HandleSinkUpdate(ctx context.Context, event maestroredis.
 		return err
 	}
 	entry.LastCollectorStopTime = &now
-	entry.LastStatus = "provisioning"
+	entry.LastStatus = "unknown"
 	entry.LastStatusUpdate = &now
 	entry.LastErrorMessage = ""
 	entry.LastErrorTime = nil
@@ -113,29 +113,30 @@ func (d *eventService) HandleSinkActivity(ctx context.Context, event maestroredi
 		d.logger.Warn("did not find collector entry for sink", zap.String("sink-id", event.SinkID))
 		return err
 	}
-	if deploymentEntry.LastStatus == "error" {
-		d.logger.Warn("collector is in error state, skipping")
-		return nil
-	}
-	// async update sink status to provisioning
-	go func() {
-		err := d.deploymentService.UpdateStatus(ctx, event.OwnerID, event.SinkID, "provisioning", "")
+	if deploymentEntry.LastStatus == "unknown" || deploymentEntry.LastStatus == "idle" {
+		// async update sink status to provisioning
+		go func() {
+			err := d.deploymentService.UpdateStatus(ctx, event.OwnerID, event.SinkID, "provisioning", "")
+			if err != nil {
+				d.logger.Error("error updating status to provisioning", zap.Error(err))
+			}
+		}()
+		_, err = d.deploymentService.NotifyCollector(ctx, event.OwnerID, event.SinkID, "deploy", "", "")
 		if err != nil {
-			d.logger.Error("error updating status to provisioning", zap.Error(err))
-		}
-	}()
-	_, err = d.deploymentService.NotifyCollector(ctx, event.OwnerID, event.SinkID, "deploy", "", "")
-	if err != nil {
-		d.logger.Error("error trying to notify collector", zap.Error(err))
-		err2 := d.deploymentService.UpdateStatus(ctx, event.OwnerID, event.SinkID, "provisioning_error", err.Error())
-		if err2 != nil {
-			d.logger.Warn("error during notifying provisioning error, customer will not be notified of error")
-			d.logger.Error("error during update provisioning error status", zap.Error(err))
+			d.logger.Error("error trying to notify collector", zap.Error(err))
+			err2 := d.deploymentService.UpdateStatus(ctx, event.OwnerID, event.SinkID, "provisioning_error", err.Error())
+			if err2 != nil {
+				d.logger.Warn("error during notifying provisioning error, customer will not be notified of error")
+				d.logger.Error("error during update provisioning error status", zap.Error(err))
+				return err
+			}
 			return err
 		}
-		return err
+		return nil
+	} else {
+		d.logger.Warn("collector is already running, skipping", zap.String("last_status", deploymentEntry.LastStatus))
+		return nil
 	}
-	return nil
 }
 
 func (d *eventService) HandleSinkIdle(ctx context.Context, event maestroredis.SinkerUpdateEvent) error {
