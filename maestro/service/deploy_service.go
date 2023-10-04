@@ -72,7 +72,7 @@ func (d *eventService) HandleSinkUpdate(ctx context.Context, event maestroredis.
 		return err
 	}
 	entry.LastCollectorStopTime = &now
-	entry.LastStatus = "provisioning"
+	entry.LastStatus = "unknown"
 	entry.LastStatusUpdate = &now
 	entry.LastErrorMessage = ""
 	entry.LastErrorTime = nil
