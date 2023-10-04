@@ -61,7 +61,7 @@ type Service interface {
 	CreateOtelCollector(ctx context.Context, ownerID, sinkID, deploymentEntry string) (string, error)
 
 	// KillOtelCollector - kill an existing collector by id, terminating by the ownerID, sinkID without the file
-	KillOtelCollector(ctx context.Context, deploymentName, sinkID string) error
+	KillOtelCollector(ctx context.Context, ownerID, sinkId, deploymentEntry string) error
 }
 
 func (svc *deployService) collectorDeploy(ctx context.Context, operation, ownerID, sinkId, manifest string) (string, error) {
