@@ -265,7 +265,7 @@ export class AgentGroupListComponent
   }
   onOpenDeleteSelected() {
     const selected = this.selected;
-    const elementName = "Agent Groups"
+    const elementName = 'Agent Groups';
     this.dialogService
       .open(DeleteSelectedComponent, {
         context: { selected, elementName },
@@ -284,7 +284,7 @@ export class AgentGroupListComponent
   deleteSelectedAgentGroups() {
     this.selected.forEach((group) => {
       this.agentGroupsService.deleteAgentGroup(group.id).subscribe();
-    })
+    });
     this.notificationsService.success('All selected Groups delete requests succeeded', '');
   }
   openDetailsModal(row: any) {
@@ -308,11 +308,10 @@ export class AgentGroupListComponent
       closeOnEsc: true,
     });
   }
-  public onCheckboxChange(event: any, row: any): void { 
+  public onCheckboxChange(event: any, row: any): void {
     if (this.getChecked(row) === false) {
       this.selected.push(row);
-    } 
-    else {
+    } else {
       for (let i = 0; i < this.selected.length; i++) {
         if (this.selected[i].id === row.id) {
           this.selected.splice(i, 1);

@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -21,7 +21,7 @@ const CONFIG = {
   templateUrl: './agent.policy.add.component.html',
   styleUrls: ['./agent.policy.add.component.scss'],
 })
-export class AgentPolicyAddComponent {
+export class AgentPolicyAddComponent implements OnInit {
   strings = { stepper: STRINGS.stepper };
 
   // #forms
@@ -102,7 +102,7 @@ input:
   tap: default_pcap
 kind: collection`;
 
-  codejson = 
+  codejson =
   `{
   "handlers": {
     "modules": {
@@ -137,9 +137,9 @@ kind: collection`;
 
   selectedTags: Tags;
 
-  uploadIconKey = 'upload-outline'
+  uploadIconKey = 'upload-outline';
 
-  isRequesting: boolean;  
+  isRequesting: boolean;
 
   constructor(
     private agentPoliciesService: AgentPoliciesService,
@@ -165,7 +165,7 @@ kind: collection`;
       .then(() => this.updateForms())
       .catch((reason) => console.warn(`Couldn't fetch ${this.agentPolicy?.backend} data. Reason: ${reason}`));
   }
-  ngOnInit(): void {
+  ngOnInit() {
     this.selectedTags = this.agentPolicy?.tags || {};
   }
   resizeComponents() {
@@ -285,7 +285,7 @@ kind: collection`;
   onFileSelected(event: any) {
     const file: File = event.target.files[0];
     const reader: FileReader = new FileReader();
-  
+
     reader.onload = (e: any) => {
     const fileContent = e.target.result;
       if (this.isJsonMode) {
@@ -294,7 +294,7 @@ kind: collection`;
         this.codeyaml = fileContent;
       }
     };
-  
+
     reader.readAsText(file);
   }
   onSubmit() {
@@ -309,9 +309,8 @@ kind: collection`;
         policy: policy,
         version: !!this.isEdit && !!this.agentPolicy.version && this.agentPolicy.version || 1,
         tags: this.selectedTags,
-      }
-    }
-    else {
+      };
+    } else {
       payload = {
         name: this.detailsFG.controls.name.value,
         description: this.detailsFG.controls.description.value,
@@ -338,15 +337,14 @@ kind: collection`;
         );
         this.isRequesting = false;
       },
-    );   
+    );
   }
   canCreate() {
     if (this.isJsonMode) {
       if (this.editor.isJson(this.codejson)) {
         this.errorConfigMessage = '';
         return true;
-      }
-      else {
+      } else {
         this.errorConfigMessage = 'Invalid JSON configuration, check syntax errors';
         return false;
       }
@@ -354,15 +352,14 @@ kind: collection`;
       if (this.editor.isYaml(this.codeyaml) && !this.editor.isJson(this.codeyaml)) {
         this.errorConfigMessage = '';
         return true;
-      }
-      else {
+      } else {
         this.errorConfigMessage = 'Invalid YAML configuration, check syntax errors';
         return false;
       }
     }
   }
   refreshEditor() {
-    this.editorVisible = false; setTimeout(() => { this.editorVisible = true; }, 0); 
+    this.editorVisible = false; setTimeout(() => { this.editorVisible = true; }, 0);
   }
-  
+
 }

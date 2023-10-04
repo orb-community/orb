@@ -40,7 +40,7 @@ export class DatasetPoliciesService {
       .get<Dataset>(`${environment.datasetPoliciesUrl}/${id}`)
       .pipe(
         catchError((err) => {
-          if (err.status !== 404 && err.error.error !== "non-existent entity") {
+          if (err.status !== 404 && err.error.error !== 'non-existent entity') {
             this.notificationsService.error(
               'Failed to fetch Dataset of this Policy',
               `Error: ${err.status} - ${err.statusText}`,

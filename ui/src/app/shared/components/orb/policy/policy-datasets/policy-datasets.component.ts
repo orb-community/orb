@@ -147,8 +147,8 @@ export class PolicyDatasetsComponent
     }
   }
   getTableHeight() {
-    const rowHeight = 50; 
-    const headerHeight = 50; 
+    const rowHeight = 50;
+    const headerHeight = 50;
     return (this.datasets.length * rowHeight) + headerHeight + 'px';
   }
   onCreateDataset() {
@@ -250,5 +250,5 @@ export class PolicyDatasetsComponent
       closeOnEsc: true,
     });
   }
-  
+
 }
