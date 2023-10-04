@@ -2,12 +2,13 @@ package service
 
 import (
 	"context"
+	"time"
+
 	"github.com/orb-community/orb/maestro/deployment"
 	"github.com/orb-community/orb/maestro/kubecontrol"
 	maestroredis "github.com/orb-community/orb/maestro/redis"
 	"github.com/orb-community/orb/pkg/errors"
 	"go.uber.org/zap"
-	"time"
 )
 
 // EventService will hold the business logic of the handling events from both Listeners
@@ -74,6 +75,7 @@ func (d *eventService) HandleSinkUpdate(ctx context.Context, event maestroredis.
 	entry.LastCollectorStopTime = &now
 	entry.LastStatus = "provisioning"
 	entry.LastStatusUpdate = &now
+	entry.LastErrorMessage = ""
 	err = d.deploymentService.UpdateDeployment(ctx, entry)
 
 	return nil
