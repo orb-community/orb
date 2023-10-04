@@ -96,8 +96,8 @@ func (svc *deployService) collectorDeploy(ctx context.Context, operation, ownerI
 	}
 
 	// delete temporary file
-	err = os.Remove("/tmp/otel-collector-"+sinkId+".json")
-
+	os.Remove("/tmp/otel-collector-"+sinkId+".json")
+	
 	// TODO this will be retrieved once we move to K8s SDK
 	collectorName := fmt.Sprintf("otel-%s", sinkId)
 	return collectorName, nil
@@ -142,7 +142,7 @@ func (svc *deployService) getDeploymentState(ctx context.Context, _, sinkId stri
 		}
 	}
 	status = "deleted"
-	return "", "deleted", nil
+	return "", status, nil
 }
 
 func (svc *deployService) CreateOtelCollector(ctx context.Context, ownerID, sinkID, deploymentEntry string) (string, error) {
