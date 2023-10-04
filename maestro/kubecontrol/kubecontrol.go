@@ -96,6 +96,9 @@ func (svc *deployService) collectorDeploy(ctx context.Context, operation, ownerI
 	}
 	// TODO this will be retrieved once we move to K8s SDK
 	collectorName := fmt.Sprintf("otel-%s", sinkId)
+
+	// delete temporary deplyment file
+	err = os.Remove("/tmp/otel-collector-"+sinkId+".json")
 	return collectorName, nil
 }
 
@@ -150,22 +153,11 @@ func (svc *deployService) CreateOtelCollector(ctx context.Context, ownerID, sink
 	return col, nil
 }
 
-func (svc *deployService) KillOtelCollector(ctx context.Context, deploymentName string, sinkId string) error {
-	stdOutListenFunction := func(out *bufio.Scanner, err *bufio.Scanner) {
-		for out.Scan() {
-			svc.logger.Info("Deploy Info: " + out.Text())
-		}
-		for err.Scan() {
-			svc.logger.Info("Deploy Error: " + err.Text())
-		}
+func (svc *deployService) KillOtelCollector(ctx context.Context, ownerID, sinkId, deploymentEntry string) error {
+	_, err := svc.collectorDeploy(ctx, "delete", ownerID, sinkId, deploymentEntry)
+	if err != nil {
+		return err
 	}
-
-	// execute action
-	cmd := exec.Command("kubectl", "delete", "deploy", deploymentName, "-n", namespace)
-	_, _, err := execCmd(ctx, cmd, svc.logger, stdOutListenFunction)
-	if err == nil {
-		svc.logger.Info(fmt.Sprintf("successfully killed the otel-collector for sink-id: %s", sinkId))
-	}
-
+	svc.logger.Info(fmt.Sprintf("successfully killed the otel-collector for sink-id: %s", sinkId))
 	return nil
 }
