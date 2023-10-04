@@ -147,25 +147,25 @@ func (d *deploymentService) UpdateDeployment(ctx context.Context, deployment *De
 	if err != nil {
 		d.logger.Warn("could not stop running collector, will try to update anyway", zap.Error(err))
 	}
-	err = deployment.Merge(*got)
+	err = got.Merge(*deployment)
 	if err != nil {
 		d.logger.Error("error during merge of deployments", zap.Error(err))
 		return err
 	}
-	deployment.LastCollectorStopTime = &now
-	codedConfig, err := d.encodeConfig(deployment)
+	got.LastCollectorStopTime = &now
+	codedConfig, err := d.encodeConfig(got)
 	if err != nil {
 		return err
 	}
-	err = deployment.SetConfig(codedConfig)
+	err = got.SetConfig(codedConfig)
 	if err != nil {
 		return err
 	}
-	updated, err := d.dbRepository.Update(ctx, deployment)
+	updated, err := d.dbRepository.Update(ctx, got)
 	if err != nil {
 		return err
 	}
-	err = d.maestroProducer.PublishSinkStatus(ctx, deployment.OwnerID, deployment.SinkID, "unknown", "")
+	err = d.maestroProducer.PublishSinkStatus(ctx, updated.OwnerID, updated.SinkID, "unknown", "")
 	if err != nil {
 		return err
 	}
