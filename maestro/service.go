@@ -10,6 +10,7 @@ package maestro
 
 import (
 	"context"
+
 	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
 	"github.com/go-redis/redis/v8"
 	"github.com/jmoiron/sqlx"
@@ -94,7 +95,8 @@ func (svc *maestroService) Start(ctx context.Context, cancelFunction context.Can
 	svc.serviceCancelFunc = cancelFunction
 
 	go svc.subscribeToSinksEvents(ctx)
-	go svc.subscribeToSinkerEvents(ctx)
+	go svc.subscribeToSinkerIdleEvents(ctx)
+	go svc.subscribeToSinkerActivityEvents(ctx)
 
 	monitorCtx := context.WithValue(ctx, "routine", "monitor")
 	err := svc.monitor.Start(monitorCtx, cancelFunction)
@@ -121,10 +123,18 @@ func (svc *maestroService) subscribeToSinksEvents(ctx context.Context) {
 	ctx.Done()
 }
 
-func (svc *maestroService) subscribeToSinkerEvents(ctx context.Context) {
-	if err := svc.activityListener.SubscribeSinksEvents(ctx); err != nil {
+func (svc *maestroService) subscribeToSinkerIdleEvents(ctx context.Context) {
+	if err := svc.activityListener.SubscribeSinkerIdleEvents(ctx); err != nil {
 		svc.logger.Error("Bootstrap service failed to subscribe to event sourcing", zap.Error(err))
 	}
-	svc.logger.Info("finished reading sinker events")
+	svc.logger.Info("finished reading sinker Idle events")
+	ctx.Done()
+}
+
+func (svc *maestroService) subscribeToSinkerActivityEvents(ctx context.Context) {
+	if err := svc.activityListener.SubscribeSinkerActivityEvents(ctx); err != nil {
+		svc.logger.Error("Bootstrap service failed to subscribe to event sourcing", zap.Error(err))
+	}
+	svc.logger.Info("finished reading sinker Activity events")
 	ctx.Done()
 }
