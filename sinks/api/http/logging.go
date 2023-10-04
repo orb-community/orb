@@ -6,11 +6,12 @@ package http
 
 import (
 	"context"
+	"time"
+
 	"github.com/orb-community/orb/sinks"
 	"github.com/orb-community/orb/sinks/authentication_type"
 	"github.com/orb-community/orb/sinks/backend"
 	"go.uber.org/zap"
-	"time"
 )
 
 var _ sinks.SinkService = (*loggingMiddleware)(nil)

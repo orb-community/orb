@@ -10,6 +10,7 @@ package producer
 
 import (
 	"context"
+
 	"github.com/orb-community/orb/sinks/authentication_type"
 
 	"github.com/go-redis/redis/v8"

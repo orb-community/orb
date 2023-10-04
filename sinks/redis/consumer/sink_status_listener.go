@@ -89,7 +89,7 @@ func (s *sinkStatusListener) ReceiveMessage(ctx context.Context, message redis.X
 			gotSink.Error = event.Msg
 		}
 		gotSink.State = newState
-		_, err = s.sinkService.UpdateSinkInternal(ctx, gotSink)
+		err = s.sinkService.ChangeSinkStateInternal(ctx, gotSink.ID, gotSink.Error, gotSink.MFOwnerID, gotSink.State)
 		if err != nil {
 			logger.Error("failed to update sink", zap.String("owner_id", event.OwnerID),
 				zap.String("sink_id", event.SinkID), zap.Error(err))
