@@ -38,7 +38,7 @@ func (s *sinkerActivityListenerService) SubscribeSinksActivity(ctx context.Conte
 	if err != nil && err.Error() != maestroredis.Exists {
 		return err
 	}
-	s.logger.Debug("Reading Sinks Activity Events", zap.String("stream", activityStream))
+	s.logger.Debug("Reading Sinker Activity Events", zap.String("stream", activityStream))
 	for {
 		select {
 		case <-ctx.Done():
@@ -87,6 +87,7 @@ func (s *sinkerActivityListenerService) SubscribeSinksIdle(ctx context.Context) 
 	if err != nil && err.Error() != maestroredis.Exists {
 		return err
 	}
+	s.logger.Debug("Reading Sinker Idle Events", zap.String("stream", idleStream))
 	for {
 		select {
 		case <-ctx.Done():
