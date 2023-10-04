@@ -165,6 +165,10 @@ func (d *deploymentService) UpdateDeployment(ctx context.Context, deployment *De
 	if err != nil {
 		return err
 	}
+	err = d.maestroProducer.PublishSinkStatus(ctx, deployment.OwnerID, deployment.SinkID, "unknown", "")
+	if err != nil {
+		return err
+	}
 	d.logger.Info("updated deployment", zap.String("ownerID", updated.OwnerID),
 		zap.String("sinkID", updated.SinkID))
 	return nil
@@ -254,7 +258,7 @@ func (d *deploymentService) UpdateStatus(ctx context.Context, ownerID string, si
 	d.logger.Info("updated deployment status",
 		zap.String("ownerID", updated.OwnerID), zap.String("sinkID", updated.SinkID),
 		zap.String("status", updated.LastStatus), zap.String("errorMessage", updated.LastErrorMessage))
-	err = d.maestroProducer.PublishSinkStatus(ctx, updated.OwnerID, updated.SinkID, updated.LastStatus, "")
+	err = d.maestroProducer.PublishSinkStatus(ctx, updated.OwnerID, updated.SinkID, updated.LastStatus, errorMessage)
 	if err != nil {
 		return err
 	}

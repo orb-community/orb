@@ -310,8 +310,6 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 		defaultMetadata := make(types.Metadata, 1)
 		defaultMetadata["opentelemetry"] = "enabled"
 		sink.Config.Merge(defaultMetadata)
-		sink.State = Unknown
-		sink.Error = ""
 		if sink.Format == "yaml" {
 			configDataByte, err := yaml.Marshal(sink.Config)
 			if err != nil {
@@ -475,9 +473,7 @@ func (svc sinkService) ChangeSinkStateInternal(ctx context.Context, sinkID strin
 }
 
 func (svc sinkService) validateBackend(sink *Sink) (be backend.Backend, err error) {
-	if backend.HaveBackend(sink.Backend) {
-		sink.State = Unknown
-	} else {
+	if !backend.HaveBackend(sink.Backend) {
 		return nil, ErrInvalidBackend
 	}
 	sinkBe := backend.GetBackend(sink.Backend)
