@@ -30,6 +30,8 @@ type Service interface {
 	GetDeploymentByCollectorName(ctx context.Context, collectorName string) (*Deployment, error)
 	// NotifyCollector add collector information to deployment
 	NotifyCollector(ctx context.Context, ownerID string, sinkId string, operation string, status string, errorMessage string) (string, error)
+	// CheckDeploymentState to be used to check the state of the deployment
+	CheckDeploymentState(ctx context.Context, collectorName string) (state bool)
 }
 
 type deploymentService struct {

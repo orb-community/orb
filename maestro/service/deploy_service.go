@@ -122,24 +122,25 @@ func (d *eventService) HandleSinkActivity(ctx context.Context, event maestroredi
 
 	// async update sink status to provisioning ...
 	// only if state is active and collector does not exist
-	d.deploymentService.CheckDeploymentState(ctx, event.OwnerID, event.SinkID)
-	go func() {
-		err := d.deploymentService.UpdateStatus(ctx, event.OwnerID, event.SinkID, "provisioning", "")
-		if err != nil {
-			d.logger.Error("error updating status to provisioning", zap.Error(err))
-		}
-	}()
+	if d.deploymentService.CheckDeploymentState(ctx, deploymentEntry.CollectorName) {
+		go func() {
+			err := d.deploymentService.UpdateStatus(ctx, event.OwnerID, event.SinkID, "provisioning", "")
+			if err != nil {
+				d.logger.Error("error updating status to provisioning", zap.Error(err))
+			}
+		}()
 
-	_, err = d.deploymentService.NotifyCollector(ctx, event.OwnerID, event.SinkID, "deploy", "", "")
-	if err != nil {
-		d.logger.Error("error trying to notify collector", zap.Error(err))
-		err2 := d.deploymentService.UpdateStatus(ctx, event.OwnerID, event.SinkID, "provisioning_error", err.Error())
-		if err2 != nil {
-			d.logger.Warn("error during notifying provisioning error, customer will not be notified of error")
-			d.logger.Error("error during update provisioning error status", zap.Error(err))
+		_, err = d.deploymentService.NotifyCollector(ctx, event.OwnerID, event.SinkID, "deploy", "", "")
+		if err != nil {
+			d.logger.Error("error trying to notify collector", zap.Error(err))
+			err2 := d.deploymentService.UpdateStatus(ctx, event.OwnerID, event.SinkID, "provisioning_error", err.Error())
+			if err2 != nil {
+				d.logger.Warn("error during notifying provisioning error, customer will not be notified of error")
+				d.logger.Error("error during update provisioning error status", zap.Error(err))
+				return err
+			}
 			return err
 		}
-		return err
 	}
 	return nil
 }
