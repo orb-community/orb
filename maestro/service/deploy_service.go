@@ -150,7 +150,8 @@ func (d *eventService) HandleSinkIdle(ctx context.Context, event maestroredis.Si
 			d.logger.Error("error updating status to idle", zap.Error(err))
 		}
 	}()
-	_, err := d.deploymentService.NotifyCollector(ctx, event.OwnerID, event.SinkID, "deploy", "", "")
+	// dropping idle otel collector
+	_, err := d.deploymentService.NotifyCollector(ctx, event.OwnerID, event.SinkID, "delete", "", "")
 	if err != nil {
 		d.logger.Error("error trying to notify collector", zap.Error(err))
 		err2 := d.deploymentService.UpdateStatus(ctx, event.OwnerID, event.SinkID, "provisioning_error", err.Error())
