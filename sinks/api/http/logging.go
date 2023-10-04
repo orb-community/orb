@@ -102,8 +102,7 @@ func (l loggingMiddleware) UpdateSinkStatusInternal(ctx context.Context, s sinks
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
-	return l.svc.UpdateSinkInternal(ctx, s)
-}
+	return l.svc.UpdateSinkStatusInternal(ctx, s)
 
 func (l loggingMiddleware) ListSinks(ctx context.Context, token string, pm sinks.PageMetadata) (_ sinks.Page, err error) {
 	defer func(begin time.Time) {
