@@ -146,15 +146,16 @@ func (svc *deployService) getDeploymentState(ctx context.Context, _, sinkId stri
 
 func (svc *deployService) CheckDeploymentState(ctx context.Context, deploymentName string) (exists bool) {
 	deploymentClient := svc.clientSet.AppsV1().Deployments(namespace)
-	deploy, err := deploymentClient.Get(context.Background(), deploymentName, k8smetav1.GetOptions{})
+	deploy, err := deploymentClient.Get(ctx, deploymentName, k8smetav1.GetOptions{})
 	if err != nil {
-		panic(err)
+		svc.logger.Info("check deployment state error", zap.Error(err), zap.String("deploymentName", deploymentName))
+		return false
 	}
-	if deploy != nil &&
-		deploy.Spec.Replicas != nil &&
-		*deploy.Spec.Replicas == deploy.Status.ReadyReplicas {
+	if deploy != nil {
+		svc.logger.Info("check deployment state success ", zap.String("deploymentName", deploymentName))
 		return true
 	} else {
+		svc.logger.Info("check deployment state failed ", zap.String("deploymentName", deploymentName))
 		return false
 	}
 }

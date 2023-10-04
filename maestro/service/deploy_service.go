@@ -119,10 +119,9 @@ func (d *eventService) HandleSinkActivity(ctx context.Context, event maestroredi
 		return nil
 	}
 
-
 	// async update sink status to provisioning ...
-	// only if state is active and collector does not exist
-	if d.deploymentService.CheckDeploymentState(ctx, deploymentEntry.CollectorName) {
+	// only if sinker state is active and collector does not exist
+	if d.deploymentService.CheckDeploymentState(ctx, deploymentEntry.CollectorName) == false {
 		go func() {
 			err := d.deploymentService.UpdateStatus(ctx, event.OwnerID, event.SinkID, "provisioning", "")
 			if err != nil {
