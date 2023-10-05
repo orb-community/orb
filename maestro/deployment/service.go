@@ -153,7 +153,7 @@ func (d *deploymentService) UpdateDeployment(ctx context.Context, deployment *De
 		return err
 	}
 	got.LastCollectorStopTime = &now
-	codedConfig, err := d.encodeConfig(got)
+	codedConfig, err := d.encodeConfig(deployment)
 	if err != nil {
 		return err
 	}

@@ -2,12 +2,13 @@ package service
 
 import (
 	"context"
+	"time"
+
 	"github.com/orb-community/orb/maestro/deployment"
 	"github.com/orb-community/orb/maestro/kubecontrol"
 	maestroredis "github.com/orb-community/orb/maestro/redis"
 	"github.com/orb-community/orb/pkg/errors"
 	"go.uber.org/zap"
-	"time"
 )
 
 // EventService will hold the business logic of the handling events from both Listeners
@@ -107,12 +108,12 @@ func (d *eventService) HandleSinkActivity(ctx context.Context, event maestroredi
 			zap.String("status", event.State))
 		return errors.New("trying to deploy sink that is not active")
 	}
-	d.logger.Debug("handling sink activity event", zap.String("sink-id", event.SinkID))
 	deploymentEntry, _, err := d.deploymentService.GetDeployment(ctx, event.OwnerID, event.SinkID)
 	if err != nil {
 		d.logger.Warn("did not find collector entry for sink", zap.String("sink-id", event.SinkID))
 		return err
 	}
+	d.logger.Debug("handling sink activity event", zap.String("sink-id", event.SinkID), zap.String("deployment-status",deploymentEntry.LastStatus))
 	if deploymentEntry.LastStatus == "unknown" || deploymentEntry.LastStatus == "idle" {
 		// async update sink status to provisioning
 		go func() {
@@ -149,7 +150,8 @@ func (d *eventService) HandleSinkIdle(ctx context.Context, event maestroredis.Si
 			d.logger.Error("error updating status to idle", zap.Error(err))
 		}
 	}()
-	_, err := d.deploymentService.NotifyCollector(ctx, event.OwnerID, event.SinkID, "deploy", "", "")
+	// dropping idle otel collector
+	_, err := d.deploymentService.NotifyCollector(ctx, event.OwnerID, event.SinkID, "delete", "", "")
 	if err != nil {
 		d.logger.Error("error trying to notify collector", zap.Error(err))
 		err2 := d.deploymentService.UpdateStatus(ctx, event.OwnerID, event.SinkID, "provisioning_error", err.Error())
