@@ -1,5 +1,11 @@
-ngx-monaco-editor {
-    height: 25rem;
+
+.editor-height- {
+  &true {
+    height: 25.5rem;
+  }
+  &false {
+    height: 22.5rem;
+  }
 }
 .summary-accent {
     color: #969fb9 !important;

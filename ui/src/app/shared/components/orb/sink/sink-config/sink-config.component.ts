@@ -16,10 +16,10 @@ export class SinkConfigComponent implements OnInit, OnChanges {
   sink: Sink;
 
   @Input()
-  editMode: boolean;
+  editMode: boolean = false;
 
   @Input()
-  createMode: boolean;
+  createMode: boolean = false;
 
   @Input()
   sinkBackend: string;

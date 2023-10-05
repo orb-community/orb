@@ -33,14 +33,14 @@
             #editorComponent
             [(ngModel)]="code"
             [options]="editorOptions"
-            class="code-editor"
+            class="code-editor editor-height-{{createMode}}"
             ngDefaultControl
             *ngIf="!isYaml">
         </ngx-monaco-editor>
         <ngx-monaco-editor
           [(ngModel)]="code"
           [options]="editorOptionsYaml"
-          class="code-editor"
+          class="code-editor editor-height-{{createMode}}"
           ngDefaultControl>
         </ngx-monaco-editor>
       </div>
