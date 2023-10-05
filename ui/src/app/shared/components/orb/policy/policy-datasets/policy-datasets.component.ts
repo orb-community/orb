@@ -177,6 +177,7 @@ export class PolicyDatasetsComponent
         closeOnEsc: false,
         context: {
           dataset,
+          policy: this.policy,
         },
         hasScroll: false,
         closeOnBackdropClick: true,

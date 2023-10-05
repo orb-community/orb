@@ -8,6 +8,7 @@ import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { AgentsService } from 'app/common/services/agents/agents.service';
 import { Router } from '@angular/router';
 import { AgentPolicy, AgentPolicyStates } from 'app/common/interfaces/orb/agent.policy.interface';
+import { AgentGroupsService } from 'app/common/services/agents/agent.groups.service';
 
 @Component({
   selector: 'ngx-agent-match-component',
@@ -20,6 +21,9 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
 
   @Input()
   agentGroup: AgentGroup;
+
+  @Input()
+  agentGroupId: string;
 
   @Input()
   policy!: AgentPolicy;
@@ -64,6 +68,7 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
     protected dialogRef: NbDialogRef<AgentMatchComponent>,
     protected agentsService: AgentsService,
     protected router: Router,
+    protected groupsService: AgentGroupsService,
   ) {
     this.specificPolicy = false;
   }
@@ -132,6 +137,19 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
   }
 
   updateMatchingAgents() {
+    if (!!this.agentGroupId) {
+      this.groupsService.getAgentGroupById(this.agentGroupId).subscribe(
+        (resp) => {
+          this.agentGroup = resp;
+          this.getMatchingAgentsInfo();
+        }
+      )
+    }
+    else {
+      this.getMatchingAgentsInfo();
+    }
+  }
+  getMatchingAgentsInfo() {
     const { tags } = this.agentGroup;
     const tagsList = Object.keys(tags).map(key => ({ [key]: tags[key] }));
     this.agentsService.getAllAgents(tagsList).subscribe(
@@ -147,9 +165,8 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
           this.agents = resp;
         }
       },
-    );
+    ); 
   }
-
   onClose() {
     this.dialogRef.close(false);
   }
