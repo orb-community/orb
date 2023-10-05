@@ -30,7 +30,8 @@ func NewSinkerKeyExpirationListener(l *zap.Logger, cacheRedisClient *redis.Clien
 // SubscribeToKeyExpiration to be used to subscribe to the sinker key expiration
 func (s *sinkerKeyExpirationListener) SubscribeToKeyExpiration(ctx context.Context) error {
 	go func() {
-		pubsub := s.cacheRedisClient.PSubscribe(ctx, "__keyevent@"+strconv.Itoa(s.cacheRedisClient.Options().DB)+"__:expired")
+		redisDB := strconv.Itoa(s.cacheRedisClient.Options().DB)
+		pubsub := s.cacheRedisClient.PSubscribe(ctx, "__keyevent@"+redisDB+"__:expired")
 		defer func(pubsub *redis.PubSub) {
 			_ = pubsub.Close()
 		}(pubsub)		
