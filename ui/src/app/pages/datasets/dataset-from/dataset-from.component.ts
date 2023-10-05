@@ -193,7 +193,6 @@ export class DatasetFromComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.agent_group_id.currentValue) {
       this.isGroupSelected = true;
-      console.log(this.policy);
     }
     else {
       this.isGroupSelected = false;
