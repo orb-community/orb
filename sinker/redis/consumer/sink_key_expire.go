@@ -56,15 +56,16 @@ func (s *sinkerKeyExpirationListener) SubscribeToKeyExpiration(ctx context.Conte
 // ReceiveMessage to be used to receive the message from the sinker key expiration
 func (s *sinkerKeyExpirationListener) ReceiveMessage(ctx context.Context, message string) error {
 	// goroutine
-	go func(msg string) {
-		ownerID := message[16:52]
-		sinkID := message[53:]
+	go func(msg string) {		
+		ownerID := message[16:51]
+		sinkID := message[52:]
 		event := producer.SinkIdleEvent{
 			OwnerID: ownerID,
 			SinkID:  sinkID,
 			State:   "idle",
 			Size:    "0",
 		}
+		s.logger.Info("publishing sink idle event", zap.Any("event", event))
 		_ = s.idleProducer.PublishSinkIdle(ctx, event)
 	}(message)
 	return nil
