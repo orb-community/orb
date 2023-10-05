@@ -2,6 +2,8 @@ package consumer
 
 import (
 	"context"
+	"strconv"
+
 	"github.com/go-redis/redis/v8"
 	"github.com/orb-community/orb/sinker/redis/producer"
 	"go.uber.org/zap"
@@ -28,16 +30,16 @@ func NewSinkerKeyExpirationListener(l *zap.Logger, cacheRedisClient *redis.Clien
 // SubscribeToKeyExpiration to be used to subscribe to the sinker key expiration
 func (s *sinkerKeyExpirationListener) SubscribeToKeyExpiration(ctx context.Context) error {
 	go func() {
-		pubsub := s.cacheRedisClient.Subscribe(ctx, "__key*__:*")
+		pubsub := s.cacheRedisClient.PSubscribe(ctx, "__keyevent@"+strconv.Itoa(s.cacheRedisClient.Options().DB)+"__:expired")
 		defer func(pubsub *redis.PubSub) {
 			_ = pubsub.Close()
-		}(pubsub)
-		ch := pubsub.Channel()
+		}(pubsub)		
 		for {
 			select {
 			case <-ctx.Done():
 				return
-			case msg := <-ch:
+			default:
+				msg, _ := pubsub.ReceiveMessage(ctx)
 				s.logger.Info("key expired", zap.String("key", msg.Payload))
 				subCtx := context.WithValue(ctx, "msg", msg.Payload)
 				err := s.ReceiveMessage(subCtx, msg.Payload)
