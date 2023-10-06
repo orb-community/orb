@@ -151,7 +151,7 @@ func (d *eventService) HandleSinkIdle(ctx context.Context, event maestroredis.Si
 		}
 	}()
 	// dropping idle otel collector
-	_, err := d.deploymentService.NotifyCollector(ctx, event.OwnerID, event.SinkID, "delete", "", "")
+	_, err := d.deploymentService.NotifyCollector(ctx, event.OwnerID, event.SinkID, "delete", "idle", "")
 	if err != nil {
 		d.logger.Error("error trying to notify collector", zap.Error(err))
 		err2 := d.deploymentService.UpdateStatus(ctx, event.OwnerID, event.SinkID, "provisioning_error", err.Error())
