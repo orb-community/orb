@@ -2,7 +2,7 @@ package producer
 
 import (
 	"context"
-	"github.com/go-redis/redis/v8"
+	"github.com/go-redis/redis/v9"
 	"go.uber.org/zap"
 	"time"
 )
