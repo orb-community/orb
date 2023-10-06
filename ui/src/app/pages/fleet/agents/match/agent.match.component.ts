@@ -142,8 +142,8 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
         (resp) => {
           this.agentGroup = resp;
           this.getMatchingAgentsInfo();
-        }
-      )
+        },
+      );
     } else {
       this.getMatchingAgentsInfo();
     }
