@@ -58,7 +58,7 @@ func (s *sinkerKeyExpirationListener) SubscribeToKeyExpiration(ctx context.Conte
 func (s *sinkerKeyExpirationListener) ReceiveMessage(ctx context.Context, message string) error {
 	// goroutine
 	go func(msg string) {		
-		ownerID := message[16:51]
+		ownerID := message[15:51]
 		sinkID := message[52:]
 		event := producer.SinkIdleEvent{
 			OwnerID: ownerID,

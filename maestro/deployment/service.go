@@ -3,6 +3,7 @@ package deployment
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/orb-community/orb/maestro/config"
@@ -231,7 +232,7 @@ func (d *deploymentService) NotifyCollector(ctx context.Context, ownerID string,
 func (d *deploymentService) UpdateStatus(ctx context.Context, ownerID string, sinkId string, status string, errorMessage string) error {
 	got, _, err := d.GetDeployment(ctx, ownerID, sinkId)
 	if err != nil {
-		return errors.New("could not find deployment to update")
+		return fmt.Errorf("could not find deployment to update status: %w", err)
 	}
 	now := time.Now()
 	if status != "" {

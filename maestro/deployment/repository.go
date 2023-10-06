@@ -156,24 +156,19 @@ func (r *repositoryService) Remove(ctx context.Context, ownerId string, sinkId s
 }
 
 func (r *repositoryService) FindByOwnerAndSink(ctx context.Context, ownerId string, sinkId string) (*Deployment, error) {
-	tx := r.db.MustBeginTx(ctx, nil)
-	var rows []Deployment
 	query := `SELECT * FROM deployments WHERE owner_id = $1 AND sink_id = $2`
-	err := tx.SelectContext(ctx, &rows, query, ownerId, sinkId)
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	err = tx.Commit()
-	if err != nil {
-		return nil, err
-	}
-	if len(rows) == 0 {
-		return nil, errors.New(fmt.Sprintf("not found deployment for owner-id: %s and sink-id: %s", ownerId, sinkId))
-	}
-	deployment := &rows[0]
+	rows := make([]Deployment, 0)
 
-	return deployment, nil
+	err := r.db.SelectContext(ctx, &rows, query, ownerId, sinkId)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(rows) == 0 {
+		return nil, fmt.Errorf("not found deployment for owner-id: %s and sink-id: %s, error: %w", ownerId, sinkId, err)
+	}
+
+	return &rows[0], nil
 }
 
 func (r *repositoryService) FindByCollectorName(ctx context.Context, collectorName string) (*Deployment, error) {
