@@ -3,7 +3,7 @@ package redis_test
 import (
 	"context"
 	"fmt"
-	"github.com/orb-community/orb/sinker/redis/consumer"
+	//"github.com/orb-community/orb/sinker/redis/consumer"
 	"github.com/orb-community/orb/sinker/redis/producer"
 	"testing"
 	"time"
