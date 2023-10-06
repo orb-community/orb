@@ -66,7 +66,7 @@ export class PolicyInterfaceComponent implements OnInit, AfterViewInit, OnChange
 
   formControl: FormControl;
 
-  
+
 
   constructor(
     private fb: FormBuilder,
@@ -136,8 +136,8 @@ export class PolicyInterfaceComponent implements OnInit, AfterViewInit, OnChange
     const reader: FileReader = new FileReader();
 
     reader.onload = (e: any) => {
-    const fileContent = e.target.result;
-    this.code = fileContent;
+      const fileContent = e.target.result;
+      this.code = fileContent;
     };
 
     reader.readAsText(file);

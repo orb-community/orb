@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Input, OnChanges, OnInit, SimpleChange, SimpleChanges  } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnChanges, OnInit, SimpleChange, SimpleChanges } from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -182,8 +182,8 @@ export class DatasetFromComponent implements OnInit, OnChanges {
 
   onMatchingAgentsModal() {
     this.dialogService.open(AgentMatchComponent, {
-      context: { 
-        agentGroupId: this.form.controls.agent_group_id.value, 
+      context: {
+        agentGroupId: this.form.controls.agent_group_id.value,
         policy: this.policy,
       },
       autoFocus: true,
@@ -193,8 +193,7 @@ export class DatasetFromComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.agent_group_id.currentValue) {
       this.isGroupSelected = true;
-    }
-    else {
+    } else {
       this.isGroupSelected = false;
     }
   }

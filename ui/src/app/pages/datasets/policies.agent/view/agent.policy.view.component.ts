@@ -120,18 +120,15 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
       if (this.editor.isJson(config)) {
         interfaceValid = true;
         this.errorConfigMessage = '';
-      }
-      else {
+      } else {
         interfaceValid = false;
         this.errorConfigMessage = 'Invalid JSON configuration, check syntax errors';
       }
-    }
-    else if (this.policy.format === 'yaml') {
+    } else if (this.policy.format === 'yaml') {
       if (this.editor.isYaml(config)) {
         interfaceValid = true;
         this.errorConfigMessage = '';
-      }
-      else {
+      } else {
         interfaceValid = false;
         this.errorConfigMessage = 'Invalid YAML configuration, check syntax errors';
       }
@@ -189,16 +186,16 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
 
       this.policiesService.editAgentPolicy(payload).subscribe(
         (resp) => {
-        this.notifications.success('Agent Policy updated successfully', '');
-        this.discard();
-        this.policy = resp;
-        this.orb.refreshNow();
-        this.isRequesting = false;
+          this.notifications.success('Agent Policy updated successfully', '');
+          this.discard();
+          this.policy = resp;
+          this.orb.refreshNow();
+          this.isRequesting = false;
         },
         (err) => {
           this.isRequesting = false;
         },
-        );
+      );
 
     } catch (err) {
       this.notifications.error(
@@ -236,17 +233,17 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
   }
   duplicatePolicy(agentPolicy: any) {
     this.policiesService
-    .duplicateAgentPolicy(agentPolicy.id)
-    .subscribe((newAgentPolicy) => {
-      if (newAgentPolicy?.id) {
-        this.notifications.success(
-          'Agent Policy Duplicated',
-          `New Agent Policy Name: ${newAgentPolicy?.name}`,
-        );
-        this.router.navigateByUrl(`/pages/datasets/policies/view/${newAgentPolicy?.id}`);
-        this.fetchData(newAgentPolicy.id);
-      }
-    });
+      .duplicateAgentPolicy(agentPolicy.id)
+      .subscribe((newAgentPolicy) => {
+        if (newAgentPolicy?.id) {
+          this.notifications.success(
+            'Agent Policy Duplicated',
+            `New Agent Policy Name: ${newAgentPolicy?.name}`,
+          );
+          this.router.navigateByUrl(`/pages/datasets/policies/view/${newAgentPolicy?.id}`);
+          this.fetchData(newAgentPolicy.id);
+        }
+      });
   }
 
   ngOnDestroy() {
