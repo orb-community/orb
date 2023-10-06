@@ -59,6 +59,8 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
 
   lastUpdate: Date | null = null;
 
+  errorConfigMessage: string;
+
   @ViewChild(PolicyDetailsComponent) detailsComponent: PolicyDetailsComponent;
 
   @ViewChild(PolicyInterfaceComponent)
@@ -75,6 +77,7 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
     private editor: CodeEditorService,
   ) {
     this.isRequesting = false;
+    this.errorConfigMessage = '';
   }
 
   ngOnInit() {
@@ -95,10 +98,14 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
 
 
   isEditMode() {
-    return Object.values(this.editMode).reduce(
+    const resp = Object.values(this.editMode).reduce(
       (prev, cur) => prev || cur,
       false,
     );
+    if (!resp) {
+      this.errorConfigMessage = '';
+    }
+    return resp;
   }
 
   canSave() {
@@ -109,10 +116,22 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
     const config = this.interfaceComponent?.code;
     let interfaceValid = false;
 
-    if (this.editor.isJson(config)) {
-      interfaceValid = true;
-    } else if (this.editor.isYaml(config)) {
-      interfaceValid = true;
+    if (this.policy.format === 'json') {
+      if (this.editor.isJson(config)) {
+        interfaceValid = true;
+        this.errorConfigMessage = '';
+      } else {
+        interfaceValid = false;
+        this.errorConfigMessage = 'Invalid JSON configuration, check syntax errors';
+      }
+    } else if (this.policy.format === 'yaml') {
+      if (this.editor.isYaml(config)) {
+        interfaceValid = true;
+        this.errorConfigMessage = '';
+      } else {
+        interfaceValid = false;
+        this.errorConfigMessage = 'Invalid YAML configuration, check syntax errors';
+      }
     }
     return detailsValid && interfaceValid;
   }
@@ -167,16 +186,16 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
 
       this.policiesService.editAgentPolicy(payload).subscribe(
         (resp) => {
-        this.notifications.success('Agent Policy updated successfully', '');
-        this.discard();
-        this.policy = resp;
-        this.orb.refreshNow();
-        this.isRequesting = false;
+          this.notifications.success('Agent Policy updated successfully', '');
+          this.discard();
+          this.policy = resp;
+          this.orb.refreshNow();
+          this.isRequesting = false;
         },
         (err) => {
           this.isRequesting = false;
         },
-        );
+      );
 
     } catch (err) {
       this.notifications.error(
@@ -214,17 +233,17 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
   }
   duplicatePolicy(agentPolicy: any) {
     this.policiesService
-    .duplicateAgentPolicy(agentPolicy.id)
-    .subscribe((newAgentPolicy) => {
-      if (newAgentPolicy?.id) {
-        this.notifications.success(
-          'Agent Policy Duplicated',
-          `New Agent Policy Name: ${newAgentPolicy?.name}`,
-        );
-        this.router.navigateByUrl(`/pages/datasets/policies/view/${newAgentPolicy?.id}`);
-        this.fetchData(newAgentPolicy.id);
-      }
-    });
+      .duplicateAgentPolicy(agentPolicy.id)
+      .subscribe((newAgentPolicy) => {
+        if (newAgentPolicy?.id) {
+          this.notifications.success(
+            'Agent Policy Duplicated',
+            `New Agent Policy Name: ${newAgentPolicy?.name}`,
+          );
+          this.router.navigateByUrl(`/pages/datasets/policies/view/${newAgentPolicy?.id}`);
+          this.fetchData(newAgentPolicy.id);
+        }
+      });
   }
 
   ngOnDestroy() {

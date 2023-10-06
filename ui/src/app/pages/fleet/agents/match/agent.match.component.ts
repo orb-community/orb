@@ -132,7 +132,7 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
   }
 
   onOpenView(agent: any) {
-    this.router.navigateByUrl(`pages/fleet/agents/view/${ agent.id }`);
+    this.router.navigateByUrl(`pages/fleet/agents/view/${agent.id}`);
     this.dialogRef.close();
   }
 
@@ -142,10 +142,9 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
         (resp) => {
           this.agentGroup = resp;
           this.getMatchingAgentsInfo();
-        }
-      )
-    }
-    else {
+        },
+      );
+    } else {
       this.getMatchingAgentsInfo();
     }
   }
@@ -157,15 +156,15 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
         if (!!this.policy) {
           this.specificPolicy = true;
           this.agents = resp.map((agent) => {
-            const {policy_state} = agent;
+            const { policy_state } = agent;
             const policy_agg_info = !!policy_state && policy_state[this.policy.id]?.state || AgentPolicyStates.failedToApply;
-            return {...agent, policy_agg_info };
+            return { ...agent, policy_agg_info };
           });
         } else {
           this.agents = resp;
         }
       },
-    ); 
+    );
   }
   onClose() {
     this.dialogRef.close(false);

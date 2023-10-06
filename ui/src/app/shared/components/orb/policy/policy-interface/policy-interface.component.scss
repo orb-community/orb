@@ -12,6 +12,7 @@ nb-card {
 
   nb-card-body {
     padding: 0.25rem !important;
+    margin: 0 !important;
 
     label {
       color: #969fb9;
@@ -83,4 +84,13 @@ nb-card {
 }
 .upload-button:hover {
   background-color: #171c30 !important;
+}
+
+.errorMessage {
+  position: absolute;
+  color: #df316f;
+  font-weight: 600;
+  font-size: 13px;
+  left: 20px;
+  bottom: 3px;
 }

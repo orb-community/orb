@@ -41,6 +41,8 @@ export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
 
   isRequesting: boolean;
 
+  errorConfigMessage: string;
+
   @ViewChild(SinkDetailsComponent) detailsComponent: SinkDetailsComponent;
 
   @ViewChild(SinkConfigComponent)
@@ -56,6 +58,7 @@ export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
     private orb: OrbService,
     ) {
       this.isRequesting = false;
+      this.errorConfigMessage = '';
     }
 
   ngOnInit(): void {
@@ -74,10 +77,14 @@ export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   isEditMode() {
-    return Object.values(this.editMode).reduce(
+    const resp = Object.values(this.editMode).reduce(
       (prev, cur) => prev || cur,
       false,
     );
+    if (!resp) {
+      this.errorConfigMessage = '';
+    }
+    return resp;
   }
 
   canSave() {
@@ -93,7 +100,9 @@ export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
       config = JSON.parse(configSink);
     } else if (this.editor.isYaml(configSink)) {
       config = YAML.parse(configSink);
+      this.errorConfigMessage = '';
     } else {
+        this.errorConfigMessage = 'Invalid YAML configuration, check syntax errors';
         return false;
     }
 

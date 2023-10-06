@@ -43,6 +43,7 @@
           class="code-editor editor-height-{{createMode}}"
           ngDefaultControl>
         </ngx-monaco-editor>
+        <span *ngIf="errorConfigMessage !== ''" class="errorMessage">{{ errorConfigMessage }} </span>
       </div>
     </nb-card-body>
   </nb-card>
