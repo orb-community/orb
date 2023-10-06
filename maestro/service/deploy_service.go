@@ -149,7 +149,7 @@ func (d *eventService) HandleSinkIdle(ctx context.Context, event maestroredis.Si
 		if err != nil {
 			d.logger.Error("error updating status to idle", zap.Error(err))
 		}
-	}
+	}()
 	// dropping idle otel collector
 	_, err := d.deploymentService.NotifyCollector(ctx, event.OwnerID, event.SinkID, "delete", "", "")
 	if err != nil {
