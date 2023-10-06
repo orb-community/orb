@@ -1,3 +1,5 @@
+podSecurityPolicy:
+  enabled: false
 orb:
   defaults:
     logLevel: "debug"
