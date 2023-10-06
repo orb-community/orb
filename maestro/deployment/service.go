@@ -238,8 +238,6 @@ func (d *deploymentService) UpdateStatus(ctx context.Context, ownerID string, si
 	if status != "" {
 		got.LastStatus = status
 		got.LastStatusUpdate = &now
-	}
-	if errorMessage != "" {
 		got.LastErrorMessage = errorMessage
 		got.LastErrorTime = &now
 	}
