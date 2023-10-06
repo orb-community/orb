@@ -144,12 +144,14 @@ func (d *eventService) HandleSinkIdle(ctx context.Context, event maestroredis.Si
 	// check if exists deployment entry from postgres
 	d.logger.Debug("handling sink idle event", zap.String("sink-id", event.SinkID), zap.String("owner-id", event.OwnerID))
 	// async update sink status to idle
-	err := d.deploymentService.UpdateStatus(ctx, event.OwnerID, event.SinkID, "idle", "")
-	if err != nil {
-		d.logger.Error("error updating status to idle", zap.Error(err))
+	go func() {
+		err := d.deploymentService.UpdateStatus(ctx, event.OwnerID, event.SinkID, "idle", "")
+		if err != nil {
+			d.logger.Error("error updating status to idle", zap.Error(err))
+		}
 	}
 	// dropping idle otel collector
-	_, err = d.deploymentService.NotifyCollector(ctx, event.OwnerID, event.SinkID, "delete", "", "")
+	_, err := d.deploymentService.NotifyCollector(ctx, event.OwnerID, event.SinkID, "delete", "", "")
 	if err != nil {
 		d.logger.Error("error trying to notify collector", zap.Error(err))
 		err2 := d.deploymentService.UpdateStatus(ctx, event.OwnerID, event.SinkID, "provisioning_error", err.Error())
