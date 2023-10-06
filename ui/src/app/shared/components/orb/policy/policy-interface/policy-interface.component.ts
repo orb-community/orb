@@ -34,6 +34,9 @@ export class PolicyInterfaceComponent implements OnInit, AfterViewInit, OnChange
   @Input()
   detailsEditMode: boolean;
 
+  @Input()
+  errorConfigMessage: string;
+
   @ViewChild(EditorComponent, { static: true })
   editorComponent: EditorComponent;
 
@@ -44,10 +47,11 @@ export class PolicyInterfaceComponent implements OnInit, AfterViewInit, OnChange
     detectIndentation: true,
     tabSize: 2,
     autoIndent: 'full',
+    formatOnPaste: true,
     trimAutoWhitespace: true,
     formatOnType: true,
     matchBrackets: 'always',
-    language: 'yaml',
+    language: 'json',
     automaticLayout: true,
     glyphMargin: false,
     folding: true,
@@ -62,6 +66,8 @@ export class PolicyInterfaceComponent implements OnInit, AfterViewInit, OnChange
 
   formControl: FormControl;
 
+  
+
   constructor(
     private fb: FormBuilder,
     private orb: OrbService,
@@ -72,6 +78,7 @@ export class PolicyInterfaceComponent implements OnInit, AfterViewInit, OnChange
     this.editModeChange = new EventEmitter<boolean>();
     this.updateForm();
     this.detailsEditMode = false;
+    this.errorConfigMessage = '';
   }
 
   getCodeLineCount() {
@@ -87,6 +94,9 @@ export class PolicyInterfaceComponent implements OnInit, AfterViewInit, OnChange
 
   ngOnInit(): void {
     this.code = this.policy.policy_data || JSON.stringify(this.policy.policy, null, 2);
+    if (this.policy.format === 'yaml') {
+      this.editorOptions = { ...this.editorOptions, language: 'yaml' };
+    }
   }
 
   ngAfterViewInit() {

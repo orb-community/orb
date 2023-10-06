@@ -29,6 +29,8 @@ export class SinkAddComponent {
 
     isRequesting: boolean;
 
+    errorConfigMessage: string;
+
     constructor(
         private sinksService: SinksService,
         private notificationsService: NotificationsService,
@@ -37,6 +39,7 @@ export class SinkAddComponent {
     ) {
         this.createMode = true;
         this.isRequesting = false;
+        this.errorConfigMessage = '';
     }
 
     canCreate() {
@@ -51,7 +54,9 @@ export class SinkAddComponent {
             config = JSON.parse(configSink);
         } else if (this.editor.isYaml(configSink)) {
             config = YAML.parse(configSink);
+            this.errorConfigMessage = '';
         } else {
+            this.errorConfigMessage = 'Invalid YAML configuration, check syntax errors';
             return false;
         }
 

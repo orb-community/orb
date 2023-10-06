@@ -30,6 +30,9 @@ export class SinkConfigComponent implements OnInit, OnChanges {
   @Input()
   detailsEditMode: boolean;
 
+  @Input()
+  errorConfigMessage: string;
+
   @ViewChild('editorComponent')
   editor;
 
@@ -84,6 +87,7 @@ export class SinkConfigComponent implements OnInit, OnChanges {
     this.editModeChange = new EventEmitter<boolean>();
     this.detailsEditMode = false;
     this.updateForm();
+    this.errorConfigMessage = '';
     this.sinkConfigSchemaPrometheus = {
       'authentication' : {
         'type': 'basicauth',
