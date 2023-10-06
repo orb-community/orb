@@ -111,7 +111,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
       map(agents => {
         return agents.map(agent => {
           let version: string;
-          if (agent.state !== 'new') {
+          if (agent.state !== AgentStates.new && agent?.agent_metadata?.orb_agent?.version) {
             version = agent.agent_metadata.orb_agent.version;
           } else {
             version = '-';
