@@ -1,0 +1,59 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-commander
+  annotations:
+    # Tell Kubernetes to apply the AppArmor or SecComp profile "runtime/default". (whatever is used)
+    # Note that this is ignored if the Kubernetes node is not running version 1.4 or greater.
+    # and fails if AppArmor enabled but profile not found (may happens on borked k8s installs only)
+    # set to "unconfined" to disable AppArmor (first annotation) or SecComp (second annotation)
+    container.apparmor.security.beta.kubernetes.io/redis-commander: runtime/default
+    container.security.alpha.kubernetes.io/redis-commander: runtime/default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-commander
+  template:
+    metadata:
+      labels:
+        app: redis-commander
+        tier: backend
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: redis-commander
+          image: rediscommander/redis-commander
+          imagePullPolicy: Always
+          env:
+            - name: REDIS_HOSTS
+              value: "stream-redis:stream-redis-stg.u33apq.0001.usw2.cache.amazonaws.com:6379,sinker-redis:sinker-redis-stg.u33apq.0001.usw2.cache.amazonaws.com:6379:1"
+            - name: K8S_SIGTERM
+              value: "1"
+            - name: HTTP_USER
+              value: "administrador"
+            - name: HTTP_PASSWORD
+              value: "yNWvkP9IkjjBEKKm"
+          ports:
+            - name: redis-commander
+              containerPort: 8081
+          livenessProbe:
+            httpGet:
+              path: /favicon.png
+              port: 8081
+            initialDelaySeconds: 10
+            timeoutSeconds: 5
+          # adapt to your needs base on data stored inside redis (number of keys and size of biggest keys)
+          # or comment out for less secure installation
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512M"
+          securityContext:
+            runAsNonRoot: true
+            readOnlyRootFilesystem: false
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL

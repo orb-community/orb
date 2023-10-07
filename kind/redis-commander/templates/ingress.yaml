@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-ns1
+  name: redis-commander-ingress
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - redis-commander.stg.orb.live
+      secretName: orb-tls
+  rules:
+    - host: redis-commander.stg.orb.live
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: redis-commander
+                port:
+                  number: 8081
