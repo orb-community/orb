@@ -243,7 +243,7 @@ After changing you can simply execute
 make kind-upgrade-all
 ```
 
-Also you can load image using kind command individually, and upgrade your deployment with helm command. You can use redis-commander and adminer to iteract with databases on kind environment
+Also you can load image using kind command individually, and upgrade your deployment with helm command. You can use redis-commander and adminer to interact with databases on kind environment
 
 <br>
 ❌ Is it not working correctly? Found a bug? Come talk to us [live on Slack](https://netdev.chat/) in the `#orb` channel, or [file a GitHub issue here](https://github.com/orb-community/orb/issues/new/choose).
