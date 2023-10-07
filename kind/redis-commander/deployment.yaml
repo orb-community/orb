@@ -28,7 +28,7 @@ spec:
           imagePullPolicy: Always
           env:
             - name: REDIS_HOSTS
-              value: "stream-redis:kind-orb-streams-redis-master:6379,sinker-redis:kind-orb-sinker-redis-master:6379:1"
+              value: "stream-redis:kind-orb-redis-streams-master.orb.svc.cluster.local:6379,sinker-redis:kind-orb-redis-sinker-master.orb.svc.cluster.local:6379:1"
             - name: K8S_SIGTERM
               value: "1"
             - name: HTTP_USER
