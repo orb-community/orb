@@ -28,13 +28,13 @@ spec:
           imagePullPolicy: Always
           env:
             - name: REDIS_HOSTS
-              value: "stream-redis:stream-redis-stg.u33apq.0001.usw2.cache.amazonaws.com:6379,sinker-redis:sinker-redis-stg.u33apq.0001.usw2.cache.amazonaws.com:6379:1"
+              value: "stream-redis:kind-orb-streams-redis-master:6379,sinker-redis:kind-orb-sinker-redis-master:6379:1"
             - name: K8S_SIGTERM
               value: "1"
             - name: HTTP_USER
-              value: "administrador"
+              value: "admin"
             - name: HTTP_PASSWORD
-              value: "yNWvkP9IkjjBEKKm"
+              value: "admin"
           ports:
             - name: redis-commander
               containerPort: 8081
