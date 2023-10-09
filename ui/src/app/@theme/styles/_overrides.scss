@@ -214,6 +214,15 @@
   &offline, &none {
     color: #969fb9;
   }
+  &provisioning {
+    color: #3089fc;
+  }
+  &provioning_error {
+    color: #df316f;
+  }
+  &warning {
+    color: #f2c94c;
+  }
 }
 .orb-service-background- {
   &new, &unknown {
