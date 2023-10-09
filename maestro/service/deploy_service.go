@@ -2,10 +2,13 @@ package service
 
 import (
 	"context"
+	"encoding/json"
+	maestroerrors "github.com/orb-community/orb/maestro/errors"
+	"github.com/orb-community/orb/pkg/types"
+	"github.com/orb-community/orb/sinks/pb"
 	"time"
 
 	"github.com/orb-community/orb/maestro/deployment"
-	"github.com/orb-community/orb/maestro/kubecontrol"
 	maestroredis "github.com/orb-community/orb/maestro/redis"
 	"github.com/orb-community/orb/pkg/errors"
 	"go.uber.org/zap"
@@ -23,15 +26,16 @@ type EventService interface {
 type eventService struct {
 	logger            *zap.Logger
 	deploymentService deployment.Service
+	sinkGrpcClient    pb.SinkServiceClient
 	// Configuration for KafkaURL from Orb Deployment
 	kafkaUrl string
 }
 
 var _ EventService = (*eventService)(nil)
 
-func NewEventService(logger *zap.Logger, service deployment.Service, _ kubecontrol.Service) EventService {
+func NewEventService(logger *zap.Logger, service deployment.Service, sinksGrpcClient *pb.SinkServiceClient) EventService {
 	namedLogger := logger.Named("deploy-service")
-	return &eventService{logger: namedLogger, deploymentService: service}
+	return &eventService{logger: namedLogger, deploymentService: service, sinkGrpcClient: *sinksGrpcClient}
 }
 
 // HandleSinkCreate will create deployment entry in postgres, will create deployment in Redis, to prepare for SinkActivity
@@ -110,10 +114,39 @@ func (d *eventService) HandleSinkActivity(ctx context.Context, event maestroredi
 	}
 	deploymentEntry, _, err := d.deploymentService.GetDeployment(ctx, event.OwnerID, event.SinkID)
 	if err != nil {
-		d.logger.Warn("did not find collector entry for sink", zap.String("sink-id", event.SinkID))
-		return err
+		if err == maestroerrors.NotFound {
+			d.logger.Info("did not find collector entry for sink, retrieving from sinks grpc", zap.String("sink-id", event.SinkID))
+			sink, err := d.sinkGrpcClient.RetrieveSink(ctx, &pb.SinkByIDReq{
+				SinkID:  event.SinkID,
+				OwnerID: event.OwnerID,
+			})
+			if err != nil {
+				d.logger.Error("error retrieving sink from grpc", zap.Error(err))
+				return err
+			}
+			metadata := make(map[string]interface{})
+			err = json.Unmarshal(sink.Config, &metadata)
+			if err != nil {
+				d.logger.Error("error unmarshalling sink metadata", zap.Error(err))
+				return err
+			}
+			newEntry := deployment.NewDeployment(sink.OwnerID, sink.Id, types.FromMap(metadata), sink.Backend)
+			err = d.deploymentService.CreateDeployment(ctx, &newEntry)
+			if err != nil {
+				d.logger.Error("error trying to recreate deployment entry", zap.Error(err))
+				return err
+			}
+			deploymentEntry, _, err = d.deploymentService.GetDeployment(ctx, event.OwnerID, event.SinkID)
+			if err != nil {
+				d.logger.Error("error trying to recreate deployment entry", zap.Error(err))
+				return err
+			}
+		} else {
+			d.logger.Warn("did not find collector entry for sink", zap.String("sink-id", event.SinkID))
+			return err
+		}
 	}
-	d.logger.Debug("handling sink activity event", zap.String("sink-id", event.SinkID), zap.String("deployment-status",deploymentEntry.LastStatus))
+	d.logger.Debug("handling sink activity event", zap.String("sink-id", event.SinkID), zap.String("deployment-status", deploymentEntry.LastStatus))
 	if deploymentEntry.LastStatus == "unknown" || deploymentEntry.LastStatus == "idle" {
 		// async update sink status to provisioning
 		go func() {

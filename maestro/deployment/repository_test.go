@@ -3,6 +3,8 @@ package deployment
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	maestroerrors "github.com/orb-community/orb/maestro/errors"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 	"testing"
@@ -40,7 +42,7 @@ func Test_repositoryService_FindByOwnerAndSink(t *testing.T) {
 		name    string
 		args    args
 		want    *Deployment
-		wantErr bool
+		wantErr error
 	}{
 		{
 			name: "FindByOwnerAndSink_success",
@@ -49,7 +51,16 @@ func Test_repositoryService_FindByOwnerAndSink(t *testing.T) {
 				sinkId:  "sink-1",
 			},
 			want:    deployCreate,
-			wantErr: false,
+			wantErr: nil,
+		},
+		{
+			name: "FindByOwnerAndSink_notFound",
+			args: args{
+				ownerId: "owner-2",
+				sinkId:  "sink-12",
+			},
+			want:    deployCreate,
+			wantErr: maestroerrors.NotFound,
 		},
 	}
 
@@ -65,7 +76,7 @@ func Test_repositoryService_FindByOwnerAndSink(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.WithValue(context.Background(), "test", tt.name)
 			got, err := r.FindByOwnerAndSink(ctx, tt.args.ownerId, tt.args.sinkId)
-			if (err != nil) != tt.wantErr {
+			if tt.wantErr != nil && !errors.Is(err, tt.wantErr) {
 				t.Errorf("FindByOwnerAndSink() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
