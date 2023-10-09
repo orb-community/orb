@@ -80,16 +80,18 @@ func Test_repositoryService_FindByOwnerAndSink(t *testing.T) {
 				t.Errorf("FindByOwnerAndSink() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			require.Equal(t, tt.want.SinkID, got.SinkID)
-			require.Equal(t, tt.want.OwnerID, got.OwnerID)
-			require.Equal(t, tt.want.Backend, got.Backend)
-			var gotInterface map[string]interface{}
-			err = json.Unmarshal(got.Config, &gotInterface)
-			require.NoError(t, err)
-			var wantInterface map[string]interface{}
-			err = json.Unmarshal(tt.want.Config, &wantInterface)
-			require.NoError(t, err)
-			require.Equal(t, wantInterface, gotInterface)
+			if tt.wantErr == nil {
+				require.Equal(t, tt.want.SinkID, got.SinkID)
+				require.Equal(t, tt.want.OwnerID, got.OwnerID)
+				require.Equal(t, tt.want.Backend, got.Backend)
+				var gotInterface map[string]interface{}
+				err = json.Unmarshal(got.Config, &gotInterface)
+				require.NoError(t, err)
+				var wantInterface map[string]interface{}
+				err = json.Unmarshal(tt.want.Config, &wantInterface)
+				require.NoError(t, err)
+				require.Equal(t, wantInterface, gotInterface)
+			}
 		})
 	}
 }
