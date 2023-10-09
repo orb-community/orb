@@ -125,7 +125,7 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
         this.errorConfigMessage = 'Invalid JSON configuration, check syntax errors';
       }
     } else if (this.policy.format === 'yaml') {
-      if (this.editor.isYaml(config)) {
+      if (this.editor.isYaml(config) && !this.editor.isJson(config)) {
         interfaceValid = true;
         this.errorConfigMessage = '';
       } else {
