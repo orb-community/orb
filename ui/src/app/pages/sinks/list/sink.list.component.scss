@@ -151,6 +151,15 @@ tr div p {
   &idle {
     color: #f2994a;
   }
+  &provisioning {
+    color: #3089fc;
+  }
+  &provioning_error {
+    color: #df316f;
+  }
+  &warning {
+    color: #f2c94c;
+  }
 }
 
 span {
