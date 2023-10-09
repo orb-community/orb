@@ -234,11 +234,17 @@
   &stale, &idle {
     background-color: #f2994a;
   }
-  &error, &failure {
+  &error, &failure, &provioning_error {
     background-color: #df316f;
   }
   &offline, &none {
     background-color: #969fb9;
+  }
+  &warning {
+    color: #f2c94c;
+  }
+  &provisioning {
+    color: #3089fc;
   }
 }
 .required {
