@@ -39,8 +39,7 @@ export class AgentResetComponent implements OnInit {
   isEnabled(): boolean {
     if (this.agent) {
       return true;
-    }
-    else {
+    } else {
       return this.validationInput === this.selected.length;
     }
   }
