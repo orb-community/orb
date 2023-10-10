@@ -130,7 +130,7 @@ func (d *eventService) HandleSinkActivity(ctx context.Context, event maestroredi
 				d.logger.Error("error unmarshalling sink metadata", zap.Error(err))
 				return err
 			}
-			newEntry := deployment.NewDeployment(sink.OwnerID, sink.SinkID, types.FromMap(metadata), sink.Backend)
+			newEntry := deployment.NewDeployment(event.OwnerID, event.SinkID, types.FromMap(metadata), sink.Backend)
 			err = d.deploymentService.CreateDeployment(ctx, &newEntry)
 			if err != nil {
 				d.logger.Error("error trying to recreate deployment entry", zap.Error(err))
