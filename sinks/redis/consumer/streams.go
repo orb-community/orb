@@ -2,6 +2,7 @@ package consumer
 
 import (
 	"context"
+	redis2 "github.com/orb-community/orb/sinks/redis"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -74,26 +75,23 @@ func (es eventStore) Subscribe(context context.Context) error {
 	}
 }
 
-func (es eventStore) handleSinkerStateUpdate(ctx context.Context, event stateUpdateEvent) error {
-	err := es.sinkService.ChangeSinkStateInternal(ctx, event.sinkID, event.msg, event.ownerID, event.state)
+func (es eventStore) handleSinkerStateUpdate(ctx context.Context, event redis2.StateUpdateEvent) error {
+	state := sinks.NewStateFromString(event.State)
+	err := es.sinkService.ChangeSinkStateInternal(ctx, event.SinkID, event.Msg, event.OwnerID, state)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (es eventStore) decodeSinkerStateUpdate(event map[string]interface{}) stateUpdateEvent {
-	val := stateUpdateEvent{
-		ownerID:   read(event, "owner", ""),
-		sinkID:    read(event, "sink_id", ""),
-		msg:       read(event, "msg", ""),
-		timestamp: time.Time{},
+func (es eventStore) decodeSinkerStateUpdate(event map[string]interface{}) redis2.StateUpdateEvent {
+	val := redis2.StateUpdateEvent{
+		OwnerID:   read(event, "owner", ""),
+		SinkID:    read(event, "sink_id", ""),
+		Msg:       read(event, "msg", ""),
+		Timestamp: time.Time{},
 	}
-	err := val.state.Scan(event["state"])
-	if err != nil {
-		es.logger.Error("error parsing the state", zap.Error(err))
-		return stateUpdateEvent{}
-	}
+	val.State = event["state"].(string)
 	return val
 }
 

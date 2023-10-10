@@ -8,12 +8,14 @@ h4 {
 }
 
 nb-tab {
-  padding: 1rem 0.5rem !important;
+  padding-bottom: 0 !important;
+  padding-left: 1rem !important;
 }
 
 nb-card {
   border: transparent;
   border-radius: 0.5rem;
+  padding: 0 !important;
 
   nb-card-header {
     background-color: #232940;
@@ -24,6 +26,8 @@ nb-card {
   }
 
   nb-card-body {
+    padding-top: 0;
+    padding-bottom: 0 !important;
     label {
       color: #969fb9;
     }
@@ -149,8 +153,4 @@ nb-card {
   &:not(.btn-disabled) {
     background-color: #3089fc !important;
   }
-}
-
-.summary-accent {
-  color: #969fb9 !important;
 }

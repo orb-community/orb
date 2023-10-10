@@ -8,7 +8,7 @@ import { NbDialogRef } from '@nebular/theme';
 })
 
 export class PolicyDuplicateComponent {
-  @Input() policy: string
+  @Input() policy: string;
   constructor(
     protected dialogRef: NbDialogRef<PolicyDuplicateComponent>,
   ) {

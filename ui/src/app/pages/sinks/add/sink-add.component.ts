@@ -27,8 +27,10 @@ export class SinkAddComponent {
 
     sinkBackend: any;
 
-    isRequesting: boolean;  
-    
+    isRequesting: boolean;
+
+    errorConfigMessage: string;
+
     constructor(
         private sinksService: SinksService,
         private notificationsService: NotificationsService,
@@ -37,25 +39,31 @@ export class SinkAddComponent {
     ) {
         this.createMode = true;
         this.isRequesting = false;
+        this.errorConfigMessage = '';
     }
 
     canCreate() {
         const detailsValid = this.createMode
         ? this.detailsComponent?.formGroup?.status === 'VALID'
         : true;
-    
+
         const configSink = this.configComponent?.code;
         let config;
-        
+
         if (this.editor.isJson(configSink)) {
             config = JSON.parse(configSink);
         } else if (this.editor.isYaml(configSink)) {
             config = YAML.parse(configSink);
+            this.errorConfigMessage = '';
         } else {
+            this.errorConfigMessage = 'Invalid YAML configuration, check syntax errors';
             return false;
         }
-        
-        return !this.editor.checkEmpty(config.authentication) && !this.editor.checkEmpty(config.exporter) && detailsValid && !this.checkString(config);
+
+        return !this.editor.checkEmpty(config.authentication)
+        && !this.editor.checkEmpty(config.exporter)
+        && detailsValid
+        && !this.checkString(config);
     }
     checkString(config: any): boolean {
         if (typeof config.authentication.password !== 'string' || typeof config.authentication.username !== 'string') {
@@ -71,7 +79,7 @@ export class SinkAddComponent {
         const configSink = this.configComponent.code;
 
         const details = { ...sinkDetails };
-        
+
         let payload = {};
 
         const config = YAML.parse(configSink);

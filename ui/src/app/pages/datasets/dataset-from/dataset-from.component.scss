@@ -1,3 +1,27 @@
+nb-card {
+  padding: 0 !important;
+  width: 600px;
+  height: fit-content;
+  min-height: 400px;
+  nb-card-header {
+    background: #232940 !important;
+    color: #969fb9 !important;
+  }
+  
+  nb-card-body {
+    overflow: hidden !important;
+    margin: 2rem 3rem !important;
+    padding: 0 !important;
+  }
+  
+}
+.info-icon {
+  font-size: 14px;
+  color: #ffffff;
+  margin-left: 3px;
+}
+
+
 nb-icon {
   vertical-align: middle;
 }
@@ -15,10 +39,6 @@ nb-icon {
   color: #df316f;
 }
 
-nb-select {
-  width: 100%;
-}
-
 button {
   float: right;
 }
@@ -34,14 +54,37 @@ nb-tabset {
 }
 
 .dataset-save-button {
-  margin-top: 6px;
-  background-color: blue;
+  margin-top: 3px;
+  background-color: #3089fc;
+  &.btn-disabled {
+    background: #232940 !important;
+  }
 }
 
 .dataset-delete-button {
   color: #df316f !important;
   float: left;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  padding: 6px 16px !important;
+  border-radius: 16px !important;
+  background-color: transparent;
+  outline: none;
+  border: none;
+  font-family: 'Montserrat';
+  transition: background-color 0.3s ease !important;
 }
+.dataset-delete-button:hover {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+ }
+ .label-name {
+  color: #969fb9;
+  font-size: 13px;
+  margin-bottom: 0 !important;
+ }
+ .group-name {
+  margin-bottom: 0 !important;
+ }
 
 .orb-close-dialog {
   background-color: #23294000;
@@ -209,14 +252,19 @@ nb-accordion {
   overflow-y: inherit !important;
 }
 
-.dataset-agent-group-input {
-  &:read-only {
-    background-color: #232940 !important;
-    cursor: default;
-    opacity: 0.5;
-  }
-}
-
 .input-agent-group {
-  width: 560px;
+  width: 100%;
+}
+.match-agents-button {
+  background-color: transparent;
+  border: none;
+  outline: none;
+  color: #3089fc;
+  font-size: 12px;
+  float: left;
+  font-weight: 600;
+  margin-top: 2px;
+}
+.match-agents-button:hover {
+  color: #81b8ff;
 }

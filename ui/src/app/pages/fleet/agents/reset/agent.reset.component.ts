@@ -1,5 +1,6 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { NbDialogRef } from '@nebular/theme';
+import { Agent } from 'app/common/interfaces/orb/agent.interface';
 import { STRINGS } from 'assets/text/strings';
 
 @Component({
@@ -8,15 +9,23 @@ import { STRINGS } from 'assets/text/strings';
   styleUrls: ['./agent.reset.component.scss'],
 })
 
-export class AgentResetComponent {
+export class AgentResetComponent implements OnInit {
   strings = STRINGS.agents;
-  @Input() size: Number;
+  @Input() selected: any[] = [];
+  @Input() agent: Agent;
 
-  validationInput: Number;
+  validationInput: any;
+
 
   constructor(
     protected dialogRef: NbDialogRef<AgentResetComponent>,
   ) {
+  }
+
+  ngOnInit(): void {
+    if (this.agent) {
+      this.selected = [this.agent];
+    }
   }
 
   onDelete() {
@@ -28,6 +37,10 @@ export class AgentResetComponent {
   }
 
   isEnabled(): boolean {
-    return this.validationInput === this.size;
+    if (this.agent) {
+      return true;
+    } else {
+      return this.validationInput === this.selected.length;
+    }
   }
 }

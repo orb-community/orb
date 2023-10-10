@@ -10,6 +10,8 @@ h4 {
 nb-card {
   border: transparent;
   border-radius: 0.5rem;
+  padding: 0 !important;
+  height: calc(100% - 40px) !important;
 
   nb-card-header {
     background-color: #232940;
@@ -22,15 +24,16 @@ nb-card {
       margin: 0;
     }
     nb-icon {
-      float: right  ;
+      float: right;
     }
   }
 
   nb-card-body {
     border-bottom-left-radius: 0.5rem;
     border-bottom-right-radius: 0.5rem;
-    margin: 0 2rem 0 2rem;
-    padding: 0;
+    margin: 0 !important;
+    padding: 0 1rem;
+    background-color: #1c2339 !important;
 
     label {
       color: #969fb9;
@@ -48,12 +51,9 @@ nb-card {
 
     pre {
       display: flex;
-      flex-direction: row-reverse;
-      flex-wrap: wrap;
-      align-content: space-between;
-      align-items: flex-start;
-      justify-content: space-between;
+
       margin: 0;
+      height: fit-content !important;
 
       background: transparent;
       padding: 0.75rem;
@@ -64,15 +64,17 @@ nb-card {
         background: transparent;
         border: 0 transparent;
         color: #969fb9;
-        top: -0.25rem;
-        float: right;
-        right: -0.5rem;
         outline: none;
+        position: absolute;
+        top: 0;
+        right: 1.3rem;
       }
 
       code {
         color: #ffffff;
         line-height: 2.5 !important;
+        font-size: 14px !important;
+        float: left;
       }
     }
   }
@@ -120,15 +122,5 @@ nb-card {
 button {
   box-shadow: none !important;
   outline: none !important;
-  margin-right: 15px;
 }
-a {
-  white-space: nowrap !important;
-  padding: 0 0.3rem !important;
-  background-color: #ff9f05 !important;
-  font-weight: 700 !important;
-  text-decoration: none !important;
-  color: #ffffff !important;
-  border-radius: 10px;
-  fill: #3089fc !important;
-}
+

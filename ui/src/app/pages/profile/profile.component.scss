@@ -1,5 +1,6 @@
 button {
   float: right;
+  font-family: 'Montserrat';
 }
 
 .card-row {
@@ -58,58 +59,58 @@ h4 {
   }
 }
 .header-subtitle {
-  color: #969FB9;
+  color: #969fb9;
   font-family: Montserrat;
   font-size: 14px;
   font-style: normal;
-  font-weight: 400; 
+  font-weight: 400;
   margin: 0;
 }
 .account-information-card {
   width: 500px !important;
   height: fit-content;
 }
-.circle { 
+.circle {
   width: 42px;
-  height: 42px; 
-  border-radius: 50%; 
+  height: 42px;
+  border-radius: 50%;
 }
-.info-container { 
+.info-container {
   display: flex;
-  align-items: center; 
+  align-items: center;
   position: relative;
 }
 .user-name-title {
-  color: var(--Lilac-gray, #969FB9);
+  color: var(--Lilac-gray, #969fb9);
   font-size: 14px;
   font-style: normal;
   font-weight: 500;
   line-height: 18px;
-  letter-spacing: -0.5px; 
+  letter-spacing: -0.5px;
   margin-bottom: 5px;
 }
 .user-name {
-  color: var(--White, #FFF);
+  color: var(--White, #fff);
   font-size: 14px;
   font-weight: 500;
   line-height: 18px;
-  letter-spacing: -0.5px; 
+  letter-spacing: -0.5px;
 }
 .edit-button {
-  color: #3089FC;
+  color: #3089fc;
   background-color: transparent;
   border: none;
   outline: none;
   font-size: 14px;
   font-style: normal;
-  font-weight: 600; 
+  font-weight: 600;
   transition: background-color 0.3s ease !important;
   transition: color 0.3s ease !important;
   border-radius: 16px;
   padding: 5px 10px;
 }
 .edit-button:disabled {
-  color: #969FB9
+  color: #969fb9;
 }
 .edit-button-work {
   @extend .edit-button;
@@ -135,19 +136,18 @@ nb-card {
     border-radius: 8px !important;
     color: #969fb9 !important;
     padding: 0.5rem 1rem !important;
-    font-weight: 600 !important; 
-    font-size: 15px !important; 
-    
+    font-weight: 600 !important;
+    font-size: 15px !important;
   }
   nb-card-body {
     margin: 0 !important;
-    background-color: #2B3148 !important;
+    background-color: #2b3148 !important;
     border-bottom-left-radius: 8px !important;
     border-bottom-right-radius: 8px !important;
   }
 }
 label {
-  color: #969FB9;
+  color: #969fb9;
 }
 .float-right {
   float: right;
@@ -157,7 +157,7 @@ input {
 }
 .input-password {
   margin-bottom: 20px;
-  background-color: #313E5D !important;
+  background-color: #313e5d !important;
   border: none;
   border-radius: 2px;
 }

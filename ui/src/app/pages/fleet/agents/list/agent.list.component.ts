@@ -53,7 +53,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
   canResetAgents: boolean;
 
   isResetting: boolean;
-  
+
   private agentsSubscription: Subscription;
 
 
@@ -111,7 +111,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
       map(agents => {
         return agents.map(agent => {
           let version: string;
-          if (agent.state !== 'new') {
+          if (agent.state !== AgentStates.new && agent?.agent_metadata?.orb_agent?.version) {
             version = agent.agent_metadata.orb_agent.version;
           } else {
             version = '-';
@@ -121,7 +121,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
             version,
           };
         });
-      })
+      }),
     );
 
     this.columns = [];
@@ -210,7 +210,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
         minWidth: 150,
         name: 'Name',
         cellTemplate: this.agentNameTemplateCell,
-        resizeable: true, 
+        resizeable: true,
       },
       {
         prop: 'state',
@@ -219,7 +219,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
         canAutoResize: true,
         name: 'Status',
         cellTemplate: this.agentStateTemplateRef,
-        resizeable: true, 
+        resizeable: true,
       },
       {
         prop: 'policy_agg_info',
@@ -228,7 +228,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
         minWidth: 150,
         name: 'Policies',
         cellTemplate: this.agentPolicyStateTemplateRef,
-        resizeable: true, 
+        resizeable: true,
       },
       {
         prop: 'combined_tags',
@@ -245,7 +245,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
                 .map(([key, value]) => `${key}:${value}`)
                 .join(','),
             ),
-        resizeable: true, 
+        resizeable: true,
       },
       {
         prop: 'version',
@@ -255,7 +255,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
         name: 'Version',
         sortable: true,
         cellTemplate: this.agentVersionTemplateCell,
-        resizeable: true, 
+        resizeable: true,
       },
       {
         prop: 'ts_last_hb',
@@ -265,7 +265,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
         name: 'Last Activity',
         sortable: true,
         cellTemplate: this.agentLastActivityTemplateCell,
-        resizeable: true, 
+        resizeable: true,
       },
       {
         name: '',
@@ -275,19 +275,19 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
         canAutoResize: true,
         sortable: false,
         cellTemplate: this.actionsTemplateCell,
-        resizeable: true, 
+        resizeable: true,
       },
     ];
   }
 
 
-  public onCheckboxChange(event: any, row: any): void { 
-    let selectedAgent = {
+  public onCheckboxChange(event: any, row: any): void {
+    const selectedAgent = {
       id: row.id,
       resetable: true,
       name: row.name,
       state: row.state,
-    }
+    };
     if (this.getChecked(row) === false) {
       let resetable = true;
       if (row.state === 'new' || row.state === 'offline') {
@@ -349,7 +349,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
   }
   onOpenDeleteSelected() {
     const selected = this.selected;
-    const elementName = "Agents"
+    const elementName = 'Agents';
     this.dialogService
       .open(DeleteSelectedComponent, {
         context: { selected, elementName },
@@ -368,15 +368,15 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
   deleteSelectedAgents() {
     this.selected.forEach((agent) => {
       this.agentService.deleteAgent(agent.id).subscribe();
-    })
+    });
     this.notificationsService.success('All selected Agents delete requests succeeded', '');
   }
 
   onOpenResetAgents() {
-    const size = this.selected.length;
+    const selected = this.selected;
     this.dialogService
       .open(AgentResetComponent, {
-        context: { size },
+        context: { selected },
         autoFocus: true,
         closeOnEsc: true,
       })
@@ -385,14 +385,14 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
           this.resetAgents();
           this.orb.refreshNow();
         }
-      })
+      });
   }
   resetAgents() {
     if (!this.isResetting) {
       this.isResetting = true;
       this.selected.forEach((agent) => {
         this.agentService.resetAgent(agent.id).subscribe();
-      })
+      });
       this.notifyResetSuccess();
       this.selected = [];
       this.isResetting = false;
@@ -409,7 +409,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
             name: row.name,
             state: row.state,
             resetable: row.state === 'new' || row.state === 'offline' ? false : true,
-          }
+          };
           this.selected.push(policySelected);
         });
       });
