@@ -112,8 +112,8 @@ func Test_repositoryService_AddUpdateRemove(t *testing.T) {
 			name: "update_success",
 			args: args{
 				create: &Deployment{
-					OwnerID: "owner-1",
-					SinkID:  "sink-1",
+					OwnerID: "owner-10",
+					SinkID:  "sink-10",
 					Backend: "prometheus",
 					Config: []byte(`{
 			"authentication": {
@@ -133,8 +133,8 @@ func Test_repositoryService_AddUpdateRemove(t *testing.T) {
 					LastCollectorStopTime:   &now,
 				},
 				update: &Deployment{
-					OwnerID: "owner-1",
-					SinkID:  "sink-1",
+					OwnerID: "owner-10",
+					SinkID:  "sink-10",
 					Backend: "prometheus",
 					Config: []byte(`{
 			"authentication": {
@@ -155,8 +155,8 @@ func Test_repositoryService_AddUpdateRemove(t *testing.T) {
 				},
 			},
 			want: &Deployment{
-				OwnerID: "owner-1",
-				SinkID:  "sink-1",
+				OwnerID: "owner-10",
+				SinkID:  "sink-10",
 				Backend: "prometheus",
 				Config: []byte(`{
 			"authentication": {
