@@ -55,7 +55,7 @@ func NewMaestroService(logger *zap.Logger, streamRedisClient *redis.Client, sink
 	deploymentService := deployment.NewDeploymentService(logger, repo, otelCfg.KafkaUrl, svcCfg.EncryptionKey, maestroProducer, kubectr)
 	ps := producer.NewMaestroProducer(logger, streamRedisClient)
 	monitorService := monitor.NewMonitorService(logger, &sinksGrpcClient, ps, &kubectr, deploymentService)
-	eventService := service.NewEventService(logger, deploymentService, kubectr)
+	eventService := service.NewEventService(logger, deploymentService, &sinksGrpcClient)
 	eventService = service.NewTracingService(logger, eventService,
 		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 			Namespace: "maestro",

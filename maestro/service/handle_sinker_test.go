@@ -116,7 +116,8 @@ func TestEventService_HandleSinkIdle(t *testing.T) {
 	logger := zap.NewNop()
 	deploymentService := deployment.NewDeploymentService(logger, NewFakeRepository(logger), "kafka:9092", "MY_SECRET", NewTestProducer(logger),
 		NewTestKubeCtr(logger))
-	d := NewEventService(logger, deploymentService, NewTestKubeCtr(logger))
+	v := NewSinksPb(logger)
+	d := NewEventService(logger, deploymentService, &v)
 	err := d.HandleSinkCreate(context.Background(), redis.SinksUpdateEvent{
 		SinkID:  "sink222",
 		Owner:   "owner2",

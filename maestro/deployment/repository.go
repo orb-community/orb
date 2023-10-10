@@ -7,6 +7,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq" // required for SQL access
+	maestroerrors "github.com/orb-community/orb/maestro/errors"
 	"github.com/orb-community/orb/pkg/errors"
 	"go.uber.org/zap"
 )
@@ -169,7 +170,7 @@ func (r *repositoryService) FindByOwnerAndSink(ctx context.Context, ownerId stri
 		return nil, err
 	}
 	if len(rows) == 0 {
-		return nil, errors.New(fmt.Sprintf("not found deployment for owner-id: %s and sink-id: %s", ownerId, sinkId))
+		return nil, maestroerrors.NotFound
 	}
 	deployment := &rows[0]
 

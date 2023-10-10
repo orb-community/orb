@@ -3,6 +3,8 @@ package deployment
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	maestroerrors "github.com/orb-community/orb/maestro/errors"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 	"testing"
@@ -40,7 +42,7 @@ func Test_repositoryService_FindByOwnerAndSink(t *testing.T) {
 		name    string
 		args    args
 		want    *Deployment
-		wantErr bool
+		wantErr error
 	}{
 		{
 			name: "FindByOwnerAndSink_success",
@@ -49,7 +51,16 @@ func Test_repositoryService_FindByOwnerAndSink(t *testing.T) {
 				sinkId:  "sink-1",
 			},
 			want:    deployCreate,
-			wantErr: false,
+			wantErr: nil,
+		},
+		{
+			name: "FindByOwnerAndSink_notFound",
+			args: args{
+				ownerId: "owner-2",
+				sinkId:  "sink-12",
+			},
+			want:    deployCreate,
+			wantErr: maestroerrors.NotFound,
 		},
 	}
 
@@ -65,20 +76,22 @@ func Test_repositoryService_FindByOwnerAndSink(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.WithValue(context.Background(), "test", tt.name)
 			got, err := r.FindByOwnerAndSink(ctx, tt.args.ownerId, tt.args.sinkId)
-			if (err != nil) != tt.wantErr {
+			if tt.wantErr != nil && !errors.Is(err, tt.wantErr) {
 				t.Errorf("FindByOwnerAndSink() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			require.Equal(t, tt.want.SinkID, got.SinkID)
-			require.Equal(t, tt.want.OwnerID, got.OwnerID)
-			require.Equal(t, tt.want.Backend, got.Backend)
-			var gotInterface map[string]interface{}
-			err = json.Unmarshal(got.Config, &gotInterface)
-			require.NoError(t, err)
-			var wantInterface map[string]interface{}
-			err = json.Unmarshal(tt.want.Config, &wantInterface)
-			require.NoError(t, err)
-			require.Equal(t, wantInterface, gotInterface)
+			if tt.wantErr == nil {
+				require.Equal(t, tt.want.SinkID, got.SinkID)
+				require.Equal(t, tt.want.OwnerID, got.OwnerID)
+				require.Equal(t, tt.want.Backend, got.Backend)
+				var gotInterface map[string]interface{}
+				err = json.Unmarshal(got.Config, &gotInterface)
+				require.NoError(t, err)
+				var wantInterface map[string]interface{}
+				err = json.Unmarshal(tt.want.Config, &wantInterface)
+				require.NoError(t, err)
+				require.Equal(t, wantInterface, gotInterface)
+			}
 		})
 	}
 }
