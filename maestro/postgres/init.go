@@ -32,12 +32,11 @@ func migrateDB(db *sqlx.DB) error {
 		Migrations: []*migrate.Migration{
 			{
 				Id: "1",
-				Up: []string{
-					`CREATE DATABASE IF NOT EXISTS maestro;`,
+				Up: []string{					
 					`CREATE TABLE IF NOT EXISTS deployments (
 					    id			    UUID NOT NULL DEFAULT gen_random_uuid(),
-					    owner_id                VARCHAR(255),
-					    sink_id                 VARCHAR(255),
+					    owner_id                VARCHAR(255) NOT NULL,
+					    sink_id                 VARCHAR(255) NOT NULL,
 					    backend                 VARCHAR(255), 
 					    config                  JSONB,
 					    last_status             VARCHAR(255),
