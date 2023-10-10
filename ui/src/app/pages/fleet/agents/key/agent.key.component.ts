@@ -89,7 +89,7 @@ orbcommunity/orb-agent run -c /usr/local/orb/agent.yaml`;
     } else if (target === 'command') {
       this.copyCommandIcon = 'checkmark-outline';
       setTimeout(() => {
-        this.copyCommandIcon = 'copy-outline';
+        this.copyCommandIcon = "copy-outline";
       }, 2000);
     }
   }
@@ -106,7 +106,8 @@ orbcommunity/orb-agent run -c /usr/local/orb/agent.yaml`;
       a.download = `${this.agent.id}.txt`;
       a.click();
       window.URL.revokeObjectURL(url);
-    } else if (commandType === 'fileConfig') {
+    }
+    else if (commandType === 'fileConfig') {
       const blob = new Blob([this.fileConfigCommandCopy], { type: 'text/plain' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');

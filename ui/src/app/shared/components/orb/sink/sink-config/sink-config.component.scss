@@ -1,11 +1,5 @@
-
-.editor-height- {
-  &true {
-    height: 25.5rem;
-  }
-  &false {
-    height: 22.5rem;
-  }
+ngx-monaco-editor {
+    height: 25rem;
 }
 .summary-accent {
     color: #969fb9 !important;
@@ -47,7 +41,6 @@ nb-card {
     }
   
     nb-card-body {
-      margin: 0 !important;
       label {
         color: #969fb9;
       }
@@ -56,12 +49,4 @@ nb-card {
         text-align: end;
       }
     }
-  }
-  .errorMessage {
-    position: absolute;
-    color: #df316f;
-    font-weight: 600;
-    font-size: 13px;
-    left: 24px;
-    bottom: 2px;
   }

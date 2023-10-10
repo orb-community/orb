@@ -56,7 +56,4 @@ export class PolicyGroupsComponent implements OnInit, OnChanges {
   unique(value, index, self) {
     return self.indexOf(value) === index;
   }
-  identify(index, item) {
-    return item.id;
-  }
 }

@@ -49,8 +49,8 @@ export const NB_CORE_PROVIDERS = [
               method: 'put',
               redirect: {
                 success: '/auth/login',
-                failure: null,
-              },
+                failure: null
+              }
             },
             logout:
              { method: null, redirect: { success: '/', failure: '/' } },
@@ -94,7 +94,7 @@ export const NB_CORE_PROVIDERS = [
         },
         tos: {
           required: true,
-        },
+        }
       },
     },
   }).providers,

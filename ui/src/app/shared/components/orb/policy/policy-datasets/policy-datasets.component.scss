@@ -1,7 +1,6 @@
 nb-card {
   border: transparent;
   border-radius: 0.5rem;
-  padding: 0 !important;
 
   nb-card-header {
     background-color: #232940;
@@ -27,14 +26,7 @@ nb-card {
     }
   }
 }
-.dataset-table {
-  min-width: 600px;
-  height: 200px;
-  max-height: 300px;
-  min-height: 100px;
 
-
-}
 .summary-accent {
   color: #969fb9 !important;
 }
@@ -91,7 +83,7 @@ nb-card {
   }
 }
 
-mat-nav-list {
+mat-nav-list{
   display: flex !important;
   flex-direction: row;
   flex-wrap: nowrap !important;

@@ -12,51 +12,53 @@
     <h4>{{ strings.sink.view.header }}</h4>
   </div>
   <div class="right-content">
-    <ngx-poll-control style="margin-top: 3px;"></ngx-poll-control>
-    <div *ngIf="!isLoading">
-      <button 
-        (click)="openDeleteModal()" 
-        class="card-button  delete-button" 
-        nbButton shape="round" 
-        *ngIf="!isEditMode()"
-        style="color: #df316f !important; float: none !important; margin: 0 20px;">
-        <nb-icon icon="trash-2-outline"></nb-icon>
-        Delete Sink
-      </button>
-      <button
-        (click)="save()"
-        [disabled]="!canSave() || isRequesting || !hasChanges()"
-        class="policy-save"
-        nbButton
-        *ngIf="isEditMode()"
-        shape="round"
-        style="margin-left: 20px;">
-        <nb-icon icon="save-outline"></nb-icon>
-        Save
-      </button>
-      <button
-        (click)="discard()"
-        class="policy-discard"
-        nbButton
-        shape="round"
-        *ngIf="isEditMode()">
-        Discard
-      </button>
+    <ngx-poll-control></ngx-poll-control>
+  </div>
+  <div *ngIf="!isLoading" style="margin: 0 20px;">
+    <button 
+    (click)="openDeleteModal()" 
+    class="card-button  delete-button" 
+    nbButton shape="round" 
+    *ngIf="!isEditMode()"
+    style="color: #df316f !important; float: none !important;">
+      <nb-icon icon="trash-2-outline"></nb-icon>
+      Delete Sink
+    </button>
+    <button
+    (click)="save()"
+    [disabled]="!canSave() || isRequesting || !hasChanges()"
+    class="policy-save"
+    nbButton
+    *ngIf="isEditMode()"
+    shape="round"
+    >
+    <nb-icon icon="save-outline"></nb-icon>
+    Save
+    </button>
+    <button
+      (click)="discard()"
+      class="policy-discard"
+      nbButton
+      shape="round"
+      *ngIf="isEditMode()"
+    >
+      Discard
+    </button>
+  </div>
+  <div style="margin-bottom: 23px;" *ngIf="!isLoading && !isEditMode()">
+    <div style="float: right;">
+      <span class="orb-service-{{ sink?.state }} state" style="margin-left: 10px;">
+        <i aria-hidden="true" class="fa fa-circle orb-service-{{ sink?.state }}"></i>
+        {{ sink?.state | ngxCapitalize }}
+      </span>
     </div>
-    <div class="state-div" *ngIf="!isLoading && !isEditMode()">
-      <div style="float: right;">
-        <span class="orb-service-{{ sink?.state }} state" style="margin-left: 10px;">
-          <i aria-hidden="true" class="fa state-circle orb-service-background-{{ sink?.state }}"></i>
-          {{ sink?.state | ngxCapitalize }}
-        </span>
-      </div>
-      <div class="date">
-        <span>
-          Created on {{ sink?.ts_created | date: 'M/d/yy, HH:mm z' }}
-        </span>
-      </div>
+    <div style="font-size: 14px; font-weight: 400; margin-top: 23px;">
+      <span>
+        Created on {{ sink?.ts_created | date: 'M/d/yy, HH:mm z' }}
+      </span>
     </div>
   </div>
+
 </header>
 
 <div *ngIf="isLoading">
@@ -68,8 +70,8 @@
     <ngx-sink-details [(editMode)]="editMode.details" [sink]="sink" [configEditMode]="editMode.config">
     </ngx-sink-details>
   </div>
-  <div class="card-col col-8" style="padding-left: 0;">
-    <ngx-sink-config [(editMode)]="editMode.config" [sink]="sink" [detailsEditMode]="editMode.details" [errorConfigMessage]="errorConfigMessage">
+  <div class="card-col col-8">
+    <ngx-sink-config [(editMode)]="editMode.config" [sink]="sink" [detailsEditMode]="editMode.details">
     </ngx-sink-config>
   </div>
 </div>

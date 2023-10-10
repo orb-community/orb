@@ -12,15 +12,15 @@
 
   <div *ngIf="!isLoading" style="margin-right: 10px;">
     <button (click)="discard()" class="policy-discard" nbButton shape="round" *ngIf="isEditMode()">
-      Discard
+      Discard Changes
     </button>
     <button (click)="save()" [disabled]="!canSave() || isRequesting || !hasChanges()" class="policy-save" nbButton *ngIf="isEditMode()" shape="round">
       <nb-icon icon="save-outline"></nb-icon>
-      Save
+      Save Changes
     </button>
     <button (click)="onOpenDuplicatePolicy()" class="policy-duplicate" data-orb-qa-id="button#reset" nbButton shape="round" *ngIf="!isEditMode()">
       <nb-icon icon="copy-outline"></nb-icon>
-      Duplicate
+      Duplicate Policy
     </button>
     <button (click)="openDeleteModal()" class="card-button delete-button" data-orb-qa-id="button#reset" nbButton shape="round" *ngIf="!isEditMode()"
     style="color: #df316f !important; margin-right: 20px;">
@@ -34,40 +34,25 @@
   <div class="loading-spinner"></div>
 </div>
 
-<div *ngIf="!isLoading" #content>
-  <nb-tabset>
-    <nb-tab tabTitle="Details & Configuration">
-      <div class="row">
-        <div class="col-4">
-          <ngx-policy-details
-            [(editMode)]="editMode.details"
-            [policy]="policy"
-            [interfaceEditMode]="editMode.interface"
-          ></ngx-policy-details>
-        </div>
-        <div class="col-8" style="padding-left: 0 !important;">
-          <ngx-policy-interface
-            [(editMode)]="editMode.interface"
-            [policy]="policy"
-            [detailsEditMode]="editMode.details"
-            [errorConfigMessage]="errorConfigMessage"
-          ></ngx-policy-interface>
-        </div>
-      </div>
-    </nb-tab>
-    <nb-tab tabTitle="Datasets">
-      <div class="row">
-        <div class="col-8">
-          <ngx-policy-datasets
-            (refreshPolicy)="retrievePolicy()"
-            [datasets]="datasets"
-            [policy]="policy"
-          ></ngx-policy-datasets>
-        </div>
-        <div class="col-4" style="padding-left: 0 !important;">
-          <ngx-policy-groups [groups]="policy.groups" [policy]="policy"></ngx-policy-groups>
-        </div>
-      </div>
-    </nb-tab>
-  </nb-tabset>
+<div *ngIf="!isLoading" class="row" #content>
+  <div class="card-col col-4">
+    <ngx-policy-details
+      [(editMode)]="editMode.details"
+      [policy]="policy"
+      [interfaceEditMode]="editMode.interface"
+    ></ngx-policy-details>
+    <ngx-policy-groups [groups]="policy.groups" [policy]="policy"></ngx-policy-groups>
+  </div>
+  <div class="card-col col-8">
+    <ngx-policy-interface
+      [(editMode)]="editMode.interface"
+      [policy]="policy"
+      [detailsEditMode]="editMode.details"
+    ></ngx-policy-interface>
+    <ngx-policy-datasets
+      (refreshPolicy)="retrievePolicy()"
+      [datasets]="datasets"
+      [policy]="policy"
+    ></ngx-policy-datasets>
+  </div>
 </div>

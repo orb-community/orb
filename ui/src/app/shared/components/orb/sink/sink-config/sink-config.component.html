@@ -33,17 +33,16 @@
             #editorComponent
             [(ngModel)]="code"
             [options]="editorOptions"
-            class="code-editor editor-height-{{createMode}}"
+            class="code-editor"
             ngDefaultControl
             *ngIf="!isYaml">
         </ngx-monaco-editor>
         <ngx-monaco-editor
           [(ngModel)]="code"
           [options]="editorOptionsYaml"
-          class="code-editor editor-height-{{createMode}}"
+          class="code-editor"
           ngDefaultControl>
         </ngx-monaco-editor>
-        <span *ngIf="errorConfigMessage !== ''" class="errorMessage">{{ errorConfigMessage }} </span>
       </div>
     </nb-card-body>
   </nb-card>

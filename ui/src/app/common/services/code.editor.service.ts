@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable } from "@angular/core";
 import * as YAML from 'yaml';
 
 @Injectable({
@@ -29,8 +29,8 @@ export class CodeEditorService {
     }
 
     checkEmpty (object) {
-        for (const key in object) {
-            if (object[key] === '' || typeof object[key] === 'undefined' || object[key] === null) {
+        for (let key in object) {
+            if (object[key] === "" || typeof object[key] === "undefined" || object[key] === null) {
                 return true;
             }
         }

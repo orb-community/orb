@@ -10,10 +10,10 @@
     </nb-card-header>
     <nb-card-body>
         <div class="col-12">
-            <div #tableWrapper class="tableWrapper" style="margin-top: 1rem !important;">
+            <div #tableWrapper class="tableWrapper">
                 <ngx-datatable
                     #table
-                    [columnMode]="'flex'"
+                    [columnMode]="columnMode.force"
                     [columns]="columns"
                     [footerHeight]="0"
                     [headerHeight]="50"
@@ -22,8 +22,7 @@
                     [rows]="datasets"
                     [scrollbarV]="true"
                     [sorts]="tableSorts"
-                    class="orb dataset-table"
-                    [style.height]="getTableHeight()">
+                    class="orb orb-table-small">
                 </ngx-datatable>
             </div>
 

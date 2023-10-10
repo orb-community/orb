@@ -4,41 +4,36 @@
     </xng-breadcrumb>
     <div><h4>Agent View</h4></div>
   </div>
-  <div class="right-content">
-    <ngx-poll-control style="margin-top: 3px;"></ngx-poll-control>
-    <div *ngIf="!isLoading">
-      <button 
-        (click)="openDeleteModal()" 
-        class="card-button delete-button" 
-        nbButton 
-        shape="round" 
-        style="color: #df316f !important; margin: 0 20px;">
-        <nb-icon icon="trash-2-outline"></nb-icon>
-        Delete Agent
-      </button>
+  <div class="right-content" style="margin-right: 15px;">
+    <ngx-poll-control></ngx-poll-control>
+  </div>
+  <div *ngIf="!isLoading" style="margin: 0 20px 0 10px;">
+    <button (click)="openDeleteModal()" class="card-button delete-button" data-orb-qa-id="button#reset" nbButton shape="round" style="color: #df316f !important;">
+      <nb-icon icon="trash-2-outline"></nb-icon>
+      Delete Agent
+    </button>
+  </div>
+  <div *ngIf="!isLoading" style="margin-bottom: 23px;">
+    <div style="float: right;">
+      <span class="orb-service-{{ agent?.state }} state">
+        <i aria-hidden="true" *ngIf="agent?.state !== agentStates.offline" class="fa fa-circle orb-service-{{ agent?.state }}"></i>
+        <i aria-hidden="true" *ngIf="agent?.state === agentStates.offline" class="fa offline-circle"></i>
+        {{ agent?.state | ngxCapitalize }}
+      </span>
     </div>
-    <div *ngIf="!isLoading" class="state-div">
-      <div style="float: right;">
-        <span class="orb-service-{{ agent?.state }} state">
-          <i aria-hidden="true" *ngIf="agent?.state !== agentStates.offline" class="fa state-circle orb-service-background-{{ agent?.state }}"></i>
-          <i aria-hidden="true" *ngIf="agent?.state === agentStates.offline" class="fa offline-circle"></i>
-          {{ agent?.state | ngxCapitalize }}
+    <div style="font-size: 14px; font-weight: 400; margin-top: 23px;">
+      <span *ngIf="agent?.state !== agentStates.new">
+        Last activity
+        <span *ngIf="isToday()">
+          today, at {{ agent?.ts_last_hb | date: 'HH:mm z' }}
         </span>
-      </div>
-      <div class="date">
-        <span *ngIf="agent?.state !== agentStates.new">
-          Last activity
-          <span *ngIf="isToday()">
-            today, at {{ agent?.ts_last_hb | date: 'HH:mm z' }}
-          </span>
-          <span *ngIf="!isToday()">
-            on {{ agent?.ts_last_hb | date: 'M/d/yy, HH:mm z' }}
-          </span>
+        <span *ngIf="!isToday()">
+          on {{ agent?.ts_last_hb | date: 'M/d/yy, HH:mm z' }}
         </span>
-        <span *ngIf="agent?.state === agentStates.new">
-          This Agent has been provisioned but never connected.
-        </span>
-      </div>
+      </span>
+      <span *ngIf="agent?.state === agentStates.new">
+        This Agent has been provisioned but never connected.
+      </span>
     </div>
   </div>
 </header>
@@ -47,42 +42,21 @@
   <div class="loading-spinner"></div>
 </div>
 
-<div *ngIf="!isLoading">
-  <nb-tabset>
-    <nb-tab tabTitle="Agent Information">
-      <div class="row">
-        <div class="card-col col-5">
-          <ngx-agent-information [agent]="agent"></ngx-agent-information>
-        </div>
-        <div class="card-col col-7" style="padding-left: 0;">
-          <ngx-agent-backends [agent]="agent"></ngx-agent-backends>
-          <ngx-agent-capabilities [agent]="agent"></ngx-agent-capabilities>
-        </div>
-      </div>
-    </nb-tab>
-    <nb-tab tabTitle="Policies & Datasets">
-      <div class="row">
-        <div class="card-col col-7">
-          <ngx-agent-policies-datasets
-          [agent]="agent"
-          [datasets]="datasets"
-          (refreshAgent)="retrieveAgent()">
-          </ngx-agent-policies-datasets>
-        </div>
-        <div class="card-col col-5" style="padding-left: 0;">
-          <ngx-agent-groups [agent]="agent" [groups]="groups"></ngx-agent-groups>
-        </div>
-      </div>
-    </nb-tab>
-    <nb-tab tabTitle="Proviosioning Commands">
-      <div class="row">
-        <div class="card-col col-6">
-          <ngx-agent-provisioning [agent]="agent" [provisioningType]="default"></ngx-agent-provisioning>
-        </div>
-        <div class="card-col col-6" style="padding-left: 0;">
-          <ngx-agent-provisioning [agent]="agent" [provisioningType]="configFile"></ngx-agent-provisioning>
-        </div>
-      </div>
-    </nb-tab>
-  </nb-tabset>
+<div *ngIf="!isLoading" class="row">
+  <div class="card-col col-5">
+    <ngx-agent-information [agent]="agent"></ngx-agent-information>
+    <ngx-agent-backends [agent]="agent"></ngx-agent-backends>
+  </div>
+
+  <div class="card-col col-7">
+    <ngx-agent-policies-datasets
+      [agent]="agent"
+      [datasets]="datasets"
+      (refreshAgent)="retrieveAgent()"
+    >
+    </ngx-agent-policies-datasets>
+    <ngx-agent-groups [agent]="agent" [groups]="groups"></ngx-agent-groups>
+    <ngx-agent-provisioning [agent]="agent"></ngx-agent-provisioning>
+    <ngx-agent-capabilities [agent]="agent"></ngx-agent-capabilities>
+  </div>
 </div>

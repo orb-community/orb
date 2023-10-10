@@ -1,7 +1,6 @@
 # Stage 0, based on Node.js, install all dependencies
-FROM node:14.21.3
+FROM node:14.17
 
 WORKDIR /app
 COPY package.json /app/
-
-RUN npm install
+RUN yarn install

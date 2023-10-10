@@ -11,34 +11,19 @@
   </nb-card-header>
   <nb-card-body>
     <p>Are you sure you want to delete a total of {{ selected?.length }} {{ elementName }}? This action cannot be undone.</p>
-    <div class="element-list">
-      <div *ngFor="let item of selected" class="item-row">
-        <div class="col-8 overflow-ellipsis">
-          {{ item.name }}
-        </div>
-        <div class="col-3">
-          <span class="orb-service-{{ item.state }} span-accent" *ngIf="item.state"> {{ item.state | titlecase }} </span>
-          <span class="orb-service-{{ item.usage }} span-accent" *ngIf="item.usage"> {{ item.usage | titlecase }} </span>
-          <button *ngIf="item.matching_agents" class="group-button" (click)="onMatchingAgentsModal(item)">
-            <span class="overflow-ellipsis span-accent">{{ item.matching_agents.total }} 
-              <span class="summary-accent">Assigned Agent(s)</span>
-            </span>
-          </button>
-        </div>
-      </div>
+    <div *ngFor="let item of selected">
+      {{ item.name }} <span class="orb-service-{{ item.state }} orb-service-{{ item.usage }}"> {{ item.state | titlecase }} {{ item.usage | titlecase }} </span>
     </div>
-    <div>
-      <p class style="color: #df316f !important; margin-top: 15px !important;">*To confirm, type the amount of {{ elementName }} to be delete.</p>
-      <input type="text"
-            #autoInput
-            [nbAutocomplete]="auto"
-            nbInput
-            fullWidth
-            placeholder="{{selected?.length }}" [(ngModel)]="validationInput">
-      <nb-autocomplete #auto >
-        <nb-option [value]="selected?.length "> {{selected?.length}}</nb-option>
-      </nb-autocomplete>
-    </div>
+    <p class style="color: #df316f !important; margin-top: 15px !important;">*To confirm, type the amount of {{ elementName }} to be delete.</p>
+    <input type="text"
+           #autoInput
+           [nbAutocomplete]="auto"
+           nbInput
+           fullWidth
+           placeholder="{{selected?.length }}" [(ngModel)]="validationInput">
+    <nb-autocomplete #auto >
+      <nb-option [value]="selected?.length "> {{selected?.length}}</nb-option>
+    </nb-autocomplete>
   </nb-card-body>
   <nb-card-footer>
     <button nbButton

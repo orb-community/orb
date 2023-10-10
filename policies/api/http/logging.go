@@ -25,7 +25,7 @@ func (l loggingMiddleware) ListDatasetsByGroupIDInternal(ctx context.Context, gr
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: list_datasets_by_group_id_internal",
+			l.logger.Info("method call: list_datasets_by_group_id_internal",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -39,7 +39,7 @@ func (l loggingMiddleware) RemoveAllDatasetsByPolicyIDInternal(ctx context.Conte
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: remove_all_datasets_by_policy_id_internal",
+			l.logger.Info("method call: remove_all_datasets_by_policy_id_internal",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -53,7 +53,7 @@ func (l loggingMiddleware) InactivateDatasetByIDInternal(ctx context.Context, ow
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: inactivate_dataset_by_id_internal",
+			l.logger.Info("method call: inactivate_dataset_by_id_internal",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -67,7 +67,7 @@ func (l loggingMiddleware) ViewDatasetByIDInternal(ctx context.Context, ownerID 
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: view_dataset_by_id_internal",
+			l.logger.Info("method call: view_dataset_by_id_internal",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -81,7 +81,7 @@ func (l loggingMiddleware) RemoveDataset(ctx context.Context, token string, dsID
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: remove_dataset",
+			l.logger.Info("method call: remove_dataset",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -95,7 +95,7 @@ func (l loggingMiddleware) EditDataset(ctx context.Context, token string, ds pol
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: edit_dataset",
+			l.logger.Info("method call: edit_dataset",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -109,7 +109,7 @@ func (l loggingMiddleware) RemovePolicy(ctx context.Context, token string, polic
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: remove_policy",
+			l.logger.Info("method call: remove_policy",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -123,7 +123,7 @@ func (l loggingMiddleware) ListDatasetsByPolicyIDInternal(ctx context.Context, p
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: list_dataset_by_policy_id",
+			l.logger.Info("method call: list_dataset_by_policy_id",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -137,7 +137,7 @@ func (l loggingMiddleware) EditPolicy(ctx context.Context, token string, pol pol
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: edit_policy",
+			l.logger.Info("method call: edit_policy",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -151,7 +151,7 @@ func (l loggingMiddleware) AddPolicy(ctx context.Context, token string, p polici
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: add_policy",
+			l.logger.Info("method call: add_policy",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -165,7 +165,7 @@ func (l loggingMiddleware) ViewPolicyByID(ctx context.Context, token string, pol
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: view_policy_by_id",
+			l.logger.Info("method call: view_policy_by_id",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -179,7 +179,7 @@ func (l loggingMiddleware) ListPolicies(ctx context.Context, token string, pm po
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: list_policies",
+			l.logger.Info("method call: list_policies",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -193,7 +193,7 @@ func (l loggingMiddleware) ViewPolicyByIDInternal(ctx context.Context, policyID 
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: view_policy_by_id_internal",
+			l.logger.Info("method call: view_policy_by_id_internal",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -207,7 +207,7 @@ func (l loggingMiddleware) ListPoliciesByGroupIDInternal(ctx context.Context, gr
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: list_policies_by_groups",
+			l.logger.Info("method call: list_policies_by_groups",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -221,7 +221,7 @@ func (l loggingMiddleware) AddDataset(ctx context.Context, token string, d polic
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: add_dataset",
+			l.logger.Info("method call: add_dataset",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -235,7 +235,7 @@ func (l loggingMiddleware) InactivateDatasetByGroupID(ctx context.Context, group
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: inactivate_dataset",
+			l.logger.Info("method call: inactivate_dataset",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -249,7 +249,7 @@ func (l loggingMiddleware) ValidatePolicy(ctx context.Context, token string, p p
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: validate_policy",
+			l.logger.Info("method call: validate_policy",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -263,7 +263,7 @@ func (l loggingMiddleware) ValidateDataset(ctx context.Context, token string, d 
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: validate_dataset",
+			l.logger.Info("method call: validate_dataset",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -277,7 +277,7 @@ func (l loggingMiddleware) ViewDatasetByID(ctx context.Context, token string, da
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: view_dataset_by_id",
+			l.logger.Info("method call: view_dataset_by_id",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -291,7 +291,7 @@ func (l loggingMiddleware) ListDatasets(ctx context.Context, token string, pm po
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: list_dataset",
+			l.logger.Info("method call: list_dataset",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -305,7 +305,7 @@ func (l loggingMiddleware) DeleteSinkFromAllDatasetsInternal(ctx context.Context
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: delete_sink_from_all_datasets",
+			l.logger.Info("method call: delete_sink_from_all_datasets",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -319,7 +319,7 @@ func (l loggingMiddleware) DeleteAgentGroupFromAllDatasets(ctx context.Context, 
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: delete_agent_group_from_all_datasets",
+			l.logger.Info("method call: delete_agent_group_from_all_datasets",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -333,7 +333,7 @@ func (l loggingMiddleware) DuplicatePolicy(ctx context.Context, token string, po
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: duplicate_policy",
+			l.logger.Info("method call: duplicate_policy",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())

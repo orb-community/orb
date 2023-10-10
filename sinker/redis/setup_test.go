@@ -34,7 +34,7 @@ func TestMain(m *testing.M) {
 		})
 		return redisClient.Ping(context.Background()).Err()
 	}); err != nil {
-		logger.Fatal("could not connect to docker: %s", zap.Error(err))
+		logger.Fatal("could not conncet to docker: %s", zap.Error(err))
 	}
 
 	code := m.Run()
@@ -44,39 +44,4 @@ func TestMain(m *testing.M) {
 	}
 
 	os.Exit(code)
-}
-
-func OnceReceiver(ctx context.Context, streamID string) error {
-	go func() {
-		count := 0
-		err := redisClient.XGroupCreateMkStream(ctx, streamID, "unit-test", "$").Err()
-		if err != nil {
-			logger.Warn("error during create group", zap.Error(err))
-		}
-		for {
-			// Redis Subscribe to stream
-			if redisClient != nil {
-				// create the group, or ignore if it already exists
-				streams, err := redisClient.XReadGroup(ctx, &redis.XReadGroupArgs{
-					Consumer: "test_consumer",
-					Group:    "unit-test",
-					Streams:  []string{streamID, ">"},
-					Count:    10,
-				}).Result()
-				if err != nil || len(streams) == 0 {
-					continue
-				}
-				for _, stream := range streams {
-					for _, msg := range stream.Messages {
-						logger.Info("received message", zap.Any("message", msg.Values))
-						count++
-					}
-				}
-				if count > 0 {
-					return
-				}
-			}
-		}
-	}()
-	return nil
 }

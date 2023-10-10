@@ -353,36 +353,34 @@ var JsonDeployment = `
     }
 `
 
-func (c *configBuilder) BuildDeploymentConfig(deployment *DeploymentRequest) (string, error) {
+func GetDeploymentJson(kafkaUrl string, sink SinkData) (string, error) {
 	// prepare manifest
-	manifest := strings.Replace(k8sOtelCollector, "SINK_ID", deployment.SinkID, -1)
-	ctx := context.WithValue(context.Background(), "sink_id", deployment.SinkID)
-	config, err := c.ReturnConfigYamlFromSink(ctx, c.kafkaUrl, deployment)
+	manifest := strings.Replace(k8sOtelCollector, "SINK_ID", sink.SinkID, -1)
+	config, err := ReturnConfigYamlFromSink(context.Background(), kafkaUrl, sink)
 	if err != nil {
-		return "", errors.Wrap(errors.New(fmt.Sprintf("failed to build YAML, sink: %s", deployment.SinkID)), err)
+		return "", errors.Wrap(errors.New(fmt.Sprintf("failed to build YAML, sink: %s", sink.SinkID)), err)
 	}
 	manifest = strings.Replace(manifest, "SINK_CONFIG", config, -1)
 	return manifest, nil
 }
 
 // ReturnConfigYamlFromSink this is the main method, which will generate the YAML file from the
-func (c *configBuilder) ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig string, deployment *DeploymentRequest) (string, error) {
-	authType := deployment.Config.GetSubMetadata(AuthenticationKey)["type"]
+func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig string, sink SinkData) (string, error) {
+	authType := sink.Config.GetSubMetadata(AuthenticationKey)["type"]
 	authTypeStr, ok := authType.(string)
 	if !ok {
 		return "", errors.New("failed to create config invalid authentication type")
 	}
-	// TODO move this into somewhere else
-	authBuilder := GetAuthService(authTypeStr, c.encryptionService)
+	authBuilder := GetAuthService(authTypeStr)
 	if authBuilder == nil {
 		return "", errors.New("invalid authentication type")
 	}
-	exporterBuilder := FromStrategy(deployment.Backend)
+	exporterBuilder := FromStrategy(sink.Backend)
 	if exporterBuilder == nil {
 		return "", errors.New("invalid backend")
 	}
-	extensions, extensionName := authBuilder.GetExtensionsFromMetadata(deployment.Config)
-	exporters, exporterName := exporterBuilder.GetExportersFromMetadata(deployment.Config, extensionName)
+	extensions, extensionName := authBuilder.GetExtensionsFromMetadata(sink.Config)
+	exporters, exporterName := exporterBuilder.GetExportersFromMetadata(sink.Config, extensionName)
 	if exporterName == "" {
 		return "", errors.New("failed to build exporter")
 	}
@@ -414,7 +412,7 @@ func (c *configBuilder) ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConf
 		Receivers: Receivers{
 			Kafka: KafkaReceiver{
 				Brokers:         []string{kafkaUrlConfig},
-				Topic:           fmt.Sprintf("otlp_metrics-%s", deployment.SinkID),
+				Topic:           fmt.Sprintf("otlp_metrics-%s", sink.SinkID),
 				ProtocolVersion: "2.0.0",
 			},
 		},

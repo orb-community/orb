@@ -2,7 +2,7 @@
   <nb-card-header>Agent Backends</nb-card-header>
   <nb-card-body>    
     <nb-tabset *ngIf="agent?.state !== agentStates.new">
-      <nb-tab *ngFor="let backend of agent?.agent_metadata?.backends | keyvalue; trackBy: identify"
+      <nb-tab *ngFor="let backend of agent?.agent_metadata?.backends | keyvalue"
           tabTitle="{{backend.key}}">
           <p><label>Version:</label> {{backend.value.version}}</p>
           <ng-container *ngIf="agent?.last_hb_data?.backend_state">

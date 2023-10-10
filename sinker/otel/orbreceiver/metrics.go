@@ -6,7 +6,6 @@ package orbreceiver
 
 import (
 	"context"
-	"strconv"
 	"strings"
 	"time"
 
@@ -33,8 +32,7 @@ func (r *OrbReceiver) MessageMetricsInbound(msg messaging.Message) error {
 			zap.String("protocol", msg.Protocol),
 			zap.Int64("created", msg.Created),
 			zap.String("publisher", msg.Publisher))
-		r.cfg.Logger.Debug("received metric message, pushing to kafka exporter", zap.String("publisher", msg.Publisher))
-		size := len(msg.Payload)
+		r.cfg.Logger.Info("received metric message, pushing to kafka exporter")
 		decompressedPayload := r.DecompressBrotli(msg.Payload)
 		mr, err := r.encoder.unmarshalMetricsRequest(decompressedPayload)
 		if err != nil {
@@ -51,13 +49,13 @@ func (r *OrbReceiver) MessageMetricsInbound(msg messaging.Message) error {
 
 		scopes := mr.Metrics().ResourceMetrics().At(0).ScopeMetrics()
 		for i := 0; i < scopes.Len(); i++ {
-			r.ProccessMetricsContext(scopes.At(i), msg.Channel, size)
+			r.ProccessMetricsContext(scopes.At(i), msg.Channel)
 		}
 	}()
 	return nil
 }
 
-func (r *OrbReceiver) ProccessMetricsContext(scope pmetric.ScopeMetrics, channel string, size int) {
+func (r *OrbReceiver) ProccessMetricsContext(scope pmetric.ScopeMetrics, channel string) {
 	// Extract Datasets
 	attrDataset, ok := scope.Scope().Attributes().Get("dataset_ids")
 	if !ok {
@@ -112,9 +110,8 @@ func (r *OrbReceiver) ProccessMetricsContext(scope pmetric.ScopeMetrics, channel
 	attributeCtx = context.WithValue(attributeCtx, "orb_tags", agentPb.OrbTags)
 	attributeCtx = context.WithValue(attributeCtx, "agent_groups", agentPb.AgentGroupIDs)
 	attributeCtx = context.WithValue(attributeCtx, "agent_ownerID", agentPb.OwnerID)
-
 	for sinkId := range sinkIds {
-		err := r.cfg.SinkerService.NotifyActiveSink(r.ctx, agentPb.OwnerID, sinkId, strconv.Itoa(size))
+		err := r.cfg.SinkerService.NotifyActiveSink(r.ctx, agentPb.OwnerID, sinkId, "active", "")
 		if err != nil {
 			r.cfg.Logger.Error("error notifying metrics sink active, changing state, skipping sink", zap.String("sink-id", sinkId), zap.Error(err))
 		}
@@ -127,6 +124,7 @@ func (r *OrbReceiver) ProccessMetricsContext(scope pmetric.ScopeMetrics, channel
 		_, err = r.exportMetrics(attributeCtx, request)
 		if err != nil {
 			r.cfg.Logger.Error("error during metrics export, skipping sink", zap.Error(err))
+			_ = r.cfg.SinkerService.NotifyActiveSink(r.ctx, agentPb.OwnerID, sinkId, "error", err.Error())
 			continue
 		}
 	}

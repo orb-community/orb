@@ -31,14 +31,14 @@ export class ProfileComponent implements OnInit {
   showPassword2 = false;
   showPassword3 = false;
 
-  availableTimers = [15, 30, 60];
+  availableTimers = [15, 30, 60]
   selectedTimer: Number;
 
   editMode = {
     work: false,
     profileName: false,
     password: false,
-  };
+  }
 
   isPasswordValidSize: boolean;
   isPasswordValidMatch: boolean;
@@ -49,13 +49,13 @@ export class ProfileComponent implements OnInit {
     private usersService: UsersService,
     private notificationsService: NotificationsService,
     private orb: OrbService,
-  ) {
+  ) { 
     this.oldPasswordInput = '';
     this.newPasswordInput = '';
     this.confirmPasswordInput = '';
     this.selectedTimer = this.getPollInterval();
   }
-
+  
   ngOnInit(): void {
     this.retrieveUserInfo();
   }
@@ -86,7 +86,7 @@ export class ProfileComponent implements OnInit {
         company: company,
       },
     };
-
+  
     this.usersService.editUser(userReq).subscribe(
       resp => {
         this.notificationsService.success('User successfully edited', '');
@@ -96,10 +96,10 @@ export class ProfileComponent implements OnInit {
       },
       error => {
         this.isRequesting = false;
-      },
+      }
     );
   }
-
+  
   canChangePassword(): boolean {
     this.isPasswordValidSize = this.newPasswordInput.length >= this.ngxAdminMinPasswordSize;
     this.isPasswordValidMatch = this.newPasswordInput === this.confirmPasswordInput;
@@ -125,7 +125,7 @@ export class ProfileComponent implements OnInit {
       },
       error => {
         this.isRequesting = false;
-      },
+      }
     );
   }
 toggleEdit(name: string) {
