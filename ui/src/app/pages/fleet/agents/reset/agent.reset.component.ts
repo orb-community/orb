@@ -10,7 +10,7 @@ import { STRINGS } from 'assets/text/strings';
 
 export class AgentResetComponent {
   strings = STRINGS.agents;
-  @Input() size: Number;
+  @Input() selected: any[] = [];
 
   validationInput: Number;
 
@@ -28,6 +28,6 @@ export class AgentResetComponent {
   }
 
   isEnabled(): boolean {
-    return this.validationInput === this.size;
+    return this.validationInput === this.selected.length;
   }
 }

@@ -580,8 +580,16 @@ func TestUpdateSinkState(t *testing.T) {
 
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
+			ctx := context.WithValue(context.Background(), "test", desc)
 			err := sinkRepo.UpdateSinkState(context.Background(), tc.sinkID, tc.msg, tc.ownerID, tc.state)
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+			// only validate success scenarios
+			if tc.err == nil {
+				got, err := sinkRepo.RetrieveById(ctx, sinkID)
+				assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+				assert.Equal(t, tc.state, got.State, fmt.Sprintf("%s: expected state %d got %d", desc, tc.state, got.State))
+				assert.Equal(t, tc.msg, got.Error, fmt.Sprintf("%s: expected msg %s got %s", desc, tc.msg, got.Error))
+			}
 		})
 	}
 

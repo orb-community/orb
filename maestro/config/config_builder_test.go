@@ -3,16 +3,18 @@ package config
 import (
 	"context"
 	"fmt"
+	"github.com/orb-community/orb/maestro/password"
 	"github.com/orb-community/orb/pkg/types"
+	"go.uber.org/zap"
 	"testing"
-	"time"
 )
 
 func TestReturnConfigYamlFromSink(t *testing.T) {
 	type args struct {
 		in0            context.Context
 		kafkaUrlConfig string
-		sink           SinkData
+		sink           *DeploymentRequest
+		key            string
 	}
 	tests := []struct {
 		name    string
@@ -25,7 +27,7 @@ func TestReturnConfigYamlFromSink(t *testing.T) {
 			args: args{
 				in0:            context.Background(),
 				kafkaUrlConfig: "kafka:9092",
-				sink: SinkData{
+				sink: &DeploymentRequest{
 					SinkID:  "sink-id-11",
 					OwnerID: "11",
 					Backend: "prometheus",
@@ -39,9 +41,6 @@ func TestReturnConfigYamlFromSink(t *testing.T) {
 							"password": "dbpass",
 						},
 					},
-					State:           0,
-					Msg:             "",
-					LastRemoteWrite: time.Time{},
 				},
 			},
 			want:    `---\nreceivers:\n  kafka:\n    brokers:\n    - kafka:9092\n    topic: otlp_metrics-sink-id-11\n    protocol_version: 2.0.0\nextensions:\n  pprof:\n    endpoint: 0.0.0.0:1888\n  basicauth/exporter:\n    client_auth:\n      username: prom-user\n      password: dbpass\nexporters:\n  prometheusremotewrite:\n    endpoint: https://acme.com/prom/push\n    auth:\n      authenticator: basicauth/exporter\nservice:\n  extensions:\n  - pprof\n  - basicauth/exporter\n  pipelines:\n    metrics:\n      receivers:\n      - kafka\n      exporters:\n      - prometheusremotewrite\n`,
@@ -52,7 +51,7 @@ func TestReturnConfigYamlFromSink(t *testing.T) {
 			args: args{
 				in0:            context.Background(),
 				kafkaUrlConfig: "kafka:9092",
-				sink: SinkData{
+				sink: &DeploymentRequest{
 					SinkID:  "sink-id-11",
 					OwnerID: "11",
 					Backend: "prometheus",
@@ -69,9 +68,6 @@ func TestReturnConfigYamlFromSink(t *testing.T) {
 							"password": "dbpass",
 						},
 					},
-					State:           0,
-					Msg:             "",
-					LastRemoteWrite: time.Time{},
 				},
 			},
 			want:    `---\nreceivers:\n  kafka:\n    brokers:\n    - kafka:9092\n    topic: otlp_metrics-sink-id-11\n    protocol_version: 2.0.0\nextensions:\n  pprof:\n    endpoint: 0.0.0.0:1888\n  basicauth/exporter:\n    client_auth:\n      username: prom-user\n      password: dbpass\nexporters:\n  prometheusremotewrite:\n    endpoint: https://acme.com/prom/push\n    headers:\n      X-Scope-OrgID: TENANT_1\n    auth:\n      authenticator: basicauth/exporter\nservice:\n  extensions:\n  - pprof\n  - basicauth/exporter\n  pipelines:\n    metrics:\n      receivers:\n      - kafka\n      exporters:\n      - prometheusremotewrite\n`,
@@ -82,7 +78,7 @@ func TestReturnConfigYamlFromSink(t *testing.T) {
 			args: args{
 				in0:            context.Background(),
 				kafkaUrlConfig: "kafka:9092",
-				sink: SinkData{
+				sink: &DeploymentRequest{
 					SinkID:  "sink-id-22",
 					OwnerID: "22",
 					Backend: "otlphttp",
@@ -96,9 +92,6 @@ func TestReturnConfigYamlFromSink(t *testing.T) {
 							"password": "dbpass",
 						},
 					},
-					State:           0,
-					Msg:             "",
-					LastRemoteWrite: time.Time{},
 				},
 			},
 			want:    `---\nreceivers:\n  kafka:\n    brokers:\n    - kafka:9092\n    topic: otlp_metrics-sink-id-22\n    protocol_version: 2.0.0\nextensions:\n  pprof:\n    endpoint: 0.0.0.0:1888\n  basicauth/exporter:\n    client_auth:\n      username: otlp-user\n      password: dbpass\nexporters:\n  otlphttp:\n    endpoint: https://acme.com/otlphttp/push\n    auth:\n      authenticator: basicauth/exporter\nservice:\n  extensions:\n  - pprof\n  - basicauth/exporter\n  pipelines:\n    metrics:\n      receivers:\n      - kafka\n      exporters:\n      - otlphttp\n`,
@@ -106,8 +99,14 @@ func TestReturnConfigYamlFromSink(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		logger := zap.NewNop()
+		c := configBuilder{
+			logger:            logger,
+			kafkaUrl:          tt.args.kafkaUrlConfig,
+			encryptionService: password.NewEncryptionService(logger, tt.args.key),
+		}
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ReturnConfigYamlFromSink(tt.args.in0, tt.args.kafkaUrlConfig, tt.args.sink)
+			got, err := c.ReturnConfigYamlFromSink(tt.args.in0, tt.args.kafkaUrlConfig, tt.args.sink)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ReturnConfigYamlFromSink() error = %v, wantErr %v", err, tt.wantErr)
 				return

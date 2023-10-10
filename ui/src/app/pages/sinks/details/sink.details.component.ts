@@ -27,7 +27,7 @@ export class SinkDetailsComponent implements OnInit {
     protected router: Router,
   ) {
     !this.sink.tags ? this.sink.tags = {} : null;
-    this.exporterField = "";
+    this.exporterField = '';
   }
 
   onOpenEdit(sink: any) {
@@ -45,6 +45,6 @@ export class SinkDetailsComponent implements OnInit {
   }
   ngOnInit() {
     const exporter = this.sink.config.exporter;
-    this.exporterField = exporter.remote_host !== undefined ? "Remote Host URL" : "Endpoint URL";
+    this.exporterField = exporter.remote_host !== undefined ? 'Remote Host URL' : 'Endpoint URL';
   }
 }

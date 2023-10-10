@@ -6,6 +6,7 @@ package orbreceiver
 
 import (
 	"context"
+	"strconv"
 	"strings"
 
 	"github.com/mainflux/mainflux/pkg/messaging"
@@ -31,6 +32,7 @@ func (r *OrbReceiver) MessageTracesInbound(msg messaging.Message) error {
 			zap.Int64("created", msg.Created),
 			zap.String("publisher", msg.Publisher))
 		r.cfg.Logger.Info("received trace message, pushing to kafka exporter")
+		size := len(msg.Payload)
 		decompressedPayload := r.DecompressBrotli(msg.Payload)
 		tr, err := r.encoder.unmarshalTracesRequest(decompressedPayload)
 		if err != nil {
@@ -47,13 +49,13 @@ func (r *OrbReceiver) MessageTracesInbound(msg messaging.Message) error {
 
 		scopes := tr.Traces().ResourceSpans().At(0).ScopeSpans()
 		for i := 0; i < scopes.Len(); i++ {
-			r.ProccessTracesContext(scopes.At(i), msg.Channel)
+			r.ProccessTracesContext(scopes.At(i), msg.Channel, size)
 		}
 	}()
 	return nil
 }
 
-func (r *OrbReceiver) ProccessTracesContext(scope ptrace.ScopeSpans, channel string) {
+func (r *OrbReceiver) ProccessTracesContext(scope ptrace.ScopeSpans, channel string, size int) {
 	// Extract Datasets
 	attrDataset, ok := scope.Scope().Attributes().Get("dataset_ids")
 	if !ok {
@@ -106,8 +108,9 @@ func (r *OrbReceiver) ProccessTracesContext(scope ptrace.ScopeSpans, channel str
 	attributeCtx = context.WithValue(attributeCtx, "orb_tags", agentPb.OrbTags)
 	attributeCtx = context.WithValue(attributeCtx, "agent_groups", agentPb.AgentGroupIDs)
 	attributeCtx = context.WithValue(attributeCtx, "agent_ownerID", agentPb.OwnerID)
+
 	for sinkId := range sinkIds {
-		err := r.cfg.SinkerService.NotifyActiveSink(r.ctx, agentPb.OwnerID, sinkId, "active", "")
+		err := r.cfg.SinkerService.NotifyActiveSink(r.ctx, agentPb.OwnerID, sinkId, strconv.Itoa(size))
 		if err != nil {
 			r.cfg.Logger.Error("error notifying sink active, changing state, skipping sink", zap.String("sink-id", sinkId), zap.Error(err))
 			continue
@@ -121,7 +124,6 @@ func (r *OrbReceiver) ProccessTracesContext(scope ptrace.ScopeSpans, channel str
 		_, err = r.exportTraces(attributeCtx, request)
 		if err != nil {
 			r.cfg.Logger.Error("error during export, skipping sink", zap.Error(err))
-			_ = r.cfg.SinkerService.NotifyActiveSink(r.ctx, agentPb.OwnerID, sinkId, "error", err.Error())
 			continue
 		}
 	}

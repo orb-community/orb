@@ -1,7 +1,7 @@
 nb-card {
   border: transparent;
   border-radius: 0.5rem;
-
+  padding: 0 !important;
   nb-card-header {
     background-color: #232940;
     border-bottom: transparent;
@@ -12,6 +12,7 @@ nb-card {
 
   nb-card-body {
     padding: 0.25rem !important;
+    margin: 0 !important;
 
     label {
       color: #969fb9;
@@ -62,15 +63,34 @@ nb-card {
 }
 
 .code-editor {
-  height: calc(100%);
   width: calc(100%);
   padding: calc(1rem);
+  min-height: 367px;
+  max-height: 55vh;
+}
+.upload-button {
+  color: #3089fc;
+  background-color: transparent;
+  border: none;
+  font-weight: 600;
+  outline: none;
+  float: right;
+  border-radius: 15px;
+  padding: 6px 12px;
+  margin-right: 5px;
+  font-size: 0.875rem;
+  font-family: 'Montserrat';
+  transition: background-color 0.3s ease;
+}
+.upload-button:hover {
+  background-color: #171c30 !important;
 }
 
-.code-editor-wrapper {
-  min-height: 350px;
-  min-width: 200px;
-  height: calc(45vh);
-  width: calc(100%);
-  display: block;
+.errorMessage {
+  position: absolute;
+  color: #df316f;
+  font-weight: 600;
+  font-size: 13px;
+  left: 20px;
+  bottom: 3px;
 }

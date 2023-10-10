@@ -1,89 +1,42 @@
-<nb-card style="max-height: 500px;">
+<nb-card *ngIf="provisioningTypeMode.default">
   <nb-card-header>
-    Provisioning Commands
-    <nb-select [(selected)]="selectedOS"
-               appearance="filled"
-               class="float-right"
-               data-orb-qa-id="selected_OS">
-      <nb-option *ngFor="let option of availableOS"
-                 [value]="option">
-        {{ option | titlecase }}
-      </nb-option>
-    </nb-select>
-    <button
-      style="color: #3089fc; float: none;"
-      ghost="true"
-      nbButton
-      (click)="toggleProvisioningCommand('hideCommand')">
-      <nb-icon [icon]="hideCommand ? 'plus-outline': 'minus-outline'"
-               pack="eva">
-      </nb-icon>
-    </button>
+    Default Provisioning Command
   </nb-card-header>
-  <nb-card-body [hidden]="hideCommand">
-    <nb-card style="  border: transparent;
-    border-radius: 0.5rem;">
-      <nb-card-header>
-        Default Provisioning Command
-        <button
-        style="color: #3089fc"
-        ghost="true"
-        nbButton
-        (click)="toggleProvisioningCommand('hideCommand2')">
-        <nb-icon [icon]="hideCommand2 ? 'plus-outline': 'minus-outline'"
-                 pack="eva">
+  <nb-card-body>
+    <pre>
+      <button [cdkCopyToClipboard]="defaultCommandCopy" 
+        nbTooltip="Copy Provisioning Command">
+        <nb-icon (click)="toggleIcon('command')" [icon]="copyCommandIcon" pack="eva">
         </nb-icon>
       </button>
-      </nb-card-header>
-      <nb-card-body [hidden]="hideCommand2"  style="margin: 0 !important; background-color: #1c2339 !important;">
-        <pre>
-          <button [cdkCopyToClipboard]="defaultCommandCopy" class="copy"
-            nbTooltip="Copy Provisioning Command">
-            <nb-icon (click)="toggleIcon('command')" [icon]="copyCommandIcon" pack="eva">
-            </nb-icon>
-          </button>
-          <code [innerHtml]="defaultCommandShow">
-            {{ defaultCommandShow }}
-          </code>
-        </pre>
-      </nb-card-body>    
-    </nb-card>
-    <nb-card style="  border: transparent;
-    border-radius: 0.5rem;">
-      <nb-card-header>
-        Provisioning Command with Configuration File
-        <button
-        style="color: #3089fc"
-        ghost="true"
-        nbButton
-        (click)="toggleProvisioningCommand('hideCommand3')">
-        <nb-icon [icon]="hideCommand3 ? 'plus-outline': 'minus-outline'"
-                 pack="eva">
-        </nb-icon>
-      </button>
-      <nb-icon icon="info-outline" style="margin-top: 10px; margin-right: 10px;" 
-      nbTooltip="This command requires that a configuration file named &quot;agent.yaml&quot; exist in your current working directory">
-      </nb-icon>
-      </nb-card-header>
-      <nb-card-body [hidden]="hideCommand3"  style="margin: 0 !important; background-color: #1c2339 !important;">
-        <pre>
-          <button [cdkCopyToClipboard]="fileConfigCommandCopy" class="copy"
-          nbTooltip="Copy Provisioning Command">
-          <nb-icon (click)="toggleIcon('command')" [icon]="copyCommandIcon" pack="eva">
-          </nb-icon>
-          </button>
-          <code [innerHtml]="fileConfigCommandShow">
-            {{ fileConfigCommandShow }}
-          </code>
-        </pre>
-      </nb-card-body>  
-    </nb-card> 
-    <p style="margin-left: 1rem;" *ngIf="!hideCommand3">
-      <a href="https://orb.community/documentation/running_orb_agent/#configuration-files"
-        target="_blank"
-        style="background-color: #ff9f05 !important;">Click here 
-      </a>
-      &nbsp; <span style="color: #ff9f05 !important;">to learn more about how create and apply configuration files.</span>
-    </p> 
-  </nb-card-body>
+      <code [innerHtml]="defaultCommandShow">
+        {{ defaultCommandShow }}
+      </code>
+    </pre>
+  </nb-card-body>    
 </nb-card>
+
+<nb-card *ngIf="provisioningTypeMode.configFile">
+  <nb-card-header>
+    Provisioning Command with Configuration File
+  <a href="https://orb.community/documentation/running_orb_agent/#configuration-files" target="_blank">
+    <nb-icon icon="info-outline" style="margin-top: 3px; margin-right: 10px;" 
+    nbTooltip="This command requires that a configuration file named &quot;agent.yaml&quot; exist in your current working directory. Click to go to documentation.">
+    </nb-icon>
+  </a>
+
+  </nb-card-header>
+  <nb-card-body>
+    <pre>
+      <button [cdkCopyToClipboard]="fileConfigCommandCopy" 
+      nbTooltip="Copy Provisioning Command">
+      <nb-icon (click)="toggleIcon('command')" [icon]="copyCommandIcon" pack="eva">
+      </nb-icon>
+      </button>
+      <code [innerHtml]="fileConfigCommandShow">
+        {{ fileConfigCommandShow }}
+      </code>
+    </pre>
+  </nb-card-body> 
+</nb-card> 
+

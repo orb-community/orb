@@ -9,10 +9,10 @@
 
 The following are needed to run the UI:
 
-* [node](https://nodejs.org/en/blog/release/v12.21.0/)
-* [npm](https://github.com/npm/cli/tree/v7.22.0)
-
-*It is recomended to build the UI using [yarn](https://www.npmjs.com/package/yarn)*
+* [node - lts/fermium](https://nodejs.org/en/blog/release/v14.21.3/)
+* [npm](https://github.com/npm/cli/tree/v6.14.18)
+> If using [nvm](https://github.com/nvm-sh/nvm), simply run  
+> `nvm install lts/fermium`
 
 ### Install
 
@@ -24,7 +24,7 @@ git clone git@github.com:orb-community/orb.git --no-checkout --depth 1 ${path}
 
 # however you clone the project
 cd ${path}/ui
-yarn install
+npm install
 ```
 
 ### Usage
@@ -32,7 +32,7 @@ yarn install
 A developer build from the source can be achieved using the following command:
 
 ```bash
-yarn build
+npm run build
 ```
 
 *(Check [package.json](./package.json) file for available tasks.)*
@@ -42,7 +42,7 @@ yarn build
 
 While developing, it is useful to serve UI locally and have your changes to the code having effect immediately.
 
-The commands `yarn start` and `yarn start:withmock` will generate a dev build and serve it at `http://localhost:4200/`.
+The command `npm run start` will generate a dev build and serve it at `http://localhost:4200/`.
 
 *(Note that `http://localhost:4200/` is for development use only, and is not intended to be used by the end-user.)*
 
@@ -69,9 +69,7 @@ fs.inotify.max_user_watches=524288
 See [data examples](https://github.com/orb-community/orb/wiki/Orb-UI---Entities-Data-Examples) for examples of *Orb Entities*
 to aid in UI design , form validation and related info.
 
-
 ---  
-
 ## QA & Testing
 
 Quality Assurance & Test frameworks and scripts are still a *WORK IN PROGRESS*  

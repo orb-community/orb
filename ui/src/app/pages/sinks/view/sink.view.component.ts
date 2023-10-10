@@ -17,11 +17,11 @@ import { OrbService } from 'app/common/services/orb.service';
 @Component({
   selector: 'ngx-sink-view',
   templateUrl: './sink.view.component.html',
-  styleUrls: ['./sink.view.component.scss']
+  styleUrls: ['./sink.view.component.scss'],
 })
 export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
   strings = STRINGS;
-  
+
   isLoading = false;
 
   sink: Sink;
@@ -33,13 +33,15 @@ export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
   lastUpdate: Date | null = null;
 
   sinkStates = SinkStates;
-  
+
   editMode = {
     details: false,
     config: false,
-  }
+  };
 
   isRequesting: boolean;
+
+  errorConfigMessage: string;
 
   @ViewChild(SinkDetailsComponent) detailsComponent: SinkDetailsComponent;
 
@@ -54,8 +56,9 @@ export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
     private dialogService: NbDialogService,
     private router: Router,
     private orb: OrbService,
-    ) { 
+    ) {
       this.isRequesting = false;
+      this.errorConfigMessage = '';
     }
 
   ngOnInit(): void {
@@ -74,10 +77,14 @@ export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   isEditMode() {
-    return Object.values(this.editMode).reduce(
+    const resp = Object.values(this.editMode).reduce(
       (prev, cur) => prev || cur,
       false,
     );
+    if (!resp) {
+      this.errorConfigMessage = '';
+    }
+    return resp;
   }
 
   canSave() {
@@ -93,7 +100,9 @@ export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
       config = JSON.parse(configSink);
     } else if (this.editor.isYaml(configSink)) {
       config = YAML.parse(configSink);
+      this.errorConfigMessage = '';
     } else {
+        this.errorConfigMessage = 'Invalid YAML configuration, check syntax errors';
         return false;
     }
 
@@ -121,19 +130,24 @@ export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
     const sinkDetails = this.detailsComponent.formGroup?.value;
     const tags = this.detailsComponent.selectedTags;
     const configSink = this.configComponent.code;
-  
+
     const details = { ...sinkDetails, tags };
-  
-    let payload = { id, backend, config: {}};
-  
+
     try {
-      const config = YAML.parse(configSink);
-      payload.config = config;
-  
-      if (this.editMode.details) {
-        payload = { ...payload, ...details };
+      let payload: any;
+      if (this.editMode.config && !this.editMode.details) {
+        payload = { id, backend, config: {}};
+        const config = YAML.parse(configSink);
+        payload.config = config;
       }
-  
+      if (this.editMode.details && !this.editMode.config) {
+        payload = { id, backend, ...details };
+      }
+      if (this.editMode.details && this.editMode.config) {
+        payload = { id, backend, ...details, config: {}};
+        const config = YAML.parse(configSink);
+        payload.config = config;
+      }
       this.sinks.editSink(payload as Sink).subscribe(
         (resp) => {
           this.discard();
@@ -156,7 +170,7 @@ export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
       this.isLoading = false;
       this.cdr.markForCheck();
       this.lastUpdate = new Date();
-    }) 
+    });
   }
 
   ngOnDestroy(): void {
@@ -187,8 +201,8 @@ export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
   hasChanges() {
     const sinkDetails = this.detailsComponent.formGroup?.value;
     const tags = this.detailsComponent.selectedTags;
-    let selectedTags = JSON.stringify(tags);
-    let orb_tags = this.sink.tags ? JSON.stringify(this.sink.tags) : "{}";
+    const selectedTags = JSON.stringify(tags);
+    const orb_tags = this.sink.tags ? JSON.stringify(this.sink.tags) : '{}';
 
     if (sinkDetails.name !== this.sink.name || sinkDetails?.description !== this.sink?.description || selectedTags !== orb_tags) {
       return true;

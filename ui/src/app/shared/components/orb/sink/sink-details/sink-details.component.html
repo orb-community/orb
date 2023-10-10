@@ -30,9 +30,10 @@
             <label class="summary-accent">Name</label>
             <p>{{ sink?.name }}</p>
           </div>
-          <div class="flex-row" *ngIf="sink?.description">
+          <div class="flex-row" >
             <label class="summary-accent">Description</label>
-            <p>{{ sink?.description }}</p>
+            <p *ngIf="sink?.description">{{ sink?.description }}</p>
+            <p *ngIf="!sink?.description" class="italic">No description provided</p>
           </div>
           <div class="flex-row">
             <label class="summary-accent">Backend</label>
@@ -40,8 +41,9 @@
           </div> 
           <div class="flex-row">
             <label class="summary-accent">Status</label>
-            <p *ngIf="sink?.state !== sinkStates.error" class="orb-service-{{sink?.state}}"> {{ sink?.state | titlecase }} </p>
-            <p *ngIf="sink?.state === sinkStates.error" class="orb-service-{{sink?.state}}"> {{ sink?.state | titlecase }} {{ sink?.error | titlecase }} </p>
+            <p *ngIf="sink?.state !== sinkStates.error && sink?.state !== sinkStates.warning" class="orb-service-{{sink?.state}}"> {{ sink?.state | titlecase }} </p>
+            <p *ngIf="sink?.state === sinkStates.error" class="orb-service-{{sink?.state}}"> {{ sink?.state | titlecase }} {{ sink?.error }} </p>
+            <p *ngIf="sink?.state === sinkStates.warning" class="orb-service-{{sink?.state}}"> {{ sink?.state | titlecase }} {{ sink?.error }} </p>
           </div>
           <div class="flex-row">
             <label class="summary-accent">Tags</label>

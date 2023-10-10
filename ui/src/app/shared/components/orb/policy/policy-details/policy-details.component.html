@@ -31,9 +31,10 @@
       <label class="summary-accent">Name</label>
       <p>{{ policy?.name }}</p>
     </div>
-    <div class="flex-row" *ngIf="policy?.description">
+    <div class="flex-row" >
       <label class="summary-accent">Description</label>
-      <p>{{ policy?.description }}</p>
+      <p *ngIf="policy?.description">{{ policy?.description }}</p>
+      <p *ngIf="!policy?.description" class="italic">No description provided</p>
     </div>
     <div class="flex-row">
       <label class="summary-accent">Backend</label>
@@ -100,4 +101,5 @@
   </form>
   <label class="input-label" style="margin-top: 15px;">Tags</label>
   <ngx-tag-control [(tags)]="selectedTags"></ngx-tag-control>
+  <br>
 </ng-template>
