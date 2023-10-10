@@ -33,6 +33,7 @@ func migrateDB(db *sqlx.DB) error {
 			{
 				Id: "1",
 				Up: []string{
+					`CREATE DATABASE IF NOT EXISTS maestro;`,
 					`CREATE TABLE IF NOT EXISTS deployments (
 					    id			    UUID NOT NULL DEFAULT gen_random_uuid(),
 					    owner_id                VARCHAR(255),
@@ -47,6 +48,7 @@ func migrateDB(db *sqlx.DB) error {
 					    last_collector_deploy_time TIMESTAMP,
 					    last_collector_stop_time   TIMESTAMP
 					);`,
+					`ALTER TABLE "deployments" ADD CONSTRAINT "deployments_owner_id_sink_id" UNIQUE ("owner_id", "sink_id");`,
 				},
 				Down: []string{
 					"DROP TABLE deployments",
