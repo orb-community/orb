@@ -90,3 +90,8 @@ nb-card {
     text-overflow: ellipsis !important;
     max-width: 350px !important;
   }
+  .agent-info {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
