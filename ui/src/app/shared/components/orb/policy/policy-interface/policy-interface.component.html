@@ -17,28 +17,18 @@
       style="color: #df316f !important;">
       Discard
     </button>
-    <button 
-      class="upload-button" 
-      (click)="fileInput.click()"
-      *ngIf="editMode">
-      <nb-icon icon="upload-outline" pack="eva">
-      </nb-icon>
-        Upload file
-    </button>
-    <input type="file" (change)="onFileSelected($event)" #fileInput style="display: none" class="upload-input">
-
   </nb-card-header>
   <nb-card-body>
     <!--    <div *ngIf="editMode; then updateView else readView"></div>-->
-    <ngx-monaco-editor
-      [style.height.px]="getCodeLineCount() * 21.6"
-      #editorComponent
-      [(ngModel)]="code"
-      [options]="editorOptions"
-      class="code-editor"
-      ngDefaultControl>
-    </ngx-monaco-editor>
-    <span *ngIf="errorConfigMessage !== ''" class="errorMessage">{{ errorConfigMessage }} </span>
+    <div class="code-editor-wrapper">
+      <ngx-monaco-editor
+          #editorComponent
+          [(ngModel)]="code"
+          [options]="editorOptions"
+          class="code-editor"
+          ngDefaultControl>
+      </ngx-monaco-editor>
+    </div>
   </nb-card-body>
 </nb-card>
 

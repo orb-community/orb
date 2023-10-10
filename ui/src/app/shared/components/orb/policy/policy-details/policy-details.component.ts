@@ -86,7 +86,8 @@ export class PolicyDetailsComponent implements OnInit, OnChanges {
     this.editMode = value;
     if (this.editMode || this.interfaceEditMode) {
       this.orb.pausePolling();
-    } else {
+    }
+    else {
       this.orb.startPolling();
     }
     this.updateForm();

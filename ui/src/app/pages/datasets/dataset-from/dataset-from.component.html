@@ -1,4 +1,6 @@
-<nb-card>
+<nb-card
+        class="nb-card-medium"
+        size="large">
     <nb-card-header>
         Dataset Details
         <button
@@ -11,27 +13,16 @@
         </button>
     </nb-card-header>
     <nb-card-body>
-        <div *ngIf="!fetchedData">
-            <div class="loading-spinner" style="top: 40% !important; left: 46% !important;"></div>
-          </div>
         <form [formGroup]="form" [hidden]="isLoading()">
             <!--      GROUP-->
-            <div [hidden]="!!group" *ngIf="fetchedData">
+            <div [hidden]="!!group">
                 <nb-form-field *ngIf="isEdit">
                     <div>
                         <label class="input-label">Agent Group</label>
                         <span class="required">*</span>
                     </div>
-                    <input *ngIf="groupName" class="input-agent-group" nbInput disabled [value]="groupName"/>
-                    <input *ngIf="!groupName" class="input-agent-group" style="color: #df316f !important;" nbInput disabled [value]="'Agent Group has been deleted'"/>
-                    <button 
-                        *ngIf="isGroupSelected"
-                        class="match-agents-button"
-                        (click)="onMatchingAgentsModal()">
-                        See Matching Agents
-                    </button>
+                    <input class="input-agent-group" nbInput disabled [value]="groupName"/>
                 </nb-form-field>
-                
                 <nb-form-field *ngIf="!isEdit">
                     <div>
                         <label class="input-label">Agent Group</label>
@@ -40,7 +31,7 @@
 
                     <input
                             (input)="onChangeGroupName($event)"
-                            class="input-agent-group"
+                            class="dataset-agent-group-input input-agent-group"
                             [readonly]="fetchedData && !(availableAgentGroups.length > 0)"
                             [nbAutocomplete]="autoControl"
                             formControlName="agent_group_name"
@@ -71,17 +62,11 @@
                     <div class="required" *ngIf="fetchedData && !(availableAgentGroups.length > 0)"> 
                         There are no agent groups available
                     </div>
-                    <button 
-                        *ngIf="isGroupSelected"
-                        class="match-agents-button"
-                        (click)="onMatchingAgentsModal()">
-                        See Matching Agents
-                    </button>
                 </nb-form-field>
                 <br>
             </div>
             <!--      POLICY-->
-            <div [hidden]="!!policy || isEdit" *ngIf="fetchedData">
+            <div [hidden]="!!policy || isEdit">
                 <nb-form-field>
                     <div>
                         <label class="input-label">Collection Policy</label>
@@ -116,18 +101,18 @@
             </div>
             <!--      SINK-->
 
-            <div *ngIf="fetchedData">
+            <div>
                 <label class="input-label">Sinks</label>
                 <span class="required">*</span>
             </div>
-            <div *ngIf="fetchedData">
+            <div>
                 <ngx-sink-display [(selectedSinks)]="selectedSinks"></ngx-sink-display>
                 <ngx-sink-control
                   [(selectedSinks)]="selectedSinks"
                   [sinksList]="unselectedSinks"
                 ></ngx-sink-control>
                 <div
-                  *ngIf="sinkIDs.length === 0 && (form.controls?.agent_group_name.dirty || isEdit)"
+                  *ngIf="sinkIDs.length === 0 && form.controls?.sink_ids.dirty"
                   class="required"
                 >
                   At least one Sink is required.
@@ -140,29 +125,31 @@
                 </div>
             </div>
         </form>
-        <br>
     </nb-card-body>
     <nb-card-footer>
         <button
                 (click)="onFormSubmit()"
                 [disabled]="form.invalid || sinkIDs.length === 0 || isRequesting"
-                class="next-button"
-                status="primary"
-                style="padding: 6px 16px !important;">
-                {{isEdit ? 'Save' : 'Create'}}
+                class="dataset-save-button"
+                nbButton
+                shape="round"
+                status="primary">Save
         </button>
         <button
                 (click)="onClose()"
-                class="cancel-back-button"
+                ghost
+                nbButton
+                shape="round"
                 status="primary"
-                style="padding: 6px 14px !important; margin-right: 3px !important;"
                 type="button">Cancel
         </button>
         <button
                 (click)="onDelete()"
                 *ngIf="isEdit"
-                class="dataset-delete-button">
-                Delete Dataset
-        </button>
+                class="dataset-delete-button"
+                ghost
+                nbButton
+                shape="round"
+                type="button"><span>Delete Dataset</span></button>
     </nb-card-footer>
 </nb-card>

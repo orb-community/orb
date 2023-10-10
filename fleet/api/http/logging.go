@@ -25,7 +25,7 @@ func (l loggingMiddleware) ViewAgentMatchingGroupsByIDInternal(ctx context.Conte
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: view_agent_matching_groups_by_idinternal",
+			l.logger.Info("method call: view_agent_matching_groups_by_idinternal",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -39,7 +39,7 @@ func (l loggingMiddleware) ResetAgent(ct context.Context, token string, agentID 
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: reset_agent",
+			l.logger.Info("method call: reset_agent",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -53,7 +53,7 @@ func (l loggingMiddleware) ViewAgentInfoByChannelIDInternal(ctx context.Context,
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: view_owner_by_channel_id",
+			l.logger.Info("method call: view_owner_by_channel_id",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -67,7 +67,7 @@ func (l loggingMiddleware) ViewAgentBackend(ctx context.Context, token string, n
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: view_agent_backend",
+			l.logger.Info("method call: view_agent_backend",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -81,7 +81,7 @@ func (l loggingMiddleware) ListAgentBackends(ctx context.Context, token string) 
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: list_agent_backends",
+			l.logger.Info("method call: list_agent_backends",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -95,7 +95,7 @@ func (l loggingMiddleware) ViewAgentByIDInternal(ctx context.Context, ownerID st
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: view_agent_by_id_internal",
+			l.logger.Info("method call: view_agent_by_id_internal",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -109,7 +109,7 @@ func (l loggingMiddleware) ViewAgentByID(ctx context.Context, token string, thin
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: view_agent_by_id",
+			l.logger.Info("method call: view_agent_by_id",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -123,7 +123,7 @@ func (l loggingMiddleware) ViewAgentMatchingGroupsByID(ctx context.Context, toke
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: view_agent_matching_groups_by_id",
+			l.logger.Info("method call: view_agent_matching_groups_by_id",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -137,7 +137,7 @@ func (l loggingMiddleware) EditAgent(ctx context.Context, token string, agent fl
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: edit_agent_by_id",
+			l.logger.Info("method call: edit_agent_by_id",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -151,7 +151,7 @@ func (l loggingMiddleware) ViewAgentGroupByIDInternal(ctx context.Context, group
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: view_agent_group_by_id_internal",
+			l.logger.Info("method call: view_agent_group_by_id_internal",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -165,7 +165,7 @@ func (l loggingMiddleware) ViewAgentGroupByID(ctx context.Context, groupID strin
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: view_agent_group_by_id",
+			l.logger.Info("method call: view_agent_group_by_id",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -179,7 +179,7 @@ func (l loggingMiddleware) ListAgentGroups(ctx context.Context, token string, pm
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: list_agent_groups",
+			l.logger.Info("method call: list_agent_groups",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -193,7 +193,7 @@ func (l loggingMiddleware) EditAgentGroup(ctx context.Context, token string, ag 
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: edit_agent_groups",
+			l.logger.Info("method call: edit_agent_groups",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -207,7 +207,7 @@ func (l loggingMiddleware) ListAgents(ctx context.Context, token string, pm flee
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: list_agents",
+			l.logger.Info("method call: list_agents",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -222,7 +222,7 @@ func (l loggingMiddleware) CreateAgent(ctx context.Context, token string, a flee
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: create_agent",
+			l.logger.Info("method call: create_agent",
 				zap.String("name", a.Name.String()),
 				zap.Duration("duration", time.Since(begin)))
 		}
@@ -238,7 +238,7 @@ func (l loggingMiddleware) CreateAgentGroup(ctx context.Context, token string, s
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: create_agent_group",
+			l.logger.Info("method call: create_agent_group",
 				zap.String("name", s.Name.String()),
 				zap.Duration("duration", time.Since(begin)))
 		}
@@ -253,7 +253,7 @@ func (l loggingMiddleware) RemoveAgentGroup(ctx context.Context, token, groupID 
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: delete_agent_groups",
+			l.logger.Info("method call: delete_agent_groups",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -268,7 +268,7 @@ func (l loggingMiddleware) ValidateAgentGroup(ctx context.Context, token string,
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: validate_agent_group",
+			l.logger.Info("method call: validate_agent_group",
 				zap.String("name", s.Name.String()),
 				zap.Duration("duration", time.Since(begin)))
 		}
@@ -284,7 +284,7 @@ func (l loggingMiddleware) ValidateAgent(ctx context.Context, token string, a fl
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: validate_agent",
+			l.logger.Info("method call: validate_agent",
 				zap.String("name", a.Name.String()),
 				zap.Duration("duration", time.Since(begin)))
 		}
@@ -299,7 +299,7 @@ func (l loggingMiddleware) RemoveAgent(ctx context.Context, token, thingID strin
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: delete_agent",
+			l.logger.Info("method call: delete_agent",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())
@@ -314,7 +314,7 @@ func (l loggingMiddleware) GetPolicyState(ctx context.Context, agent fleet.Agent
 				zap.Error(err),
 				zap.Duration("duration", time.Since(begin)))
 		} else {
-			l.logger.Debug("method call: get_policy_state",
+			l.logger.Info("method call: get_policy_state",
 				zap.Duration("duration", time.Since(begin)))
 		}
 	}(time.Now())

@@ -18,7 +18,7 @@
       <div class="col-6 d-flex flex-column align-items-start" *ngIf="!sink.description">
         <p class="detail-title">{{strings.propNames.description}}</p>
         <p>{{ sink.description }}</p>
-        <p *ngIf="!sink.description" style="font-style: italic; font-size: 14px;">No Description Added</p>
+        <p *ngIf="!sink.description">No Description Added</p>
       </div>
     </div>
     <div class="row">

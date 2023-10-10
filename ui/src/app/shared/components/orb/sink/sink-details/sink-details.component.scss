@@ -24,7 +24,7 @@ input {
     color: #df316f;
   }
   &idle {
-    color: #f2994a;
+    color: #f2994a; 
   }
 }
 .ns1red {
@@ -44,7 +44,6 @@ nb-card {
     padding: 0.5rem 1rem;
   }
   nb-card-body {
-    margin: 0 !important;
     label {
       color: #969fb9;
     }
@@ -53,9 +52,4 @@ nb-card {
       text-align: end;
     }
   }
-}
-.italic {
-  font-style: italic;
-  font-size: 0.9rem;
-  color: #d9deee;
 }

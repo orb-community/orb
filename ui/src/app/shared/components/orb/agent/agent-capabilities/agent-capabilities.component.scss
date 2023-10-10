@@ -10,8 +10,6 @@ h4 {
 nb-card {
   border: transparent;
   border-radius: 0.5rem;
-  padding: 0 !important;
-  margin: 0 !important;
 
   nb-card-header {
     background-color: #232940;
@@ -22,7 +20,6 @@ nb-card {
   }
 
   nb-card-body {
-    padding-bottom: 0.5rem;
     label {
       color: #969fb9;
     }

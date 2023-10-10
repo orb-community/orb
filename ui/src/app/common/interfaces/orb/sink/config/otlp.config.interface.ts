@@ -23,13 +23,13 @@ export interface OtlpConfig extends SinkConfig<string> {
         *  Username|Email(?) {string}
         */
         username?: string;
-    };
+    }
     exporter: |any| {
         /**
         *  Endpoint (Otlp sinks) or Remote Host (Prometheus sink) Link {string}
         */
         endpoint?: string;
         remote_host?: string;
-    };
-
+    }
+    
 }

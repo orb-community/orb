@@ -8,7 +8,7 @@ import { OrbService } from 'app/common/services/orb.service';
 @Component({
   selector: 'ngx-sink-config',
   templateUrl: './sink-config.component.html',
-  styleUrls: ['./sink-config.component.scss'],
+  styleUrls: ['./sink-config.component.scss']
 })
 export class SinkConfigComponent implements OnInit, OnChanges {
 
@@ -16,22 +16,19 @@ export class SinkConfigComponent implements OnInit, OnChanges {
   sink: Sink;
 
   @Input()
-  editMode: boolean = false;
+  editMode: boolean;
 
   @Input()
-  createMode: boolean = false;
+  createMode: boolean;
 
   @Input()
   sinkBackend: string;
-
+  
   @Output()
   editModeChange: EventEmitter<boolean>;
 
   @Input()
   detailsEditMode: boolean;
-
-  @Input()
-  errorConfigMessage: string;
 
   @ViewChild('editorComponent')
   editor;
@@ -80,43 +77,43 @@ export class SinkConfigComponent implements OnInit, OnChanges {
   constructor(
     private fb: FormBuilder,
     private orb: OrbService,
-    ) {
-    this.isYaml = true;
+    ) { 
+    this.isYaml = true; 
     this.sink = {};
     this.editMode = false;
     this.editModeChange = new EventEmitter<boolean>();
     this.detailsEditMode = false;
     this.updateForm();
-    this.errorConfigMessage = '';
     this.sinkConfigSchemaPrometheus = {
-      'authentication' : {
-        'type': 'basicauth',
-        'password': '',
-        'username': '',
+      "authentication" : {
+        "type": "basicauth", 
+        "password": "",
+        "username": "",
       },
-      'exporter' : {
-        'remote_host': '',
+      "exporter" : {
+        "remote_host": "",
       },
-      'opentelemetry': 'enabled',
-    };
+      "opentelemetry": "enabled",
+    }
     this.sinkConfigSchemaOtlp = {
-      'authentication' : {
-        'type': 'basicauth',
-        'password': '',
-        'username': '',
+      "authentication" : {
+        "type": "basicauth", 
+        "password": "",
+        "username": "",
       },
-      'exporter' : {
-        'endpoint': '',
+      "exporter" : {
+        "endpoint": "",
       },
-      'opentelemetry': 'enabled',
-    };
+      "opentelemetry": "enabled",
+    }
   }
 
   ngOnInit(): void {
     if (this.createMode) {
       this.toggleEdit(true);
       this.code = YAML.stringify(this.sinkConfigSchemaOtlp);
-    } else {
+    }
+    else {
       // if (this.sink.config_data && this.sink.format === 'yaml') {
       // this.isYaml = true;
       const parsedCode = YAML.parse(JSON.stringify(this.sink.config));
@@ -146,7 +143,7 @@ ngOnChanges(changes: SimpleChanges) {
     const sinkConfigSchema = this.sinkBackend === SinkBackends.prometheus
       ? this.sinkConfigSchemaPrometheus
       : this.sinkConfigSchemaOtlp;
-
+      
     this.code = this.isYaml
       ? YAML.stringify(sinkConfigSchema, null)
       : JSON.stringify(sinkConfigSchema, null, 2);
@@ -176,7 +173,8 @@ updateForm() {
     this.editMode = edit;
     if ((this.editMode || this.detailsEditMode) && !this.createMode) {
       this.orb.pausePolling();
-    } else {
+    }
+    else {
       this.orb.startPolling();
     }
     this.editorOptions = { ...this.editorOptions, readOnly: !edit };
@@ -189,10 +187,11 @@ updateForm() {
     if (this.isYaml) {
       const parsedCode = YAML.parse(this.code);
       this.code = YAML.stringify(parsedCode);
-    } else {
+    }
+    else {
       const parsedConfig = YAML.parse(this.code);
       this.code = JSON.stringify(parsedConfig, null, 2);
     }
   }
-
+  
 }

@@ -101,7 +101,7 @@ export class PolicyDatasetsComponent
         name: 'Agent Group',
         resizeable: true,
         canAutoResize: true,
-        flexGrow: 3,
+        width: 250,
         cellTemplate: this.groupTemplateCell,
       },
       {
@@ -109,7 +109,8 @@ export class PolicyDatasetsComponent
         name: 'Valid',
         resizeable: true,
         canAutoResize: true,
-        flexGrow: 1,
+        minWidth: 80,        
+        width: 80,
         cellTemplate: this.validTemplateCell,
       },
       {
@@ -117,7 +118,7 @@ export class PolicyDatasetsComponent
         name: 'Sinks',
         resizeable: true,
         canAutoResize: true,
-        flexGrow: 3,
+        width: 450,
         cellTemplate: this.sinksTemplateCell,
       },
       {
@@ -125,8 +126,7 @@ export class PolicyDatasetsComponent
         prop: 'actions',
         resizeable: true,
         sortable: false,
-        canAutoResize: true,
-        flexGrow: 3,
+        width: 200,
         cellTemplate: this.actionsTemplateCell,
       },
     ];
@@ -146,11 +146,7 @@ export class PolicyDatasetsComponent
       window.dispatchEvent(new Event('resize'));
     }
   }
-  getTableHeight() {
-    const rowHeight = 50;
-    const headerHeight = 50;
-    return (this.datasets.length * rowHeight) + headerHeight + 'px';
-  }
+
   onCreateDataset() {
     this.dialogService
       .open(DatasetFromComponent, {
@@ -177,7 +173,6 @@ export class PolicyDatasetsComponent
         closeOnEsc: false,
         context: {
           dataset,
-          policy: this.policy,
         },
         hasScroll: false,
         closeOnBackdropClick: true,
@@ -251,5 +246,5 @@ export class PolicyDatasetsComponent
       closeOnEsc: true,
     });
   }
-
+  
 }

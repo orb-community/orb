@@ -8,7 +8,7 @@ describe('SinkViewComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ SinkViewComponent ],
+      declarations: [ SinkViewComponent ]
     })
     .compileComponents();
   }));

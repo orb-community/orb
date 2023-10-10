@@ -1,4 +1,4 @@
-import { Component, HostListener, Input, OnInit } from '@angular/core';
+import { Component, HostListener, Input } from '@angular/core';
 import { MatSelectChange } from '@angular/material/select';
 import {
   FilterOption,
@@ -14,7 +14,7 @@ import { map, tap } from 'rxjs/operators';
   templateUrl: './filter.component.html',
   styleUrls: ['./filter.component.scss'],
 })
-export class FilterComponent implements OnInit {
+export class FilterComponent {
   @Input()
   availableFilters!: FilterOption[];
 
@@ -38,7 +38,7 @@ export class FilterComponent implements OnInit {
     this.activeFilters$ = filter.getFilters().pipe(map((filters) => filters));
     this.searchText = '';
   }
-
+  
   ngOnInit() {
     this.availableFilters = this.availableFilters.filter(filter => filter.name !== 'Name');
   }
@@ -53,7 +53,7 @@ export class FilterComponent implements OnInit {
         param: this.searchText,
         type: FilterTypes.Input,
         filter: filterString,
-      };
+      }
       this.filter.addFilter(filterOptions);
     }
     this.lastSearchText = this.searchText;

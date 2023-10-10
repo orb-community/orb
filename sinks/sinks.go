@@ -7,14 +7,13 @@ package sinks
 import (
 	"context"
 	"database/sql/driver"
-	"time"
-
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks/authentication_type"
 	"github.com/orb-community/orb/sinks/authentication_type/basicauth"
 	"github.com/orb-community/orb/sinks/backend"
 	"go.uber.org/zap"
+	"time"
 )
 
 var (
@@ -53,8 +52,6 @@ const (
 	Error
 	Idle
 	Warning
-	Provisioning
-	ProvisioningError
 )
 
 type State int
@@ -65,8 +62,6 @@ var stateMap = [...]string{
 	"error",
 	"idle",
 	"warning",
-	"provisioning",
-	"provisioning_error",
 }
 
 const MetadataLabelOtel = "opentelemetry"
@@ -77,13 +72,11 @@ type Filter struct {
 }
 
 var stateRevMap = map[string]State{
-	"unknown":            Unknown,
-	"active":             Active,
-	"error":              Error,
-	"idle":               Idle,
-	"warning":            Warning,
-	"provisioning":       Provisioning,
-	"provisioning_error": ProvisioningError,
+	"unknown": Unknown,
+	"active":  Active,
+	"error":   Error,
+	"idle":    Idle,
+	"warning": Warning,
 }
 
 func (s State) String() string {
@@ -103,10 +96,6 @@ func (s *State) Scan(value interface{}) error {
 	return nil
 }
 func (s State) Value() (driver.Value, error) { return s.String(), nil }
-
-func NewStateFromString(state string) State {
-	return stateRevMap[state]
-}
 
 func NewConfigBackends(e backend.Backend, a authentication_type.AuthenticationType) Configuration {
 	return Configuration{

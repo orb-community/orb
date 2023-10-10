@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Input, OnChanges, OnInit, SimpleChange, SimpleChanges } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -17,7 +17,6 @@ import { DatasetPoliciesService } from 'app/common/services/dataset/dataset.poli
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { SinksService } from 'app/common/services/sinks/sinks.service';
 import { DatasetDeleteComponent } from 'app/pages/datasets/delete/dataset.delete.component';
-import { AgentMatchComponent } from 'app/pages/fleet/agents/match/agent.match.component';
 import { Observable, of } from 'rxjs';
 
 export const DATASET_RESPONSE = {
@@ -39,7 +38,7 @@ const CONFIG = {
   templateUrl: './dataset-from.component.html',
   styleUrls: ['./dataset-from.component.scss'],
 })
-export class DatasetFromComponent implements OnInit, OnChanges {
+export class DatasetFromComponent implements OnInit {
   @Input()
   dataset: Dataset;
 
@@ -50,8 +49,6 @@ export class DatasetFromComponent implements OnInit, OnChanges {
   group: AgentGroup;
 
   isEdit: boolean;
-
-  isGroupSelected: boolean = false;
 
   selectedGroup: string;
   groupName: string;
@@ -97,10 +94,6 @@ export class DatasetFromComponent implements OnInit, OnChanges {
     this.getDatasetAvailableConfigList();
 
     this.readyForms();
-
-    this.form.get('agent_group_id').valueChanges.subscribe(value => {
-      this.ngOnChanges({ agent_group_id: new SimpleChange(null, value, true) });
-    });
   }
 
   private _selectedSinks: Sink[];
@@ -178,24 +171,6 @@ export class DatasetFromComponent implements OnInit, OnChanges {
 
   onFilterGroup(value) {
     this.filteredAgentGroups$ = of(this.filter(value));
-  }
-
-  onMatchingAgentsModal() {
-    this.dialogService.open(AgentMatchComponent, {
-      context: {
-        agentGroupId: this.form.controls.agent_group_id.value,
-        policy: this.policy,
-      },
-      autoFocus: true,
-      closeOnEsc: true,
-    });
-  }
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes.agent_group_id.currentValue) {
-      this.isGroupSelected = true;
-    } else {
-      this.isGroupSelected = false;
-    }
   }
 
   ngOnInit(): void {

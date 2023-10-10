@@ -11,18 +11,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"io"
-	"io/ioutil"
-	"log"
-	"net"
-	"net/http"
-	"os"
-	"os/signal"
-	"strconv"
-	"strings"
-	"syscall"
-	"time"
-
 	authapi "github.com/mainflux/mainflux/auth/api/grpc"
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
 	opentracing "github.com/opentracing/opentracing-go"
@@ -39,6 +27,17 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc/reflection"
+	"io"
+	"io/ioutil"
+	"log"
+	"net"
+	"net/http"
+	"os"
+	"os/signal"
+	"strconv"
+	"strings"
+	"syscall"
+	"time"
 
 	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
 	r "github.com/go-redis/redis/v8"
@@ -127,7 +126,6 @@ func main() {
 	go startHTTPServer(tracer, svc, svcCfg, logger, errs)
 	go startGRPCServer(svc, tracer, sinksGRPCCfg, logger, errs)
 	go subscribeToSinkerES(svc, esClient, esCfg, logger)
-	go subscribeToMaestroStatusES(svc, esClient, esCfg, logger)
 
 	go func() {
 		c := make(chan os.Signal)
@@ -195,7 +193,7 @@ func newSinkService(auth mainflux.AuthServiceClient, logger *zap.Logger, esClien
 	mfsdk := mfsdk.NewSDK(config)
 
 	svc := sinks.NewSinkService(logger, auth, repoSink, mfsdk, passwordService)
-	svc = redisprod.NewSinkStreamProducerMiddleware(svc, esClient)
+	svc = redisprod.NewEventStoreMiddleware(svc, esClient)
 	svc = sinkshttp.NewLoggingMiddleware(svc, logger)
 	svc = sinkshttp.MetricsMiddleware(
 		auth,
@@ -288,14 +286,6 @@ func subscribeToSinkerES(svc sinks.SinkService, client *r.Client, cfg config.EsC
 	eventStore := rediscons.NewEventStore(svc, client, cfg.Consumer, logger)
 	logger.Info("Subscribed to Redis Event Store for sinker")
 	if err := eventStore.Subscribe(context.Background()); err != nil {
-		logger.Error("Bootstrap service failed to subscribe to sinker event sourcing", zap.Error(err))
-	}
-}
-
-func subscribeToMaestroStatusES(svc sinks.SinkService, client *r.Client, cfg config.EsConfig, logger *zap.Logger) {
-	eventStore := rediscons.NewSinkStatusListener(logger, client, svc)
-	logger.Info("Subscribed to Redis Event Store for maestro")
-	if err := eventStore.SubscribeToMaestroSinkStatus(context.Background()); err != nil {
-		logger.Error("Bootstrap service failed to subscribe to maestro event sourcing", zap.Error(err))
+		logger.Error("Bootstrap service failed to subscribe to event sourcing", zap.Error(err))
 	}
 }

@@ -8,7 +8,6 @@ import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { AgentsService } from 'app/common/services/agents/agents.service';
 import { Router } from '@angular/router';
 import { AgentPolicy, AgentPolicyStates } from 'app/common/interfaces/orb/agent.policy.interface';
-import { AgentGroupsService } from 'app/common/services/agents/agent.groups.service';
 
 @Component({
   selector: 'ngx-agent-match-component',
@@ -21,9 +20,6 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
 
   @Input()
   agentGroup: AgentGroup;
-
-  @Input()
-  agentGroupId: string;
 
   @Input()
   policy!: AgentPolicy;
@@ -68,7 +64,6 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
     protected dialogRef: NbDialogRef<AgentMatchComponent>,
     protected agentsService: AgentsService,
     protected router: Router,
-    protected groupsService: AgentGroupsService,
   ) {
     this.specificPolicy = false;
   }
@@ -132,40 +127,29 @@ export class AgentMatchComponent implements OnInit, AfterViewInit {
   }
 
   onOpenView(agent: any) {
-    this.router.navigateByUrl(`pages/fleet/agents/view/${agent.id}`);
+    this.router.navigateByUrl(`pages/fleet/agents/view/${ agent.id }`);
     this.dialogRef.close();
   }
 
   updateMatchingAgents() {
-    if (!!this.agentGroupId) {
-      this.groupsService.getAgentGroupById(this.agentGroupId).subscribe(
-        (resp) => {
-          this.agentGroup = resp;
-          this.getMatchingAgentsInfo();
-        },
-      );
-    } else {
-      this.getMatchingAgentsInfo();
-    }
-  }
-  getMatchingAgentsInfo() {
     const { tags } = this.agentGroup;
     const tagsList = Object.keys(tags).map(key => ({ [key]: tags[key] }));
     this.agentsService.getAllAgents(tagsList).subscribe(
       resp => {
-        if (!!this.policy) {
+        if(!!this.policy) {
           this.specificPolicy = true;
           this.agents = resp.map((agent) => {
-            const { policy_state } = agent;
+            const {policy_state} = agent;
             const policy_agg_info = !!policy_state && policy_state[this.policy.id]?.state || AgentPolicyStates.failedToApply;
-            return { ...agent, policy_agg_info };
-          });
+            return {...agent, policy_agg_info };
+          })
         } else {
           this.agents = resp;
         }
       },
     );
   }
+
   onClose() {
     this.dialogRef.close(false);
   }

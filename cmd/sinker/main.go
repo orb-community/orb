@@ -9,6 +9,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
 	"github.com/go-redis/redis/v8"
@@ -19,6 +20,10 @@ import (
 	"github.com/orb-community/orb/pkg/config"
 	policiesgrpc "github.com/orb-community/orb/policies/api/grpc"
 	"github.com/orb-community/orb/sinker"
+	sinkconfig "github.com/orb-community/orb/sinker/config"
+	cacheconfig "github.com/orb-community/orb/sinker/redis"
+	"github.com/orb-community/orb/sinker/redis/consumer"
+	"github.com/orb-community/orb/sinker/redis/producer"
 	sinksgrpc "github.com/orb-community/orb/sinks/api/grpc"
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -97,12 +102,6 @@ func main() {
 	}
 
 	cacheClient := connectToRedis(cacheCfg.URL, cacheCfg.Pass, cacheCfg.DB, logger)
-	defer func(client *redis.Client) {
-		err := client.Close()
-		if err != nil {
-			log.Fatalf(err.Error())
-		}
-	}(cacheClient)
 
 	esClient := connectToRedis(esCfg.URL, esCfg.Pass, esCfg.DB, logger)
 	defer func(esClient *redis.Client) {
@@ -169,6 +168,8 @@ func main() {
 	}
 	sinksGRPCClient := sinksgrpc.NewClient(tracer, sinksGRPCConn, sinksGRPCTimeout, logger)
 
+	configRepo := cacheconfig.NewSinkerCache(cacheClient, logger)
+	configRepo = producer.NewEventStoreMiddleware(configRepo, esClient, logger)
 	gauge := kitprometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
 		Namespace: "sinker",
 		Subsystem: "sink",
@@ -191,7 +192,7 @@ func main() {
 	otelEnabled := otelCfg.Enable == "true"
 	otelKafkaUrl := otelCfg.KafkaUrl
 
-	svc := sinker.New(logger, pubSub, esClient, cacheClient, policiesGRPCClient, fleetGRPCClient, sinksGRPCClient,
+	svc := sinker.New(logger, pubSub, esClient, configRepo, policiesGRPCClient, fleetGRPCClient, sinksGRPCClient,
 		otelKafkaUrl, otelEnabled, gauge, counter, inputCounter, inMemoryCacheConfig.DefaultExpiration)
 	defer func(svc sinker.Service) {
 		err := svc.Stop()
@@ -203,6 +204,7 @@ func main() {
 	errs := make(chan error, 2)
 
 	go startHTTPServer(svcCfg, errs, logger)
+	go subscribeToSinksES(svc, configRepo, esClient, esCfg, logger)
 
 	err = svc.Start()
 	if err != nil {
@@ -304,4 +306,12 @@ func initJaeger(svcName, url string, logger *zap.Logger) (opentracing.Tracer, io
 	}
 
 	return tracer, closer
+}
+
+func subscribeToSinksES(svc sinker.Service, configRepo sinkconfig.ConfigRepo, client *redis.Client, cfg config.EsConfig, logger *zap.Logger) {
+	eventStore := consumer.NewEventStore(svc, configRepo, client, cfg.Consumer, logger)
+	logger.Info("Subscribed to Redis Event Store for sinks")
+	if err := eventStore.Subscribe(context.Background()); err != nil {
+		logger.Error("Bootstrap service failed to subscribe to event sourcing", zap.Error(err))
+	}
 }
