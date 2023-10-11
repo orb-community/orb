@@ -14,6 +14,8 @@ export class FilterService {
 
   private activeRoute$: Observable<string>;
 
+  public searchName: string;
+
   constructor(private router: Router) {
     this.activeRoute$ = this.router.events.pipe(
       filter((event) => event instanceof NavigationEnd),
@@ -28,7 +30,19 @@ export class FilterService {
   }
 
   private loadFromRoute(route: string) {
-    const storedFilters = window.sessionStorage.getItem(route) || '[]';
+    let storedFilters = window.sessionStorage.getItem(route) || '[]';
+    let storedFiltersList = JSON.parse(storedFilters)
+    let found = false;
+    
+    storedFiltersList.map((filter) => {
+      if (filter.name === 'Name' && filter.prop === 'name') {
+        this.searchName = filter.param;
+        found = true
+      }
+    })
+    if (!found) {
+      this.searchName = '';
+    }
 
     this.resetFilters(JSON.parse(storedFilters));
   }
