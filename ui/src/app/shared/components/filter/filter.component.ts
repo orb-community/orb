@@ -32,17 +32,29 @@ export class FilterComponent implements OnInit {
 
   lastSearchText: string;
 
+  loadedSearchText: string;
+
   constructor(private filter: FilterService) {
     this.exact = false;
     this.availableFilters = [];
     this.activeFilters$ = filter.getFilters().pipe(map((filters) => filters));
-    this.searchText = '';
   }
 
   ngOnInit() {
     this.availableFilters = this.availableFilters.filter(filter => filter.name !== 'Name');
+    this.searchText = this.filter.searchName || '';
+    if (this.filter.searchName) {
+      this.searchText = this.filter.searchName;
+      this.loadedSearchText = this.searchText
+    } else {
+      this.searchText = '';
+    }
   }
   onSearchTextChange() {
+    if (this.loadedSearchText) {
+      this.filter.removeFilterByParam(this.loadedSearchText);
+      this.loadedSearchText = undefined;
+    }
     if (this.lastSearchText !== '') {
       this.filter.removeFilterByParam(this.lastSearchText);
     }
