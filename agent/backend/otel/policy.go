@@ -49,7 +49,9 @@ func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, up
 		if currentPolicyData.Version <= newPolicyData.Version {
 			dataAsByte := []byte(newPolicyData.Data.(string))
 			currentPolicyPath := o.policyConfigDirectory + fmt.Sprintf(tempFileNamePattern, currentPolicyData.ID)
-			o.logger.Info("new policy version received, updating", zap.String("policy_id", newPolicyData.ID), zap.Int32("version", newPolicyData.Version))
+			o.logger.Info("new policy version received, updating",
+				zap.String("policy_id", newPolicyData.ID),
+				zap.Int32("version", newPolicyData.Version))
 			err := os.WriteFile(currentPolicyPath, dataAsByte, os.ModeTemporary)
 			if err != nil {
 				return err
