@@ -95,26 +95,24 @@ func (o *openTelemetryBackend) Version() (string, error) {
 		return o.otelCurrVersion, nil
 	}
 	ctx, cancel := context.WithTimeout(o.mainContext, 60*time.Second)
-	defer cancel()
 	var versionOutput string
-	command := cmd.NewCmdOptions(defaultCmdOptions, o.otelExecutablePath, "--version")
-	go func() {
-		status := command.Start()
-		select {
-		case stdout := <-command.Stdout:
-			o.logger.Info("running opentelemetry-contrib version", zap.String("stdout", stdout))
-			o.otelCurrVersion = stdout
-			break
-		case stderr := <-command.Stderr:
-			o.logger.Error("error during getting version", zap.String("stderr", stderr))
-		case <-ctx.Done():
-			o.logger.Error("timeout during getting version", zap.Error(ctx.Err()))
-		case _ = <-status:
-			break
+	command := cmd.NewCmd(o.otelExecutablePath, "--version")
+	status := command.Start()
+	select {
+	case finalStatus := <-status:
+		if finalStatus.Error != nil {
+			o.logger.Error("error during call of otelcol-contrib version", zap.Error(finalStatus.Error))
+		} else {
+			output := finalStatus.Stdout
+			o.otelCurrVersion = output[0]
+			versionOutput = output[0]
 		}
+	case <-ctx.Done():
+		o.logger.Error("timeout during getting version", zap.Error(ctx.Err()))
+	}
 
-		o.logger.Info("running opentelemetry-contrib version", zap.String("version", versionOutput))
-	}()
+	cancel()
+	o.logger.Info("running opentelemetry-contrib version", zap.String("version", versionOutput))
 
 	return versionOutput, nil
 
