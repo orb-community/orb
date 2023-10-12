@@ -30,16 +30,16 @@ export class FilterService {
   }
 
   private loadFromRoute(route: string) {
-    let storedFilters = window.sessionStorage.getItem(route) || '[]';
-    let storedFiltersList = JSON.parse(storedFilters)
+    const storedFilters = window.sessionStorage.getItem(route) || '[]';
+    const storedFiltersList = JSON.parse(storedFilters);
     let found = false;
-    
+
     storedFiltersList.map((filter) => {
       if (filter.name === 'Name' && filter.prop === 'name') {
         this.searchName = filter.param;
-        found = true
+        found = true;
       }
-    })
+    });
     if (!found) {
       this.searchName = '';
     }
