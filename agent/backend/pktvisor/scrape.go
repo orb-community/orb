@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"go.opentelemetry.io/collector/config/confighttp"
 	"net/http"
 	"strconv"
 	"time"
@@ -17,7 +18,6 @@ import (
 	"github.com/orb-community/orb/agent/otel/otlpmqttexporter"
 	"github.com/orb-community/orb/fleet"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/confighttp"
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
@@ -152,8 +152,10 @@ func (p *pktvisorBackend) receiveOtlp() {
 				pFactory := otlpreceiver.NewFactory()
 				cfg := pFactory.CreateDefaultConfig()
 				cfg.(*otlpreceiver.Config).Protocols = otlpreceiver.Protocols{
-					HTTP: &confighttp.HTTPServerSettings{
-						Endpoint: p.otelReceiverHost + ":" + strconv.Itoa(p.otelReceiverPort),
+					HTTP: &otlpreceiver.HTTPConfig{
+						HTTPServerSettings: &confighttp.HTTPServerSettings{
+							Endpoint: p.otelReceiverHost + ":" + strconv.Itoa(p.otelReceiverPort),
+						},
 					},
 				}
 				set := receiver.CreateSettings{
