@@ -38,7 +38,7 @@ import { OrbService } from 'app/common/services/orb.service';
   styleUrls: ['./policy-datasets.component.scss'],
 })
 export class PolicyDatasetsComponent
-  implements OnInit, OnDestroy, AfterViewInit, AfterViewChecked, OnChanges {
+  implements OnInit, OnDestroy, AfterViewInit, OnChanges {
   @Input()
   datasets: Dataset[];
 
@@ -71,8 +71,6 @@ export class PolicyDatasetsComponent
 
   @ViewChild('sinksTemplateCell') sinksTemplateCell: TemplateRef<any>;
 
-  @ViewChild('tableWrapper') tableWrapper;
-
   @ViewChild(DatatableComponent) table: DatatableComponent;
 
   private currentComponentWidth;
@@ -101,7 +99,7 @@ export class PolicyDatasetsComponent
         name: 'Agent Group',
         resizeable: true,
         canAutoResize: true,
-        flexGrow: 3,
+        width: 30,
         cellTemplate: this.groupTemplateCell,
       },
       {
@@ -109,7 +107,7 @@ export class PolicyDatasetsComponent
         name: 'Valid',
         resizeable: true,
         canAutoResize: true,
-        flexGrow: 1,
+        width: 10,
         cellTemplate: this.validTemplateCell,
       },
       {
@@ -117,7 +115,7 @@ export class PolicyDatasetsComponent
         name: 'Sinks',
         resizeable: true,
         canAutoResize: true,
-        flexGrow: 3,
+        width: 40,
         cellTemplate: this.sinksTemplateCell,
       },
       {
@@ -126,7 +124,7 @@ export class PolicyDatasetsComponent
         resizeable: true,
         sortable: false,
         canAutoResize: true,
-        flexGrow: 3,
+        width: 20,
         cellTemplate: this.actionsTemplateCell,
       },
     ];
@@ -134,22 +132,10 @@ export class PolicyDatasetsComponent
     this.cdr.detectChanges();
   }
 
-  ngAfterViewChecked() {
-    if (
-      this.table &&
-      this.table.recalculate &&
-      this.tableWrapper.nativeElement.clientWidth !== this.currentComponentWidth
-    ) {
-      this.currentComponentWidth = this.tableWrapper.nativeElement.clientWidth;
-      this.table.recalculate();
-      this.cdr.detectChanges();
-      window.dispatchEvent(new Event('resize'));
-    }
-  }
   getTableHeight() {
     const rowHeight = 50;
     const headerHeight = 50;
-    return (this.datasets.length * rowHeight) + headerHeight + 'px';
+    return (this.datasets.length * rowHeight + 15) + headerHeight + 'px';
   }
   onCreateDataset() {
     this.dialogService

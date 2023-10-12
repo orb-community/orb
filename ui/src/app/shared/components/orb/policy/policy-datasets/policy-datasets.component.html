@@ -9,24 +9,21 @@
         </button>
     </nb-card-header>
     <nb-card-body>
-        <div class="col-12">
-            <div #tableWrapper class="tableWrapper" style="margin-top: 1rem !important;">
-                <ngx-datatable
-                    #table
-                    [columnMode]="'flex'"
-                    [columns]="columns"
-                    [footerHeight]="0"
-                    [headerHeight]="50"
-                    [loadingIndicator]="isLoading"
-                    [rowHeight]="50"
-                    [rows]="datasets"
-                    [scrollbarV]="true"
-                    [sorts]="tableSorts"
-                    class="orb dataset-table"
-                    [style.height]="getTableHeight()">
-                </ngx-datatable>
-            </div>
-
+        <div class="dataset-table-wrapper">
+            <ngx-datatable
+                #table
+                [columnMode]="'force'"
+                [columns]="columns"
+                [footerHeight]="0"
+                [headerHeight]="50"
+                [loadingIndicator]="isLoading"
+                [rowHeight]="50"
+                [rows]="datasets"
+                [scrollbarV]="true"
+                [sorts]="tableSorts"
+                class="orb dataset-table"
+                [style.height]="getTableHeight()">
+            </ngx-datatable>
         </div>
     </nb-card-body>
 </nb-card>
@@ -65,7 +62,7 @@
 </ng-template>
 
 <ng-template #actionsTemplateCell let-i="index" let-row="row" let-value="value">
-  <div class="block">
+  <div class="button-template">
     <button
       (click)="onOpenEdit(row)"
       class="orb-action-hover edit-button"
