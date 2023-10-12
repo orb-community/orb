@@ -45,7 +45,7 @@ export class FilterComponent implements OnInit {
     this.searchText = this.filter.searchName || '';
     if (this.filter.searchName) {
       this.searchText = this.filter.searchName;
-      this.loadedSearchText = this.searchText
+      this.loadedSearchText = this.searchText;
     } else {
       this.searchText = '';
     }
