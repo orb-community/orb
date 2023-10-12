@@ -1,17 +1,37 @@
 <nb-card>
-  <nb-card-header>Assigned Groups</nb-card-header>
+  <nb-card-header>Assigned Groups ({{ groups?.length }})</nb-card-header>
   <nb-card-body>
     <div *ngIf="!isLoading">
-      <button
-        (click)="showAgentGroupMatches(group)"
-        *ngFor="let group of groups; last as isLast"
-        class="agent-group-button">
-        <span *ngIf="group.name"
-                matTooltip="{{group?.matching_agents?.online}} online out of {{group?.matching_agents?.total}} agent(s)"
-              class="agent-group-accent">{{ group?.name }} ( {{ group?.matching_agents?.online}}
-                                                          / {{ group?.matching_agents?.total }} )</span>
-        <span *ngIf="!isLast">,</span>
-      </button>
+      <nb-accordion *ngFor="let group of groups; trackBy: identify">
+        <nb-accordion-item>
+          <nb-accordion-item-header> 
+            <span class="summary-accent">Group:</span>&nbsp;{{ group?.name }} 
+          </nb-accordion-item-header>
+          <nb-accordion-item-body> 
+            <button *ngIf="group?.matching_agents?.online !== 0"
+            (click)="showAgentGroupMatches(group)"
+            class="agent-group-button">
+              <span>
+                {{ group?.matching_agents?.online }} out of {{ group?.matching_agents?.total }} agents are <span style="color: #6fcf97">online</span>
+              </span>
+            </button>
+            <button *ngIf="group?.matching_agents?.online === 0 && group?.matching_agents?.total !== 0"
+            (click)="showAgentGroupMatches(group)"
+            class="agent-group-button">
+              <span>
+                None of {{ group?.matching_agents?.total }} agents are online.
+              </span>
+            </button>
+            <span *ngIf="group?.matching_agents?.total === 0"  class="agent-group-button">
+              Group don't have any agents.
+            </span>
+
+          </nb-accordion-item-body>
+        </nb-accordion-item>
+      </nb-accordion>
+      <span *ngIf="groups.length === 0" style="font-style: italic;" class="summary-accent">
+        Policy not assigned to any group
+      </span>
     </div>
     <p *ngIf="errors?.nogroup">
       <span class="error-accent">{{ errors.nogroup }}</span>

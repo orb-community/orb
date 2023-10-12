@@ -10,6 +10,7 @@ h4 {
 nb-card {
   border: transparent;
   border-radius: 0.5rem;
+  padding: 0 !important;
 
   nb-card-header {
     background-color: #232940;
@@ -58,6 +59,11 @@ nb-card {
         line-height: 2.5 !important;
       }
     }
+  }
+}
+nb-form-field {
+  label {
+    color: #fff !important;
   }
 }
 
@@ -116,7 +122,20 @@ nb-card {
     color: #df316f !important;
   }
 }
-
+.agent-save {
+  float: right;
+  color: #3089fc !important;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  text-transform: none !important;
+  background-color: transparent !important;
+  &.btn-disabled {
+    color: #8c93b1 !important;
+  }
+}
+.agent-save:hover {
+  background-color: #171c30 !important;
+}
 .agent-reset {
   float: right;
   color: #fff !important;
@@ -135,4 +154,7 @@ nb-card {
 
 .summary-accent {
   color: #969fb9 !important;
+}
+input {
+  height: 42px !important;
 }

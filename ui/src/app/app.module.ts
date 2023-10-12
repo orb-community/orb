@@ -24,8 +24,10 @@ import {
   NbInputModule,
   NbLayoutModule,
   NbMenuModule,
+  NbSelectModule,
   NbSidebarModule,
   NbToastrModule,
+  NbTooltipModule,
   NbWindowModule,
 } from '@nebular/theme';
 
@@ -39,6 +41,8 @@ import { ProfileComponent } from 'app/pages/profile/profile.component';
 import { GoogleAnalyticsService } from './common/services/analytics/google-service-analytics.service';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { OrbService } from './common/services/orb.service';
+import { CodeEditorService } from 'app/common/services/code.editor.service';
+
 
 @NgModule({
   declarations: [AppComponent, ProfileComponent],
@@ -48,7 +52,8 @@ import { OrbService } from './common/services/orb.service';
     HttpClientModule,
 
     AppRoutingModule,
-
+    NbTooltipModule,
+    NbSelectModule,
     ThemeModule.forRoot(),
     NbSidebarModule.forRoot(),
     NbMenuModule.forRoot(),

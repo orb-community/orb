@@ -6,7 +6,8 @@ import { SinksService } from 'app/common/services/sinks/sinks.service';
 import { SinkConfigComponent } from 'app/shared/components/orb/sink/sink-config/sink-config.component';
 import { SinkDetailsComponent } from 'app/shared/components/orb/sink/sink-details/sink-details.component';
 import { STRINGS } from 'assets/text/strings';
-
+import * as YAML from 'yaml';
+import { CodeEditorService } from 'app/common/services/code.editor.service';
 
 @Component({
     selector: 'ngx-sink-add-component',
@@ -26,45 +27,92 @@ export class SinkAddComponent {
 
     sinkBackend: any;
 
+    isRequesting: boolean;
+
+    errorConfigMessage: string;
+
     constructor(
         private sinksService: SinksService,
         private notificationsService: NotificationsService,
         private router: Router,
+        private editor: CodeEditorService,
     ) {
         this.createMode = true;
+        this.isRequesting = false;
+        this.errorConfigMessage = '';
     }
 
-    canCreate() { 
+    canCreate() {
         const detailsValid = this.createMode
         ? this.detailsComponent?.formGroup?.status === 'VALID'
         : true;
-        return detailsValid;
+
+        const configSink = this.configComponent?.code;
+        let config;
+
+        if (this.editor.isJson(configSink)) {
+            config = JSON.parse(configSink);
+        } else if (this.editor.isYaml(configSink)) {
+            config = YAML.parse(configSink);
+            this.errorConfigMessage = '';
+        } else {
+            this.errorConfigMessage = 'Invalid YAML configuration, check syntax errors';
+            return false;
+        }
+
+        return !this.editor.checkEmpty(config.authentication)
+        && !this.editor.checkEmpty(config.exporter)
+        && detailsValid
+        && !this.checkString(config);
+    }
+    checkString(config: any): boolean {
+        if (typeof config.authentication.password !== 'string' || typeof config.authentication.username !== 'string') {
+            return true;
+        }
+        return false;
     }
 
     createSink() {
-
+        this.isRequesting = true;
         const sinkDetails = this.detailsComponent.formGroup?.value;
         const tags = this.detailsComponent.selectedTags;
         const configSink = this.configComponent.code;
 
-        const details = { ...sinkDetails};
+        const details = { ...sinkDetails };
 
-        let configs = JSON.parse(configSink);
+        let payload = {};
 
-        const config = {
-            ...configs
-        }
+        const config = YAML.parse(configSink);
 
-        const payload = {
+        payload = {
             ...details,
             tags,
             config,
-        
         } as Sink;
-        
+
+        // if (this.editor.isJson(configSink)) {
+        //     const config = JSON.parse(configSink);
+        //     payload = {
+        //         ...details,
+        //         tags,
+        //         config,
+        //     } as Sink;
+        // }
+        // else {
+        //     payload = {
+        //         ...details,
+        //         tags,
+        //         format: 'yaml',
+        //         config_data: configSink,
+        //     } as Sink;
+        // }
+
         this.sinksService.addSink(payload).subscribe(() => {
             this.notificationsService.success('Sink successfully created', '');
             this.goBack();
+        },
+        (error) => {
+          this.isRequesting = false;
         });
     }
 
@@ -75,4 +123,5 @@ export class SinkAddComponent {
     getBackendEmit(backend: any) {
         this.sinkBackend = backend;
     }
+
 }

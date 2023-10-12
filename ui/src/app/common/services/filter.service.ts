@@ -14,6 +14,8 @@ export class FilterService {
 
   private activeRoute$: Observable<string>;
 
+  public searchName: string;
+
   constructor(private router: Router) {
     this.activeRoute$ = this.router.events.pipe(
       filter((event) => event instanceof NavigationEnd),
@@ -28,7 +30,19 @@ export class FilterService {
   }
 
   private loadFromRoute(route: string) {
-    const storedFilters = window.sessionStorage.getItem(route) || '[]';
+    let storedFilters = window.sessionStorage.getItem(route) || '[]';
+    let storedFiltersList = JSON.parse(storedFilters)
+    let found = false;
+    
+    storedFiltersList.map((filter) => {
+      if (filter.name === 'Name' && filter.prop === 'name') {
+        this.searchName = filter.param;
+        found = true
+      }
+    })
+    if (!found) {
+      this.searchName = '';
+    }
 
     this.resetFilters(JSON.parse(storedFilters));
   }
@@ -72,6 +86,10 @@ export class FilterService {
       copy.splice(index, 1);
       this.commitFilter(copy);
     }
+  }
+
+  removeFilterByParam(param: string) {
+    this.removeFilter(this._filters.findIndex((f) => f.param === param && f.name === 'Name' && f));
   }
 
   // make a decorator out of this?

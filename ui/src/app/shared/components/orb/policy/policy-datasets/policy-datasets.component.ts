@@ -30,6 +30,7 @@ import { AgentGroupDetailsComponent } from 'app/pages/fleet/groups/details/agent
 import { SinkDetailsComponent } from 'app/pages/sinks/details/sink.details.component';
 import { Subscription } from 'rxjs';
 import { AgentMatchComponent } from 'app/pages/fleet/agents/match/agent.match.component';
+import { OrbService } from 'app/common/services/orb.service';
 
 @Component({
   selector: 'ngx-policy-datasets',
@@ -43,9 +44,6 @@ export class PolicyDatasetsComponent
 
   @Input()
   policy: AgentPolicy;
-
-  @Output()
-  refreshPolicy: EventEmitter<string>;
 
   isLoading: boolean;
 
@@ -86,8 +84,8 @@ export class PolicyDatasetsComponent
     protected route: ActivatedRoute,
     protected datasetService: DatasetPoliciesService,
     private notificationsService: NotificationsService,
+    private orb: OrbService,
     ) {
-    this.refreshPolicy = new EventEmitter<string>();
     this.datasets = [];
     this.errors = {};
   }
@@ -103,7 +101,7 @@ export class PolicyDatasetsComponent
         name: 'Agent Group',
         resizeable: true,
         canAutoResize: true,
-        width: 250,
+        flexGrow: 3,
         cellTemplate: this.groupTemplateCell,
       },
       {
@@ -111,8 +109,7 @@ export class PolicyDatasetsComponent
         name: 'Valid',
         resizeable: true,
         canAutoResize: true,
-        minWidth: 80,        
-        width: 80,
+        flexGrow: 1,
         cellTemplate: this.validTemplateCell,
       },
       {
@@ -120,7 +117,7 @@ export class PolicyDatasetsComponent
         name: 'Sinks',
         resizeable: true,
         canAutoResize: true,
-        width: 450,
+        flexGrow: 3,
         cellTemplate: this.sinksTemplateCell,
       },
       {
@@ -128,7 +125,8 @@ export class PolicyDatasetsComponent
         prop: 'actions',
         resizeable: true,
         sortable: false,
-        width: 200,
+        canAutoResize: true,
+        flexGrow: 3,
         cellTemplate: this.actionsTemplateCell,
       },
     ];
@@ -148,7 +146,11 @@ export class PolicyDatasetsComponent
       window.dispatchEvent(new Event('resize'));
     }
   }
-
+  getTableHeight() {
+    const rowHeight = 50;
+    const headerHeight = 50;
+    return (this.datasets.length * rowHeight) + headerHeight + 'px';
+  }
   onCreateDataset() {
     this.dialogService
       .open(DatasetFromComponent, {
@@ -163,7 +165,7 @@ export class PolicyDatasetsComponent
       })
       .onClose.subscribe((resp) => {
         if (resp === DATASET_RESPONSE.CREATED) {
-          this.refreshPolicy.emit('refresh-from-dataset');
+          this.orb.refreshNow();
         }
       });
   }
@@ -175,6 +177,7 @@ export class PolicyDatasetsComponent
         closeOnEsc: false,
         context: {
           dataset,
+          policy: this.policy,
         },
         hasScroll: false,
         closeOnBackdropClick: true,
@@ -182,7 +185,7 @@ export class PolicyDatasetsComponent
       })
       .onClose.subscribe((resp) => {
         if (resp !== DATASET_RESPONSE.CANCELED) {
-          this.refreshPolicy.emit('refresh-from-dataset');
+          this.orb.refreshNow();
         }
       });
   }
@@ -232,7 +235,7 @@ export class PolicyDatasetsComponent
               '',
             );
           });
-          this.refreshPolicy.emit('refresh-from-dataset');
+          this.orb.refreshNow();
         }
       });
   }
@@ -243,10 +246,10 @@ export class PolicyDatasetsComponent
 
   showAgentGroupMatches(agentGroup) {
     this.dialogService.open(AgentMatchComponent, {
-      context: { agentGroup },
+      context: { agentGroup: agentGroup, policy: this.policy },
       autoFocus: true,
       closeOnEsc: true,
     });
   }
-  
+
 }

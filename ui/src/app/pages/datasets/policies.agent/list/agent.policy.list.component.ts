@@ -100,7 +100,7 @@ export class AgentPolicyListComponent
     this.selected = [];
     this.policies$ = combineLatest([
       this.orb.getPolicyListView(),
-      this.orb.getDatasetListView()
+      this.orb.getDatasetListView(),
     ]).pipe(
       filter(([policies, datasets]) => policies !== undefined && policies !== null && datasets !== undefined && datasets !== null),
       map(([policies, datasets]) => {
@@ -108,7 +108,7 @@ export class AgentPolicyListComponent
           const dataset = datasets.filter((d) => d.valid && d.agent_policy_id === policy.id);
           return { ...policy, policy_usage: dataset.length > 0 ? AgentPolicyUsage.inUse : AgentPolicyUsage.notInUse };
         });
-      })
+      }),
     );
 
     this.filterOptions = [
@@ -164,7 +164,7 @@ export class AgentPolicyListComponent
         if (confirm) {
           this.duplicatePolicy(agentPolicy);
         }
-      })
+      });
   }
   duplicatePolicy(agentPolicy: any) {
     this.agentPoliciesService
@@ -181,7 +181,7 @@ export class AgentPolicyListComponent
       }
     });
   }
-  
+
   ngOnDestroy(): void {
     if (this.policiesSubscription) {
       this.policiesSubscription.unsubscribe();
@@ -204,7 +204,6 @@ export class AgentPolicyListComponent
 
   ngAfterViewInit() {
 
-    this.orb.refreshNow();
     this.columns = [
       {
         name: '',
@@ -332,7 +331,7 @@ export class AgentPolicyListComponent
       });
   }
   onOpenDeleteSelected() {
-    const elementName = "Policies"
+    const elementName = 'Policies';
     const selected = this.selected;
     this.dialogService
       .open(DeleteSelectedComponent, {
@@ -352,19 +351,18 @@ export class AgentPolicyListComponent
   deleteSelectedAgentsPolicy() {
     this.selected.forEach((policy) => {
       this.agentPoliciesService.deleteAgentPolicy(policy.id).subscribe();
-    })
+    });
     this.notificationsService.success('All selected Policies delete requests succeeded', '');
   }
-  public onCheckboxChange(event: any, row: any): void { 
+  public onCheckboxChange(event: any, row: any): void {
     const policySelected = {
       id: row.id,
       name: row.name,
       usage: row.policy_usage,
-    }
+    };
     if (this.getChecked(row) === false) {
       this.selected.push(policySelected);
-    } 
-    else {
+    } else {
       for (let i = 0; i < this.selected.length; i++) {
         if (this.selected[i].id === row.id) {
           this.selected.splice(i, 1);
@@ -388,7 +386,7 @@ export class AgentPolicyListComponent
             id: row.id,
             name: row.name,
             usage: row.policy_usage,
-          }
+          };
           this.selected.push(policySelected);
         });
       });

@@ -1,21 +1,30 @@
 <nb-card>
-    <nb-card-header class="summary-accent">Sink Backend Configuration
-      <button
+    <nb-card-header class="summary-accent flex">Sink Backend Configuration
+      <div class="align-itens">
+        <button
         (click)="toggleEdit(true)"
         *ngIf="!editMode && !createMode"
         class="card-button"
         nbButton
         status="primary">
+        <nb-icon icon="edit-outline"></nb-icon>
         Edit
-      </button>
-      <button
-        (click)="toggleEdit(false)"
-        *ngIf="editMode && !createMode"
-        class="card-button"
-        nbButton
-        status="danger">
-        Discard
-      </button>
+        </button>
+        <button
+          (click)="toggleEdit(false)"
+          *ngIf="editMode && !createMode"
+          class="card-button"
+          nbButton
+          style="color: #df316f !important;">
+          Discard
+        </button>
+        <!-- <button 
+          (click)="toggleLanguage()"
+          class="switch-button"
+          *ngIf="editMode || createMode">
+          Switch to {{isJson(this.code) ? "YAML" : "JSON"}}
+        </button> -->
+      </div>
     </nb-card-header>
     <nb-card-body>
       <!--    <div *ngIf="editMode; then updateView else readView"></div>-->
@@ -24,9 +33,17 @@
             #editorComponent
             [(ngModel)]="code"
             [options]="editorOptions"
-            class="code-editor"
-            ngDefaultControl>
+            class="code-editor editor-height-{{createMode}}"
+            ngDefaultControl
+            *ngIf="!isYaml">
         </ngx-monaco-editor>
+        <ngx-monaco-editor
+          [(ngModel)]="code"
+          [options]="editorOptionsYaml"
+          class="code-editor editor-height-{{createMode}}"
+          ngDefaultControl>
+        </ngx-monaco-editor>
+        <span *ngIf="errorConfigMessage !== ''" class="errorMessage">{{ errorConfigMessage }} </span>
       </div>
     </nb-card-body>
   </nb-card>

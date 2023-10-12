@@ -1,5 +1,6 @@
 import { Component, Input } from '@angular/core';
-import { NbDialogRef } from '@nebular/theme';
+import { NbDialogRef, NbDialogService } from '@nebular/theme';
+import { AgentMatchComponent } from 'app/pages/fleet/agents/match/agent.match.component';
 import { STRINGS } from 'assets/text/strings';
 
 @Component({
@@ -16,6 +17,7 @@ export class DeleteSelectedComponent {
   validationInput: Number;
 
   constructor(
+    private dialogService: NbDialogService,
     protected dialogRef: NbDialogRef<DeleteSelectedComponent>,
   ) {
   }
@@ -30,5 +32,12 @@ export class DeleteSelectedComponent {
 
   isEnabled(): boolean {
     return this.validationInput === this.selected.length;
+  }
+  onMatchingAgentsModal(row: any) {
+    this.dialogService.open(AgentMatchComponent, {
+      context: { agentGroup: row },
+      autoFocus: true,
+      closeOnEsc: true,
+    });
   }
 }

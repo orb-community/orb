@@ -24,13 +24,38 @@ input {
     color: #df316f;
   }
   &idle {
-    color: #f2994a; 
+    color: #f2994a;
   }
 }
 .ns1red {
   color: #df316f;
 }
-
 nb-card {
-  width: 25em;
+  margin: 15px 0 !important;
+  padding: 0 !important;
+  border: transparent;
+  border-radius: 0.5rem;
+
+  nb-card-header {
+    background-color: #232940;
+    border-bottom: transparent;
+    border-radius: 0.5rem;
+    color: #969fb9;
+    padding: 0.5rem 1rem;
+  }
+  nb-card-body {
+    margin: 0 !important;
+    label {
+      color: #969fb9;
+    }
+
+    span {
+      text-align: end;
+    }
+  }
+}
+.italic {
+  font-style: italic;
+  font-size: 0.9rem;
+  color: #d9deee;
 }

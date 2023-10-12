@@ -16,6 +16,9 @@ export enum SinkStates {
   error = 'error',
   idle = 'idle',
   unknown = 'unknown',
+  provisioning = 'provisioning',
+  provisioning_error = 'provisioning_error',
+  warning = 'warning',
 }
 
 /**
@@ -23,7 +26,7 @@ export enum SinkStates {
  */
 export enum SinkBackends {
   prometheus = 'prometheus',
-  otlp = 'otlphttp'
+  otlp = 'otlphttp',
 }
 
 /**
@@ -68,6 +71,15 @@ export interface Sink extends OrbEntity {
    * config: object containing sink specific info
    */
   config?: SinkTypes;
+
+  /**
+   *  Default = json, can be Yaml
+   */
+  format?: string;
+  /**
+   *  Only used for Yaml payload
+   */
+  config_data?: string;
 }
 
 export type SinkTypes = OtlpConfig;

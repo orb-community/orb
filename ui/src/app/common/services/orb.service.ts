@@ -34,12 +34,14 @@ export const PollControls = {
   RESUME: true,
 };
 
+export const pollIntervalKey = 'pollinterval';
+
 @Injectable({
   providedIn: 'root',
 })
 export class OrbService implements OnDestroy {
   // interval for timer
-  pollInterval = 1000;
+  pollInterval;
 
   pollController$: BehaviorSubject<boolean>;
 
@@ -51,11 +53,15 @@ export class OrbService implements OnDestroy {
   // next to force refresh
   private forceRefresh: Subject<number>;
 
+  isPollingPaused = false;
+
   pausePolling() {
+    this.isPollingPaused = true;
     this.pollController$.next(PollControls.PAUSE);
   }
 
   startPolling() {
+    this.isPollingPaused = false;
     this.pollController$.next(PollControls.RESUME);
   }
 
@@ -100,8 +106,22 @@ export class OrbService implements OnDestroy {
     this.lastPollUpdate$ = new Subject<number>();
     this.forceRefresh = new Subject<number>();
     this.killPolling = new Subject<void>();
+    this.pollInterval = this.getPollInterval();
 
-    this.pollController$ = new BehaviorSubject<boolean>(PollControls.PAUSE);
+    this.pollController$ = new BehaviorSubject<boolean>(PollControls.RESUME);
+  }
+  getPollInterval() {
+
+    let pollInterval: number;
+
+    if (localStorage.getItem(pollIntervalKey)) {
+      pollInterval = Number(localStorage.getItem(pollIntervalKey));
+    } else {
+      pollInterval = 60000;
+      localStorage.setItem(pollIntervalKey, pollInterval.toString());
+    }
+
+    return pollInterval;
   }
 
   private mapTags = (list: AgentGroup[] & Sink[]) => {
@@ -155,95 +175,103 @@ export class OrbService implements OnDestroy {
   }
 
   getAgentFullView(id: string) {
-    return this.agent.getAgentById(id).pipe(
-      mergeMap((agent) => {
-        const policy_state = agent?.last_hb_data?.policy_state;
-        const datasetIds =
-          !!policy_state &&
-          Object.values(policy_state)
-            .map((state) => state['datasets'])
-            .reduce((acc, val) => acc.concat(val), [])
-            .filter(this.onlyUnique);
-        return datasetIds.length > 0
-          ? forkJoin(
-              datasetIds.map((_id) => this.dataset.getDatasetById(_id)),
-            ).pipe(
-              map((datasets) =>
-                datasets.reduce((acc, val: Dataset) => {
-                  acc[val.id] = val;
-                  return acc;
-                }, {}),
-              ),
-              map((datasets) => ({ agent, datasets })),
-            )
-          : of({ agent, datasets: {} });
-      }),
-      mergeMap(({ agent, datasets }) => {
-        const group_state = agent?.last_hb_data?.group_state;
-        const groupIds = !!group_state && Object.keys(group_state);
-        const groups$ =
-          groupIds.length > 0
-            ? forkJoin(groupIds.map((_id) => this.group.getAgentGroupById(_id)))
-            : of([]);
-        return groups$.pipe(map((groups) => ({ agent, groups, datasets })));
-      }),
+    return this.observe(
+      this.agent.getAgentById(id).pipe(
+        mergeMap((agent) => {
+          const policy_state = agent?.last_hb_data?.policy_state;
+          const datasetIds =
+            !!policy_state &&
+            Object.values(policy_state)
+              .map((state) => state['datasets'])
+              .reduce((acc, val) => acc.concat(val), [])
+              .filter(this.onlyUnique);
+          return datasetIds.length > 0
+            ? forkJoin(
+                datasetIds.map((_id) => this.dataset.getDatasetById(_id)),
+              ).pipe(
+                map((datasets) =>
+                  datasets.reduce((acc, val: Dataset) => {
+                    acc[val.id] = val;
+                    return acc;
+                  }, {}),
+                ),
+                map((datasets) => ({ agent, datasets })),
+              )
+            : of({ agent, datasets: {} });
+        }),
+        mergeMap(({ agent, datasets }) => {
+          const group_state = agent?.last_hb_data?.group_state;
+          const groupIds = !!group_state && Object.keys(group_state);
+          const groups$ =
+            groupIds.length > 0
+              ? forkJoin(groupIds.map((_id) => this.group.getAgentGroupById(_id)))
+              : of([]);
+          return groups$.pipe(map((groups) => ({ agent, groups, datasets })));
+        }),
+      ),
     );
   }
 
   getPolicyFullView(id: string) {
     // retrieve policy
-    return this.policy.getAgentPolicyById(id).pipe(
-      mergeMap((policy) =>
-        // need a way to get a dataset linked to a policy without having to filter it out
-        this.dataset.getAllDatasets().pipe(
-          map((_dataset) =>
-            _dataset.filter((dataset) => policy.id === dataset.agent_policy_id),
+    return this.observe(
+      this.policy.getAgentPolicyById(id).pipe(
+        mergeMap((policy) =>
+          // need a way to get a dataset linked to a policy without having to filter it out
+          this.dataset.getAllDatasets().pipe(
+            map((_dataset) =>
+              _dataset.filter((dataset) => policy.id === dataset.agent_policy_id),
+            ),
+            // from the filtered dataset list, query all agent groups associated with the list
+            mergeMap((datasets: Dataset[]) => {
+              const combinedDatasets = datasets
+                .map((dataset) => dataset.agent_group_id)
+                .filter(this.onlyUnique)
+                .filter((val) => !!val && val !== '')
+                .map((groupId) => this.group.getAgentGroupById(groupId));
+              return combinedDatasets.length > 0
+                ? forkJoin(combinedDatasets).pipe(
+                    map((groups) => ({ datasets, groups, policy })),
+                  )
+                : of({ datasets, groups: [], policy });
+            }),
+            // same for sinks
+            mergeMap(({ datasets, groups }) => {
+              const combinedSinks = datasets
+                .map((dataset) => dataset?.sink_ids)
+                .reduce((acc, val) => acc.concat(val), [])
+                .filter(this.onlyUnique)
+                .filter((val) => !!val && val !== '')
+                .map((sinkId) => this.sink.getSinkById(sinkId));
+              return combinedSinks.length > 0
+                ? forkJoin(combinedSinks).pipe(
+                    map((sinks) => ({ datasets, sinks, policy, groups })),
+                  )
+                : of({ datasets, sinks: [], policy, groups });
+            }),
           ),
-          // from the filtered dataset list, query all agent groups associated with the list
-          mergeMap((datasets: Dataset[]) => {
-            const combinedDatasets = datasets
-              .map((dataset) => dataset.agent_group_id)
-              .filter(this.onlyUnique)
-              .filter((val) => !!val && val !== '')
-              .map((groupId) => this.group.getAgentGroupById(groupId));
-            return combinedDatasets.length > 0
-              ? forkJoin(combinedDatasets).pipe(
-                  map((groups) => ({ datasets, groups, policy })),
-                )
-              : of({ datasets, groups: [], policy });
-          }),
-          // same for sinks
-          mergeMap(({ datasets, groups }) => {
-            const combinedSinks = datasets
-              .map((dataset) => dataset?.sink_ids)
-              .reduce((acc, val) => acc.concat(val), [])
-              .filter(this.onlyUnique)
-              .filter((val) => !!val && val !== '')
-              .map((sinkId) => this.sink.getSinkById(sinkId));
-            return combinedSinks.length > 0
-              ? forkJoin(combinedSinks).pipe(
-                  map((sinks) => ({ datasets, sinks, policy, groups })),
-                )
-              : of({ datasets, sinks: [], policy, groups });
-          }),
         ),
-      ),
-      // from here on I can map to any shape I like
-      // dataset list uses the info below
-      map(({ datasets, sinks, policy, groups }) => ({
-        datasets: datasets.map((dataset) => ({
-          ...dataset,
-          agent_group: groups.find(
-            (group) => group.id === dataset.agent_group_id,
-          ),
-          agent_policy: policy,
-          sinks: sinks.filter((sink) => dataset.sink_ids.includes(sink.id)),
+        // from here on I can map to any shape I like
+        // dataset list uses the info below
+        map(({ datasets, sinks, policy, groups }) => ({
+          datasets: datasets.map((dataset) => ({
+            ...dataset,
+            agent_group: groups.find(
+              (group) => group.id === dataset.agent_group_id,
+            ),
+            agent_policy: policy,
+            sinks: sinks.filter((sink) => dataset.sink_ids.includes(sink.id)),
+          })),
+          sinks,
+          policy: { ...policy, groups, datasets },
+          groups,
         })),
-        sinks,
-        policy: { ...policy, groups, datasets },
-        groups,
-      })),
+      ),
     );
+  }
+
+  getSinkView(id: string) {
+    return this.observe(this.sink.getSinkById(id));
   }
 
   getDatasetListView() {

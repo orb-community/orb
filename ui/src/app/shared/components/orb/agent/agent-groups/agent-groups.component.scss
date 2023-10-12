@@ -10,6 +10,7 @@ h4 {
 nb-card {
   border: transparent;
   border-radius: 0.5rem;
+  padding: 0 !important;
 
   nb-card-header {
     background-color: #232940;
@@ -126,11 +127,14 @@ nb-card {
   cursor: pointer !important;
   outline: none !important;
   overflow: hidden !important;
+  margin-right: 5px;
+  padding: 5px 5px 8px 6px !important;
 }
 
 .agent-group-accent {
   color: #ffffff !important;
   font-weight: 500;
+
 }
 
 .error-accent {

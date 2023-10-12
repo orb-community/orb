@@ -56,7 +56,11 @@ export class TagControlComponent implements AfterViewInit {
 
     this.keyInput.nativeElement.focus();
   }
-
+  onEnter() {
+    if (this.key !== '' && this.value !== '') {
+      this.onAddTag();
+    }
+  }
   onRemoveTag(tag: any) {
     delete this.tags[tag];
     this.tagsChange.emit(this.tags);

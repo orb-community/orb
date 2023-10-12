@@ -50,16 +50,25 @@
 </ng-template>
 
 <ng-template #agentTagsTemplateCell let-row="row" let-value="value" let-i="index">
-  <div class="d-flex">
-    <mat-chip-list>
-      <mat-chip
-          class="orb-tag-chip "
-          *ngFor="let tag of value | keyvalue"
-          [style.background-color]="tag | tagcolor">
-          {{tag | tagchip}}
-      </mat-chip>
-    </mat-chip-list>
-  </div>
+  <mat-chip-list #tablechiplist nbTooltip="{{ row.combined_tags | json }}">
+    <mat-chip
+      *ngFor="let tag of value | keyvalue"
+      style="background-color: #2B3148;"
+      class="orb-tag-chip"
+    >
+      <span [style.color]="tag.key | tagcolor">{{ tag.key }}</span><span style="color: #969FB9;">:</span>&nbsp;
+      <span [style.color]="tag.value | tagcolor">{{ tag.value }}</span>
+    </mat-chip>
+    <mat-chip
+      *ngIf="
+        (row?.orb_tags | json) === '{}' && (row?.agent_tags | json) === '{}'
+      "
+      style="background-color: #2B3148;"
+      class="orb-tag-chip"
+    >
+      <span style="color: #df316f;">No tag were created</span>
+    </mat-chip>
+  </mat-chip-list>
 </ng-template>
 
 <ng-template #agentSpecificPolicyStateTemplateCell let-i="index" let-row="row" let-value="value"

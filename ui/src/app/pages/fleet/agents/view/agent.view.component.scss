@@ -21,10 +21,14 @@ h4 {
   line-height: 2rem;
   margin-bottom: 1.5rem;
 }
-
+nb-tab {
+  padding: 0 !important;
+  overflow: hidden !important;
+}
 nb-card {
   border: transparent;
   border-radius: 0.5rem;
+  padding: 0 !important;
 
   nb-card-header {
     background-color: #232940;
@@ -198,3 +202,31 @@ nb-card {
   color: #969fb9;
   font-size: 14px;
 }
+
+.state-circle {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+.offline-circle {
+  width: 9px;
+  height: 9px;
+  border: 2px solid #969fb9;
+  border-radius: 50%;
+  background-color: transparent;
+}
+.state {
+  font-size: 15px;
+  font-weight: 700;
+  font-family: 'Montserrat';
+}
+.state-div {
+  margin-bottom: 23px;
+}
+.date {
+  font-size: 14px;
+  font-weight: 400;
+  margin-top: 23px;
+  line-height: 1.25rem;
+} 
+

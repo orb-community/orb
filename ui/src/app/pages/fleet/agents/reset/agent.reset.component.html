@@ -11,17 +11,33 @@
       </button>
     </nb-card-header>
     <nb-card-body>
-      <p>Are you sure you want to reset a total of {{ size }} Agents?</p>
-      <p class="ns1-red">*To confirm, type the amount of agents to be reset.</p>
+      <p *ngIf="!agent">Are you sure you want to reset a total of {{ selected.length }} Agent(s)?</p>
+      <p *ngIf="agent">Are you sure you want to reset this agent?</p>
+      <div class="element-list" *ngIf="!agent">
+        <div *ngFor="let item of selected" class="item-row">
+          <div class="col-8 overflow-ellipsis">
+            {{ item.name }}
+          </div>
+          <div class="col-3">
+            <span class="orb-service-{{ item.state }} span-accent" *ngIf="item.state"> {{ item.state | titlecase }} </span>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="agent" class="agent-info">
+        <span>{{ agent.name }} &nbsp;&nbsp;</span>
+        <span class="orb-service-{{ agent.state }}" style="font-weight: 600;"> {{ agent.state | titlecase }} </span>
+      </div>
+      <p *ngIf="!agent" class="ns1-red" style="margin-top: 1rem;">*To confirm, type the amount of agents to be reset.</p>
       <input type="text"
              #autoInput
+             *ngIf="!agent"
              [nbAutocomplete]="auto"
              nbInput
              fullWidth
-             placeholder="{{size}}" [(ngModel)]="validationInput"
-             data-orb-qa-id="input#size">
+             placeholder="{{selected.length}}" [(ngModel)]="validationInput"
+             data-orb-qa-id="input#selected.length">
       <nb-autocomplete #auto >
-        <nb-option [value]="size"> {{size}}</nb-option>
+        <nb-option [value]="selected.length"> {{selected.length}}</nb-option>
       </nb-autocomplete>
     </nb-card-body>
     <nb-card-footer>
@@ -30,7 +46,8 @@
               class="orb-sink-delete-warning-button"
               [disabled]="!isEnabled()"
               (click)="onDelete()"
-              data-orb-qa-id="button#delete">Reset All Agents
+              data-orb-qa-id="button#delete">
+              {{ agent ? 'Reset Agent' : 'Reset All Agents'}}
       </button>
     </nb-card-footer>
   </nb-card>

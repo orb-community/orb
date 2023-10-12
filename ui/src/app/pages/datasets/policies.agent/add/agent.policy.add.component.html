@@ -17,7 +17,8 @@
       <nb-stepper
         class="stepper w-100 ml-2"
         disableStepNavigation
-        orientation="vertical">
+        orientation="vertical"
+        style="margin-right: 50px !important;">
         <nb-step
           [label]="firstStepTemplate"
           [stepControl]="detailsFG"
@@ -25,7 +26,7 @@
           <ng-template #firstStepTemplate>
             <div class="step-label d-flex flex-column">
               <strong>Agent Policy Details</strong>
-              <p>Provide a name, a description summary and a supported backend for the Agent Policy</p>
+              <p>Provide a name, a description and a supported backend for the Policy</p>
             </div>
           </ng-template>
           <form [formGroup]="detailsFG">
@@ -33,9 +34,8 @@
             <div class="d-flex flex-column">
               <div>
                 <label
-                  class="font-weight-bold"
-                  for="name">Policy Name</label>
-                <span class="required">*</span>
+                  class="input-label"
+                  for="name">Policy Name<span class="required">*</span></label>
               </div>
               <input
                 autofocus
@@ -45,24 +45,25 @@
                 fullWidth="true"
                 [status]="detailsFG?.controls.name.dirty  ? (!detailsFG.controls.name.valid  ? 'danger' : 'success') : 'basic'"
                 id="name"
-                nbInput/>
+                nbInput
+                placeholder="Policy Name"/>
                 <ng-container *ngIf="detailsFG?.controls.name.dirty && !detailsFG.controls.name.valid">
-                  <p *ngIf="!detailsFG.controls.name.value" class="caption status-danger mb-1">
+                  <div *ngIf="!detailsFG.controls.name.value" class="caption status-danger mb-1">
                     Name is required!
-                  </p>
-                  <p *ngIf="!!detailsFG.controls.name.errors?.pattern" class="caption status-danger mb-1">
+                  </div>
+                  <div *ngIf="!!detailsFG.controls.name.errors?.pattern" class="caption status-danger mb-1">
                     Name must start with a letter or "_" and contain only letters, numbers, "-" or "_"
-                  </p>
-                  <p *ngIf="detailsFG?.controls.name.errors?.maxlength" class="caption status-danger mb-1">
+                  </div>
+                  <div *ngIf="detailsFG?.controls.name.errors?.maxlength" class="caption status-danger mb-1">
                     Name must be less than {{detailsFG.controls.name.errors?.maxlength.requiredLength}} characters
-                  </p>
+                  </div>
                 </ng-container>
             </div>
           </nb-form-field>
             <nb-form-field>
             <div>
               <label
-                class="font-weight-bold"
+                class="input-label"
                 for="description">Policy Description</label>
             </div>
             <input
@@ -71,7 +72,8 @@
               formControlName="description"
               fullWidth="true"
               id="description"
-              nbInput/>
+              nbInput
+              placeholder="Policy Description"/>
               <ng-container *ngIf="detailsFG?.controls.description.touched && !detailsFG.controls.description.valid">
                 <p *ngIf="detailsFG?.controls.description.errors?.maxlength" class="caption status-danger mb-1">
                   Description must be less than {{detailsFG.controls.description.errors?.maxlength.requiredLength}} characters
@@ -81,7 +83,7 @@
             <nb-form-field>
               <div>
                 <label
-                  class="font-weight-bold"
+                  class="input-label"
                   for="description">Policy Backend</label>
               </div>
               <nb-select (selectedChange)="onBackendSelected($event)"
@@ -101,31 +103,31 @@
                   </p>
                 </ng-container>
               </nb-form-field>
-            <div class="d-flex flex-wrap">
-              <ngx-tag-control [(tags)]="selectedTags" autofocus></ngx-tag-control>
-            </div>
+              <label class="input-label">Tags</label>
+              <ngx-tag-control [(tags)]="selectedTags"></ngx-tag-control>
+            <hr/>
             <div class="d-flex justify-content-end">
-              <button
-                      (click)="resizeComponents()"
-                      [disabled]="!detailsFG?.valid"
-                      class="next-button"
-                      data-orb-qa-id="button#next"
-                      nbButton
-                      nbStepperNext
-                      shape="round"
-                      type="button"
-                      status="primary">
-                {{ strings.stepper.next }}
-              </button>
               <button
                       (click)="goBack()"
                       data-orb-qa-id="button#cancel"
                       ghost
-                      nbButton
+                      class="cancel-back-button"
                       shape="round"
                       status="primary"
                       type="button">
                 {{ strings.stepper.cancel }}
+              </button>
+              <button
+                (click)="resizeComponents()"
+                [disabled]="!detailsFG?.valid"
+                class="next-button"
+                data-orb-qa-id="button#next"
+                class="next-button"
+                nbStepperNext
+                shape="round"
+                type="button"
+                status="primary">
+                {{ strings.stepper.next }}
               </button>
             </div>
           </form>
@@ -135,376 +137,157 @@
           data-orb-qa-id="step_2">
           <ng-template #wizardStepTemplate>
             <div
-              *ngIf="!isWizard"
               class="step-label d-flex flex-column">
-              <strong>Policy YAML Descriptor</strong>
-              <p>Provide a valid YAML configuration</p>
-            </div>
-            <div
-              *ngIf="isWizard"
-              class="step-label d-flex flex-column">
-              <strong>Tap Setup</strong>
-              <p>Create and configure tap</p>
+              <strong>Policy Configuration Descriptor</strong>
+              <p>Provide a valid YAML or JSON configuration</p>
             </div>
           </ng-template>
+          <div class="div-language-button">
+            <button 
+            class="language-button {{isJsonMode}}"
+            (click)="isJsonMode = true">
+              JSON
+            </button>
+            <button 
+            class="language-button {{!isJsonMode}}"
+            (click)="isJsonMode = false">
+              YAML
+            </button>
+          </div>
+          <div style="display: flex; margin-top: 10px; margin-bottom: 10px; gap: 60px;">
+            <span class="summary-accent align">Paste or Upload your {{isJsonMode ? 'Json' : 'Yaml'}} configuration</span>
+            <button class="upload-button align" (click)="fileInput.click()">
+              <nb-icon [icon]="uploadIconKey" pack="eva">
+              </nb-icon>
+              Upload file
+            </button>
+            <input type="file" (change)="onFileSelected($event)" #fileInput style="display: none">
+          </div>
           <div>
-            <nb-toggle
-              [(ngModel)]="isWizard"
-              [disabled]="isEdit"
-              data-orb-qa-id="wizard-selector"
-              id="wizard"
-              labelPosition="end"
-            >
-            Create Policy through {{isWizard ? "wizard editor" : "manual editor"}}
-            </nb-toggle>
-          </div>
-          <div *ngIf="isWizard">
-            <div *ngIf="availableTaps && availableInputs">
-              <form [formGroup]="tapFG">
-                <!-- Tap selector -->
-                <div>
-                  <label class="font-weight-bold">Tap</label>
-                  <span class="required">*</span>
-                </div>
-                <nb-select
-                  (selectedChange)="onTapSelected($event)"
-                  appearance="filled"
-                  data-orb-qa-id="taps"
-                  formControlName="selected_tap"
-                  fullWidth="true"
-                  placeholder="Select Tap"
-                  required="true"
-                  size="medium">
-                  <nb-option
-                    *ngFor="let option of availableTaps | keyvalue; index as i"
-                    [attr.data-orb-qa-id]="option.key"
-                    [value]="option.key">{{ option.key }} <span
-                    class="faded-input-text"> {{' | input type: ' + option.value?.input_type }}</span></nb-option>
-                </nb-select>
-              </form>
-            </div>
-            <hr/>
-            <label class="font-weight-bold">Tap Configuration Options</label>
-            <div *ngIf="!availableTaps">
-              <label class="font-weight-bold">There are no <a
-                class="text-link"
-                routerLink="../../../fleet/agents">agents</a>
-                                              available.</label>
-            </div>
-            <div *ngIf="!!inputConfigFG">
-              <!-- Dynamic Input Config Form -->
-              <form
-                [formGroup]="inputConfigFG">
-                <div *ngFor="let control of input.config | keyvalue | advancedoptions:false ; index as i;">
-                  <div *ngIf="inputConfigFG.controls.hasOwnProperty(control.key)">
-                    <div>
-                      <label class="font-weight-bold">{{control.value.label}}</label>
-                    </div>
-                    <div [ngSwitch]="control.value.input">
-                      <input
-                        *ngSwitchCase="'text'"
-                        [attr.data-orb-qa-id]="control.value.name"
-                        [autofocus]="i == 0"
-                        [formControlName]="control.key"
-                        [placeholder]="'e.g.: '.concat(control.value?.props?.example)"
-                        [type]="control.value.type"
-                        fieldSize="medium"
-                        fullWidth="true"
-                        nbInput
-                        nbTooltip="{{ control.value.description }}">
-                      <input
-                        *ngSwitchCase="'number'"
-                        [attr.data-orb-qa-id]="control.value.name"
-                        [autofocus]="i == 0"
-                        [formControlName]="control.key"
-                        [max]="control.value.props.max"
-                        [min]="control.value.props.min"
-                        [placeholder]="'e.g.: '.concat(control.value?.props?.example) || ''"
-                        [step]="control.value.props.step"
-                        [type]="control.value.type"
-                        nbTooltip="{{ control.value.description }}">
-                      <nb-select
-                        *ngSwitchCase="'select'"
-                        [attr.data-orb-qa-id]="control.value.name"
-                        [formControlName]="control.key"
-                        [id]="control.value.name"
-                        [placeholder]="'e.g.: '.concat(control.value?.props?.example) || ''"
-                        [selected]="agentPolicy?.policy?.input?.tap"
-                        appearance="filled"
-                        fullWidth="true"
-                        nbTooltip="{{ control.value.description }}"
-                        size="medium"
-                      >{{ control.value.name + "-" + control.value.props.options }}
-                        <nb-option
-                          *ngFor="let option of control.value.props.options | keyvalue"
-                          [attr.data-orb-qa-id]="option.value"
-                          [value]="option.key">{{ option.value }}</nb-option>
-                      </nb-select>
-                    </div>
-                  </div>
-                </div>
-                <nb-accordion>
-                  <nb-accordion-item>
-                    <nb-accordion-item-header class="policy-advanced-options">
-                      <label>Advanced Options</label>
-                    </nb-accordion-item-header>
-                    <nb-accordion-item-body>
-                      <div *ngFor="let control of input.config | keyvalue | advancedoptions:true ; index as i;">
-                        <div *ngIf="inputConfigFG.controls.hasOwnProperty(control.key)">
-                          <div>
-                            <label class="font-weight-bold">{{control.value.label}}</label>
-                          </div>
-                          <div [ngSwitch]="control.value.input">
-                            <input
-                              *ngSwitchCase="'text'"
-                              [attr.data-orb-qa-id]="control.value.name"
-                              [autofocus]="i == 0"
-                              [formControlName]="control.key"
-                              [placeholder]="'e.g.: '.concat(control.value?.props?.example)"
-                              [type]="control.value.type"
-                              fieldSize="medium"
-                              fullWidth="true"
-                              nbInput
-                              nbTooltip="{{ control.value.description }}">
-                            <input
-                              *ngSwitchCase="'number'"
-                              [attr.data-orb-qa-id]="control.value.name"
-                              [autofocus]="i == 0"
-                              [formControlName]="control.key"
-                              [max]="control.value.props.max"
-                              [min]="control.value.props.min"
-                              [placeholder]="'e.g.: '.concat(control.value?.props?.example) || ''"
-                              [step]="control.value.props.step"
-                              [type]="control.value.type"
-                              nbTooltip="{{ control.value.description }}">
-                            <nb-select
-                              *ngSwitchCase="'select'"
-                              [attr.data-orb-qa-id]="control.value.name"
-                              [formControlName]="control.key"
-                              [id]="control.value.name"
-                              [placeholder]="'e.g.: '.concat(control.value?.props?.example) || ''"
-                              appearance="filled"
-                              fullWidth="true"
-                              nbTooltip="{{ control.value.description }}"
-                              size="medium"
-                            >{{ control.value.name + "-" + control.value.props.options }}
-                              <nb-option
-                                *ngFor="let option of control.value.props.options | keyvalue"
-                                [attr.data-orb-qa-id]="option.value"
-                                [value]="option.key">{{ option.value }}</nb-option>
-                            </nb-select>
-                          </div>
-                        </div>
-                      </div>
-                    </nb-accordion-item-body>
-                  </nb-accordion-item>
-                </nb-accordion>
-              </form>
-            </div>
-            <hr/>
-            <label class="font-weight-bold">Tap Filter Options</label>
-            <div *ngIf="!!inputFilterFG">
-              <!-- Dynamic Input Config Form -->
-              <form
-                [formGroup]="inputFilterFG">
-                <div *ngFor="let control of input.filter | keyvalue; index as i;">
-                  <div *ngIf="inputFilterFG.controls.hasOwnProperty(control.key)">
-                    <div>
-                      <label class="font-weight-bold">{{control.value.label}}</label>
-                    </div>
-                    <div [ngSwitch]="control.value.input">
-                      <input
-                        *ngSwitchCase="'text'"
-                        [attr.data-orb-qa-id]="control.value.name"
-                        [autofocus]="i == 0"
-                        [formControlName]="control.key"
-                        [placeholder]="'e.g.: '.concat(control.value?.props?.example)"
-                        [type]="control.value.type"
-                        fieldSize="medium"
-                        fullWidth="true"
-                        nbInput
-                        nbTooltip="{{ control.value.description }}">
-                      <input
-                        *ngSwitchCase="'number'"
-                        [attr.data-orb-qa-id]="control.value.name"
-                        [autofocus]="i == 0"
-                        [formControlName]="control.key"
-                        [max]="control.value.props.max"
-                        [min]="control.value.props.min"
-                        [placeholder]="'e.g.: '.concat(control.value?.props?.example) || ''"
-                        [step]="control.value.props.step"
-                        [type]="control.value.type"
-                        nbTooltip="{{ control.value.description }}">
-                      <nb-select
-                        *ngSwitchCase="'select'"
-                        [attr.data-orb-qa-id]="control.value.name"
-                        [formControlName]="control.key"
-                        [id]="control.value.name"
-                        [placeholder]="'e.g.: '.concat(control.value?.props?.example) || ''"
-                        appearance="filled"
-                        fullWidth="true"
-                        nbTooltip="{{ control.value.description }}"
-                        size="medium"
-                      >{{ control.value.name + "-" + control.value.props.options }}
-                        <nb-option
-                          *ngFor="let option of control.value.props.options | keyvalue"
-                          [attr.data-orb-qa-id]="option.value"
-                          [value]="option.key">{{ option.value }}</nb-option>
-                      </nb-select>
-                    </div>
-                    <hr/>
-                  </div>
-                </div>
-              </form>
-            </div>
-          </div>
-          <div *ngIf="!isWizard">
-              <div style="display: flex; margin-top: 10px; margin-bottom: 10px; gap: 60px;">
-                <p class="summary-accent align">Paste or Upload your YAML configuration</p>
-                <button class="upload-button align" (click)="fileInput.click()">
-                  <nb-icon [icon]="uploadIconKey" pack="eva">
-                  </nb-icon>
-                  Upload file
-                </button>
-                <input type="file" (change)="onFileSelected($event)" #fileInput style="display: none">
-              </div>
-              <div class="code-editor-wrapper">
+            <div class="code-editor-wrapper" *ngIf="editorVisible">
+              <ng-container *ngIf="isJsonMode">
+                <ngx-monaco-editor                  
+                  #editorComponentJson
+                  [(ngModel)]="codejson"
+                  [options]="editorOptionsJson"
+                  class="code-editor">
+                </ngx-monaco-editor>
+              </ng-container>
+              <ng-container *ngIf="!isJsonMode">
                 <ngx-monaco-editor
-                  #editorComponent
-                  [(ngModel)]="code"
+                  #editorComponentYaml
+                  [(ngModel)]="codeyaml"
                   [options]="editorOptions"
                   class="code-editor">
                 </ngx-monaco-editor>
-              </div>
+              </ng-container>
+              <span class="errorMessage">{{ errorConfigMessage }}</span>
+            </div>
+            
           </div>
-          <hr/>
           <div class="d-flex justify-content-end">
             <button
-              (click)="onYAMLSubmit()"
-              *ngIf="!isWizard"
-              [disabled]="!code"
-              class="next-button"
-              data-orb-qa-id="button#save"
-              nbButton
-              nbStepperNext
-              nbTooltip="Paste your YAML configuration in the code editor above"
-              shape="round"
+              (click)="goBack()"
+              data-orb-qa-id="button#cancel"
+              ghost
+              class="cancel-back-button"
               status="primary"
               type="button">
-              {{ strings.stepper.save }}
+              {{ strings.stepper.cancel }} 
             </button>
             <button
-              *ngIf="isWizard"
-              [disabled]="!tapFG?.valid"
+              data-orb-qa-id="button#back"
+              ghost
+              class="cancel-back-button"
+              nbStepperPrevious
+              status="primary">
+              {{ strings.stepper.back }}
+            </button>
+            <button
+              (click)="resizeComponents()"
+              [disabled]="!canCreate()"
               class="next-button"
               data-orb-qa-id="button#next"
-              nbButton
+              class="next-button"
               nbStepperNext
               shape="round"
+              type="button"
               status="primary">
               {{ strings.stepper.next }}
             </button>
-            <button
-              data-orb-qa-id="button#back"
-              ghost
-              nbButton
-              nbStepperPrevious
-              status="primary">
-              {{ strings.stepper.back }}
-            </button>
-            <button
-              (click)="goBack()"
-              data-orb-qa-id="button#cancel"
-              ghost
-              nbButton
-              status="primary"
-              type="button">
-              {{ strings.stepper.cancel }}
-            </button>
           </div>
         </nb-step>
-        <nb-step
-          *ngIf="isWizard"
-          [completed]="isEdit"
-          [label]="thirdStepTemplate"
-          data-orb-qa-id="step_2">
-          <ng-template #thirdStepTemplate>
-            <div class="step-label d-flex flex-column">
-              <strong>Add Data Handlers</strong>
-              <p>Setup any number of handlers</p>
+        <nb-step [label]="review">
+          <ng-template #review>
+            <div
+              class="step-label d-flex flex-column">
+              <strong>Review & Confirm</strong>
             </div>
           </ng-template>
-          <!-- Added Handlers List -->
-          <div class="d-flex m-3" class="handlers-list">
-            <mat-chip-list data-orb-qa-id="handlers-list">
-              <mat-chip
-                *ngFor="let handler of modules | keyvalue; index as i"
-                [attr.data-orb-qa-id]="'handler_' + i"
-                [style.background-color]="handler.key | tagcolor"
-                [value]="i"
-                class="orb-selected-handler ">
-                {{ handler.key }}
-                <nb-icon
-                  (click)="onHandlerRemoved(handler.key)"
-                  class="ml-1"
-                  icon="close-outline"
-                  size="12"></nb-icon>
-              </mat-chip>
-              <mat-chip *ngIf="!hasModules()"
-                      class="orb-selected-handler ">
-                No Handler Added.
-              </mat-chip>
-            </mat-chip-list>
-            <button
-                    (click)="addHandler()"
-                    class="add-handler-button next-button"
-                    data-orb-qa-id="addHandler"
-                    nbButton
-                    nbTooltip="Click to Add Handler"
-                    shape="round"
-                    status="primary">
-              <nb-icon
-                      icon="plus-outline"
-                      size="14"
-                      status="primary"
-                      style="color: #df316f;">
-              </nb-icon>
-              Add Handler
-            </button>
+          <div class="d-flex row">
+            <div class="col-12">
+              <div>
+                <label class="review-label">Policy Name</label>
+                <p data-orb-qa-id="review-name">{{detailsFG.controls.name.value}}</p>
+              </div>
+            </div>
           </div>
-          <div
-            class="d-flex justify-content-start"
-            style="padding-left: 35%; margin-top: 3vh;">
-            <button
-              (click)="onFormSubmit()"
-              [disabled]="!hasModules()"
-              class="next-button"
-              data-orb-qa-id="button#save"
-              nbButton
-              nbStepperNext
-              nbTooltip="At least one handler must be configure and added to the policies."
-              shape="round"
-              status="primary"
-              type="button">
-              {{ strings.stepper.save }}
-            </button>
-            <button
-              data-orb-qa-id="button#back"
-              ghost
-              nbButton
-              nbStepperPrevious
-              status="primary">
-              {{ strings.stepper.back }}
-            </button>
+          <div class="d-flex row">
+            <div class="col-12">
+              <div>
+                <label class="review-label">Policy Description</label>
+                <p data-orb-qa-id="review-name" *ngIf="detailsFG.controls.description.value">{{detailsFG.controls.description.value}}</p>
+                <p *ngIf="!detailsFG.controls.description.value" style="font-style: italic; font-size: 14px;">No description provided</p>
+              </div>
+            </div>
+          </div>
+          <div class="d-flex row">
+            <div class="col-12">
+              <div>
+                <label class="review-label">Policy Backend</label>
+                <p data-orb-qa-id="review-name">{{detailsFG.controls.backend.value}}</p>
+              </div>
+            </div>
+          </div>
+          <div class="d-flex row">
+            <div class="col-12">
+              <label class="review-label" style="margin-bottom: 3px;">Tags</label>
+              <ngx-tag-display [tags]="selectedTags"></ngx-tag-display>
+            </div>
+          </div>
+          <hr/>
+
+
+          <div class="d-flex justify-content-end">
             <button
               (click)="goBack()"
               data-orb-qa-id="button#cancel"
               ghost
-              nbButton
-              shape="round"
+              class="cancel-back-button"
               status="primary"
               type="button">
-              {{ strings.stepper.cancel }}
+              {{ strings.stepper.cancel }} 
+            </button>
+            <button
+              data-orb-qa-id="button#back"
+              ghost
+              class="cancel-back-button"
+              nbStepperPrevious
+              status="primary"
+              (click)="refreshEditor()">
+              {{ strings.stepper.back }}
+            </button>
+            <button
+              (click)="onSubmit()"
+              class="next-button"
+              data-orb-qa-id="button#save"
+              class="next-button"
+              nbStepperNext
+              shape="round"
+              status="primary"
+              type="button"
+              [disabled]="!canCreate() || isRequesting">
+              {{ strings.stepper.save }}
             </button>
           </div>
         </nb-step>

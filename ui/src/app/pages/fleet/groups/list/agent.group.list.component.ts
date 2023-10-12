@@ -163,7 +163,6 @@ export class AgentGroupListComponent
   }
 
   ngAfterViewInit() {
-    this.orb.refreshNow();
     this.columns = [
       {
         name: '',
@@ -185,15 +184,6 @@ export class AgentGroupListComponent
         cellTemplate: this.agentGroupNameTemplateCell,
       },
       {
-        prop: 'description',
-        name: 'Description',
-        width: 350,
-        canAutoResize: true,
-        resizeable: true,
-        minWidth: 180,
-        cellTemplate: this.agentGroupNameTemplateCell,
-      },
-      {
         prop: 'matching_agents',
         name: 'Agents',
         width: 150,
@@ -202,6 +192,15 @@ export class AgentGroupListComponent
         minWidth: 80,
         comparator: (a, b) => a.total - b.total,
         cellTemplate: this.agentGroupsTemplateCell,
+      },
+      {
+        prop: 'description',
+        name: 'Description',
+        width: 350,
+        canAutoResize: true,
+        resizeable: true,
+        minWidth: 180,
+        cellTemplate: this.agentGroupNameTemplateCell,
       },
       {
         prop: 'tags',
@@ -266,7 +265,7 @@ export class AgentGroupListComponent
   }
   onOpenDeleteSelected() {
     const selected = this.selected;
-    const elementName = "Agent Groups"
+    const elementName = 'Agent Groups';
     this.dialogService
       .open(DeleteSelectedComponent, {
         context: { selected, elementName },
@@ -285,7 +284,7 @@ export class AgentGroupListComponent
   deleteSelectedAgentGroups() {
     this.selected.forEach((group) => {
       this.agentGroupsService.deleteAgentGroup(group.id).subscribe();
-    })
+    });
     this.notificationsService.success('All selected Groups delete requests succeeded', '');
   }
   openDetailsModal(row: any) {
@@ -309,15 +308,10 @@ export class AgentGroupListComponent
       closeOnEsc: true,
     });
   }
-  public onCheckboxChange(event: any, row: any): void { 
-    let selectedGroup = {
-      id: row.id,
-      name: row.name,
-    }
+  public onCheckboxChange(event: any, row: any): void {
     if (this.getChecked(row) === false) {
-      this.selected.push(selectedGroup);
-    } 
-    else {
+      this.selected.push(row);
+    } else {
       for (let i = 0; i < this.selected.length; i++) {
         if (this.selected[i].id === row.id) {
           this.selected.splice(i, 1);
@@ -337,11 +331,7 @@ export class AgentGroupListComponent
       this.groupsSubscription = this.filteredGroups$.subscribe(rows => {
         this.selected = [];
         rows.forEach(row => {
-          const policySelected = {
-            id: row.id,
-            name: row.name,
-          }
-          this.selected.push(policySelected);
+          this.selected.push(row);
         });
       });
     } else {

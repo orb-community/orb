@@ -9,10 +9,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/orb-community/orb/maestro/kubecontrol"
-	rediscons1 "github.com/orb-community/orb/maestro/redis/consumer"
+	"github.com/orb-community/orb/maestro/deployment"
+	"github.com/orb-community/orb/maestro/redis/producer"
 
 	maestroconfig "github.com/orb-community/orb/maestro/config"
+	"github.com/orb-community/orb/maestro/kubecontrol"
 	sinkspb "github.com/orb-community/orb/sinks/pb"
 	"go.uber.org/zap"
 	k8scorev1 "k8s.io/api/core/v1"
@@ -27,12 +28,13 @@ const (
 	namespace       = "otelcollectors"
 )
 
-func NewMonitorService(logger *zap.Logger, sinksClient *sinkspb.SinkServiceClient, eventStore rediscons1.Subscriber, kubecontrol *kubecontrol.Service) Service {
+func NewMonitorService(logger *zap.Logger, sinksClient *sinkspb.SinkServiceClient, mp producer.Producer, kubecontrol *kubecontrol.Service, deploySvc deployment.Service) Service {
 	return &monitorService{
-		logger:      logger,
-		sinksClient: *sinksClient,
-		eventStore:  eventStore,
-		kubecontrol: *kubecontrol,
+		logger:          logger,
+		sinksClient:     *sinksClient,
+		maestroProducer: mp,
+		kubecontrol:     *kubecontrol,
+		deploymentSvc:   deploySvc,
 	}
 }
 
@@ -42,10 +44,11 @@ type Service interface {
 }
 
 type monitorService struct {
-	logger      *zap.Logger
-	sinksClient sinkspb.SinkServiceClient
-	eventStore  rediscons1.Subscriber
-	kubecontrol kubecontrol.Service
+	logger          *zap.Logger
+	sinksClient     sinkspb.SinkServiceClient
+	maestroProducer producer.Producer
+	deploymentSvc   deployment.Service
+	kubecontrol     kubecontrol.Service
 }
 
 func (svc *monitorService) Start(ctx context.Context, cancelFunc context.CancelFunc) error {
@@ -71,7 +74,7 @@ func (svc *monitorService) Start(ctx context.Context, cancelFunc context.CancelF
 }
 
 func (svc *monitorService) getPodLogs(ctx context.Context, pod k8scorev1.Pod) ([]string, error) {
-	maxTailLines := int64(1)
+	maxTailLines := int64(10)
 	sinceSeconds := int64(300)
 	podLogOpts := k8scorev1.PodLogOptions{TailLines: &maxTailLines, SinceSeconds: &sinceSeconds}
 	config, err := rest.InClusterConfig()
@@ -165,19 +168,12 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			}
 		}
 		if sink == nil {
-			svc.logger.Warn("collector not found for sink, depleting collector", zap.String("collector name", collector.Name))
+			svc.logger.Warn("sink not found for collector, depleting collector", zap.String("collector name", collector.Name))
 			sinkId := collector.Name[5:41]
-			deploymentEntry, err := svc.eventStore.GetDeploymentEntryFromSinkId(ctx, sinkId)
-			if err != nil {
-				svc.logger.Error("did not find collector entry for sink", zap.String("sink-id", sinkId))
-				deploymentName := "otel-" + sinkId
-				err = svc.kubecontrol.KillOtelCollector(ctx, deploymentName, sinkId)
-				if err != nil {
-					svc.logger.Error("error removing otel collector, manual intervention required", zap.Error(err))
-				}
-				continue
-			}
-			err = svc.kubecontrol.DeleteOtelCollector(ctx, "", sinkId, deploymentEntry)
+			deploymentName := "otel-" + sinkId
+			svc.logger.Debug("compare deploymentName with collector name", zap.String("deploy name", deploymentName),
+				zap.String("collector name", collector.Name))
+			err = svc.kubecontrol.KillOtelCollector(ctx, deploymentName, sinkId)
 			if err != nil {
 				svc.logger.Error("error removing otel collector", zap.Error(err))
 			}
@@ -197,44 +193,37 @@ func (svc *monitorService) monitorSinks(ctx context.Context) {
 			svc.logger.Error("error on getting logs, skipping", zap.Error(err))
 			continue
 		}
+		var logErrMsg string
 		status, logsErr = svc.analyzeLogs(logs)
 		if status == "fail" {
 			svc.logger.Error("error during analyze logs", zap.Error(logsErr))
 			continue
 		}
-		lastActivity, activityErr := svc.eventStore.GetActivity(sink.Id)
-		// if logs reported 'active' status
-		// here we should check if LastActivity is up-to-date, otherwise we need to set sink as idle
-		idleLimit := time.Now().Unix() - idleTimeSeconds // within 10 minutes
-		if idleLimit >= lastActivity {
-			//changing state on sinks
-			svc.eventStore.PublishSinkStateChange(sink, "idle", logsErr, err)
-			//changing state on redis sinker
-			data.State.SetFromString("idle")
-			svc.eventStore.UpdateSinkStateCache(ctx, data)
-			deploymentEntry, errDeploy := svc.eventStore.GetDeploymentEntryFromSinkId(ctx, sink.Id)
-			if errDeploy != nil {
-				svc.logger.Error("Remove collector: error on getting collector deployment from redis", zap.Error(activityErr))
-				continue
-			}
-			err = svc.kubecontrol.DeleteOtelCollector(ctx, sink.OwnerID, sink.Id, deploymentEntry)
-			if err != nil {
-				svc.logger.Error("error removing otel collector", zap.Error(err))
-			}
-			continue
+		if logsErr != nil {
+			logErrMsg = logsErr.Error()
 		}
+
 		//set the new sink status if changed during checks
 		if sink.GetState() != status && status != "" {
-			svc.logger.Info("changing sink status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
+			svc.logger.Info("changing sink status",
+				zap.Any("before", sink.GetState()),
+				zap.String("new status", status),
+				zap.String("SinkID", sink.Id),
+				zap.String("ownerID", sink.OwnerID))
 			if err != nil {
-				svc.logger.Error("error updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("error_message (opt)", err.Error()), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
+				svc.logger.Error("error updating status",
+					zap.Any("before", sink.GetState()),
+					zap.String("new status", status),
+					zap.String("error_message (opt)", err.Error()),
+					zap.String("SinkID", sink.Id),
+					zap.String("ownerID", sink.OwnerID))
 			} else {
-				svc.logger.Info("updating status", zap.Any("before", sink.GetState()), zap.String("new status", status), zap.String("SinkID", sink.Id), zap.String("ownerID", sink.OwnerID))
-				// changing state on sinks
-				svc.eventStore.PublishSinkStateChange(sink, status, logsErr, err)
-				// changing state on redis sinker
-				data.State.SetFromString(status)
-				svc.eventStore.UpdateSinkStateCache(ctx, data)
+				svc.logger.Info("updating status",
+					zap.Any("before", sink.GetState()),
+					zap.String("new status", status),
+					zap.String("SinkID", sink.Id),
+					zap.String("ownerID", sink.OwnerID))
+				err = svc.deploymentSvc.UpdateStatus(ctx, sink.OwnerID, sink.Id, status, logErrMsg)
 			}
 		}
 	}

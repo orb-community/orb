@@ -12,6 +12,9 @@ import {
 import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
 import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import IStandaloneEditorConstructionOptions = monaco.editor.IStandaloneEditorConstructionOptions;
+import { OrbService } from 'app/common/services/orb.service';
+import { EditorComponent } from 'ngx-monaco-editor';
+
 
 @Component({
   selector: 'ngx-policy-interface',
@@ -28,8 +31,14 @@ export class PolicyInterfaceComponent implements OnInit, AfterViewInit, OnChange
   @Output()
   editModeChange: EventEmitter<boolean>;
 
-  @ViewChild('editorComponent')
-  editor;
+  @Input()
+  detailsEditMode: boolean;
+
+  @Input()
+  errorConfigMessage: string;
+
+  @ViewChild(EditorComponent, { static: true })
+  editorComponent: EditorComponent;
 
   editorOptions: IStandaloneEditorConstructionOptions = {
     theme: 'vs-dark',
@@ -38,10 +47,11 @@ export class PolicyInterfaceComponent implements OnInit, AfterViewInit, OnChange
     detectIndentation: true,
     tabSize: 2,
     autoIndent: 'full',
+    formatOnPaste: true,
     trimAutoWhitespace: true,
     formatOnType: true,
     matchBrackets: 'always',
-    language: 'yaml',
+    language: 'json',
     automaticLayout: true,
     glyphMargin: false,
     folding: true,
@@ -56,18 +66,37 @@ export class PolicyInterfaceComponent implements OnInit, AfterViewInit, OnChange
 
   formControl: FormControl;
 
+
+
   constructor(
     private fb: FormBuilder,
+    private orb: OrbService,
   ) {
     this.policy = {};
     this.code = '';
     this.editMode = false;
     this.editModeChange = new EventEmitter<boolean>();
     this.updateForm();
+    this.detailsEditMode = false;
+    this.errorConfigMessage = '';
+  }
+
+  getCodeLineCount() {
+    const editorInstance = this.editorComponent['_editor'];
+    if (editorInstance) {
+      const model = editorInstance.getModel();
+      editorInstance.layout();
+      return model ? model.getLineCount() : 0;
+
+    }
+    return 0;
   }
 
   ngOnInit(): void {
     this.code = this.policy.policy_data || JSON.stringify(this.policy.policy, null, 2);
+    if (this.policy.format === 'yaml') {
+      this.editorOptions = { ...this.editorOptions, language: 'yaml' };
+    }
   }
 
   ngAfterViewInit() {
@@ -92,8 +121,25 @@ export class PolicyInterfaceComponent implements OnInit, AfterViewInit, OnChange
 
   toggleEdit(edit, notify = true) {
     this.editMode = edit;
+    if (this.editMode || this.detailsEditMode) {
+      this.orb.pausePolling();
+    } else {
+      this.orb.startPolling();
+    }
     this.editorOptions = { ...this.editorOptions, readOnly: !edit };
     this.updateForm();
     !!notify && this.editModeChange.emit(this.editMode);
+  }
+
+  onFileSelected(event: any) {
+    const file: File = event.target.files[0];
+    const reader: FileReader = new FileReader();
+
+    reader.onload = (e: any) => {
+      const fileContent = e.target.result;
+      this.code = fileContent;
+    };
+
+    reader.readAsText(file);
   }
 }

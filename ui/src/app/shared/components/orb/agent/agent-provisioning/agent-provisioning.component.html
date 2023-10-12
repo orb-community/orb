@@ -1,41 +1,42 @@
-<nb-card>
+<nb-card *ngIf="provisioningTypeMode.default">
   <nb-card-header>
-    Provisioning Command
-    <nb-select [(selected)]="selectedOS"
-               appearance="filled"
-               class="float-right"
-               data-orb-qa-id="selected_OS">
-      <nb-option *ngFor="let option of availableOS"
-                 [value]="option">
-        {{ option | titlecase }}
-      </nb-option>
-    </nb-select>
-    <button
-      style="color: #3089fc"
-      ghost="true"
-      nbButton
-      (click)="toggleProvisioningCommand()">
-      <nb-icon [icon]="hideCommand ? 'plus-outline': 'minus-outline'"
-               pack="eva">
-      </nb-icon>
-    </button>
+    Default Provisioning Command
   </nb-card-header>
-  <nb-card-body [hidden]="hideCommand">
-    <p>
-      To use the provisioning command, you must replace AGENT_KEY with the Agent Key given to you during agent
-      creation. If you have lost the Agent Key, you must remove and create a new agent.
-    </p>
+  <nb-card-body>
     <pre>
-      <button
-        [cdkCopyToClipboard]="command2copy"
-        ghost="true"
-        (click)="toggleIcon('command')"
+      <button [cdkCopyToClipboard]="defaultCommandCopy" 
         nbTooltip="Copy Provisioning Command">
-        <nb-icon [icon]="copyCommandIcon"
-                  pack="eva">
+        <nb-icon (click)="toggleIcon('command')" [icon]="copyCommandIcon" pack="eva">
         </nb-icon>
       </button>
-      <code [innerHtml]="command2show">{{ command2show }}</code>
+      <code [innerHtml]="defaultCommandShow">
+        {{ defaultCommandShow }}
+      </code>
     </pre>
-  </nb-card-body>
+  </nb-card-body>    
 </nb-card>
+
+<nb-card *ngIf="provisioningTypeMode.configFile">
+  <nb-card-header>
+    Provisioning Command with Configuration File
+  <a href="https://orb.community/documentation/running_orb_agent/#configuration-files" target="_blank">
+    <nb-icon icon="info-outline" style="margin-top: 3px; margin-right: 10px;" 
+    nbTooltip="This command requires that a configuration file named &quot;agent.yaml&quot; exist in your current working directory. Click to go to documentation.">
+    </nb-icon>
+  </a>
+
+  </nb-card-header>
+  <nb-card-body>
+    <pre>
+      <button [cdkCopyToClipboard]="fileConfigCommandCopy" 
+      nbTooltip="Copy Provisioning Command">
+      <nb-icon (click)="toggleIcon('command')" [icon]="copyCommandIcon" pack="eva">
+      </nb-icon>
+      </button>
+      <code [innerHtml]="fileConfigCommandShow">
+        {{ fileConfigCommandShow }}
+      </code>
+    </pre>
+  </nb-card-body> 
+</nb-card> 
+

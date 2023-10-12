@@ -11,33 +11,38 @@
       </xng-breadcrumb>
       <h4>{{ strings.sink.add.header }}</h4>
     </div>
-    <div class="col-2">
-      <button
-      (click)="goBack()"
-      shape="round"
-      nbButton
-      status="danger">
-      Cancel
-    </button> 
-      <button
-      (click)="createSink()"
-      class="sink-create"
+    <div class="col-4">
+      <div style="float: right; margin-top: 20px;">
+        <button
+        (click)="goBack()"
+        shape="round"
         nbButton
-      shape="round"
-      [disabled]="!canCreate()"
-      >
-      Create
-      </button> 
-     
+        status="danger">
+        Cancel
+        </button> 
+        <button
+        (click)="createSink()"
+        class="sink-create"
+          nbButton
+        shape="round"
+        [disabled]="!canCreate() || isRequesting"
+        >
+        Create
+        </button> 
+      </div>
     </div>
       
 </header>
 <div class="row">
-  <ngx-sink-details 
-  [(createMode)]="createMode"
-  (sinkBackend)="getBackendEmit($event)"
-  >
-  </ngx-sink-details>
-  <ngx-sink-config [(createMode)]="createMode" [(sinkBackend)]="sinkBackend">
-  </ngx-sink-config>
+  <div class="card-col col-4">
+    <ngx-sink-details 
+    [(createMode)]="createMode"
+    (sinkBackend)="getBackendEmit($event)"
+    >
+    </ngx-sink-details>
+  </div>
+  <div class="card-col col-8" style="padding-left: 0;">
+    <ngx-sink-config [(createMode)]="createMode" [(sinkBackend)]="sinkBackend" [errorConfigMessage]="errorConfigMessage">
+    </ngx-sink-config>
+  </div>
 </div>
