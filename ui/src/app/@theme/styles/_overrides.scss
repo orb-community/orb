@@ -176,7 +176,7 @@
 
 .tableWrapper {
   display: flex;
-  margin-top: 2em;
+  margin-top: 2em !important;
   flex-direction: column;
   flex-wrap: nowrap;
   align-content: flex-start;
@@ -187,9 +187,9 @@
 }
 
 .orb-table {
-  min-height: calc(100vh - 300px);
+  min-height: calc(100vh - 300px) !important;
   min-width: 800px;
-  max-height: calc(100vh - 300px);
+  max-height: calc(100vh - 300px) !important;
 }
 
 .orb-table-small {
