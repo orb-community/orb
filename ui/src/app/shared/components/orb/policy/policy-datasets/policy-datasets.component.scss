@@ -28,7 +28,7 @@ nb-card {
   }
 }
 .dataset-table {
-  min-width: 600px;
+  // min-width: 600px;
   height: 200px;
   max-height: 300px;
   min-height: 100px;
@@ -129,4 +129,8 @@ mat-nav-list {
   to {
     transform: translateX(-80%);
   }
+}
+.dataset-table-wrapper {
+  min-width: 680px;
+  margin: 1rem 0 0 0;
 }
