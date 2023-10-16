@@ -11,5 +11,5 @@ jsonschema==4.12.2
 mkdocs==1.5.1
 mkdocs-material==9.4.7
 prometheus-client==0.17.1
-psutil==5.9.5
+psutil==5.9.6
 webdriver-manager==3.9.1
