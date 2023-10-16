@@ -29,7 +29,6 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -284,7 +283,7 @@ func connectToGRPC(cfg config.GRPCConfig, logger *zap.Logger) *grpc.ClientConn {
 
 func initJaeger(svcName, url string, logger *zap.Logger) (opentracing.Tracer, io.Closer) {
 	if url == "" {
-		return opentracing.NoopTracer{}, ioutil.NopCloser(nil)
+		return opentracing.NoopTracer{}, io.NopCloser(nil)
 	}
 
 	tracer, closer, err := jconfig.Configuration{
