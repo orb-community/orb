@@ -39,12 +39,12 @@ func init() {
 	diode.Register()
 }
 
-func Version(cmd *cobra.Command, args []string) {
+func Version(_ *cobra.Command, _ []string) {
 	fmt.Printf("orb-agent %s\n", buildinfo.GetVersion())
 	os.Exit(0)
 }
 
-func Run(cmd *cobra.Command, args []string) {
+func Run(_ *cobra.Command, _ []string) {
 
 	initConfig()
 
@@ -212,5 +212,5 @@ func main() {
 
 	rootCmd.AddCommand(runCmd)
 	rootCmd.AddCommand(versionCmd)
-	rootCmd.Execute()
+	_ = rootCmd.Execute()
 }
