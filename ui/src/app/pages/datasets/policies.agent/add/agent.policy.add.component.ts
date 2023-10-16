@@ -123,7 +123,7 @@ kind: collection`;
     `;
 
   // is config specified wizard mode or in YAML or JSON
-  isJsonMode = true;
+  isJsonMode = false;
 
   // format definition
   format = 'yaml';
