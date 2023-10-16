@@ -20,11 +20,6 @@ type runningPolicy struct {
 	processId  int
 }
 
-var defaultCmdOptions = cmd.Options{
-	Buffered:  false,
-	Streaming: true,
-}
-
 func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, updatePolicy bool) error {
 	if !updatePolicy || !o.policyRepo.Exists(newPolicyData.ID) {
 		temporaryFile, err := os.CreateTemp(o.policyConfigDirectory, fmt.Sprintf(tempFileNamePattern, newPolicyData.ID))
@@ -74,7 +69,7 @@ func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, up
 
 func (o *openTelemetryBackend) addRunner(policyData policies.PolicyData, policyFilePath string) error {
 	policyContext, policyCancel := context.WithCancel(context.WithValue(o.mainContext, "policy_id", policyData.ID))
-	command := cmd.NewCmdOptions(defaultCmdOptions, o.otelExecutablePath, "--config", policyFilePath)
+	command := cmd.NewCmd(o.otelExecutablePath, "--config", policyFilePath)
 	var PID chan int
 	go func(ctx context.Context, logger *zap.Logger) {
 		status := command.Start()
