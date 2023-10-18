@@ -1,4 +1,4 @@
-<div>
+<div (click)="handleContextClick()">
   <header>
     <xng-breadcrumb class="orb-breadcrumb"> </xng-breadcrumb>
     <div
@@ -53,8 +53,16 @@
       class="orb orb-table"
       [selected]="selected"
       [selectionType]="'checkbox'"
+      (tableContextmenu)="onTableContextMenu($event)"
     >
     </ngx-datatable>
+    <ngx-table-context-menu 
+      *ngIf="showContextMenu" 
+      [items]="agentGroupContextMenu" 
+      [left]="menuPositionLeft" 
+      [top]="menuPositionTop" 
+      [rowObject]="contextMenuRow">
+    </ngx-table-context-menu>
   </div>
 </div>
 

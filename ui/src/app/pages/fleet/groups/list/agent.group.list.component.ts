@@ -90,6 +90,18 @@ export class AgentGroupListComponent
   filters$!: Observable<FilterOption[]>;
   filteredGroups$: Observable<AgentGroup[]>;
 
+  contextMenuRow: any;
+
+  showContextMenu = false;
+  menuPositionLeft: number;
+  menuPositionTop: number;
+
+  agentGroupContextMenu = [
+    {icon: 'search-outline', action: 'openview'},
+    {icon:'edit-outline', action: 'openedit'},
+    {icon: 'trash-outline', action: 'opendelete'},
+  ];
+
   constructor(
     private cdr: ChangeDetectorRef,
     private dialogService: NbDialogService,
@@ -142,6 +154,25 @@ export class AgentGroupListComponent
     );
   }
 
+  onTableContextMenu(event) {
+    event.event.preventDefault();
+    event.event.stopPropagation();
+    if (event.type === 'body') {
+      this.contextMenuRow = {
+        objectType: 'group',
+        ...event.content
+      }
+      this.menuPositionLeft = event.event.clientX;
+      this.menuPositionTop = event.event.clientY;
+      this.showContextMenu = true;
+    } 
+  }
+  handleContextClick() {
+    if (this.showContextMenu) {
+      this.showContextMenu = false;
+    }
+  }
+  
   ngOnDestroy(): void {
     if (this.groupsSubscription) {
       this.groupsSubscription.unsubscribe();

@@ -85,6 +85,19 @@ export class AgentPolicyListComponent
   filters$!: Observable<FilterOption[]>;
   filteredPolicies$: Observable<AgentPolicy[]>;
 
+  contextMenuRow: any;
+
+  showContextMenu = false;
+  menuPositionLeft: number;
+  menuPositionTop: number;
+
+  policyContextMenu = [
+    {icon: 'search-outline', action: 'openview'},
+    {icon:'edit-outline', action: 'openview'},
+    {icon: 'copy-outline', action: 'openduplicate'},
+    {icon: 'trash-outline', action: 'opendelete'},
+  ];
+
   constructor(
     private cdr: ChangeDetectorRef,
     private dialogService: NbDialogService,
@@ -152,6 +165,25 @@ export class AgentPolicyListComponent
     );
   }
 
+  onTableContextMenu(event) {
+    event.event.preventDefault();
+    event.event.stopPropagation();
+    if (event.type === 'body') {
+      this.contextMenuRow = {
+        objectType: 'policy',
+        ...event.content
+      }
+      this.menuPositionLeft = event.event.clientX;
+      this.menuPositionTop = event.event.clientY;
+      this.showContextMenu = true;
+    } 
+  }
+  handleContextClick() {
+    if (this.showContextMenu) {
+      this.showContextMenu = false;
+    }
+  }
+  
   onOpenDuplicatePolicy(agentPolicy: any) {
     const policy = agentPolicy.name;
     this.dialogService

@@ -93,6 +93,17 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
   filteredAgents$: Observable<Agent[]>;
   private currentComponentWidth;
 
+  contextMenuRow: any;
+
+  showContextMenu = false;
+  menuPositionLeft: number;
+  menuPositionTop: number;
+
+  agentContextMenu = [
+    {icon: 'search-outline', action: 'openview'},
+    {icon:'edit-outline', action: 'openview'},
+    {icon: 'trash-outline', action: 'opendelete'},
+  ];
   constructor(
     private cdr: ChangeDetectorRef,
     private dialogService: NbDialogService,
@@ -188,6 +199,25 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
       this.table.recalculate();
       this.cdr.detectChanges();
       window.dispatchEvent(new Event('resize'));
+    }
+  }
+
+  onTableContextMenu(event) {
+    event.event.preventDefault();
+    event.event.stopPropagation();
+    if (event.type === 'body') {
+      this.contextMenuRow = {
+        objectType: 'agent',
+        ...event.content
+      }
+      this.menuPositionLeft = event.event.clientX;
+      this.menuPositionTop = event.event.clientY;
+      this.showContextMenu = true;
+    } 
+  }
+  handleContextClick() {
+    if (this.showContextMenu) {
+      this.showContextMenu = false;
     }
   }
 
