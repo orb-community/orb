@@ -67,6 +67,7 @@ import { AgentBackendsComponent } from './components/orb/agent/agent-backends/ag
 import { SinkDetailsComponent } from './components/orb/sink/sink-details/sink-details.component';
 import { SinkConfigComponent } from './components/orb/sink/sink-config/sink-config.component';
 import { TableContextMenu } from './components/tableContexMenu/table-context-menu-component';
+import { JsonListPipe } from './pipes/list-json.pipe';
 
 @NgModule({
   imports: [
@@ -109,6 +110,7 @@ import { TableContextMenu } from './components/tableContexMenu/table-context-men
     PaginationComponent,
     AdvancedOptionsPipe,
     TagColorPipe,
+    JsonListPipe,
     TagChipPipe,
     TaglistChipPipe,
     ValidTagInputDirective,
@@ -148,6 +150,7 @@ import { TableContextMenu } from './components/tableContexMenu/table-context-men
     PaginationComponent,
     AdvancedOptionsPipe,
     TagColorPipe,
+    JsonListPipe,
     TagChipPipe,
     TaglistChipPipe,
     ValidTagInputDirective,
@@ -183,6 +186,7 @@ import { TableContextMenu } from './components/tableContexMenu/table-context-men
     ToMillisecsPipe,
     AdvancedOptionsPipe,
     TagColorPipe,
+    JsonListPipe,
     TagChipPipe,
     TaglistChipPipe,
     ValidTagInputDirective,

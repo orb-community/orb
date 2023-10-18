@@ -115,7 +115,7 @@
   let-row="row"
   let-value="value"
 >
-  <mat-chip-list #tablechiplist nbTooltip="{{ row.combined_tags | json }}">
+  <mat-chip-list #tablechiplist nbTooltip="{{ (row?.combined_tags | json) === '{}' ? 'No tags were created' : row.combined_tags | jsonlist }}">
     <mat-chip
       *ngFor="let tag of value | keyvalue"
       style="background-color: #2B3148;"

@@ -87,7 +87,7 @@
   <span
     (click)="onMatchingAgentsModal(row)"
     class="matching-agents"
-    nbTooltip="{{ row.matching_agents | json }}"
+    nbTooltip="{{ row.matching_agents | jsonlist }}"
   >
     {{ row.matching_agents.total }}
   </span>
@@ -99,7 +99,7 @@
   let-row="row"
   let-value="value"
 >
-  <mat-chip-list nbTooltip="{{ value | json }}">
+  <mat-chip-list nbTooltip="{{ value | jsonlist }}">
     <mat-chip
       *ngFor="let tag of value | keyvalue"
       style="background-color: #2B3148;"
