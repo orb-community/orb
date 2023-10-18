@@ -85,6 +85,18 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
   filters$!: Observable<FilterOption[]>;
   filteredSinks$: Observable<Sink[]>;
 
+  contextMenuRow: any;
+
+  showContextMenu: boolean;
+  menuPositionLeft: number;
+  menuPositionTop: number;
+
+  sinkContextMenu = [
+    {icon: 'search-outline', action: 'openview'},
+    {icon:'edit-outline', action: 'openview'},
+    {icon: 'trash-outline', action: 'opendelete'},
+  ];
+
   constructor(
     private cdr: ChangeDetectorRef,
     private dialogService: NbDialogService,
@@ -140,6 +152,7 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
       this.filters$,
       this.filterOptions,
     );
+    this.showContextMenu = false;
   }
 
   ngOnDestroy(): void {
@@ -232,6 +245,25 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
         cellTemplate: this.actionsTemplateCell,
       },
     ];
+  }
+
+  onTableContextMenu(event) {
+    event.event.preventDefault();
+    event.event.stopPropagation();
+    if (event.type === 'body') {
+      this.contextMenuRow = {
+        objectType: 'sink',
+        ...event.content
+      }
+      this.menuPositionLeft = event.event.clientX;
+      this.menuPositionTop = event.event.clientY;
+      this.showContextMenu = true;
+    } 
+  }
+  handleContextClick() {
+    if (this.showContextMenu) {
+      this.showContextMenu = false;
+    }
   }
 
   onOpenAdd() {

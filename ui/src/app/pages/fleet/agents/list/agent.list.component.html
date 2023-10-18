@@ -1,4 +1,4 @@
-<header>
+<header (click)="handleContextClick()">
   <xng-breadcrumb class="orb-breadcrumb"> </xng-breadcrumb>
   <div
     style="
@@ -14,7 +14,7 @@
     <ngx-poll-control></ngx-poll-control>
   </div>
 </header>
-<div #tableWrapper class="tableWrapper">
+<div #tableWrapper class="tableWrapper" (click)="handleContextClick()">
   <div class="options">
     <ngx-filter [availableFilters]="filterOptions"></ngx-filter>
     <button (click)="onOpenDeleteSelected()"
@@ -63,8 +63,17 @@
     class="orb orb-table"
     [selected]="selected"
     [selectionType]="'checkbox'"
+    (tableContextmenu)="onTableContextMenu($event)"
   >
   </ngx-datatable>
+  
+  <ngx-table-context-menu 
+    *ngIf="showContextMenu" 
+    [items]="agentContextMenu" 
+    [left]="menuPositionLeft" 
+    [top]="menuPositionTop" 
+    [rowObject]="contextMenuRow">
+  </ngx-table-context-menu>
 </div>
 
 <ng-template
