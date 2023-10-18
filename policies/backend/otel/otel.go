@@ -8,6 +8,7 @@ import (
 )
 
 type otelBackend struct {
+	version string
 }
 
 func (o otelBackend) SupportsFormat(format string) bool {
@@ -25,6 +26,7 @@ func (o otelBackend) ConvertFromFormat(format string, policy string) (metadata t
 	return
 }
 
+// Validate Will not validate anything until we have a better way to do this
 func (o otelBackend) Validate(policy types.Metadata) error {
 	// block everything related to the exporter tag, this is not supported
 	return nil
