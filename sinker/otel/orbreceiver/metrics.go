@@ -6,13 +6,13 @@ package orbreceiver
 
 import (
 	"context"
+	"go.opentelemetry.io/collector/receiver/receiverhelper"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/mainflux/mainflux/pkg/messaging"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/obsreport"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
@@ -22,7 +22,7 @@ import (
 type internalMetricsReceiver struct {
 	pmetricotlp.UnimplementedGRPCServer
 	nextConsumer consumer.Metrics
-	obsrecv      *obsreport.Receiver
+	obsrecv      *receiverhelper.ObsReport
 }
 
 func (r *OrbReceiver) MessageMetricsInbound(msg messaging.Message) error {
