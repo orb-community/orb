@@ -90,7 +90,7 @@
         let-row="row"
         let-value="value"
 >
-    <mat-chip-list>
+    <mat-chip-list nbTooltip="{{ (row?.tags | json) === '{}' ? 'No tags were created' : row.tags | jsonlist }}">
       <mat-chip
         *ngFor="let tag of value | keyvalue"
         style="background-color: #2B3148;"
@@ -109,7 +109,6 @@
         <span style="color: #df316f;">No tag were created</span>
       </mat-chip>
     </mat-chip-list>
-
 </ng-template>
 
 <ng-template #versionTemplateCell let-i="index" let-row="row" let-value="value">

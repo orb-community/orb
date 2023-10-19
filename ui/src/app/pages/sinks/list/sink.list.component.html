@@ -93,7 +93,7 @@
 
 <ng-template #sinkTagsTemplateCell let-i="index" let-row="row" let-value="value">
   <div class="d-block">
-    <mat-chip-list nbTooltip="{{ value | json }}">
+    <mat-chip-list nbTooltip="{{ !row?.tags ? 'No tag were created' : value | jsonlist }}">
       <mat-chip
         *ngFor="let tag of value | keyvalue"
         style="background-color: #2B3148;"
