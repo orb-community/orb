@@ -8,22 +8,17 @@ import (
 var samplePolicyData = `---
 receivers:
   httpcheck:
-    endpoint: http://localhost:8000/health
-    method: GET
-    collection_interval: 1s
+	targets:
+     - endpoint: http://localhost:8000/health
+     - method: GET
 exporters:
   otlphttp:
     endpoint: http://localhost:0
-  logging:
-    verbosity: detailed
-    sampling_initial: 10
-    sampling_thereafter: 200
 service:
   pipelines:
     metrics:
       exporters: 
         - otlphttp
-        - logging
       receivers: 
         - httpcheck
 `
