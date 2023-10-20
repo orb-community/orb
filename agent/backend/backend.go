@@ -19,6 +19,7 @@ const (
 	BackendError
 	AgentError
 	Offline
+	Waiting
 )
 
 type RunningStatus int

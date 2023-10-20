@@ -191,7 +191,9 @@ func (a *orbAgent) logonWithHearbeat() {
 
 func (a *orbAgent) logoffWithHeartbeat(ctx context.Context) {
 	a.logger.Debug("stopping heartbeat, going offline status", zap.Any("routine", ctx.Value("routine")))
-	a.hbTicker.Stop()
+	if a.hbTicker != nil {
+		a.hbTicker.Stop()
+	}
 	if a.rpcFromCancelFunc != nil {
 		a.rpcFromCancelFunc()
 	}

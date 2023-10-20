@@ -16,8 +16,7 @@ type runningPolicy struct {
 	cancel     context.CancelFunc
 	policyId   string
 	policyData policies.PolicyData
-	statusChan cmd.Status
-	processId  int
+	statusChan *cmd.Status
 }
 
 func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, updatePolicy bool) error {
@@ -74,10 +73,8 @@ func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, up
 func (o *openTelemetryBackend) addRunner(policyData policies.PolicyData, policyFilePath string) error {
 	policyContext, policyCancel := context.WithCancel(context.WithValue(o.mainContext, "policy_id", policyData.ID))
 	command := cmd.NewCmd(o.otelExecutablePath, "--config", policyFilePath)
-	var PID chan int
 	go func(ctx context.Context, logger *zap.Logger) {
 		status := command.Start()
-		PID <- command.Status().PID
 		o.logger.Info("starting otel policy", zap.String("policy_id", policyData.ID),
 			zap.Any("status", command.Status()), zap.Int("process id", command.Status().PID))
 		for command.Status().Complete == false {
@@ -97,17 +94,13 @@ func (o *openTelemetryBackend) addRunner(policyData policies.PolicyData, policyF
 			}
 		}
 	}(policyContext, o.logger)
-	var processId int
-	select {
-	case processId = <-PID:
-	}
+	status := command.Status()
 	policyEntry := runningPolicy{
 		ctx:        policyContext,
 		cancel:     policyCancel,
 		policyId:   policyData.ID,
 		policyData: policyData,
-		statusChan: command.Status(),
-		processId:  processId,
+		statusChan: &status,
 	}
 	o.addPolicyControl(policyEntry, policyData.ID)
 

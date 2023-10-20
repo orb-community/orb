@@ -50,6 +50,9 @@ func (a *orbAgent) connect(ctx context.Context, config config.MQTTConfig) (mqtt.
 								zap.String("current state", s), zap.String("wait time", (time.Duration(i)*time.Second).String()))
 							time.Sleep(time.Duration(i) * time.Second)
 							continue
+						} else if backend.Waiting == backendStatus {
+							// for otel backend, it is correct to assume that the process is waiting
+							ok = true
 						} else {
 							// connection problem, should request from control place
 							ok = true

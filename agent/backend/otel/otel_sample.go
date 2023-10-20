@@ -8,9 +8,9 @@ import (
 var samplePolicyData = `---
 receivers:
   httpcheck:
-	targets:
-     - endpoint: http://localhost:8000/health
-     - method: GET
+     targets:
+       - endpoint: http://localhost:8000/health
+       - method: GET
 exporters:
   otlphttp:
     endpoint: http://localhost:0
@@ -22,6 +22,8 @@ service:
       receivers: 
         - httpcheck
 `
+
+var Sample = "receivers:\n  httpcheck:\n     targets:\n       - endpoint: http://localhost:8000/health\n       - method: GET\nexporters:\n  otlphttp:\n    endpoint: http://localhost:0\nservice:\n  pipelines:\n    metrics:\n      exporters: \n        - otlphttp\n      receivers: \n        - httpcheck"
 
 var samplePolicy = policies.PolicyData{
 	ID:                 "default",

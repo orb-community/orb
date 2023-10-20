@@ -134,13 +134,6 @@ func (o *openTelemetryBackend) Start(ctx context.Context, cancelFunc context.Can
 		return err
 	}
 	o.logger.Info("starting open-telemetry backend using version", zap.String("version", currentVersion))
-	// TODO remove sample policy
-	err = o.ApplyPolicy(samplePolicy, false)
-	if err != nil {
-		o.logger.Error("error updating policies", zap.Error(err))
-		return err
-	}
-	// TODO end remove sample policy
 	policiesData, err := o.policyRepo.GetAll()
 	if err != nil {
 		defer cancelFunc()
@@ -191,18 +184,18 @@ func (o *openTelemetryBackend) GetStartTime() time.Time {
 	return o.startTime
 }
 
-// this will only print a default backend config
+// GetCapabilities this will only print a default backend config
 func (o *openTelemetryBackend) GetCapabilities() (capabilities map[string]interface{}, err error) {
 	capabilities = make(map[string]interface{})
 	capabilities["taps"] = o.otelReceiverTaps
 	return
 }
 
-// cross reference the Processes using the os, with the policies and contexts
+// GetRunningStatus returns cross-reference the Processes using the os, with the policies and contexts
 func (o *openTelemetryBackend) GetRunningStatus() (backend.RunningStatus, string, error) {
 	amountCollectors := len(o.runningCollectors)
 	if amountCollectors > 0 {
 		return backend.Running, fmt.Sprintf("opentelemetry backend running with %d policies", amountCollectors), nil
 	}
-	return backend.Offline, "opentelemetry backend offline, waiting for policy to come to start running", nil
+	return backend.Waiting, "opentelemetry backend is waiting for policy to come to start running", nil
 }
