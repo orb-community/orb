@@ -26,16 +26,9 @@ func retrievePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 		if err != nil {
 			return policyRes{}, err
 		}
-		var data []byte
-		// TODO This can cause error in agent side if the policy is sent in yaml but not for otel backend
-		// TODO Since we plan to move everything to yaml, we should remove the backend check in the future
-		if policy.Format == "yaml" && policy.Backend == "otel" {
-			data = []byte(policy.PolicyData)
-		} else {
-			data, err = json.Marshal(policy.Policy)
-			if err != nil {
-				return policyRes{}, err
-			}
+		data, err := extractData(policy)
+		if err != nil {
+			return policyRes{}, err
 		}
 
 		return policyRes{
@@ -46,6 +39,20 @@ func retrievePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 			data:    data,
 		}, nil
 	}
+}
+
+func extractData(policy policies.Policy) (data []byte, err error) {
+	// TODO This can cause error in agent side if the policy is sent in yaml but not for otel backend
+	// TODO Since we plan to move everything to yaml, we should remove the backend check in the future
+	if policy.Format == "yaml" && policy.Backend == "otel" {
+		data = []byte(policy.PolicyData)
+	} else {
+		data, err = json.Marshal(policy.Policy)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return data, nil
 }
 
 func retrievePoliciesByGroupsEndpoint(svc policies.Service) endpoint.Endpoint {
@@ -61,7 +68,7 @@ func retrievePoliciesByGroupsEndpoint(svc policies.Service) endpoint.Endpoint {
 		}
 		policies := make([]policyInDSRes, len(plist))
 		for i, policy := range plist {
-			data, err := json.Marshal(policy.Policy.Policy)
+			data, err := extractData(policy.Policy)
 			if err != nil {
 				return policyInDSListRes{}, err
 			}
