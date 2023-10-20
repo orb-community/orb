@@ -52,7 +52,8 @@ func (s policiesService) identify(token string) (string, error) {
 func New(logger *zap.Logger, auth mainflux.AuthServiceClient, repo Repository, fleetGrpcClient fleetpb.FleetServiceClient, sinksGrpcclient sinkpb.SinkServiceClient) Service {
 
 	orb.Register()
-	otel.Register()
+	//TODO it might not need the logger here, just added for debugging for now
+	otel.Register(logger)
 	pktvisor.Register()
 	diode.Register()
 

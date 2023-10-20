@@ -4,12 +4,14 @@ import (
 	"errors"
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/policies/backend"
+	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 	"strings"
 )
 
 type otelBackend struct {
 	version string
+	logger  *zap.Logger
 }
 
 func (o otelBackend) SupportsFormat(format string) bool {
@@ -23,6 +25,7 @@ func (o otelBackend) ConvertFromFormat(format string, policy string) (metadata t
 	if !o.SupportsFormat(format) {
 		return nil, errors.New("unsupported format")
 	}
+	o.logger.Info("converting policy from yaml", zap.String("policy", policy), zap.String("format", format))
 	err = yaml.Unmarshal([]byte(policy), &metadata)
 	return
 }
@@ -33,7 +36,8 @@ func (o otelBackend) Validate(_ types.Metadata) error {
 	return nil
 }
 
-func Register() bool {
-	backend.Register("otel", &otelBackend{})
+func Register(logger *zap.Logger) bool {
+	l := logger.Named("otel-backend")
+	backend.Register("otel", &otelBackend{logger: l})
 	return true
 }

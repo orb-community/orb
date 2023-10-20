@@ -11,9 +11,8 @@ package grpc
 import (
 	"context"
 	"encoding/json"
-	"github.com/orb-community/orb/policies"
-
 	"github.com/go-kit/kit/endpoint"
+	"github.com/orb-community/orb/policies"
 )
 
 func retrievePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
@@ -27,10 +26,17 @@ func retrievePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 		if err != nil {
 			return policyRes{}, err
 		}
-		data, err := json.Marshal(policy.Policy)
-		if err != nil {
-			return policyRes{}, err
+		var data []byte
+		// TODO This can cause error in agent side if the policy is sent in yaml but not for otel backend
+		if policy.Format == "yaml" && policy.Backend == "otel" {
+			data = []byte(policy.PolicyData)
+		} else {
+			data, err = json.Marshal(policy.Policy)
+			if err != nil {
+				return policyRes{}, err
+			}
 		}
+
 		return policyRes{
 			id:      policy.ID,
 			name:    policy.Name.String(),
