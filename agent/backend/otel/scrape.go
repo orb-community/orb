@@ -32,13 +32,20 @@ func (o *openTelemetryBackend) receiveOtlp() {
 						HTTPServerSettings: &confighttp.HTTPServerSettings{
 							Endpoint: o.otelReceiverHost + ":" + strconv.Itoa(o.otelReceiverPort),
 						},
+						TracesURLPath:  "traces",
+						MetricsURLPath: "metrics",
+						LogsURLPath:    "logs",
 					},
+				}
+				noopFunc := func(*component.StatusEvent) error {
+					return nil
 				}
 				set := receiver.CreateSettings{
 					TelemetrySettings: component.TelemetrySettings{
-						Logger:         o.logger,
-						TracerProvider: trace.NewNoopTracerProvider(),
-						MeterProvider:  metric.NewMeterProvider(),
+						Logger:                o.logger,
+						TracerProvider:        trace.NewNoopTracerProvider(),
+						MeterProvider:         metric.NewMeterProvider(),
+						ReportComponentStatus: noopFunc,
 					},
 					BuildInfo: component.NewDefaultBuildInfo(),
 				}
