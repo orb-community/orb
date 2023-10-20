@@ -30,6 +30,7 @@ var runningStatusMap = [...]string{
 	"backend_error",
 	"agent_error",
 	"offline",
+	"waiting",
 }
 
 var runningStatusRevMap = map[string]RunningStatus{
@@ -38,6 +39,7 @@ var runningStatusRevMap = map[string]RunningStatus{
 	"backend_error": BackendError,
 	"agent_error":   AgentError,
 	"offline":       Offline,
+	"waiting":       Waiting,
 }
 
 type State struct {

@@ -2,10 +2,12 @@ package otel
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/go-cmd/cmd"
 	"github.com/orb-community/orb/agent/policies"
 	"go.uber.org/zap"
+	"gopkg.in/yaml.v3"
 	"os"
 )
 
@@ -20,8 +22,12 @@ type runningPolicy struct {
 }
 
 func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, updatePolicy bool) error {
-	policyData := newPolicyData.Data.(string)
-	err := o.ValidatePolicy(policyData)
+	policyYaml, err := yaml.Marshal(newPolicyData.Data)
+	if err != nil {
+		o.logger.Warn("yaml policy marshal failure", zap.String("policy_id", newPolicyData.ID), zap.Any("policy", newPolicyData.Data))
+		return err
+	}
+	err = o.ValidatePolicy(string(policyYaml))
 	if err != nil {
 		return err
 	}
@@ -31,9 +37,10 @@ func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, up
 			o.logger.Error("failed to create temporary file", zap.Error(err), zap.String("policy_id", newPolicyData.ID))
 			return err
 		}
-		_, err = temporaryFile.Write([]byte(policyData))
+		o.logger.Debug("writing policy to temporary file", zap.String("policy_id", newPolicyData.ID), zap.String("policyData", string(policyYaml)))
+		_, err = temporaryFile.Write(policyYaml)
 		if err != nil {
-			o.logger.Error("failed to write temporary file", zap.Error(err), zap.String("policy_id", newPolicyData.ID), zap.Any("policyData", newPolicyData.Data))
+			o.logger.Error("failed to write temporary file", zap.Error(err), zap.String("policy_id", newPolicyData.ID))
 			return err
 		}
 		err = o.addRunner(newPolicyData, temporaryFile.Name())
@@ -50,7 +57,7 @@ func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, up
 			o.logger.Info("new policy version received, updating",
 				zap.String("policy_id", newPolicyData.ID),
 				zap.Int32("version", newPolicyData.Version))
-			err := os.WriteFile(currentPolicyPath, []byte(policyData), os.ModeTemporary)
+			err := os.WriteFile(currentPolicyPath, []byte(policyYaml), os.ModeTemporary)
 			if err != nil {
 				return err
 			}
@@ -142,6 +149,9 @@ func (o *openTelemetryBackend) RemovePolicy(data policies.PolicyData) error {
 	return nil
 }
 
-func (o *openTelemetryBackend) ValidatePolicy(_ string) error {
+func (o *openTelemetryBackend) ValidatePolicy(policyData string) error {
+	if policyData == "" {
+		return errors.New("policy data is empty")
+	}
 	return nil
 }

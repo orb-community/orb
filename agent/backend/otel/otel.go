@@ -8,6 +8,8 @@ import (
 	"github.com/go-cmd/cmd"
 	"github.com/orb-community/orb/agent/backend"
 	"github.com/orb-community/orb/agent/config"
+	"github.com/orb-community/orb/agent/otel"
+	"github.com/orb-community/orb/agent/otel/otlpmqttexporter"
 	"github.com/orb-community/orb/agent/policies"
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/receiver"
@@ -149,6 +151,8 @@ func (o *openTelemetryBackend) Start(ctx context.Context, cancelFunc context.Can
 		o.logger.Info("policy applied successfully", zap.String("policy_id", policyData.ID))
 	}
 
+	o.receiveOtlp()
+
 	return nil
 }
 
@@ -198,4 +202,30 @@ func (o *openTelemetryBackend) GetRunningStatus() (backend.RunningStatus, string
 		return backend.Running, fmt.Sprintf("opentelemetry backend running with %d policies", amountCollectors), nil
 	}
 	return backend.Waiting, "opentelemetry backend is waiting for policy to come to start running", nil
+}
+
+func (o *openTelemetryBackend) createOtlpMqttExporter(ctx context.Context, cancelFunc context.CancelFunc) (exporter.Metrics, error) {
+
+	bridgeService := otel.NewBridgeService(ctx, cancelFunc, &o.policyRepo, o.agentTags)
+	if o.mqttClient != nil {
+		cfg := otlpmqttexporter.CreateConfigClient(o.mqttClient, o.otlpMetricsTopic, "", bridgeService)
+		set := otlpmqttexporter.CreateDefaultSettings(o.logger)
+		// Create the OTLP metrics metricsExporter that'll receive and verify the metrics produced.
+		metricsExporter, err := otlpmqttexporter.CreateMetricsExporter(ctx, set, cfg)
+		if err != nil {
+			return nil, err
+		}
+		return metricsExporter, nil
+	} else {
+		cfg := otlpmqttexporter.CreateConfig(o.mqttConfig.Address, o.mqttConfig.Id, o.mqttConfig.Key,
+			o.mqttConfig.ChannelID, "", o.otlpMetricsTopic, bridgeService)
+		set := otlpmqttexporter.CreateDefaultSettings(o.logger)
+		// Create the OTLP metrics exporter that'll receive and verify the metrics produced.
+		metricsExporter, err := otlpmqttexporter.CreateMetricsExporter(ctx, set, cfg)
+		if err != nil {
+			return nil, err
+		}
+		return metricsExporter, nil
+	}
+
 }
