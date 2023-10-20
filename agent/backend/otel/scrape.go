@@ -37,15 +37,14 @@ func (o *openTelemetryBackend) receiveOtlp() {
 						LogsURLPath:    "logs",
 					},
 				}
-				noopFunc := func(*component.StatusEvent) error {
-					return nil
-				}
 				set := receiver.CreateSettings{
 					TelemetrySettings: component.TelemetrySettings{
-						Logger:                o.logger,
-						TracerProvider:        trace.NewNoopTracerProvider(),
-						MeterProvider:         metric.NewMeterProvider(),
-						ReportComponentStatus: noopFunc,
+						Logger:         o.logger,
+						TracerProvider: trace.NewNoopTracerProvider(),
+						MeterProvider:  metric.NewMeterProvider(),
+						ReportComponentStatus: func(*component.StatusEvent) error {
+							return nil
+						},
 					},
 					BuildInfo: component.NewDefaultBuildInfo(),
 				}
