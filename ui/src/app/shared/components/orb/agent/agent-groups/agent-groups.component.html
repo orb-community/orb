@@ -1,7 +1,7 @@
 <nb-card>
   <nb-card-header>Active Groups</nb-card-header>
   <nb-card-body>
-    <span class="error-accent" *ngIf="errors?.nogroup">{{ errors.nogroup }}</span>
+    <span class="summary-accent" *ngIf="errors?.nogroup">{{ errors.nogroup }}</span>
 
     <ng-container *ngFor="let group of groups; last as isLast" >
       <button class='agent-group-button'
