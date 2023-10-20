@@ -2,13 +2,11 @@ package otel
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/go-cmd/cmd"
 	"github.com/orb-community/orb/agent/policies"
 	"go.uber.org/zap"
 	"os"
-	"strings"
 )
 
 const tempFileNamePattern = "otel-%s-config.yml"
@@ -151,10 +149,6 @@ func (o *openTelemetryBackend) RemovePolicy(data policies.PolicyData) error {
 	return nil
 }
 
-func (o *openTelemetryBackend) ValidatePolicy(policyData string) error {
-	if !strings.Contains(policyData, "      exporters: \n        - otlphttp") {
-		return errors.New("this policy is not supported by the agent, please use the template exporter section")
-	}
-
+func (o *openTelemetryBackend) ValidatePolicy(_ string) error {
 	return nil
 }
