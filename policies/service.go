@@ -2,6 +2,7 @@ package policies
 
 import (
 	"context"
+	"github.com/orb-community/orb/policies/backend/otel"
 	"time"
 
 	"github.com/mainflux/mainflux"
@@ -51,6 +52,7 @@ func (s policiesService) identify(token string) (string, error) {
 func New(logger *zap.Logger, auth mainflux.AuthServiceClient, repo Repository, fleetGrpcClient fleetpb.FleetServiceClient, sinksGrpcclient sinkpb.SinkServiceClient) Service {
 
 	orb.Register()
+	otel.Register()
 	pktvisor.Register()
 	diode.Register()
 
