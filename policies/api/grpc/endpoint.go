@@ -28,6 +28,7 @@ func retrievePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 		}
 		var data []byte
 		// TODO This can cause error in agent side if the policy is sent in yaml but not for otel backend
+		// TODO Since we plan to move everything to yaml, we should remove the backend check in the future
 		if policy.Format == "yaml" && policy.Backend == "otel" {
 			data = []byte(policy.PolicyData)
 		} else {
