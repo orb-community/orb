@@ -13,6 +13,7 @@ import (
 	"encoding/json"
 	"github.com/go-kit/kit/endpoint"
 	"github.com/orb-community/orb/policies"
+	"gopkg.in/yaml.v3"
 )
 
 func retrievePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
@@ -45,12 +46,12 @@ func extractData(policy policies.Policy) (data []byte, err error) {
 	// TODO This can cause error in agent side if the policy is sent in yaml but not for otel backend
 	// TODO Since we plan to move everything to yaml, we should remove the backend check in the future
 	if policy.Format == "yaml" && policy.Backend == "otel" {
-		data = []byte(policy.PolicyData)
+		data, err = yaml.Marshal(policy.Policy)
 	} else {
 		data, err = json.Marshal(policy.Policy)
-		if err != nil {
-			return nil, err
-		}
+	}
+	if err != nil {
+		return nil, err
 	}
 	return data, nil
 }
