@@ -79,7 +79,7 @@ func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, up
 
 func (o *openTelemetryBackend) addRunner(policyData policies.PolicyData, policyFilePath string) error {
 	policyContext, policyCancel := context.WithCancel(context.WithValue(o.mainContext, "policy_id", policyData.ID))
-	command := cmd.NewCmd(o.otelExecutablePath, "--config", policyFilePath)
+	command := cmd.NewCmdOptions(cmd.Options{Buffered: false, Streaming: true}, o.otelExecutablePath, "--config", policyFilePath)
 	go func(ctx context.Context, logger *zap.Logger) {
 		status := command.Start()
 		o.logger.Info("starting otel policy", zap.String("policy_id", policyData.ID),
@@ -95,7 +95,7 @@ func (o *openTelemetryBackend) addRunner(policyData policies.PolicyData, policyF
 			case line := <-command.Stdout:
 				logger.Info("otel stdout", zap.String("policy_id", policyData.ID), zap.String("line", line))
 			case line := <-command.Stderr:
-				logger.Error("otel stderr", zap.String("policy_id", policyData.ID), zap.String("line", line))
+				logger.Warn("otel stderr", zap.String("policy_id", policyData.ID), zap.String("line", line))
 			case finalStatus := <-status:
 				logger.Info("otel finished", zap.String("policy_id", policyData.ID), zap.Any("status", finalStatus))
 			}
