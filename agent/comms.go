@@ -45,19 +45,20 @@ func (a *orbAgent) connect(ctx context.Context, config config.MQTTConfig) (mqtt.
 				default:
 					for name, be := range a.backends {
 						backendStatus, s, _ := be.GetRunningStatus()
-						if backend.Running != backendStatus {
+						switch backendStatus {
+						case backend.Running:
+							ok = true
+							a.requestReconnection(ctx, client, config)
+							return
+						case backend.Waiting:
+							ok = true
+							a.requestReconnection(ctx, client, config)
+							return
+						default:
 							a.logger.Info("waiting until a backend is in running state", zap.String("backend", name),
 								zap.String("current state", s), zap.String("wait time", (time.Duration(i)*time.Second).String()))
 							time.Sleep(time.Duration(i) * time.Second)
 							continue
-						} else if backend.Waiting == backendStatus {
-							// for otel backend, it is correct to assume that the process is waiting
-							ok = true
-						} else {
-							// connection problem, should request from control place
-							ok = true
-							a.requestReconnection(ctx, client, config)
-							return
 						}
 					}
 				}

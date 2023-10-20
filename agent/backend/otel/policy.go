@@ -20,7 +20,8 @@ type runningPolicy struct {
 }
 
 func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, updatePolicy bool) error {
-	err := o.ValidatePolicy(newPolicyData.Data.(string))
+	policyData := newPolicyData.Data.(string)
+	err := o.ValidatePolicy(policyData)
 	if err != nil {
 		return err
 	}
@@ -30,9 +31,9 @@ func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, up
 			o.logger.Error("failed to create temporary file", zap.Error(err), zap.String("policy_id", newPolicyData.ID))
 			return err
 		}
-		_, err = temporaryFile.Write([]byte(newPolicyData.Data.(string)))
+		_, err = temporaryFile.Write([]byte(policyData))
 		if err != nil {
-			o.logger.Error("failed to write temporary file", zap.Error(err), zap.String("policy_id", newPolicyData.ID), zap.String("policyData", newPolicyData.Data.(string)))
+			o.logger.Error("failed to write temporary file", zap.Error(err), zap.String("policy_id", newPolicyData.ID), zap.Any("policyData", newPolicyData.Data))
 			return err
 		}
 		err = o.addRunner(newPolicyData, temporaryFile.Name())
@@ -45,12 +46,11 @@ func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, up
 			return err
 		}
 		if currentPolicyData.Version <= newPolicyData.Version {
-			dataAsByte := []byte(newPolicyData.Data.(string))
 			currentPolicyPath := o.policyConfigDirectory + fmt.Sprintf(tempFileNamePattern, currentPolicyData.ID)
 			o.logger.Info("new policy version received, updating",
 				zap.String("policy_id", newPolicyData.ID),
 				zap.Int32("version", newPolicyData.Version))
-			err := os.WriteFile(currentPolicyPath, dataAsByte, os.ModeTemporary)
+			err := os.WriteFile(currentPolicyPath, []byte(policyData), os.ModeTemporary)
 			if err != nil {
 				return err
 			}
