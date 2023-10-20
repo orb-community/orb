@@ -35,7 +35,12 @@ nb-card {
     span {
       text-align: end;
     }
-
+    p {
+      margin-top: 1rem;
+      margin-bottom: 1rem;
+      font-family: Open Sans, sans-serif !important;
+      color: #969fb9 !important;
+    }
     .active-dataset {
       list-style-type: none;
       margin: 0;
