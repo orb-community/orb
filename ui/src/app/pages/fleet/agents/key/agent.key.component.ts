@@ -18,12 +18,11 @@ export class AgentKeyComponent implements OnInit {
   fileConfigCommandShow: string;
 
   copyCommandIcon: string;
+  copyCommandIcon2: string;
 
   key2copy: string;
   copyKeyIcon: string;
   saveKeyIcon: string;
-  hideCommand: boolean;
-  hideCommand2: boolean;
 
   @Input() agent: Agent = {};
 
@@ -32,14 +31,14 @@ export class AgentKeyComponent implements OnInit {
     protected route: ActivatedRoute,
     protected router: Router,
   ) {
-    this.hideCommand = false;
-    this.hideCommand2 = false;
+
   }
 
   ngOnInit(): void {
     this.makeCommand2Copy();
     this.key2copy = this.agent.key;
     this.copyCommandIcon = 'copy-outline';
+    this.copyCommandIcon2 = 'copy-outline';
     this.copyKeyIcon = 'copy-outline';
     this.saveKeyIcon = 'save-outline';
   }
@@ -91,6 +90,11 @@ orbcommunity/orb-agent run -c /usr/local/orb/agent.yaml`;
       setTimeout(() => {
         this.copyCommandIcon = 'copy-outline';
       }, 2000);
+    } else if (target === 'command2') {
+      this.copyCommandIcon2 = 'checkmark-outline';
+      setTimeout(() => {
+        this.copyCommandIcon2 = 'copy-outline';
+      }, 2000);
     }
   }
 
@@ -117,10 +121,5 @@ orbcommunity/orb-agent run -c /usr/local/orb/agent.yaml`;
     }
 
   }
-  toggleProvisioningCommand() {
-    this.hideCommand = !this.hideCommand;
-  }
-  toggleProvisioningCommand2() {
-    this.hideCommand2 = !this.hideCommand2;
-  }
+
 }
