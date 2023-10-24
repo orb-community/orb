@@ -80,13 +80,19 @@ func (o *openTelemetryBackend) Configure(logger *zap.Logger, repo policies.Polic
 	if agentTags, ok := otelConfig["agent_tags"]; ok {
 		o.agentTags = agentTags.(map[string]string)
 	}
-	for k, v := range otelConfig {
-		switch k {
-		case "Host":
-			o.otelReceiverHost = v.(string)
-		case "Port":
-			o.otelReceiverPort = v.(int)
-		}
+	// TODO design a better way to configure the Receiver
+	//for k, v := range otelConfig {
+	//	switch k {
+	//	case "Host":
+	//		o.otelReceiverHost = v.(string)
+	//	case "Port":
+	//		o.otelReceiverPort = v.(int)
+	//	}
+	//}
+	if o.otelReceiverPort == 0 {
+		// TODO use default values if not configured in YAML
+		o.otelReceiverHost = "localhost"
+		o.otelReceiverPort = 45317
 	}
 
 	return nil
