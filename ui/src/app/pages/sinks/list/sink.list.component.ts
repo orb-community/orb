@@ -180,9 +180,10 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
       {
         name: '',
         prop: 'checkbox',
-        width: 1,
+        width: 62,
         minWidth: 62,
-        canAutoResize: true,
+        canAutoResize: false,
+        resizeable: false,
         sortable: false,
         cellTemplate: this.checkboxTemplateCell,
         headerTemplate: this.checkboxTemplateHeader,
@@ -192,7 +193,7 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
         name: 'Name',
         canAutoResize: true,
         resizeable: true,
-        width: 220,
+        width: 250,
         minWidth: 150,
         cellTemplate: this.sinkNameTemplateCell,
       },
@@ -200,7 +201,7 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
         prop: 'state',
         name: 'Status',
         resizeable: true,
-        width: 150,
+        width: 160,
         cellTemplate: this.sinkStateTemplateCell,
       },
       {
@@ -208,7 +209,7 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
         name: 'Backend',
         resizeable: true,
         minWidth: 120,
-        width: 150,
+        width: 160,
         cellTemplate: this.sinkNameTemplateCell,
       },
       {
@@ -222,7 +223,7 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
       {
         prop: 'tags',
         name: 'Tags',
-        width: 350,
+        width: 370,
         resizeable: true,
         cellTemplate: this.sinkTagsTemplateCell,
         comparator: (a, b) =>
@@ -238,10 +239,10 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
       {
         name: '',
         prop: 'actions',
-        minWidth: 150,
+        minWidth: 140,
         resizeable: true,
         sortable: false,
-        width: 150,
+        width: 140,
         cellTemplate: this.actionsTemplateCell,
       },
     ];

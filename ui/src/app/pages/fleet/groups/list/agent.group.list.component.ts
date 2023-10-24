@@ -198,9 +198,10 @@ export class AgentGroupListComponent
       {
         name: '',
         prop: 'checkbox',
-        width: 1,
+        width: 62,
         minWidth: 62,
-        canAutoResize: true,
+        canAutoResize: false,
+        resizeable: false,
         sortable: false,
         cellTemplate: this.checkboxTemplateCell,
         headerTemplate: this.checkboxTemplateHeader,
@@ -235,7 +236,7 @@ export class AgentGroupListComponent
       },
       {
         prop: 'tags',
-        width: 450,
+        width: 460,
         canAutoResize: true,
         resizeable: true,
         cellTemplate: this.agentGroupTagsTemplateCell,

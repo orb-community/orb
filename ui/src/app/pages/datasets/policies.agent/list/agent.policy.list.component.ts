@@ -240,9 +240,10 @@ export class AgentPolicyListComponent
       {
         name: '',
         prop: 'checkbox',
-        width: 1,
+        width: 62,
         minWidth: 62,
-        canAutoResize: true,
+        canAutoResize: false,
+        resizeable: false,
         sortable: false,
         cellTemplate: this.checkboxTemplateCell,
         headerTemplate: this.checkboxTemplateHeader,
@@ -306,7 +307,7 @@ export class AgentPolicyListComponent
         },
         name: 'Last Modified',
         minWidth: 110,
-        width: 150,
+        width: 160,
         resizeable: true,
       },
       {
