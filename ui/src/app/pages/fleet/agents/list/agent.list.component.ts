@@ -226,16 +226,17 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
       {
         name: '',
         prop: 'checkbox',
-        width: 1,
+        width: 62,
         minWidth: 62,
-        canAutoResize: true,
+        canAutoResize: false,
+        resizeable: false,
         sortable: false,
         cellTemplate: this.checkboxTemplateCell,
         headerTemplate: this.checkboxTemplateHeader,
       },
       {
         prop: 'name',
-        width: 250,
+        width: 280,
         canAutoResize: true,
         minWidth: 150,
         name: 'Name',
@@ -244,7 +245,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
       },
       {
         prop: 'state',
-        width: 100,
+        width: 120,
         minWidth: 90,
         canAutoResize: true,
         name: 'Status',
@@ -253,7 +254,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
       },
       {
         prop: 'policy_agg_info',
-        width: 170,
+        width: 190,
         canAutoResize: true,
         minWidth: 150,
         name: 'Policies',
@@ -262,7 +263,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
       },
       {
         prop: 'combined_tags',
-        width: 300,
+        width: 340,
         canAutoResize: true,
         name: 'Tags',
         cellTemplate: this.agentTagsTemplateCell,
@@ -279,7 +280,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
       },
       {
         prop: 'version',
-        width: 200,
+        width: 210,
         minWidth: 150,
         canAutoResize: true,
         name: 'Version',
@@ -289,8 +290,8 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
       },
       {
         prop: 'ts_last_hb',
-        width: 150,
-        minWidth: 150,
+        width: 170,
+        minWidth: 160,
         canAutoResize: true,
         name: 'Last Activity',
         sortable: true,
@@ -300,8 +301,8 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
       {
         name: '',
         prop: 'actions',
-        width: 150,
-        minWidth: 150,
+        width: 145,
+        minWidth: 145,
         canAutoResize: true,
         sortable: false,
         cellTemplate: this.actionsTemplateCell,
