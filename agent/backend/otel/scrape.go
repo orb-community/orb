@@ -32,9 +32,9 @@ func (o *openTelemetryBackend) receiveOtlp() {
 						HTTPServerSettings: &confighttp.HTTPServerSettings{
 							Endpoint: o.otelReceiverHost + ":" + strconv.Itoa(o.otelReceiverPort),
 						},
-						TracesURLPath:  "traces",
-						MetricsURLPath: "metrics",
-						LogsURLPath:    "logs",
+						TracesURLPath:  "v1/traces",
+						MetricsURLPath: "v1/metrics",
+						LogsURLPath:    "v1/logs",
 					},
 				}
 				set := receiver.CreateSettings{
@@ -58,6 +58,8 @@ func (o *openTelemetryBackend) receiveOtlp() {
 					o.logger.Error("otel mqtt exporter startup error", zap.Error(err))
 					return
 				}
+				o.logger.Info("Started receiver for OTLP in orb-agent",
+					zap.String("host", o.otelReceiverHost), zap.Int("port", o.otelReceiverPort))
 				err = receiver.Start(exeCtx, nil)
 				if err != nil {
 					o.logger.Error("otel receiver startup error", zap.Error(err))

@@ -129,6 +129,7 @@ func (o *openTelemetryBackend) Start(ctx context.Context, cancelFunc context.Can
 	if err != nil {
 		o.otelExecutablePath = currentWd + "/otelcol-contrib"
 	}
+	o.receiveOtlp()
 	// apply sample policy - remove after POC
 	currentVersion, err := o.Version()
 	if err != nil {
@@ -150,8 +151,6 @@ func (o *openTelemetryBackend) Start(ctx context.Context, cancelFunc context.Can
 		}
 		o.logger.Info("policy applied successfully", zap.String("policy_id", policyData.ID))
 	}
-
-	o.receiveOtlp()
 
 	return nil
 }
