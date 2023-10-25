@@ -36,9 +36,6 @@ func (o *openTelemetryBackend) receiveOtlp() {
 						HTTPServerSettings: &confighttp.HTTPServerSettings{
 							Endpoint: o.otelReceiverHost + ":" + strconv.Itoa(o.otelReceiverPort),
 						},
-						TracesURLPath:  "v1/traces",
-						MetricsURLPath: "v1/metrics",
-						LogsURLPath:    "v1/logs",
 					},
 				}
 				set := receiver.CreateSettings{
