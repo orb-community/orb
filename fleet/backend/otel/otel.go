@@ -51,7 +51,7 @@ func (p otelBackend) Metadata() interface{} {
 }
 
 func (p otelBackend) MakeHandler(tracer opentracing.Tracer, opts []kithttp.ServerOption, r *bone.Mux) {
-	MakeDiodeHandler(tracer, p, opts, r)
+	MakeOtelHandler(tracer, p, opts, r)
 }
 
 // TODO remove handlers

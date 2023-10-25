@@ -13,19 +13,19 @@ import (
 	kithttp "github.com/go-kit/kit/transport/http"
 )
 
-func MakeDiodeHandler(tracer opentracing.Tracer, dio otelBackend, opts []kithttp.ServerOption, r *bone.Mux) {
+func MakeOtelHandler(tracer opentracing.Tracer, dio otelBackend, opts []kithttp.ServerOption, r *bone.Mux) {
 
-	r.Get("/agents/backends/diode/handlers", kithttp.NewServer(
+	r.Get("/agents/backends/otel/handlers", kithttp.NewServer(
 		kitot.TraceServer(tracer, "view_agent_backend_handler")(viewAgentBackendHandlerEndpoint(dio)),
 		decodeBackendView,
 		types.EncodeResponse,
 		opts...))
-	r.Get("/agents/backends/diode/inputs", kithttp.NewServer(
+	r.Get("/agents/backends/otel/inputs", kithttp.NewServer(
 		kitot.TraceServer(tracer, "view_agent_backend_input")(viewAgentBackendInputEndpoint(dio)),
 		decodeBackendView,
 		types.EncodeResponse,
 		opts...))
-	r.Get("/agents/backends/diode/taps", kithttp.NewServer(
+	r.Get("/agents/backends/otel/taps", kithttp.NewServer(
 		kitot.TraceServer(tracer, "view_agent_backend_taps")(viewAgentBackendTapsEndpoint(dio)),
 		decodeBackendView,
 		types.EncodeResponse,
