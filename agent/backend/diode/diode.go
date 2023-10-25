@@ -97,6 +97,10 @@ func (d *diodeBackend) GetStartTime() time.Time {
 	return d.startTime
 }
 
+func (d *diodeBackend) GetInitialState() backend.RunningStatus {
+	return backend.Unknown
+}
+
 func (d *diodeBackend) GetCapabilities() (map[string]interface{}, error) {
 	return make(map[string]interface{}), nil
 }

@@ -98,6 +98,10 @@ func (o *openTelemetryBackend) Configure(logger *zap.Logger, repo policies.Polic
 	return nil
 }
 
+func (o *openTelemetryBackend) GetInitialState() backend.RunningStatus {
+	return backend.Waiting
+}
+
 func (o *openTelemetryBackend) Version() (string, error) {
 	if o.otelCurrVersion != "" {
 		return o.otelCurrVersion, nil
@@ -135,17 +139,17 @@ func (o *openTelemetryBackend) Start(ctx context.Context, cancelFunc context.Can
 	if err != nil {
 		o.otelExecutablePath = currentWd + "/otelcol-contrib"
 	}
-	o.receiveOtlp()
-	// apply sample policy - remove after POC
 	currentVersion, err := o.Version()
 	if err != nil {
+		cancelFunc()
 		o.logger.Error("error during getting current version", zap.Error(err))
 		return err
 	}
+	o.receiveOtlp()
 	o.logger.Info("starting open-telemetry backend using version", zap.String("version", currentVersion))
 	policiesData, err := o.policyRepo.GetAll()
 	if err != nil {
-		defer cancelFunc()
+		cancelFunc()
 		o.logger.Error("failed to start otel backend, policies are absent")
 		return err
 	}

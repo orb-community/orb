@@ -21,6 +21,7 @@ func (o *openTelemetryBackend) receiveOtlp() {
 	go func() {
 		defer execCancelF()
 		count := 0
+		max := 20
 		for {
 			if o.mqttClient != nil {
 				exporter, err := o.createOtlpMqttExporter(exeCtx, execCancelF)
@@ -72,9 +73,9 @@ func (o *openTelemetryBackend) receiveOtlp() {
 				break
 			} else {
 				count++
-				o.logger.Info("waiting until mqtt client is connected try " + strconv.Itoa(count) + " from 10")
-				time.Sleep(time.Second * 3)
-				if count >= 10 {
+				o.logger.Info("waiting until mqtt client is connected try " + strconv.Itoa(count) + " from " + strconv.Itoa(max))
+				time.Sleep(time.Second * time.Duration(count))
+				if count >= max {
 					execCancelF()
 					o.mainCancelFunction()
 					break
@@ -88,6 +89,7 @@ func (o *openTelemetryBackend) receiveOtlp() {
 				o.mainCancelFunction()
 			case <-o.mainContext.Done():
 				o.logger.Info("stopped Orb OpenTelemetry agent collector")
+				o.mainCancelFunction()
 				return
 			}
 		}

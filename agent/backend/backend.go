@@ -65,6 +65,7 @@ type Backend interface {
 	GetStartTime() time.Time
 	GetCapabilities() (map[string]interface{}, error)
 	GetRunningStatus() (RunningStatus, string, error)
+	GetInitialState() RunningStatus
 
 	ApplyPolicy(data policies.PolicyData, updatePolicy bool) error
 	RemovePolicy(data policies.PolicyData) error

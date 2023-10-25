@@ -126,14 +126,19 @@ func (a *orbAgent) startBackends(agentCtx context.Context) error {
 		} else {
 			backendCtx = context.WithValue(backendCtx, "agent_id", "auto-provisioning-without-id")
 		}
-		if err := be.Start(context.WithCancel(backendCtx)); err != nil {
-			a.logger.Info("failed to start backend", zap.String("backend", name), zap.Error(err))
-			return err
-		}
 		a.backends[name] = be
 		a.backendState[name] = &backend.State{
-			Status:        backend.Unknown,
+			Status:        be.GetInitialState(),
 			LastRestartTS: time.Now(),
+		}
+		if err := be.Start(context.WithCancel(backendCtx)); err != nil {
+			a.logger.Info("failed to start backend", zap.String("backend", name), zap.Error(err))
+			a.backendState[name] = &backend.State{
+				Status:        backend.Unknown,
+				LastError:     err.Error(),
+				LastRestartTS: time.Now(),
+			}
+			return err
 		}
 	}
 	return nil
@@ -158,10 +163,6 @@ func (a *orbAgent) Start(ctx context.Context, cancelFunc context.CancelFunc) err
 		mqtt.DEBUG = &agentLoggerDebug{a: a}
 	}
 
-	if err := a.startBackends(ctx); err != nil {
-		return err
-	}
-
 	ccm, err := cloud_config.New(a.logger, a.config, a.db)
 	if err != nil {
 		return err
@@ -174,6 +175,10 @@ func (a *orbAgent) Start(ctx context.Context, cancelFunc context.CancelFunc) err
 	commsCtx := context.WithValue(agentCtx, "routine", "comms")
 	if err := a.startComms(commsCtx, cloudConfig); err != nil {
 		a.logger.Error("could not start mqtt client")
+		return err
+	}
+
+	if err := a.startBackends(ctx); err != nil {
 		return err
 	}
 

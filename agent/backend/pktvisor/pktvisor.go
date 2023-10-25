@@ -102,6 +102,10 @@ func (p *pktvisorBackend) GetStartTime() time.Time {
 	return p.startTime
 }
 
+func (p *pktvisorBackend) GetInitialState() backend.RunningStatus {
+	return backend.Unknown
+}
+
 func (p *pktvisorBackend) SetCommsClient(agentID string, client *mqtt.Client, baseTopic string) {
 	p.mqttClient = client
 	metricsTopic := strings.Replace(baseTopic, "?", "be", 1)

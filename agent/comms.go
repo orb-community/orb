@@ -152,6 +152,7 @@ func (a *orbAgent) removeDatasetFromPolicy(datasetID string, policyID string) {
 func (a *orbAgent) startComms(ctx context.Context, config config.MQTTConfig) error {
 
 	var err error
+	a.logger.Debug("starting mqtt connection")
 	if a.client == nil || !a.client.IsConnected() {
 		a.client, err = a.connect(ctx, config)
 		if err != nil {
