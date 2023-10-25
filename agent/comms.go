@@ -45,6 +45,7 @@ func (a *orbAgent) connect(ctx context.Context, config config.MQTTConfig) (mqtt.
 				default:
 					for name, be := range a.backends {
 						backendStatus, s, _ := be.GetRunningStatus()
+						a.logger.Debug("backend in status", zap.String("backend", name), zap.String("status", s))
 						switch backendStatus {
 						case backend.Running:
 							ok = true
