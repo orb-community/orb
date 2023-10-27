@@ -160,7 +160,7 @@ export class FilterComponent implements OnInit {
     }
   }
   addFilterClick(param: any) {
-    if (this.selectedFiltersParams.length === 1 && this.selectedFiltersParams[0] === param) {
+    if (this.selectedFiltersParams.find(f => f === param)) {
 
     } else if (this.selectedFiltersParams.length >= 1) {
       this.filter.findAndRemove(this.selectedFiltersParams, this.currentFilter.name);
@@ -176,7 +176,9 @@ export class FilterComponent implements OnInit {
   }
   applyFilter(event: any, param: any) {
     if (event.target.type !== 'checkbox') {
-      this.filter.addFilter({ ...this.currentFilter, param: param });
+      if (this.filter.findFilter(param, this.currentFilter.name) === -1) {
+        this.filter.addFilter({ ...this.currentFilter, param: param });
+      } 
       this.currentFilter = null;
     }
   }
