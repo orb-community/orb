@@ -93,7 +93,7 @@ export class AgentPolicyListComponent
 
   policyContextMenu = [
     {icon: 'search-outline', action: 'openview'},
-    {icon:'edit-outline', action: 'openview'},
+    {icon: 'edit-outline', action: 'openview'},
     {icon: 'copy-outline', action: 'openduplicate'},
     {icon: 'trash-outline', action: 'opendelete'},
   ];
@@ -134,6 +134,7 @@ export class AgentPolicyListComponent
       {
         name: 'Tags',
         prop: 'tags',
+        autoSuggestion: orb.getPolicyTags(),
         filter: filterTags,
         type: FilterTypes.AutoComplete,
       },
@@ -165,25 +166,25 @@ export class AgentPolicyListComponent
     );
   }
 
-  onTableContextMenu(event) {
+  onTableContextMenuComponent(event) {
     event.event.preventDefault();
     event.event.stopPropagation();
     if (event.type === 'body') {
       this.contextMenuRow = {
         objectType: 'policy',
-        ...event.content
-      }
+        ...event.content,
+      };
       this.menuPositionLeft = event.event.clientX;
       this.menuPositionTop = event.event.clientY;
       this.showContextMenu = true;
-    } 
+    }
   }
   handleContextClick() {
     if (this.showContextMenu) {
       this.showContextMenu = false;
     }
   }
-  
+
   onOpenDuplicatePolicy(agentPolicy: any) {
     const policy = agentPolicy.name;
     this.dialogService

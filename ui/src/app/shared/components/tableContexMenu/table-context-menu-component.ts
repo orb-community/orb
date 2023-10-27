@@ -17,9 +17,9 @@ import { SinkDeleteComponent } from 'app/pages/sinks/delete/sink.delete.componen
 @Component({
   selector: 'ngx-table-context-menu',
   templateUrl: './table-context-menu-component.html',
-  styleUrls: ['./table-context-menu-component.scss']
+  styleUrls: ['./table-context-menu-component.scss'],
 })
-export class TableContextMenu {
+export class TableContextMenuComponent {
 
   @Input()
   items: any[];
@@ -80,8 +80,7 @@ export class TableContextMenu {
           this.openGroupEdit();
         }
       });
-    }
-    else {
+    } else {
       this.router.navigate([`view/${id}`], {
         relativeTo: this.route,
       });
@@ -89,15 +88,15 @@ export class TableContextMenu {
   }
   openDelete() {
     const { objectType, name, id } = this.rowObject;
-  
+
     const deleteCallback = () => {
       this.notificationsService.success(
         `${objectType.charAt(0).toUpperCase() + objectType.slice(1)} successfully deleted`,
-        ''
+        '',
       );
       this.orb.refreshNow();
     };
-  
+
     if (objectType === 'agent') {
       this.dialogService
         .open(AgentDeleteComponent, {

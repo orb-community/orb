@@ -88,8 +88,12 @@ export class FilterService {
     }
   }
 
-  removeFilterByParam(param: string) {
-    this.removeFilter(this._filters.findIndex((f) => f.param === param && f.name === 'Name' && f));
+  findAndRemove(param: any, name: string) {
+    this.removeFilter(this._filters.findIndex((f) => f.param === param && f.name === name && f));
+  }
+
+  findFilter(param: any, name: string) {
+    return this._filters.findIndex((f) => f.param === param && f.name === name && f);
   }
 
   // make a decorator out of this?

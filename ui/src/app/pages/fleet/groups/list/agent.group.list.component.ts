@@ -17,6 +17,7 @@ import {
 
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import {
+  filterMultiSelect,
   FilterOption, filterString,
   filterTags,
   FilterTypes,
@@ -98,7 +99,7 @@ export class AgentGroupListComponent
 
   agentGroupContextMenu = [
     {icon: 'search-outline', action: 'openview'},
-    {icon:'edit-outline', action: 'openedit'},
+    {icon: 'edit-outline', action: 'openedit'},
     {icon: 'trash-outline', action: 'opendelete'},
   ];
 
@@ -154,25 +155,25 @@ export class AgentGroupListComponent
     );
   }
 
-  onTableContextMenu(event) {
+  onTableContextMenuComponent(event) {
     event.event.preventDefault();
     event.event.stopPropagation();
     if (event.type === 'body') {
       this.contextMenuRow = {
         objectType: 'group',
-        ...event.content
-      }
+        ...event.content,
+      };
       this.menuPositionLeft = event.event.clientX;
       this.menuPositionTop = event.event.clientY;
       this.showContextMenu = true;
-    } 
+    }
   }
   handleContextClick() {
     if (this.showContextMenu) {
       this.showContextMenu = false;
     }
   }
-  
+
   ngOnDestroy(): void {
     if (this.groupsSubscription) {
       this.groupsSubscription.unsubscribe();

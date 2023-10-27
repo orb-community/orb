@@ -101,7 +101,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
 
   agentContextMenu = [
     {icon: 'search-outline', action: 'openview'},
-    {icon:'edit-outline', action: 'openview'},
+    {icon: 'edit-outline', action: 'openview'},
     {icon: 'trash-outline', action: 'opendelete'},
   ];
   constructor(
@@ -172,6 +172,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
         prop: 'version',
         filter: filterString,
         type: FilterTypes.Input,
+        autoSuggestion: orb.getAgentsVersions(),
       },
     ];
 
@@ -202,18 +203,18 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
     }
   }
 
-  onTableContextMenu(event) {
+  onTableContextMenuComponent(event) {
     event.event.preventDefault();
     event.event.stopPropagation();
     if (event.type === 'body') {
       this.contextMenuRow = {
         objectType: 'agent',
-        ...event.content
-      }
+        ...event.content,
+      };
       this.menuPositionLeft = event.event.clientX;
       this.menuPositionTop = event.event.clientY;
       this.showContextMenu = true;
-    } 
+    }
   }
   handleContextClick() {
     if (this.showContextMenu) {
