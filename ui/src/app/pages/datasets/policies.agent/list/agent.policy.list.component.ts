@@ -166,7 +166,7 @@ export class AgentPolicyListComponent
     );
   }
 
-  onTableContextMenuComponent(event) {
+  onTableContextMenu(event) {
     event.event.preventDefault();
     event.event.stopPropagation();
     if (event.type === 'body') {

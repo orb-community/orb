@@ -203,7 +203,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
     }
   }
 
-  onTableContextMenuComponent(event) {
+  onTableContextMenu(event) {
     event.event.preventDefault();
     event.event.stopPropagation();
     if (event.type === 'body') {
