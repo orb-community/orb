@@ -93,7 +93,7 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
 
   sinkContextMenu = [
     {icon: 'search-outline', action: 'openview'},
-    {icon:'edit-outline', action: 'openview'},
+    {icon: 'edit-outline', action: 'openview'},
     {icon: 'trash-outline', action: 'opendelete'},
   ];
 
@@ -254,12 +254,12 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
     if (event.type === 'body') {
       this.contextMenuRow = {
         objectType: 'sink',
-        ...event.content
-      }
+        ...event.content,
+      };
       this.menuPositionLeft = event.event.clientX;
       this.menuPositionTop = event.event.clientY;
       this.showContextMenu = true;
-    } 
+    }
   }
   handleContextClick() {
     if (this.showContextMenu) {

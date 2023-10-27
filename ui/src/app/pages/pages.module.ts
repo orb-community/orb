@@ -74,7 +74,7 @@ import { PagesComponent } from './pages.component';
 import { SinkViewComponent } from './sinks/view/sink.view.component';
 import { DeleteSelectedComponent } from 'app/shared/components/delete/delete.selected.component';
 import { PolicyDuplicateComponent } from './datasets/policies.agent/duplicate/agent.policy.duplicate.confirmation';
-import { TableContextMenu } from 'app/shared/components/tableContexMenu/table-context-menu-component';
+import { TableContextMenuComponent } from 'app/shared/components/tableContexMenu/table-context-menu-component';
 
 @NgModule({
   imports: [

@@ -1,4 +1,4 @@
-import { Component, HostListener, Input, OnInit } from '@angular/core';
+import { Component, ElementRef, HostListener, Input, OnInit, ViewChild } from '@angular/core';
 import { MatSelectChange } from '@angular/material/select';
 import {
   FilterOption,
@@ -7,7 +7,7 @@ import {
 } from 'app/common/interfaces/orb/filter-option';
 import { FilterService } from 'app/common/services/filter.service';
 import { Observable } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'ngx-filter',
@@ -20,11 +20,7 @@ export class FilterComponent implements OnInit {
 
   activeFilters$: Observable<FilterOption[]>;
 
-  type = FilterTypes;
-
   selectedFilter!: FilterOption | null;
-
-  filterParam: any;
 
   exact: boolean;
 
@@ -34,10 +30,49 @@ export class FilterComponent implements OnInit {
 
   loadedSearchText: string;
 
-  constructor(private filter: FilterService) {
+  filterType = '';
+
+  showMenu = false;
+
+  currentFilter: FilterOption | null = null;
+
+  filterText: string = '';
+
+  showOptions = true;
+
+  selectedFiltersParams: FilterOption[] = [];
+
+  @ViewChild('filterMenu') filterMenu: ElementRef;
+
+  constructor(
+    private filter: FilterService,
+    private elRef: ElementRef,
+    ) {
     this.exact = false;
     this.availableFilters = [];
     this.activeFilters$ = filter.getFilters().pipe(map((filters) => filters));
+  }
+
+  @HostListener('document:click', ['$event'])
+  handleOutsideClick(event: Event) {
+    const target = event.target as HTMLElement;
+    const parentId = (target.parentNode as HTMLElement).id;
+
+    if (!this.elRef.nativeElement.contains(event.target) && parentId !== 'filterMenu' && parentId !== 'remove-button') {
+      if (this.currentFilter) {
+        if (this.showOptions) {
+          this.showOptions = false;
+        } else {
+          this.currentFilter = null;
+          this.selectedFiltersParams = [];
+        }
+      }
+      if (this.showMenu) {
+        const icon = document.querySelector('.icon');
+        icon.classList.toggle('flipped');
+      }
+      this.showMenu = false;
+    }
   }
 
   ngOnInit() {
@@ -52,11 +87,11 @@ export class FilterComponent implements OnInit {
   }
   onSearchTextChange() {
     if (this.loadedSearchText) {
-      this.filter.removeFilterByParam(this.loadedSearchText);
+      this.filter.findAndRemove(this.loadedSearchText, 'Name');
       this.loadedSearchText = undefined;
     }
     if (this.lastSearchText !== '') {
-      this.filter.removeFilterByParam(this.lastSearchText);
+      this.filter.findAndRemove(this.lastSearchText, 'Name');
     }
     if (this.searchText !== '') {
       const filterOptions: FilterOption = {
@@ -69,21 +104,6 @@ export class FilterComponent implements OnInit {
       this.filter.addFilter(filterOptions);
     }
     this.lastSearchText = this.searchText;
-  }
-  addFilter(): void {
-    if (!this.selectedFilter) return;
-
-    this.filter.addFilter({ ...this.selectedFilter, param: this.filterParam });
-
-    this.selectedFilter = null;
-    this.filterParam = null;
-  }
-
-  @HostListener('window:keydown.enter', ['$event'])
-  handleKeyDown(event: KeyboardEvent) {
-    if (event.key === 'Enter' && this.filterParam) {
-      this.addFilter();
-    }
   }
 
   removeFilter(index: number) {
@@ -100,5 +120,85 @@ export class FilterComponent implements OnInit {
 
   toggleExactMatch() {
     this.selectedFilter.exact = !this.selectedFilter.exact;
+  }
+
+  onFilterClick() {
+    this.showMenu = !this.showMenu;
+    this.currentFilter = null;
+    this.selectedFiltersParams = [];
+    const icon = document.querySelector('.icon');
+    icon.classList.toggle('flipped');
+    this.showOptions = true;
+  }
+  handleFilterOptionClick(option: any) {
+    this.showMenu = false;
+    this.filterType = option.filter.name;
+    this.currentFilter = option;
+    const icon = document.querySelector('.icon');
+    icon.classList.toggle('flipped');
+  }
+  onCheckboxMultiSelect(event: Event, param: any) {
+    const checkbox = event.target as HTMLInputElement;
+    const isChecked = checkbox.checked;
+    const oldParamList = this.selectedFiltersParams;
+
+    if (isChecked) {
+      this.selectedFiltersParams.push(param);
+    } else {
+      this.selectedFiltersParams = this.selectedFiltersParams.filter((f) => f !== param);
+    }
+
+    this.filter.findAndRemove(oldParamList, this.currentFilter.name);
+    if (this.selectedFiltersParams.length > 0) {
+      this.filter.addFilter({ ...this.currentFilter, param: this.selectedFiltersParams });
+    }
+  }
+
+  handleClickMultiSelect(event: any, param: any) {
+    if (event.target.type !== 'checkbox') {
+      this.addFilterClick(param);
+    }
+  }
+  addFilterClick(param: any) {
+    if (this.selectedFiltersParams.length === 1 && this.selectedFiltersParams[0] === param) {
+
+    } else if (this.selectedFiltersParams.length >= 1) {
+      this.filter.findAndRemove(this.selectedFiltersParams, this.currentFilter.name);
+      this.selectedFiltersParams.push(param);
+      this.filter.addFilter({ ...this.currentFilter, param: this.selectedFiltersParams });
+    } else {
+      const params = [];
+      params.push(param);
+      this.filter.addFilter({ ...this.currentFilter, param: params });
+    }
+    this.currentFilter = null;
+    this.selectedFiltersParams = [];
+  }
+  applyFilter(event: any, param: any) {
+    if (event.target.type !== 'checkbox') {
+      this.filter.addFilter({ ...this.currentFilter, param: param });
+      this.currentFilter = null;
+    }
+  }
+  onCheckboxApply(event: Event, param: any) {
+    const checkbox = event.target as HTMLInputElement;
+    const isChecked = checkbox.checked;
+
+    if (isChecked) {
+      this.filter.addFilter({ ...this.currentFilter, param: param });
+    } else {
+      this.filter.findAndRemove(param, this.currentFilter.name);
+    }
+  }
+  onAddFilterButton(param: any) {
+    this.filter.addFilter({ ...this.currentFilter, param: param });
+    this.filterText = '';
+  }
+  isOptionSelected(option: any) {
+    return this.activeFilters$.pipe(
+      map(filters => {
+        return filters.some(filter => filter.name === this.currentFilter.name && filter.param === option);
+      }),
+    );
   }
 }

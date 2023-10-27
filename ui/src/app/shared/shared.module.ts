@@ -66,7 +66,7 @@ import {EmptyInputDirective} from 'app/shared/directives/empty-input.directive';
 import { AgentBackendsComponent } from './components/orb/agent/agent-backends/agent-backends.component';
 import { SinkDetailsComponent } from './components/orb/sink/sink-details/sink-details.component';
 import { SinkConfigComponent } from './components/orb/sink/sink-config/sink-config.component';
-import { TableContextMenu } from './components/tableContexMenu/table-context-menu-component';
+import { TableContextMenuComponent } from './components/tableContexMenu/table-context-menu-component';
 import { JsonListPipe } from './pipes/list-json.pipe';
 
 @NgModule({
@@ -139,7 +139,7 @@ import { JsonListPipe } from './pipes/list-json.pipe';
     EmptyInputDirective,
     SinkDetailsComponent,
     SinkConfigComponent,
-    TableContextMenu,
+    TableContextMenuComponent,
   ],
   exports: [
     ThemeModule,
@@ -166,7 +166,7 @@ import { JsonListPipe } from './pipes/list-json.pipe';
     PolicyDetailsComponent,
     PolicyInterfaceComponent,
     PolicyDatasetsComponent,
-    TableContextMenu,
+    TableContextMenuComponent,
     GroupedAgentsComponent,
     PolicyGroupsComponent,
     PrettyYamlPipe,
