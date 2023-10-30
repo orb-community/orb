@@ -40,26 +40,40 @@
   >
     <nb-icon icon="plus-outline"></nb-icon>
   </button>
-  <div class="filter-menu" *ngIf="currentFilter?.options && showOptions">
+  <div class="filter-menu" *ngIf="filterType === 'selectSync' && showOptions">
     <div 
       *ngFor="let option of currentFilter?.options" 
       class="apply-filter-option"
       (click)="handleClickMultiSelect($event, option)"
     >
       <input type="checkbox" 
-        (click)="onCheckboxMultiSelect($event, option)"            
+        (click)="onCheckboxMultiSelect($event, option)"
+        [checked]="isOptionSelected(option) | async"             
       >
       <span>{{ option | titlecase }}</span>
     </div>
   </div>
-  <div class="filter-menu" *ngIf="!currentFilter?.options && showOptions">
+  <div class="filter-menu" *ngIf="filterType === 'selectAsync' && showOptions">
     <div 
       *ngFor="let option of currentFilter?.autoSuggestion | async" 
       class="apply-filter-option"
-      (click)="applyFilter($event, option)"
+      (click)="handleClickMultiSelect($event, option)"
+    >
+      <input type="checkbox" 
+        (click)="onCheckboxMultiSelect($event, option)"
+        [checked]="isOptionSelected(option) | async"             
+      >
+      <span>{{ option | titlecase }}</span>
+    </div>
+  </div>
+  <div class="filter-menu" *ngIf="filterType === 'input' && showOptions">
+    <div 
+      *ngFor="let option of currentFilter?.autoSuggestion | async" 
+      class="apply-filter-option"
+      (click)="handleClickInput($event, option)"
     > 
       <input type="checkbox" 
-        (click)="onCheckboxApply($event, option)"
+        (click)="onCheckboxInput($event, option)"
         [checked]="isOptionSelected(option) | async"            
       >
       <span>{{ option }}</span>
@@ -81,7 +95,7 @@
   <ng-container *ngFor="let filter of activeFilters$ | async; let index = index">
     <mat-chip *ngIf="filter.name !== 'Name'" class="filter-chip">
       {{ filter?.exact ? filter.name + ": '" + filter?.param + "'" : filter.name + ': ' + filter?.param }}
-      <button class="remove-tag-button" (click)="removeFilter(index)" nbButton shape="round" id="remove-button">
+      <button class="remove-tag-button" (click)="removeFilter(index, filter)" nbButton shape="round" id="remove-button">
         <i class="fa fa-window-close" style="color: #3089fc;">&nbsp;</i>
       </button>
     </mat-chip>

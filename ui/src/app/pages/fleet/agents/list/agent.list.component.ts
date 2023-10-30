@@ -56,6 +56,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
 
   private agentsSubscription: Subscription;
 
+  versions: string[];
 
   // templates
   @ViewChild('agentNameTemplateCell') agentNameTemplateCell: TemplateRef<any>;
@@ -118,6 +119,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
   ) {
     this.isResetting = false;
     this.selected = [];
+    this.versions = [];
     this.agents$ = this.orb.getAgentListView().pipe(
       map(agents => {
         return agents.map(agent => {
@@ -170,9 +172,10 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
       {
         name: 'Version',
         prop: 'version',
-        filter: filterString,
-        type: FilterTypes.Input,
+        filter: filterMultiSelect,
+        type: FilterTypes.MultiSelect,
         autoSuggestion: orb.getAgentsVersions(),
+        exact: false,
       },
     ];
 
