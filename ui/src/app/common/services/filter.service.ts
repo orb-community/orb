@@ -96,6 +96,11 @@ export class FilterService {
     return this._filters.findIndex((f) => f.param === param && f.name === name && f);
   }
 
+  getMultiAppliedParams(filterName: string) {
+    const filter = this._filters.find((f) => f.name === filterName);
+    return filter?.param ? filter.param : [];
+  }
+
   // make a decorator out of this?
   createFilteredList() {
     return (

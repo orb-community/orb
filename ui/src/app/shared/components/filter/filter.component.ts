@@ -32,6 +32,12 @@ export class FilterComponent implements OnInit {
 
   filterType = '';
 
+  FiltersTypes = {
+    selectAsync: 'selectAsync',
+    selectSync: 'selectSync',
+    input: 'input',
+  };
+
   showMenu = false;
 
   currentFilter: FilterOption | null = null;
@@ -40,7 +46,7 @@ export class FilterComponent implements OnInit {
 
   showOptions = true;
 
-  selectedFiltersParams: FilterOption[] = [];
+  selectedFilterParams = [];
 
   @ViewChild('filterMenu') filterMenu: ElementRef;
 
@@ -64,7 +70,8 @@ export class FilterComponent implements OnInit {
           this.showOptions = false;
         } else {
           this.currentFilter = null;
-          this.selectedFiltersParams = [];
+          this.selectedFilterParams = [];
+          this.filterText = '';
         }
       }
       if (this.showMenu) {
@@ -106,7 +113,10 @@ export class FilterComponent implements OnInit {
     this.lastSearchText = this.searchText;
   }
 
-  removeFilter(index: number) {
+  removeFilter(index: number, filter: any) {
+    if (filter.param === this.selectedFilterParams && filter.name === this.currentFilter?.name) {
+      this.selectedFilterParams = [];
+    }
     this.filter.removeFilter(index);
   }
 
@@ -125,64 +135,72 @@ export class FilterComponent implements OnInit {
   onFilterClick() {
     this.showMenu = !this.showMenu;
     this.currentFilter = null;
-    this.selectedFiltersParams = [];
+    this.filterText = '';
+    this.selectedFilterParams = [];
     const icon = document.querySelector('.icon');
     icon.classList.toggle('flipped');
     this.showOptions = true;
   }
   handleFilterOptionClick(option: any) {
     this.showMenu = false;
-    this.filterType = option.filter.name;
     this.currentFilter = option;
     const icon = document.querySelector('.icon');
     icon.classList.toggle('flipped');
-  }
-  onCheckboxMultiSelect(event: Event, param: any) {
-    const checkbox = event.target as HTMLInputElement;
-    const isChecked = checkbox.checked;
-    const oldParamList = this.selectedFiltersParams;
 
-    if (isChecked) {
-      this.selectedFiltersParams.push(param);
+    const filterName = this.currentFilter.filter.name;
+    if (filterName === 'filterMultiSelect') {
+      this.selectedFilterParams = this.filter.getMultiAppliedParams(this.currentFilter.name);
+
+      if (this.currentFilter.autoSuggestion) {
+        this.filterType = this.FiltersTypes.selectAsync;
+      } else if (this.currentFilter.options) {
+        this.filterType = this.FiltersTypes.selectSync;
+      }
     } else {
-      this.selectedFiltersParams = this.selectedFiltersParams.filter((f) => f !== param);
-    }
-
-    this.filter.findAndRemove(oldParamList, this.currentFilter.name);
-    if (this.selectedFiltersParams.length > 0) {
-      this.filter.addFilter({ ...this.currentFilter, param: this.selectedFiltersParams });
+      this.filterType = this.FiltersTypes.input;
     }
   }
 
   handleClickMultiSelect(event: any, param: any) {
     if (event.target.type !== 'checkbox') {
-      this.addFilterClick(param);
+      if (!this.selectedFilterParams.find(f => f === param)) {
+        this.filter.findAndRemove(this.selectedFilterParams, this.currentFilter.name);
+        this.selectedFilterParams.push(param);
+        this.filter.addFilter({ ...this.currentFilter, param: this.selectedFilterParams });
+      }
+      this.currentFilter = null;
+      this.selectedFilterParams = [];
+      this.filterText = '';
     }
   }
-  addFilterClick(param: any) {
-    if (this.selectedFiltersParams.find(f => f === param)) {
 
-    } else if (this.selectedFiltersParams.length >= 1) {
-      this.filter.findAndRemove(this.selectedFiltersParams, this.currentFilter.name);
-      this.selectedFiltersParams.push(param);
-      this.filter.addFilter({ ...this.currentFilter, param: this.selectedFiltersParams });
+  onCheckboxMultiSelect(event: Event, param: any) {
+    const checkbox = event.target as HTMLInputElement;
+    const isChecked = checkbox.checked;
+    const oldParamList = this.selectedFilterParams;
+
+    if (isChecked) {
+      this.selectedFilterParams.push(param);
     } else {
-      const params = [];
-      params.push(param);
-      this.filter.addFilter({ ...this.currentFilter, param: params });
+      this.selectedFilterParams = this.selectedFilterParams.filter((f) => f !== param);
     }
-    this.currentFilter = null;
-    this.selectedFiltersParams = [];
+
+    this.filter.findAndRemove(oldParamList, this.currentFilter.name);
+    if (this.selectedFilterParams.length > 0) {
+      this.filter.addFilter({ ...this.currentFilter, param: this.selectedFilterParams });
+    }
   }
-  applyFilter(event: any, param: any) {
+
+  handleClickInput(event: any, param: any) {
     if (event.target.type !== 'checkbox') {
       if (this.filter.findFilter(param, this.currentFilter.name) === -1) {
         this.filter.addFilter({ ...this.currentFilter, param: param });
-      } 
+      }
       this.currentFilter = null;
+      this.filterText = '';
     }
   }
-  onCheckboxApply(event: Event, param: any) {
+  onCheckboxInput(event: Event, param: any) {
     const checkbox = event.target as HTMLInputElement;
     const isChecked = checkbox.checked;
 
@@ -193,14 +211,32 @@ export class FilterComponent implements OnInit {
     }
   }
   onAddFilterButton(param: any) {
-    this.filter.addFilter({ ...this.currentFilter, param: param });
+    if (this.filterType === this.FiltersTypes.selectAsync) {
+      if (this.selectedFilterParams.length > 0) {
+        this.filter.findAndRemove(this.selectedFilterParams, this.currentFilter.name);
+        this.selectedFilterParams.push(param);
+        this.filter.addFilter({ ...this.currentFilter, param: this.selectedFilterParams });
+      } else {
+        this.selectedFilterParams.push(param);
+        this.filter.addFilter({ ...this.currentFilter, param: this.selectedFilterParams });
+      }
+    } else {
+      this.filter.addFilter({ ...this.currentFilter, param: param });
+    }
     this.filterText = '';
   }
   isOptionSelected(option: any) {
     return this.activeFilters$.pipe(
       map(filters => {
-        return filters.some(filter => filter.name === this.currentFilter.name && filter.param === option);
+        return filters.some(filter => {
+          const isArray = Array.isArray(filter.param);
+          if (isArray) {
+            return filter.param.includes(option) && this.currentFilter.name === filter.name;
+          }
+          return filter.param === option && this.currentFilter.name === filter.name;
+        });
       }),
     );
   }
+
 }

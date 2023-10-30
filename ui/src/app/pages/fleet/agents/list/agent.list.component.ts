@@ -170,9 +170,10 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
       {
         name: 'Version',
         prop: 'version',
-        filter: filterString,
-        type: FilterTypes.Input,
+        filter: filterMultiSelect,
+        type: FilterTypes.MultiSelect,
         autoSuggestion: orb.getAgentsVersions(),
+        exact: false,
       },
     ];
 
