@@ -3,21 +3,21 @@ package otel
 import (
 	"context"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/confighttp"
+	"go.opentelemetry.io/collector/config/configgrpc"
+	"go.opentelemetry.io/collector/config/confignet"
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"strconv"
-	"sync"
 	"time"
 )
 
 func (o *openTelemetryBackend) receiveOtlp() {
 	exeCtx, execCancelF := context.WithCancel(o.mainContext)
-	var waitGrp sync.WaitGroup
-	waitGrp.Add(1)
+	//var waitGrp sync.WaitGroup
+	//waitGrp.Add(1)
 	go func() {
 		defer execCancelF()
 		count := 0
@@ -32,9 +32,10 @@ func (o *openTelemetryBackend) receiveOtlp() {
 				pFactory := otlpreceiver.NewFactory()
 				cfg := pFactory.CreateDefaultConfig()
 				cfg.(*otlpreceiver.Config).Protocols = otlpreceiver.Protocols{
-					HTTP: &otlpreceiver.HTTPConfig{
-						HTTPServerSettings: &confighttp.HTTPServerSettings{
-							Endpoint: o.otelReceiverHost + ":" + strconv.Itoa(o.otelReceiverPort),
+					GRPC: &configgrpc.GRPCServerSettings{
+						NetAddr: confignet.NetAddr{
+							Endpoint:  o.otelReceiverHost + ":" + strconv.Itoa(o.otelReceiverPort),
+							Transport: "tcp",
 						},
 					},
 				}
@@ -66,7 +67,7 @@ func (o *openTelemetryBackend) receiveOtlp() {
 					o.logger.Error("otel receiver startup error", zap.Error(err))
 					return
 				}
-				waitGrp.Done()
+				//waitGrp.Done()
 				break
 			} else {
 				count++
@@ -91,5 +92,5 @@ func (o *openTelemetryBackend) receiveOtlp() {
 			}
 		}
 	}()
-	waitGrp.Wait()
+	//waitGrp.Wait()
 }
