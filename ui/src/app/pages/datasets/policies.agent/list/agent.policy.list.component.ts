@@ -156,6 +156,7 @@ export class AgentPolicyListComponent
         filter: filterMultiSelect,
         type: FilterTypes.MultiSelect,
         options: Object.values(AgentPolicyUsage).map((value) => value as string),
+        exact: true,
       },
     ];
 

@@ -139,13 +139,6 @@ export class AgentGroupListComponent
         filter: filterString,
         type: FilterTypes.Input,
       },
-      // {
-      //   name: 'Status',
-      //   prop: 'state',
-      //   filter: filterMultiSelect,
-      //   type: FilterTypes.MultiSelect,
-      //   options: Object.values(AgentStates).map((value) => value as string),
-      // },
     ];
 
     this.filteredGroups$ = this.filters.createFilteredList()(

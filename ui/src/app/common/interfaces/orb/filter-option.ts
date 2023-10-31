@@ -5,6 +5,7 @@ export enum FilterTypes {
   AutoComplete,
   Select, // allows select one option
   MultiSelect, // allows select multi options
+  MultiSelectAsync, // allows select multi options | async
   Checkbox, // on|off option
   Number, // number input
 }

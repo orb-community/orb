@@ -30,13 +30,7 @@ export class FilterComponent implements OnInit {
 
   loadedSearchText: string;
 
-  filterType = '';
-
-  FiltersTypes = {
-    selectAsync: 'selectAsync',
-    selectSync: 'selectSync',
-    input: 'input',
-  };
+  optionsMenuType = '';
 
   showMenu = false;
 
@@ -147,18 +141,17 @@ export class FilterComponent implements OnInit {
     const icon = document.querySelector('.icon');
     icon.classList.toggle('flipped');
 
-    const filterName = this.currentFilter.filter.name;
-    if (filterName === 'filterMultiSelect') {
+    if (this.currentFilter.type === FilterTypes.MultiSelect) {
       this.selectedFilterParams = this.filter.getMultiAppliedParams(this.currentFilter.name);
-
-      if (this.currentFilter.autoSuggestion) {
-        this.filterType = this.FiltersTypes.selectAsync;
-      } else if (this.currentFilter.options) {
-        this.filterType = this.FiltersTypes.selectSync;
-      }
-    } else {
-      this.filterType = this.FiltersTypes.input;
+      this.optionsMenuType = 'multiselectsync';
     }
+    else if (this.currentFilter.type === FilterTypes.MultiSelectAsync) {
+      this.selectedFilterParams = this.filter.getMultiAppliedParams(this.currentFilter.name);
+      this.optionsMenuType = 'multiselectasync';
+    }
+    else {
+      this.optionsMenuType = 'input';
+    } 
   }
 
   handleClickMultiSelect(event: any, param: any) {
@@ -211,7 +204,7 @@ export class FilterComponent implements OnInit {
     }
   }
   onAddFilterButton(param: any) {
-    if (this.filterType === this.FiltersTypes.selectAsync) {
+    if (this.currentFilter.type === FilterTypes.MultiSelectAsync) {
       if (this.selectedFilterParams.length > 0) {
         this.filter.findAndRemove(this.selectedFilterParams, this.currentFilter.name);
         this.selectedFilterParams.push(param);
