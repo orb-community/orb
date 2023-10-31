@@ -89,7 +89,7 @@ func (o *openTelemetryBackend) Configure(logger *zap.Logger, repo policies.Polic
 	if o.otelReceiverPort == 0 {
 		// TODO use default values if not configured in YAML
 		o.otelReceiverHost = "0.0.0.0"
-		o.otelReceiverPort = 45317
+		o.otelReceiverPort = 4317
 	}
 
 	return nil
