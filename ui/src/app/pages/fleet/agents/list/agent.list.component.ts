@@ -159,6 +159,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
         filter: filterMultiSelect,
         type: FilterTypes.MultiSelect,
         options: Object.values(AgentStates).map((value) => value as string),
+        exact: true,
       },
       {
         name: 'Policies',
@@ -166,12 +167,13 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
         filter: filterMultiSelect,
         type: FilterTypes.MultiSelect,
         options: Object.values(AgentPolicyAggStates).map((value) => value as string),
+        exact: true,
       },
       {
         name: 'Version',
         prop: 'version',
         filter: filterMultiSelect,
-        type: FilterTypes.MultiSelect,
+        type: FilterTypes.MultiSelectAsync,
         autoSuggestion: orb.getAgentsVersions(),
         exact: false,
       },

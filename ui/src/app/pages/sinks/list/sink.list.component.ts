@@ -131,6 +131,7 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
         filter: filterMultiSelect,
         type: FilterTypes.MultiSelect,
         options: Object.values(SinkStates).map((value) => value as string),
+        exact: true,
       },
       {
         name: 'Backend',
@@ -138,6 +139,7 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
         filter: filterMultiSelect,
         type: FilterTypes.MultiSelect,
         options: Object.values(SinkBackends).map((value) => value as string),
+        exact: true,
       },
       {
         name: 'Description',

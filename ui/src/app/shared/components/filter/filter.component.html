@@ -40,7 +40,7 @@
   >
     <nb-icon icon="plus-outline"></nb-icon>
   </button>
-  <div class="filter-menu" *ngIf="filterType === 'selectSync' && showOptions">
+  <div class="filter-menu" *ngIf="optionsMenuType === 'multiselectsync' && showOptions">
     <div 
       *ngFor="let option of currentFilter?.options" 
       class="apply-filter-option"
@@ -53,7 +53,7 @@
       <span>{{ option | titlecase }}</span>
     </div>
   </div>
-  <div class="filter-menu" *ngIf="filterType === 'selectAsync' && showOptions">
+  <div class="filter-menu" *ngIf="optionsMenuType === 'multiselectasync' && showOptions">
     <div 
       *ngFor="let option of currentFilter?.autoSuggestion | async" 
       class="apply-filter-option"
@@ -66,7 +66,7 @@
       <span>{{ option | titlecase }}</span>
     </div>
   </div>
-  <div class="filter-menu" *ngIf="filterType === 'input' && showOptions">
+  <div class="filter-menu" *ngIf="optionsMenuType === 'input' && showOptions">
     <div 
       *ngFor="let option of currentFilter?.autoSuggestion | async" 
       class="apply-filter-option"
