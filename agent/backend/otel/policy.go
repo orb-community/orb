@@ -27,7 +27,14 @@ func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, up
 		o.logger.Warn("yaml policy marshal failure", zap.String("policy_id", newPolicyData.ID), zap.Any("policy", newPolicyData.Data))
 		return err
 	}
-	err = o.ValidatePolicy(string(policyYaml))
+	builder := getExporterBuilder(o.logger)
+	otelConfig, err := builder.GetStructFromYaml(string(policyYaml))
+	err = o.ValidatePolicy(otelConfig)
+	if err != nil {
+		return err
+	}
+	builder.MergeDefaultValueWithPolicy(otelConfig, newPolicyData.ID, newPolicyData.Name)
+	newPolicyYaml, err := yaml.Marshal(otelConfig)
 	if err != nil {
 		return err
 	}
@@ -38,7 +45,7 @@ func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, up
 			return err
 		}
 		o.logger.Debug("writing policy to temporary file", zap.String("policy_id", newPolicyData.ID), zap.String("policyData", string(policyYaml)))
-		_, err = temporaryFile.Write(policyYaml)
+		_, err = temporaryFile.Write(newPolicyYaml)
 		if err != nil {
 			o.logger.Error("failed to write temporary file", zap.Error(err), zap.String("policy_id", newPolicyData.ID))
 			return err
@@ -149,9 +156,15 @@ func (o *openTelemetryBackend) RemovePolicy(data policies.PolicyData) error {
 	return nil
 }
 
-func (o *openTelemetryBackend) ValidatePolicy(policyData string) error {
-	if policyData == "" {
-		return errors.New("policy data is empty")
+func (o *openTelemetryBackend) ValidatePolicy(otelConfig openTelemetryConfig) error {
+	if otelConfig.Service.Pipelines.Logs == nil &&
+		otelConfig.Service.Pipelines.Metrics == nil &&
+		otelConfig.Service.Pipelines.Traces == nil {
+		return errors.New("no pipelines defined")
 	}
+	if len(otelConfig.Receivers) == 0 {
+		return errors.New("no receivers defined")
+	}
+
 	return nil
 }
