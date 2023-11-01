@@ -74,6 +74,9 @@ func (e *exporterBuilder) MergeDefaultValueWithPolicy(config openTelemetryConfig
 	}
 	// Override any openTelemetry exporter that may come, to connect to agent's otlp receiver
 	config.Exporters = &exporters{&defaultOtlpExporter}
+	if config.Processors == nil {
+		config.Processors = make(map[string]interface{})
+	}
 	config.Processors["attributes/policy_data"] = map[string]interface{}{
 		"actions": []struct {
 			Key    string `yaml:"key"`
@@ -84,16 +87,19 @@ func (e *exporterBuilder) MergeDefaultValueWithPolicy(config openTelemetryConfig
 			{Key: "policy_name", Value: policyName, Action: "insert"},
 		},
 	}
-	// Override metrics exporter
-	config.Service.Pipelines.Metrics.Exporters = []string{"otlp"}
-	config.Service.Pipelines.Traces.Exporters = []string{"otlp"}
-	config.Service.Pipelines.Logs.Exporters = []string{"otlp"}
-
-	// Append attributes processor
-	config.Service.Pipelines.Metrics.Processors = append(config.Service.Pipelines.Metrics.Processors, "attributes/policy_data")
-	config.Service.Pipelines.Traces.Processors = append(config.Service.Pipelines.Traces.Processors, "attributes/policy_data")
-	config.Service.Pipelines.Logs.Processors = append(config.Service.Pipelines.Logs.Processors, "attributes/policy_data")
-
+	// Override metrics exporter and append attributes/policy_data processor
+	if config.Service.Pipelines.Metrics != nil {
+		config.Service.Pipelines.Metrics.Exporters = []string{"otlp"}
+		config.Service.Pipelines.Metrics.Processors = append(config.Service.Pipelines.Metrics.Processors, "attributes/policy_data")
+	}
+	if config.Service.Pipelines.Traces != nil {
+		config.Service.Pipelines.Traces.Exporters = []string{"otlp"}
+		config.Service.Pipelines.Traces.Processors = append(config.Service.Pipelines.Traces.Processors, "attributes/policy_data")
+	}
+	if config.Service.Pipelines.Logs != nil {
+		config.Service.Pipelines.Logs.Exporters = []string{"otlp"}
+		config.Service.Pipelines.Logs.Processors = append(config.Service.Pipelines.Logs.Processors, "attributes/policy_data")
+	}
 	return config, nil
 }
 
