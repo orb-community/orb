@@ -3,6 +3,7 @@ package otel
 import (
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
+	"strconv"
 )
 
 type ExporterBuilder interface {
@@ -12,14 +13,10 @@ type ExporterBuilder interface {
 
 type openTelemetryConfig struct {
 	Receivers  map[string]interface{} `yaml:"receivers"`
-	Processors map[string]interface{} `yaml:"processors"`
-	Extensions map[string]interface{} `yaml:"extensions"`
-	Exporters  *exporters             `yaml:"exporters"`
+	Processors map[string]interface{} `yaml:"processors,omitempty"`
+	Extensions map[string]interface{} `yaml:"extensions,omitempty"`
+	Exporters  map[string]interface{} `yaml:"exporters"`
 	Service    *service               `yaml:"service"`
-}
-
-type exporters struct {
-	Otlp *defaultOtlpExporter `yaml:"otlp"`
 }
 
 type defaultOtlpExporter struct {
@@ -36,23 +33,25 @@ type service struct {
 }
 
 type pipelines struct {
-	Metrics *pipeline `yaml:"metrics"`
-	Traces  *pipeline `yaml:"traces"`
-	Logs    *pipeline `yaml:"logs"`
+	Metrics *pipeline `yaml:"metrics,omitempty"`
+	Traces  *pipeline `yaml:"traces,omitempty"`
+	Logs    *pipeline `yaml:"logs,omitempty"`
 }
 
 type pipeline struct {
-	Exporters  []string `yaml:"exporters"`
-	Receivers  []string `yaml:"receivers"`
-	Processors []string `yaml:"processors"`
+	Exporters  []string `yaml:"exporters,omitempty"`
+	Receivers  []string `yaml:"receivers,omitempty"`
+	Processors []string `yaml:"processors,omitempty"`
 }
 
-func getExporterBuilder(logger *zap.Logger) *exporterBuilder {
-	return &exporterBuilder{logger: logger}
+func getExporterBuilder(logger *zap.Logger, host string, port int) *exporterBuilder {
+	return &exporterBuilder{logger: logger, host: host, port: port}
 }
 
 type exporterBuilder struct {
 	logger *zap.Logger
+	host   string
+	port   int
 }
 
 func (e *exporterBuilder) GetStructFromYaml(yamlString string) (openTelemetryConfig, error) {
@@ -66,39 +65,52 @@ func (e *exporterBuilder) GetStructFromYaml(yamlString string) (openTelemetryCon
 }
 
 func (e *exporterBuilder) MergeDefaultValueWithPolicy(config openTelemetryConfig, policyId string, policyName string) (openTelemetryConfig, error) {
+	endpoint := e.host + ":" + strconv.Itoa(e.port)
 	defaultOtlpExporter := defaultOtlpExporter{
-		Endpoint: "localhost:4317",
+		Endpoint: endpoint,
 		Tls: &tls{
 			Insecure: true,
 		},
 	}
+
+	//TODO remove after POC phase ends
+	defaultLoggingExporter := map[string]interface{}{
+		"verbosity":        "detailed",
+		"sampling_initial": 5,
+	}
+
 	// Override any openTelemetry exporter that may come, to connect to agent's otlp receiver
-	config.Exporters = &exporters{&defaultOtlpExporter}
+	config.Exporters = map[string]interface{}{
+		"otlp":    &defaultOtlpExporter,
+		"logging": defaultLoggingExporter,
+	}
 	if config.Processors == nil {
 		config.Processors = make(map[string]interface{})
 	}
-	config.Processors["attributes/policy_data"] = map[string]interface{}{
-		"actions": []struct {
-			Key    string `yaml:"key"`
-			Value  string `yaml:"value"`
-			Action string `yaml:"action"`
-		}{
-			{Key: "policy_id", Value: policyId, Action: "insert"},
-			{Key: "policy_name", Value: policyName, Action: "insert"},
+	config.Processors["transform/policy_data"] = map[string]interface{}{
+		"metric_statements": map[string]interface{}{
+			"context": "scope",
+			"statements": []string{
+				`set(attributes["policy_id"], "` + policyId + `")`,
+				`set(attributes["policy_name"], "` + policyName + `")`,
+			},
 		},
+	}
+	if config.Extensions == nil {
+		config.Extensions = make(map[string]interface{})
 	}
 	// Override metrics exporter and append attributes/policy_data processor
 	if config.Service.Pipelines.Metrics != nil {
 		config.Service.Pipelines.Metrics.Exporters = []string{"otlp"}
-		config.Service.Pipelines.Metrics.Processors = append(config.Service.Pipelines.Metrics.Processors, "attributes/policy_data")
+		config.Service.Pipelines.Metrics.Processors = append(config.Service.Pipelines.Metrics.Processors, "transform/policy_data")
 	}
 	if config.Service.Pipelines.Traces != nil {
 		config.Service.Pipelines.Traces.Exporters = []string{"otlp"}
-		config.Service.Pipelines.Traces.Processors = append(config.Service.Pipelines.Traces.Processors, "attributes/policy_data")
+		config.Service.Pipelines.Traces.Processors = append(config.Service.Pipelines.Traces.Processors, "transform/policy_data")
 	}
 	if config.Service.Pipelines.Logs != nil {
 		config.Service.Pipelines.Logs.Exporters = []string{"otlp"}
-		config.Service.Pipelines.Logs.Processors = append(config.Service.Pipelines.Logs.Processors, "attributes/policy_data")
+		config.Service.Pipelines.Logs.Processors = append(config.Service.Pipelines.Logs.Processors, "transform/policy_data")
 	}
 	return config, nil
 }
@@ -110,7 +122,7 @@ func (o *openTelemetryBackend) buildDefaultExporterAndProcessor(policyYaml strin
 		return openTelemetryConfig{}, err
 	}
 	defaultPolicyString := string(defaultPolicyYaml)
-	builder := getExporterBuilder(o.logger)
+	builder := getExporterBuilder(o.logger, o.otelReceiverHost, o.otelReceiverPort)
 	defaultPolicyStruct, err := builder.GetStructFromYaml(defaultPolicyString)
 	if err != nil {
 		return openTelemetryConfig{}, err

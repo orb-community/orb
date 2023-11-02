@@ -26,14 +26,15 @@ receivers:
         method: GET
       - endpoint: http://orb.community
         method: GET
-        headers:
-          test-header: "test-value"
-    collection_interval: 30s
+    collection_interval: 60s
 exporters:
   otlp:
-    endpoint: otelconsumer:45317
+    endpoint: localhost:4317
     tls:
       insecure: true
+  logging:
+    verbosity: detailed
+    sampling_initial: 5
 service:
   pipelines:
     metrics:
@@ -49,7 +50,7 @@ service:
 	for _, testCase := range testCases {
 		t.Run(testCase.caseName, func(t *testing.T) {
 			logger := zap.NewNop()
-			exporterBuilder := getExporterBuilder(logger)
+			exporterBuilder := getExporterBuilder(logger, "localhost", 4317)
 			gotOtelConfig, err := exporterBuilder.GetStructFromYaml(testCase.inputString)
 			if err != nil {
 				t.Errorf("failed to merge default value with policy: %v", err)
@@ -58,7 +59,7 @@ service:
 			if err != nil {
 				t.Errorf("failed to merge default value with policy: %v", err)
 			}
-			if _, ok := expectedStruct.Processors["attributes/policy_data"]; !ok {
+			if _, ok := expectedStruct.Processors["transform/policy_data"]; !ok {
 				t.Error("missing required attributes/policy_data processor", err)
 			}
 

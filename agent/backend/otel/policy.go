@@ -27,13 +27,16 @@ func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, up
 		o.logger.Warn("yaml policy marshal failure", zap.String("policy_id", newPolicyData.ID), zap.Any("policy", newPolicyData.Data))
 		return err
 	}
-	builder := getExporterBuilder(o.logger)
+	builder := getExporterBuilder(o.logger, o.otelReceiverHost, o.otelReceiverPort)
 	otelConfig, err := builder.GetStructFromYaml(string(policyYaml))
 	err = o.ValidatePolicy(otelConfig)
 	if err != nil {
 		return err
 	}
-	builder.MergeDefaultValueWithPolicy(otelConfig, newPolicyData.ID, newPolicyData.Name)
+	otelConfig, err = builder.MergeDefaultValueWithPolicy(otelConfig, newPolicyData.ID, newPolicyData.Name)
+	if err != nil {
+		return err
+	}
 	newPolicyYaml, err := yaml.Marshal(otelConfig)
 	if err != nil {
 		return err
