@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { MatSelectChange } from '@angular/material/select';
 import {
   FilterOption,
@@ -14,7 +14,7 @@ import { map } from 'rxjs/operators';
   templateUrl: './filter.component.html',
   styleUrls: ['./filter.component.scss'],
 })
-export class FilterComponent implements OnInit {
+export class FilterComponent implements OnInit, OnDestroy, AfterViewInit {
   @Input()
   availableFilters!: FilterOption[];
 
@@ -42,11 +42,24 @@ export class FilterComponent implements OnInit {
 
   selectedFilterParams = [];
 
-  @ViewChild('filterMenu') filterMenu: ElementRef;
+  boundryWidth = 0;
+
+  displayCursor = 'auto';
+
+  dragPosition = {x: 0, y: 0};
+
+  @ViewChild('filtersDisplay') filtersDisplay!: ElementRef;
+
+  @ViewChild('filterList') filterList!: ElementRef;
+
+  @ViewChild('filterMenu') filterMenu!: ElementRef;
+
+  private observer: MutationObserver | null = null;
 
   constructor(
     private filter: FilterService,
     private elRef: ElementRef,
+    private cdr: ChangeDetectorRef,
     ) {
     this.exact = false;
     this.availableFilters = [];
@@ -56,9 +69,9 @@ export class FilterComponent implements OnInit {
   @HostListener('document:click', ['$event'])
   handleOutsideClick(event: Event) {
     const target = event.target as HTMLElement;
-    const parentId = (target.parentNode as HTMLElement).id;
+    const parentId = (target?.parentNode as HTMLElement)?.id;
 
-    if (!this.elRef.nativeElement.contains(event.target) && parentId !== 'filterMenu' && parentId !== 'remove-button') {
+    if (!this.elRef.nativeElement.contains(event.target) && parentId !== 'filterMenu' && !target.closest('#remove-button')) {
       if (this.currentFilter) {
         if (this.showOptions) {
           this.showOptions = false;
@@ -84,6 +97,50 @@ export class FilterComponent implements OnInit {
       this.loadedSearchText = this.searchText;
     } else {
       this.searchText = '';
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.observer) {
+      this.observer.disconnect();
+      this.observer = null;
+    }
+  }
+  ngAfterViewInit() {
+    this.hasActiveFilters().subscribe(hasFilters => {
+      if (hasFilters) {
+        this.observeElementChanges();
+      }
+    });
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event: Event) {
+    this.calcBoundryWidth();
+  }
+
+  observeElementChanges() {
+    if (this.observer) {
+      this.observer.disconnect();
+    }
+    const boundaryDiv = this.elRef.nativeElement.querySelector('.boundary-div');
+    this.observer = new MutationObserver(() => {
+      this.calcBoundryWidth();
+    });
+    const config = { attributes: true, childList: true, subtree: true };
+    if (boundaryDiv) {
+      this.observer.observe(boundaryDiv, config);
+    }
+  }
+
+  calcBoundryWidth() {
+    const filtersDisplayElement = this.filtersDisplay?.nativeElement;
+    const filterListElement = this.filterList?.nativeElement;
+    if (filtersDisplayElement && filterListElement) {
+      const sub = filtersDisplayElement.offsetWidth - filterListElement.offsetWidth;
+      this.boundryWidth = sub > 0 ? sub : 0;
+      this.displayCursor = this.boundryWidth > 0 ? 'move' : 'auto';
+      this.cdr.detectChanges();
     }
   }
   onSearchTextChange() {
@@ -112,6 +169,7 @@ export class FilterComponent implements OnInit {
       this.selectedFilterParams = [];
     }
     this.filter.removeFilter(index);
+    this.dragPosition = {x: 0, y: 0};
   }
 
   filterChanged(event: MatSelectChange) {
@@ -144,14 +202,12 @@ export class FilterComponent implements OnInit {
     if (this.currentFilter.type === FilterTypes.MultiSelect) {
       this.selectedFilterParams = this.filter.getMultiAppliedParams(this.currentFilter.name);
       this.optionsMenuType = 'multiselectsync';
-    }
-    else if (this.currentFilter.type === FilterTypes.MultiSelectAsync) {
+    } else if (this.currentFilter.type === FilterTypes.MultiSelectAsync) {
       this.selectedFilterParams = this.filter.getMultiAppliedParams(this.currentFilter.name);
       this.optionsMenuType = 'multiselectasync';
-    }
-    else {
+    } else {
       this.optionsMenuType = 'input';
-    } 
+    }
   }
 
   handleClickMultiSelect(event: any, param: any) {
@@ -231,5 +287,9 @@ export class FilterComponent implements OnInit {
       }),
     );
   }
-
+  hasActiveFilters(): Observable<boolean> {
+    return this.activeFilters$.pipe(
+      map(filters => filters && (filters.filter((f) => f.name !== 'Name')).length > 0),
+    );
+  }
 }

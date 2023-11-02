@@ -68,6 +68,8 @@ import { SinkDetailsComponent } from './components/orb/sink/sink-details/sink-de
 import { SinkConfigComponent } from './components/orb/sink/sink-config/sink-config.component';
 import { TableContextMenuComponent } from './components/tableContexMenu/table-context-menu-component';
 import { JsonListPipe } from './pipes/list-json.pipe';
+import { ParamFormatterPipe } from './pipes/param-format.pipe';
+import { DragDropModule } from '@angular/cdk/drag-drop';
 
 @NgModule({
   imports: [
@@ -101,6 +103,7 @@ import { JsonListPipe } from './pipes/list-json.pipe';
     MatToolbarModule,
     NbAutocompleteModule,
     NbTabsetModule,
+    DragDropModule,
   ],
   declarations: [
     ConfirmationComponent,
@@ -110,6 +113,7 @@ import { JsonListPipe } from './pipes/list-json.pipe';
     PaginationComponent,
     AdvancedOptionsPipe,
     TagColorPipe,
+    ParamFormatterPipe,
     JsonListPipe,
     TagChipPipe,
     TaglistChipPipe,
@@ -150,6 +154,7 @@ import { JsonListPipe } from './pipes/list-json.pipe';
     PaginationComponent,
     AdvancedOptionsPipe,
     TagColorPipe,
+    ParamFormatterPipe,
     JsonListPipe,
     TagChipPipe,
     TaglistChipPipe,
@@ -186,6 +191,7 @@ import { JsonListPipe } from './pipes/list-json.pipe';
     ToMillisecsPipe,
     AdvancedOptionsPipe,
     TagColorPipe,
+    ParamFormatterPipe,
     JsonListPipe,
     TagChipPipe,
     TaglistChipPipe,
