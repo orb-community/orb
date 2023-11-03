@@ -63,7 +63,7 @@ require (
 	go.opentelemetry.io/otel/metric v1.16.0 // indirect
 	go.opentelemetry.io/otel/trace v1.16.0
 	google.golang.org/genproto v0.0.0-20230525234025-438c736192d0 // indirect
-	k8s.io/client-go v0.26.3
+	k8s.io/client-go v0.28.3
 )
 
 require (
@@ -191,7 +191,6 @@ require (
 	github.com/go-openapi/jsonpointer v0.19.6 // indirect
 	github.com/go-openapi/jsonreference v0.20.2 // indirect
 	github.com/go-openapi/swag v0.22.3 // indirect
-	github.com/google/gnostic v0.6.9 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
