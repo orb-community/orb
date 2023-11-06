@@ -67,7 +67,8 @@ export class FilterService {
   }
 
   cleanFilters() {
-    this.commitFilter([]);
+    const filters = this._filters.filter((f) => f.name === 'Name');
+    this.commitFilter(filters);
   }
 
   private commitFilter(filters: FilterOption[]) {

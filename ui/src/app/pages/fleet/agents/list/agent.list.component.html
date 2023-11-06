@@ -17,24 +17,24 @@
 <div #tableWrapper class="tableWrapper" (click)="handleContextClick()">
   <div class="options">
     <ngx-filter [availableFilters]="filterOptions"></ngx-filter>
-    <button (click)="onOpenDeleteSelected()"
-      *ngIf="selected.length > 0"
-      class="delete-selected"
-      nbButton
-      shape="round">
-      <nb-icon icon="trash-2-outline"></nb-icon>
-      Delete
-    </button>
-    <button (click)="onOpenResetAgents()"      
-      class="agent-reset"
-      data-orb-qa-id="button#reset"
-      nbButton
-      shape="round"
-      *ngIf="selected.length > 0"
-      [disabled]="canResetAgents || isResetting">
-      <nb-icon icon="refresh-outline"></nb-icon>
-      Reset Agent
-    </button>
+    <div *ngIf="selected.length > 0" class="selected-buttons">
+      <button (click)="onOpenDeleteSelected()"
+        class="delete-selected"
+        nbButton
+        shape="round">
+        <nb-icon icon="trash-2-outline"></nb-icon>
+        Delete
+      </button>
+      <button (click)="onOpenResetAgents()"      
+        class="agent-reset"
+        data-orb-qa-id="button#reset"
+        nbButton
+        shape="round"
+        [disabled]="canResetAgents || isResetting">
+        <nb-icon icon="refresh-outline"></nb-icon>
+        Reset Agent
+      </button>
+    </div>
   </div>
   
   <div class="add-agent-container">

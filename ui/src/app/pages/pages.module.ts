@@ -74,7 +74,7 @@ import { PagesComponent } from './pages.component';
 import { SinkViewComponent } from './sinks/view/sink.view.component';
 import { DeleteSelectedComponent } from 'app/shared/components/delete/delete.selected.component';
 import { PolicyDuplicateComponent } from './datasets/policies.agent/duplicate/agent.policy.duplicate.confirmation';
-import { TableContextMenuComponent } from 'app/shared/components/tableContexMenu/table-context-menu-component';
+import { DragDropModule } from '@angular/cdk/drag-drop';
 
 @NgModule({
   imports: [
@@ -111,6 +111,7 @@ import { TableContextMenuComponent } from 'app/shared/components/tableContexMenu
     NbAutocompleteModule,
     SharedModule,
     NbContextMenuModule,
+    DragDropModule,
   ],
   exports: [
     SharedModule,
