@@ -65,18 +65,16 @@ orbcommunity/orb-agent`;
 -e ORB_CLOUD_MQTT_ID=${ this.agent.id } \\
 -e ORB_CLOUD_MQTT_CHANNEL_ID=${ this.agent.channel_id } \\
 -e ORB_CLOUD_MQTT_KEY=${ this.agent.key } \\
--e PKTVISOR_PCAP_IFACE_DEFAULT=auto \\
--v \${PWD}/:/usr/local/orb/ \\
-orbcommunity/orb-agent run -c /usr/local/orb/agent.yaml`;
+-v \${PWD}/:/opt/orb/ \\
+orbcommunity/orb-agent run -c /opt/orb/agent.yaml`;
 
   this.fileConfigCommandShow = `docker run -d --restart=always --net=host \\
 -e ORB_CLOUD_ADDRESS=${ document.location.hostname } \\
 -e ORB_CLOUD_MQTT_ID=${ this.agent.id } \\
 -e ORB_CLOUD_MQTT_CHANNEL_ID=${ this.agent.channel_id } \\
 -e ORB_CLOUD_MQTT_KEY=${ this.agent.key } \\
--e PKTVISOR_PCAP_IFACE_DEFAULT=<mark>auto</mark> \\
--v \${PWD}/:/usr/local/orb/ \\
-orbcommunity/orb-agent run -c /usr/local/orb/agent.yaml`;
+-v \${PWD}/:/opt/orb/ \\
+orbcommunity/orb-agent run -c /opt/orb/agent.yaml`;
   }
 
   toggleIcon (target) {
