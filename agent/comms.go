@@ -89,6 +89,7 @@ func (a *orbAgent) requestReconnection(ctx context.Context, client mqtt.Client, 
 	for name, be := range a.backends {
 		be.SetCommsClient(config.Id, &client, fmt.Sprintf("%s/?/%s", a.baseTopic, name))
 	}
+	a.agent_id = config.Id
 
 	if token := client.Subscribe(a.rpcFromCoreTopic, 1, a.handleRPCFromCore); token.Wait() && token.Error() != nil {
 		a.logger.Error("failed to subscribe to agent control plane RPC topic", zap.String("topic", a.rpcFromCoreTopic), zap.Error(token.Error()))

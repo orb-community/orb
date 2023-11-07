@@ -39,6 +39,7 @@ type orbAgent struct {
 	logger            *zap.Logger
 	config            config.Config
 	client            mqtt.Client
+	agent_id          string
 	db                *sqlx.DB
 	backends          map[string]backend.Backend
 	backendState      map[string]*backend.State
@@ -267,7 +268,7 @@ func (a *orbAgent) RestartBackend(ctx context.Context, name string, reason strin
 		a.backendState[name].LastError = fmt.Sprintf("failed to reset backend: %v", err)
 		a.logger.Error("failed to reset backend", zap.String("backend", name), zap.Error(err))
 	}
-	be.SetCommsClient(a.config.OrbAgent.Cloud.MQTT.Id, &a.client, fmt.Sprintf("%s/?/%s", a.baseTopic, name))
+	be.SetCommsClient(a.agent_id, &a.client, fmt.Sprintf("%s/?/%s", a.baseTopic, name))
 	err := a.sendAgentPoliciesReq()
 	if err != nil {
 		a.logger.Error("failed to send agent policies request", zap.Error(err))
