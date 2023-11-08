@@ -16,8 +16,6 @@ import (
 
 func (o *openTelemetryBackend) receiveOtlp() {
 	exeCtx, execCancelF := context.WithCancel(o.mainContext)
-	//var waitGrp sync.WaitGroup
-	//waitGrp.Add(1)
 	go func() {
 		defer execCancelF()
 		count := 0
@@ -67,7 +65,6 @@ func (o *openTelemetryBackend) receiveOtlp() {
 					o.logger.Error("otel receiver startup error", zap.Error(err))
 					return
 				}
-				//waitGrp.Done()
 				break
 			} else {
 				count++

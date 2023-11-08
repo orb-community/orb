@@ -96,10 +96,11 @@ func (o *openTelemetryBackend) addRunner(policyData policies.PolicyData, policyF
 			zap.Any("status", command.Status()), zap.Int("process id", command.Status().PID))
 		for command.Status().Complete == false {
 			select {
-			case <-ctx.Done():
+			case v := <-ctx.Done():
 				err := command.Stop()
 				if err != nil {
-					logger.Error("failed to stop otel", zap.String("policy_id", policyData.ID), zap.Error(err))
+					logger.Error("failed to stop otel", zap.String("policy_id", policyData.ID),
+						zap.Any("value", v), zap.Error(err))
 					return
 				}
 			case line := <-command.Stdout:
