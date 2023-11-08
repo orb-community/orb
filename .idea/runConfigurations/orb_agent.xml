@@ -2,7 +2,7 @@
   <configuration default="false" name="orb-agent" type="GoApplicationRunConfiguration" factoryName="Go Application">
     <module name="orb" />
     <working_directory value="$PROJECT_DIR$/cmd/agent" />
-    <parameters value="run -d -c $PROJECT_DIR$/localconfig/otel.yaml" />
+    <parameters value="run -d -c $PROJECT_DIR$/localconfig/otel_gl.yaml" />
     <sudo value="true" />
     <EXTENSION ID="net.ashald.envfile">
       <option name="IS_ENABLED" value="false" />

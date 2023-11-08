@@ -10,8 +10,10 @@ RUN SQPATH=$(pip show suzieq |  sed -n 's/Location: \(.*\)/\1/p') \
 
 FROM orbcommunity/pktvisor:${PKTVISOR_TAG}
 
-ARG OTEL_TAG=0.81.0
-ENV OTEL_URL=https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v${OTEL_TAG}/otelcol-contrib_${OTEL_TAG}_linux_amd64.tar.gz
+ARG GOOS=linux
+ARG GOARCH=amd64
+ENV OTEL_TAG=0.87.0
+ENV OTEL_URL=https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v${OTEL_TAG}/otelcol-contrib_${OTEL_TAG}_${GOOS}_${GOARCH}.tar.gz
 
 # adding orb-agent
 RUN mkdir /opt/orb
@@ -34,7 +36,7 @@ RUN tar -xvf /opt/otelcol-contrib/otelcol_contrib.tar.gz -C /opt/otelcol-contrib
 RUN ls /opt/otelcol-contrib
 RUN cp /opt/otelcol-contrib/otelcol-contrib /usr/local/bin/otelcol-contrib
 RUN rm /opt/otelcol-contrib/LICENSE
-RUN	rm /opt/otelcol-contrib/README.md
+RUN rm /opt/otelcol-contrib/README.md
 RUN chmod +x /usr/local/bin/otelcol-contrib
 
 # adding suzieq patched

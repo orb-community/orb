@@ -12,7 +12,6 @@ import (
 	"github.com/orb-community/orb/agent/otel/otlpmqttexporter"
 	"github.com/orb-community/orb/agent/policies"
 	"go.opentelemetry.io/collector/exporter"
-	"go.opentelemetry.io/collector/receiver"
 	"go.uber.org/zap"
 	"os"
 	"time"
@@ -46,17 +45,9 @@ type openTelemetryBackend struct {
 	otelReceiverTaps []string
 	otelCurrVersion  string
 
-	otelReceiverHost string
-	otelReceiverPort int
-
-	metricsReceiver    receiver.Metrics
-	metricsExporter    exporter.Metrics
+	otelReceiverHost   string
+	otelReceiverPort   int
 	otelExecutablePath string
-
-	//tracesReceiver  receiver.Traces
-	//tracesExporter  exporter.Traces
-	//logsReceiver    receiver.Logs
-	//logsExporter    exporter.Logs
 }
 
 // Configure initializes the backend with the given configuration
