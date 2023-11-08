@@ -48,41 +48,38 @@
 </div>
 
 <div *ngIf="!isLoading">
-  <nb-tabset>
-    <nb-tab tabTitle="Agent Information">
-      <div class="row">
-        <div class="card-col col-5">
-          <ngx-agent-information [agent]="agent"></ngx-agent-information>
-        </div>
-        <div class="card-col col-7" style="padding-left: 0;">
-          <ngx-agent-backends [agent]="agent"></ngx-agent-backends>
-          <ngx-agent-capabilities [agent]="agent"></ngx-agent-capabilities>
-        </div>
-      </div>
-    </nb-tab>
-    <nb-tab tabTitle="Policies & Datasets">
-      <div class="row">
-        <div class="card-col col-7">
-          <ngx-agent-policies-datasets
-          [agent]="agent"
-          [datasets]="datasets"
-          (refreshAgent)="retrieveAgent()">
-          </ngx-agent-policies-datasets>
-        </div>
-        <div class="card-col col-5" style="padding-left: 0;">
-          <ngx-agent-groups [agent]="agent" [groups]="groups"></ngx-agent-groups>
-        </div>
-      </div>
-    </nb-tab>
-    <nb-tab tabTitle="Provisioning Commands">
-      <div class="row">
-        <div class="card-col col-6">
-          <ngx-agent-provisioning [agent]="agent" [provisioningType]="default"></ngx-agent-provisioning>
-        </div>
-        <div class="card-col col-6" style="padding-left: 0;">
-          <ngx-agent-provisioning [agent]="agent" [provisioningType]="configFile"></ngx-agent-provisioning>
-        </div>
-      </div>
-    </nb-tab>
-  </nb-tabset>
+  <div class="tabs">
+    <button *ngFor="let tab of tabs" (click)="onTabChange(tab)" class="tab-button" [ngClass]="{'active': tab.active}">
+      {{ tab.title }}
+    </button>
+  </div>
+  <div class="row" *ngIf="tabs[0].active">
+    <div class="card-col col-5">
+      <ngx-agent-information [agent]="agent"></ngx-agent-information>
+    </div>
+    <div class="card-col col-7" style="padding-left: 0;">
+      <ngx-agent-backends [agent]="agent"></ngx-agent-backends>
+      <ngx-agent-capabilities [agent]="agent"></ngx-agent-capabilities>
+    </div>
+  </div>
+  <div class="row" *ngIf="tabs[1].active">
+    <div class="card-col col-7">
+      <ngx-agent-policies-datasets
+      [agent]="agent"
+      [datasets]="datasets"
+      (refreshAgent)="retrieveAgent()">
+      </ngx-agent-policies-datasets>
+    </div>
+    <div class="card-col col-5" style="padding-left: 0;">
+      <ngx-agent-groups [agent]="agent" [groups]="groups"></ngx-agent-groups>
+    </div>
+  </div>
+  <div class="row" *ngIf="tabs[2].active">
+    <div class="card-col col-6">
+      <ngx-agent-provisioning [agent]="agent" [provisioningType]="default"></ngx-agent-provisioning>
+    </div>
+    <div class="card-col col-6" style="padding-left: 0;">
+      <ngx-agent-provisioning [agent]="agent" [provisioningType]="configFile"></ngx-agent-provisioning>
+    </div>
+  </div>
 </div>

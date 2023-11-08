@@ -125,7 +125,9 @@ export class PolicyDatasetsComponent
         resizeable: false,
         sortable: false,
         canAutoResize: true,
-        flexGrow: 1.25,
+        flexGrow: 1,
+        maxWidth: 130,
+        minWidth: 130,
         cellTemplate: this.actionsTemplateCell,
       },
     ];
