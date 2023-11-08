@@ -65,6 +65,13 @@ export class FilterComponent implements OnInit, OnDestroy, AfterViewInit {
     this.availableFilters = [];
     this.activeFilters$ = filter.getFilters().pipe(map((filters) => filters));
   }
+  @HostListener('document:keydown.enter', ['$event'])
+  addFilterEnter(event: KeyboardEvent) {
+    if (this.filterText && !this.currentFilter?.options) {
+      this.onAddFilterButton(this.filterText);
+    }
+  }
+
 
   @HostListener('document:click', ['$event'])
   handleOutsideClick(event: Event) {
