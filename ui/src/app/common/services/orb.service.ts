@@ -124,11 +124,14 @@ export class OrbService implements OnDestroy {
     return pollInterval;
   }
 
-  private mapTags = (list: AgentGroup[] & Sink[]) => {
+  private mapTags = (list: (AgentGroup & Sink)[]) => {
     return list
-      .map((item) =>
-        Object.entries(item.tags).map((entry) => `${entry[0]}: ${entry[1]}`),
-      )
+      .map((item) => {
+        if (item.tags) {
+          return Object.entries(item.tags).map((entry) => `${entry[0]}: ${entry[1]}`);
+        }
+        return [];
+      })
       .reduce((acc, val) => acc.concat(val), [])
       .filter(this.onlyUnique);
   }
