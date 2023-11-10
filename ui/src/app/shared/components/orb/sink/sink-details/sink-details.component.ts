@@ -33,13 +33,14 @@ export class SinkDetailsComponent implements OnInit, OnChanges {
   @Input()
   configEditMode: boolean;
 
+  @Input()
+  sinkTypesList = [];
+
   formGroup: FormGroup;
 
   selectedTags: Tags;
 
   mode: string;
-
-  sinkTypesList = [];
 
   sinkStates = SinkStates;
 
@@ -56,10 +57,6 @@ export class SinkDetailsComponent implements OnInit, OnChanges {
     this.editModeChange = new EventEmitter<boolean>();
     this.configEditMode = false;
     this.updateForm();
-    Promise.all([this.getSinkBackends()]).then((responses) => {
-      const backends = responses[0];
-      this.sinkTypesList = backends.map(entry => entry.backend);
-    });
   }
 
   ngOnInit(): void {
@@ -131,14 +128,6 @@ export class SinkDetailsComponent implements OnInit, OnChanges {
     } else {
       this.mode = 'read';
     }
-  }
-
-  getSinkBackends() {
-    return new Promise<SinkFeature[]>(resolve => {
-      this.sinksService.getSinkBackends().subscribe(backends => {
-        resolve(backends);
-      });
-    });
   }
 
   onChangeConfigBackend(backend: any) {

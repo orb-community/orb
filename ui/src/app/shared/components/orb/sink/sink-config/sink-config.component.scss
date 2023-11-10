@@ -62,6 +62,14 @@ nb-card {
     color: #df316f;
     font-weight: 600;
     font-size: 13px;
-    left: 24px;
+    left: 26px;
     bottom: 2px;
   }
+.warning-message {
+  position: absolute;
+  color: #ff9f05;
+  font-weight: 500;
+  font-size: 13px;
+  left: 26px;
+  bottom: 2px;
+}

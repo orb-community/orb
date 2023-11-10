@@ -345,7 +345,7 @@ kind: collection`;
         this.errorConfigMessage = '';
         return true;
       } else {
-        this.errorConfigMessage = 'Invalid JSON configuration, check syntax errors';
+        this.errorConfigMessage = 'Invalid JSON configuration, check syntax errors.';
         return false;
       }
     } else {
@@ -353,7 +353,7 @@ kind: collection`;
         this.errorConfigMessage = '';
         return true;
       } else {
-        this.errorConfigMessage = 'Invalid YAML configuration, check syntax errors';
+        this.errorConfigMessage = 'Invalid YAML configuration, check syntax errors.';
         return false;
       }
     }

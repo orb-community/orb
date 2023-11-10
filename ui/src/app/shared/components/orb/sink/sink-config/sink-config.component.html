@@ -27,23 +27,24 @@
       </div>
     </nb-card-header>
     <nb-card-body>
-      <!--    <div *ngIf="editMode; then updateView else readView"></div>-->
       <div class="code-editor-wrapper">
-        <ngx-monaco-editor
+        <!-- <ngx-monaco-editor
             #editorComponent
             [(ngModel)]="code"
             [options]="editorOptions"
             class="code-editor editor-height-{{createMode}}"
             ngDefaultControl
             *ngIf="!isYaml">
-        </ngx-monaco-editor>
+        </ngx-monaco-editor> -->
         <ngx-monaco-editor
+          (click)="onEditorClick($event)"
           [(ngModel)]="code"
           [options]="editorOptionsYaml"
           class="code-editor editor-height-{{createMode}}"
           ngDefaultControl>
         </ngx-monaco-editor>
         <span *ngIf="errorConfigMessage !== ''" class="errorMessage">{{ errorConfigMessage }} </span>
+        <span *ngIf="selectBackendWarning" class="warning-message">Select a Sink Backend first.</span>
       </div>
     </nb-card-body>
   </nb-card>
