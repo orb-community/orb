@@ -100,7 +100,7 @@ export class AgentGroupListComponent
   agentGroupContextMenu = [
     {icon: 'search-outline', action: 'openview'},
     {icon: 'edit-outline', action: 'openedit'},
-    {icon: 'trash-outline', action: 'opendelete'},
+    {icon: 'trash-2-outline', action: 'opendelete'},
   ];
 
   constructor(

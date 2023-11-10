@@ -95,7 +95,7 @@ export class AgentPolicyListComponent
     {icon: 'search-outline', action: 'openview'},
     {icon: 'edit-outline', action: 'openview'},
     {icon: 'copy-outline', action: 'openduplicate'},
-    {icon: 'trash-outline', action: 'opendelete'},
+    {icon: 'trash-2-outline', action: 'opendelete'},
   ];
 
   constructor(

@@ -101,9 +101,11 @@
             </div>
           </ng-template>
           <div class="d-flex row flex-column">
+            <label class="input-label">Tags<span class="required">*</span></label>
             <ngx-tag-control
               (tagsChange)="updateMatches()"
-              [(tags)]="selectedTags"></ngx-tag-control>
+              [(tags)]="selectedTags">
+            </ngx-tag-control>
           </div>
           <div class="d-flex row" style="margin-top: 30px;">
             <p *ngIf="tagMatch?.total && tagMatch.total > 0" class="summary-accent">
@@ -269,7 +271,7 @@
     let-i="index"
     let-row="row"
     let-value="value">
-<mat-chip-list nbTooltip="{{ value | json }}">
+<mat-chip-list nbTooltip="{{ value | jsonlist }}">
     <mat-chip
       *ngFor="let tag of value | keyvalue"
       style="background-color: #2B3148;"
