@@ -50,15 +50,23 @@
   width: fit-content;
   max-width: calc(100% - 100px);
   white-space: nowrap;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
   box-sizing: content-box;
+  padding-bottom: 0 !important;
+  scrollbar-width: thin;
+  scrollbar-color: #969fb9 transparent;
+}
+::-webkit-scrollbar {
+  width: 3px;
+  height: 3px;
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #969fb9;
+  border-radius: 16px;
 }
 
-.boundary-div {
-  max-width: none !important;
-  height: 22px;
-  width: fit-content;
-}
 .filter-list-display {
   position: relative !important;
   display: flex;

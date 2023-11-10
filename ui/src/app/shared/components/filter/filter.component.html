@@ -91,25 +91,23 @@
     (ngModelChange)="onSearchTextChange()">
 </div>
 <div *ngIf="(hasActiveFilters() | async)" class="list-div">
-  <div #filterList class="filters-list">
-    <div class="boundary-div" [style.padding-left.px]="boundryWidth" [style.transform]="'translateX(-' + boundryWidth + 'px)'">
-      <div #filtersDisplay cdkDrag cdkDragLockAxis="x" cdkDragBoundary=".boundary-div" [cdkDragFreeDragPosition]="dragPosition" class="filter-list-display" [style.cursor]="displayCursor">
-        <ng-container *ngFor="let filter of activeFilters$ | async; let index = index" >
-          <div class="filter-item" *ngIf="filter.name !== 'Name'">
-            <div class="filter-name">
-              <span>{{ filter?.name }}</span>
-            </div>
-            <div class="filter-param">
-              <span>{{ filter?.param | paramformatter}}</span>
-            </div>
-            <div class="filter-remove" id="remove-button">
-              <button class="remove-tag-button" (click)="removeFilter(index, filter)">
-                <nb-icon icon="close-outline"></nb-icon>
-              </button>
-            </div>
+  <div class="filters-list">
+    <div class="filter-list-display">
+      <ng-container *ngFor="let filter of activeFilters$ | async; let index = index" >
+        <div class="filter-item" *ngIf="filter.name !== 'Name'">
+          <div class="filter-name">
+            <span>{{ filter?.name }}</span>
           </div>
-        </ng-container>
-      </div>
+          <div class="filter-param">
+            <span>{{ filter?.param | paramformatter}}</span>
+          </div>
+          <div class="filter-remove" id="remove-button">
+            <button class="remove-tag-button" (click)="removeFilter(index, filter)">
+              <nb-icon icon="close-outline"></nb-icon>
+            </button>
+          </div>
+        </div>
+      </ng-container>
     </div>
   </div>
   <button class="clear-filters-button" (click)="clearAllFilters()">

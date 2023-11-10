@@ -14,7 +14,7 @@ import { map } from 'rxjs/operators';
   templateUrl: './filter.component.html',
   styleUrls: ['./filter.component.scss'],
 })
-export class FilterComponent implements OnInit, OnDestroy, AfterViewInit {
+export class FilterComponent implements OnInit, OnDestroy {
   @Input()
   availableFilters!: FilterOption[];
 
@@ -42,11 +42,6 @@ export class FilterComponent implements OnInit, OnDestroy, AfterViewInit {
 
   selectedFilterParams = [];
 
-  boundryWidth = 0;
-
-  displayCursor = 'auto';
-
-  dragPosition = {x: 0, y: 0};
 
   @ViewChild('filtersDisplay') filtersDisplay!: ElementRef;
 
@@ -113,43 +108,7 @@ export class FilterComponent implements OnInit, OnDestroy, AfterViewInit {
       this.observer = null;
     }
   }
-  ngAfterViewInit() {
-    this.hasActiveFilters().subscribe(hasFilters => {
-      if (hasFilters) {
-        this.observeElementChanges();
-      }
-    });
-  }
 
-  @HostListener('window:resize', ['$event'])
-  onResize(event: Event) {
-    this.calcBoundryWidth();
-  }
-
-  observeElementChanges() {
-    if (this.observer) {
-      this.observer.disconnect();
-    }
-    const boundaryDiv = this.elRef.nativeElement.querySelector('.boundary-div');
-    this.observer = new MutationObserver(() => {
-      this.calcBoundryWidth();
-    });
-    const config = { attributes: true, childList: true, subtree: true };
-    if (boundaryDiv) {
-      this.observer.observe(boundaryDiv, config);
-    }
-  }
-
-  calcBoundryWidth() {
-    const filtersDisplayElement = this.filtersDisplay?.nativeElement;
-    const filterListElement = this.filterList?.nativeElement;
-    if (filtersDisplayElement && filterListElement) {
-      const sub = filtersDisplayElement.offsetWidth - filterListElement.offsetWidth;
-      this.boundryWidth = sub > 0 ? sub : 0;
-      this.displayCursor = this.boundryWidth > 0 ? 'move' : 'auto';
-      this.cdr.detectChanges();
-    }
-  }
   onSearchTextChange() {
     if (this.loadedSearchText) {
       this.filter.findAndRemove(this.loadedSearchText, 'Name');
@@ -176,7 +135,6 @@ export class FilterComponent implements OnInit, OnDestroy, AfterViewInit {
       this.selectedFilterParams = [];
     }
     this.filter.removeFilter(index);
-    this.dragPosition = {x: 0, y: 0};
   }
 
   filterChanged(event: MatSelectChange) {

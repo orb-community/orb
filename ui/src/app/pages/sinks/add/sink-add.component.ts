@@ -24,13 +24,13 @@ export class SinkAddComponent {
 
     strings = STRINGS;
 
-    createMode: boolean;
+    createMode: boolean = true;
 
     sinkBackend: any;
 
     isRequesting: boolean;
 
-    errorConfigMessage: string;
+    errorConfigMessage: string = '';
 
     isLoading = true;
 
