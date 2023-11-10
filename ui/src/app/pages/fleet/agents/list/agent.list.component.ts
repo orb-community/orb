@@ -102,7 +102,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
   agentContextMenu = [
     {icon: 'search-outline', action: 'openview'},
     {icon: 'edit-outline', action: 'openview'},
-    {icon: 'trash-outline', action: 'opendelete'},
+    {icon: 'trash-2-outline', action: 'opendelete'},
   ];
   constructor(
     private cdr: ChangeDetectorRef,

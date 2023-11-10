@@ -55,8 +55,8 @@ export class AgentViewComponent implements OnInit, OnDestroy {
       title: 'Provisioning Commands',
       urlState: 'provisioning-commands',
       active: false,
-    }
-  ]
+    },
+  ];
 
   private popstateListener: () => void;
 
@@ -154,12 +154,11 @@ export class AgentViewComponent implements OnInit, OnDestroy {
         if (tab.urlState === queryParams.tab) {
           tab.active = true;
           this.pageState(tab.urlState);
-        }
-        else {
+        } else {
           tab.active = false;
         }
-      })
-    })
+      });
+    });
     if (this.tabs.filter(tab => tab.active === true).length === 0) {
       this.pageState('agent-information');
     }
@@ -179,8 +178,8 @@ export class AgentViewComponent implements OnInit, OnDestroy {
       [],
       {
         queryParams: { tab: option },
-        queryParamsHandling: 'merge'
-      }
-    )
+        queryParamsHandling: 'merge',
+      },
+    );
   }
 }

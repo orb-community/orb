@@ -8,6 +8,7 @@ import { SinkDetailsComponent } from 'app/shared/components/orb/sink/sink-detail
 import { STRINGS } from 'assets/text/strings';
 import * as YAML from 'yaml';
 import { CodeEditorService } from 'app/common/services/code.editor.service';
+import { SinkFeature } from 'app/common/interfaces/orb/sink/sink.feature.interface';
 
 @Component({
     selector: 'ngx-sink-add-component',
@@ -31,6 +32,10 @@ export class SinkAddComponent {
 
     errorConfigMessage: string = '';
 
+    isLoading = true;
+
+    sinkTypesList = [];
+
     constructor(
         private sinksService: SinksService,
         private notificationsService: NotificationsService,
@@ -39,6 +44,19 @@ export class SinkAddComponent {
     ) {
         this.createMode = true;
         this.isRequesting = false;
+        this.errorConfigMessage = '';
+        Promise.all([this.getSinkBackends()]).then((responses) => {
+            const backends = responses[0];
+            this.sinkTypesList = backends.map(entry => entry.backend);
+            this.isLoading = false;
+        });
+    }
+    getSinkBackends() {
+        return new Promise<SinkFeature[]>(resolve => {
+          this.sinksService.getSinkBackends().subscribe(backends => {
+            resolve(backends);
+          });
+        });
     }
 
     canCreate() {
@@ -55,7 +73,7 @@ export class SinkAddComponent {
             config = YAML.parse(configSink);
             this.errorConfigMessage = '';
         } else {
-            this.errorConfigMessage = 'Invalid YAML configuration, check syntax errors';
+            this.errorConfigMessage = 'Invalid YAML configuration, check syntax errors.';
             return false;
         }
 
@@ -88,23 +106,6 @@ export class SinkAddComponent {
             tags,
             config,
         } as Sink;
-
-        // if (this.editor.isJson(configSink)) {
-        //     const config = JSON.parse(configSink);
-        //     payload = {
-        //         ...details,
-        //         tags,
-        //         config,
-        //     } as Sink;
-        // }
-        // else {
-        //     payload = {
-        //         ...details,
-        //         tags,
-        //         format: 'yaml',
-        //         config_data: configSink,
-        //     } as Sink;
-        // }
 
         this.sinksService.addSink(payload).subscribe(() => {
             this.notificationsService.success('Sink successfully created', '');

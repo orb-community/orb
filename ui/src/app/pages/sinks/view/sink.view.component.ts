@@ -102,7 +102,7 @@ export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
       config = YAML.parse(configSink);
       this.errorConfigMessage = '';
     } else {
-        this.errorConfigMessage = 'Invalid YAML configuration, check syntax errors';
+        this.errorConfigMessage = 'Invalid YAML configuration, check syntax errors.';
         return false;
     }
 
