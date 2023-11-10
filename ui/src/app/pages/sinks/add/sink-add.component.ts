@@ -23,13 +23,13 @@ export class SinkAddComponent {
 
     strings = STRINGS;
 
-    createMode: boolean;
+    createMode: boolean = true;
 
     sinkBackend: any;
 
     isRequesting: boolean;
 
-    errorConfigMessage: string;
+    errorConfigMessage: string = '';
 
     constructor(
         private sinksService: SinksService,
@@ -39,7 +39,6 @@ export class SinkAddComponent {
     ) {
         this.createMode = true;
         this.isRequesting = false;
-        this.errorConfigMessage = '';
     }
 
     canCreate() {

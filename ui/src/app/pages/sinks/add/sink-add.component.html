@@ -4,7 +4,7 @@
         <ng-container
           *xngBreadcrumbItem="let breadcrumb; let info = info; let first = first"
         >
-          <ng-container [ngClass]="{ my_class: first === '' }">{{
+          <ng-container>{{
             breadcrumb
           }}</ng-container>
         </ng-container>
@@ -36,13 +36,13 @@
 <div class="row">
   <div class="card-col col-4">
     <ngx-sink-details 
-    [(createMode)]="createMode"
+    [createMode]="createMode"
     (sinkBackend)="getBackendEmit($event)"
     >
     </ngx-sink-details>
   </div>
   <div class="card-col col-8" style="padding-left: 0;">
-    <ngx-sink-config [(createMode)]="createMode" [(sinkBackend)]="sinkBackend" [errorConfigMessage]="errorConfigMessage">
+    <ngx-sink-config [createMode]="createMode" [(sinkBackend)]="sinkBackend" [errorConfigMessage]="errorConfigMessage">
     </ngx-sink-config>
   </div>
 </div>
