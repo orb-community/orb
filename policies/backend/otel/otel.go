@@ -15,10 +15,7 @@ type otelBackend struct {
 }
 
 func (o otelBackend) SupportsFormat(format string) bool {
-	if strings.EqualFold(format, "yaml") {
-		return true
-	}
-	return false
+	return strings.EqualFold(format, "yaml")
 }
 
 func (o otelBackend) ConvertFromFormat(format string, policy string) (metadata types.Metadata, err error) {
