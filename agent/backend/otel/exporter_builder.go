@@ -56,8 +56,8 @@ type exporterBuilder struct {
 
 func (e *exporterBuilder) GetStructFromYaml(yamlString string) (openTelemetryConfig, error) {
 	var config openTelemetryConfig
-	err := yaml.Unmarshal([]byte(yamlString), &config)
-	if err != nil {
+
+	if err := yaml.Unmarshal([]byte(yamlString), &config); err != nil {
 		e.logger.Error("failed to unmarshal yaml string", zap.Error(err))
 		return openTelemetryConfig{}, err
 	}

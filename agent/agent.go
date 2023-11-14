@@ -269,8 +269,8 @@ func (a *orbAgent) RestartBackend(ctx context.Context, name string, reason strin
 		a.logger.Error("failed to reset backend", zap.String("backend", name), zap.Error(err))
 	}
 	be.SetCommsClient(a.agent_id, &a.client, fmt.Sprintf("%s/?/%s", a.baseTopic, name))
-	err := a.sendAgentPoliciesReq()
-	if err != nil {
+
+	if err := a.sendAgentPoliciesReq(); err != nil {
 		a.logger.Error("failed to send agent policies request", zap.Error(err))
 	}
 	return nil
