@@ -12,6 +12,7 @@ import (
 	"github.com/orb-community/orb/agent/otel/otlpmqttexporter"
 	"github.com/orb-community/orb/agent/policies"
 	"go.opentelemetry.io/collector/exporter"
+	"go.opentelemetry.io/collector/receiver"
 	"go.uber.org/zap"
 	"os"
 	"strconv"
@@ -51,6 +52,13 @@ type openTelemetryBackend struct {
 	otelReceiverHost   string
 	otelReceiverPort   int
 	otelExecutablePath string
+
+	metricsReceiver receiver.Metrics
+	metricsExporter exporter.Metrics
+	tracesReceiver  receiver.Traces
+	tracesExporter  exporter.Traces
+	logsReceiver    receiver.Logs
+	logsExporter    exporter.Logs
 }
 
 // Configure initializes the backend with the given configuration
@@ -211,7 +219,7 @@ func (o *openTelemetryBackend) GetRunningStatus() (backend.RunningStatus, string
 	return backend.Waiting, "opentelemetry backend is waiting for policy to come to start running", nil
 }
 
-func (o *openTelemetryBackend) createOtlpMqttExporter(ctx context.Context, cancelFunc context.CancelFunc) (exporter.Metrics, error) {
+func (o *openTelemetryBackend) createOtlpMetricMqttExporter(ctx context.Context, cancelFunc context.CancelFunc) (exporter.Metrics, error) {
 	bridgeService := otel.NewBridgeService(ctx, cancelFunc, &o.policyRepo, o.agentTags)
 	if o.mqttClient != nil {
 		cfg := otlpmqttexporter.CreateConfigClient(o.mqttClient, o.otlpMetricsTopic, "", bridgeService)
@@ -232,6 +240,57 @@ func (o *openTelemetryBackend) createOtlpMqttExporter(ctx context.Context, cance
 			return nil, err
 		}
 		return metricsExporter, nil
+	}
+
+}
+
+// TODO Add Traces on otlpmqttexporter which today only support metrics and logs
+func (o *openTelemetryBackend) createOtlpTraceMqttExporter(ctx context.Context, cancelFunc context.CancelFunc) (exporter.Logs, error) {
+	bridgeService := otel.NewBridgeService(ctx, cancelFunc, &o.policyRepo, o.agentTags)
+	if o.mqttClient != nil {
+		cfg := otlpmqttexporter.CreateConfigClient(o.mqttClient, o.otlpTracesTopic, "", bridgeService)
+		set := otlpmqttexporter.CreateDefaultSettings(o.logger)
+		// Create the OTLP metrics metricsExporter that'll receive and verify the metrics produced.
+		metricsExporter, err := otlpmqttexporter.CreateLogsExporter(ctx, set, cfg)
+		if err != nil {
+			return nil, err
+		}
+		return metricsExporter, nil
+	} else {
+		cfg := otlpmqttexporter.CreateConfig(o.mqttConfig.Address, o.mqttConfig.Id, o.mqttConfig.Key,
+			o.mqttConfig.ChannelID, "", o.otlpTracesTopic, bridgeService)
+		set := otlpmqttexporter.CreateDefaultSettings(o.logger)
+		// Create the OTLP metrics exporter that'll receive and verify the metrics produced.
+		metricsExporter, err := otlpmqttexporter.CreateLogsExporter(ctx, set, cfg)
+		if err != nil {
+			return nil, err
+		}
+		return metricsExporter, nil
+	}
+
+}
+
+func (o *openTelemetryBackend) createOtlpLogsMqttExporter(ctx context.Context, cancelFunc context.CancelFunc) (exporter.Logs, error) {
+	bridgeService := otel.NewBridgeService(ctx, cancelFunc, &o.policyRepo, o.agentTags)
+	if o.mqttClient != nil {
+		cfg := otlpmqttexporter.CreateConfigClient(o.mqttClient, o.otlpLogsTopic, "", bridgeService)
+		set := otlpmqttexporter.CreateDefaultSettings(o.logger)
+		// Create the OTLP metrics metricsExporter that'll receive and verify the metrics produced.
+		exporter, err := otlpmqttexporter.CreateLogsExporter(ctx, set, cfg)
+		if err != nil {
+			return nil, err
+		}
+		return exporter, nil
+	} else {
+		cfg := otlpmqttexporter.CreateConfig(o.mqttConfig.Address, o.mqttConfig.Id, o.mqttConfig.Key,
+			o.mqttConfig.ChannelID, "", o.otlpLogsTopic, bridgeService)
+		set := otlpmqttexporter.CreateDefaultSettings(o.logger)
+		// Create the OTLP metrics exporter that'll receive and verify the metrics produced.
+		exporter, err := otlpmqttexporter.CreateLogsExporter(ctx, set, cfg)
+		if err != nil {
+			return nil, err
+		}
+		return exporter, nil
 	}
 
 }
