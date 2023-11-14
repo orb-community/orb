@@ -104,9 +104,13 @@ func (o *openTelemetryBackend) addRunner(policyData policies.PolicyData, policyF
 					return
 				}
 			case line := <-command.Stdout:
-				logger.Info("otel stdout", zap.String("policy_id", policyData.ID), zap.String("line", line))
+				if line != "" {
+					logger.Info("otel stdout", zap.String("policy_id", policyData.ID), zap.String("line", line))
+				}
 			case line := <-command.Stderr:
-				logger.Warn("otel stderr", zap.String("policy_id", policyData.ID), zap.String("line", line))
+				if line != "" {
+					logger.Warn("otel stderr", zap.String("policy_id", policyData.ID), zap.String("line", line))
+				}
 			case finalStatus := <-status:
 				logger.Info("otel finished", zap.String("policy_id", policyData.ID), zap.Any("status", finalStatus))
 			}
@@ -152,7 +156,7 @@ func (o *openTelemetryBackend) RemovePolicy(data policies.PolicyData) error {
 		}
 		policyPath := o.policyConfigDirectory + fmt.Sprintf(tempFileNamePattern, data.ID)
 		err = os.Remove(policyPath)
-		if err != nil {
+		if err != nil && err != os.ErrNotExist {
 			o.logger.Error("error removing temporary file with policy", zap.Error(err))
 			return err
 		}

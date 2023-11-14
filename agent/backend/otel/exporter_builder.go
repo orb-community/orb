@@ -73,16 +73,9 @@ func (e *exporterBuilder) MergeDefaultValueWithPolicy(config openTelemetryConfig
 		},
 	}
 
-	//TODO remove after POC phase ends
-	defaultLoggingExporter := map[string]interface{}{
-		"verbosity":        "detailed",
-		"sampling_initial": 5,
-	}
-
 	// Override any openTelemetry exporter that may come, to connect to agent's otlp receiver
 	config.Exporters = map[string]interface{}{
-		"otlp":    &defaultOtlpExporter,
-		"logging": defaultLoggingExporter,
+		"otlp": &defaultOtlpExporter,
 	}
 	if config.Processors == nil {
 		config.Processors = make(map[string]interface{})

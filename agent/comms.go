@@ -203,6 +203,11 @@ func (a *orbAgent) startComms(ctx context.Context, config config.MQTTConfig) err
 			a.logger.Error("connection failed", zap.String("channel", config.ChannelID), zap.String("agent_id", config.Id), zap.Error(err))
 			return ErrMqttConnection
 		}
+		// Store the data from connection to cloud config within agent.
+		a.config.OrbAgent.Cloud.MQTT.Id = config.Id
+		a.config.OrbAgent.Cloud.MQTT.Key = config.Key
+		a.config.OrbAgent.Cloud.MQTT.Address = config.Address
+		a.config.OrbAgent.Cloud.MQTT.ChannelID = config.ChannelID
 	}
 
 	return nil

@@ -212,7 +212,6 @@ func (o *openTelemetryBackend) GetRunningStatus() (backend.RunningStatus, string
 }
 
 func (o *openTelemetryBackend) createOtlpMqttExporter(ctx context.Context, cancelFunc context.CancelFunc) (exporter.Metrics, error) {
-
 	bridgeService := otel.NewBridgeService(ctx, cancelFunc, &o.policyRepo, o.agentTags)
 	if o.mqttClient != nil {
 		cfg := otlpmqttexporter.CreateConfigClient(o.mqttClient, o.otlpMetricsTopic, "", bridgeService)
