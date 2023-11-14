@@ -173,13 +173,13 @@ func (a *orbAgent) Start(ctx context.Context, cancelFunc context.CancelFunc) err
 		return err
 	}
 
-	if err := a.startBackends(ctx); err != nil {
-		return err
-	}
-
 	commsCtx := context.WithValue(agentCtx, "routine", "comms")
 	if err := a.startComms(commsCtx, cloudConfig); err != nil {
 		a.logger.Error("could not start mqtt client")
+		return err
+	}
+
+	if err := a.startBackends(ctx); err != nil {
 		return err
 	}
 

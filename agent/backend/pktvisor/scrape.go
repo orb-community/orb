@@ -166,6 +166,11 @@ func (p *pktvisorBackend) receiveOtlp() {
 					},
 					BuildInfo: component.NewDefaultBuildInfo(),
 				}
+				//p.logger.Info("Started receiver for OTLP in orb-agent", zap.Any("exect", exeCtx),
+				//	zap.Any("set", set),
+				//	zap.Any("cfg", cfg),
+				//	zap.Any("exporter", p.exporter),
+				//	zap.Any("receiver", p.receiver))
 				p.receiver, err = pFactory.CreateMetricsReceiver(exeCtx, set, cfg, p.exporter)
 				if err != nil {
 					p.logger.Error("failed to create a receiver", zap.Error(err))
