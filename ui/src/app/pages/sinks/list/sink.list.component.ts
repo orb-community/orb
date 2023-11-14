@@ -85,6 +85,18 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
   filters$!: Observable<FilterOption[]>;
   filteredSinks$: Observable<Sink[]>;
 
+  contextMenuRow: any;
+
+  showContextMenu: boolean;
+  menuPositionLeft: number;
+  menuPositionTop: number;
+
+  sinkContextMenu = [
+    {icon: 'search-outline', action: 'openview'},
+    {icon: 'edit-outline', action: 'openview'},
+    {icon: 'trash-2-outline', action: 'opendelete'},
+  ];
+
   constructor(
     private cdr: ChangeDetectorRef,
     private dialogService: NbDialogService,
@@ -119,6 +131,7 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
         filter: filterMultiSelect,
         type: FilterTypes.MultiSelect,
         options: Object.values(SinkStates).map((value) => value as string),
+        exact: true,
       },
       {
         name: 'Backend',
@@ -126,6 +139,7 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
         filter: filterMultiSelect,
         type: FilterTypes.MultiSelect,
         options: Object.values(SinkBackends).map((value) => value as string),
+        exact: true,
       },
       {
         name: 'Description',
@@ -140,6 +154,7 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
       this.filters$,
       this.filterOptions,
     );
+    this.showContextMenu = false;
   }
 
   ngOnDestroy(): void {
@@ -167,9 +182,10 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
       {
         name: '',
         prop: 'checkbox',
-        width: 1,
+        width: 62,
         minWidth: 62,
-        canAutoResize: true,
+        canAutoResize: false,
+        resizeable: false,
         sortable: false,
         cellTemplate: this.checkboxTemplateCell,
         headerTemplate: this.checkboxTemplateHeader,
@@ -179,37 +195,41 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
         name: 'Name',
         canAutoResize: true,
         resizeable: true,
-        width: 220,
-        minWidth: 150,
+        width: 250,
+        minWidth: 250,
         cellTemplate: this.sinkNameTemplateCell,
       },
       {
         prop: 'state',
         name: 'Status',
         resizeable: true,
-        width: 150,
+        width: 140,
+        minWidth: 140,
+        maxWidth: 150,
         cellTemplate: this.sinkStateTemplateCell,
       },
       {
         prop: 'backend',
         name: 'Backend',
         resizeable: true,
-        minWidth: 120,
-        width: 150,
+        minWidth: 140,
+        width: 140,
+        maxWidth: 150,
         cellTemplate: this.sinkNameTemplateCell,
       },
       {
         prop: 'description',
         name: 'Description',
         resizeable: true,
-        minWidth: 150,
-        width: 350,
+        width: 240,
+        minWidth: 230,
         cellTemplate: this.sinkNameTemplateCell,
       },
       {
         prop: 'tags',
         name: 'Tags',
-        width: 350,
+        width: 250,
+        minWidth: 200,
         resizeable: true,
         cellTemplate: this.sinkTagsTemplateCell,
         comparator: (a, b) =>
@@ -225,13 +245,33 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
       {
         name: '',
         prop: 'actions',
+        width: 150,
         minWidth: 150,
+        maxWidth: 150,
         resizeable: true,
         sortable: false,
-        width: 150,
         cellTemplate: this.actionsTemplateCell,
       },
     ];
+  }
+
+  onTableContextMenu(event) {
+    event.event.preventDefault();
+    event.event.stopPropagation();
+    if (event.type === 'body') {
+      this.contextMenuRow = {
+        objectType: 'sink',
+        ...event.content,
+      };
+      this.menuPositionLeft = event.event.clientX;
+      this.menuPositionTop = event.event.clientY;
+      this.showContextMenu = true;
+    }
+  }
+  handleContextClick() {
+    if (this.showContextMenu) {
+      this.showContextMenu = false;
+    }
   }
 
   onOpenAdd() {

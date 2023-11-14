@@ -16,10 +16,10 @@ export class SinkConfigComponent implements OnInit, OnChanges {
   sink: Sink;
 
   @Input()
-  editMode: boolean;
+  editMode: boolean = false;
 
   @Input()
-  createMode: boolean;
+  createMode: boolean = false;
 
   @Input()
   sinkBackend: string;
@@ -30,30 +30,16 @@ export class SinkConfigComponent implements OnInit, OnChanges {
   @Input()
   detailsEditMode: boolean;
 
+  @Input()
+  errorConfigMessage: string;
+
   @ViewChild('editorComponent')
   editor;
 
-  editorOptions: IStandaloneEditorConstructionOptions = {
-    theme: 'vs-dark',
-    dragAndDrop: true,
-    wordWrap: 'on',
-    detectIndentation: true,
-    tabSize: 2,
-    autoIndent: 'full',
-    formatOnPaste: true,
-    trimAutoWhitespace: true,
-    formatOnType: true,
-    matchBrackets: 'always',
-    language: 'json',
-    automaticLayout: true,
-    glyphMargin: false,
-    folding: true,
-    readOnly: true,
-    scrollBeyondLastLine: false,
-    // Undocumented see https://github.com/Microsoft/vscode/issues/30795#issuecomment-410998882
-    lineDecorationsWidth: 0,
-    lineNumbersMinChars: 0,
-  };
+  selectBackendWarning = false;
+  warningMessageTop = 0;
+  warningMessageLeft = 0;
+
   editorOptionsYaml = {
     theme: 'vs-dark',
     language: 'yaml',
@@ -84,6 +70,7 @@ export class SinkConfigComponent implements OnInit, OnChanges {
     this.editModeChange = new EventEmitter<boolean>();
     this.detailsEditMode = false;
     this.updateForm();
+    this.errorConfigMessage = '';
     this.sinkConfigSchemaPrometheus = {
       'authentication' : {
         'type': 'basicauth',
@@ -110,7 +97,7 @@ export class SinkConfigComponent implements OnInit, OnChanges {
 
   ngOnInit(): void {
     if (this.createMode) {
-      this.toggleEdit(true);
+      this.updateForm();
       this.code = YAML.stringify(this.sinkConfigSchemaOtlp);
     } else {
       // if (this.sink.config_data && this.sink.format === 'yaml') {
@@ -147,6 +134,9 @@ ngOnChanges(changes: SimpleChanges) {
       ? YAML.stringify(sinkConfigSchema, null)
       : JSON.stringify(sinkConfigSchema, null, 2);
     this.code = YAML.stringify(sinkConfigSchema, null);
+    if (sinkBackend.currentValue) {
+      this.editorOptionsYaml = { ...this.editorOptionsYaml, readOnly: false };
+    }
   }
 }
 
@@ -175,7 +165,6 @@ updateForm() {
     } else {
       this.orb.startPolling();
     }
-    this.editorOptions = { ...this.editorOptions, readOnly: !edit };
     this.editorOptionsYaml = { ...this.editorOptionsYaml, readOnly: !edit };
     this.updateForm();
     !!notify && this.editModeChange.emit(this.editMode);
@@ -190,5 +179,14 @@ updateForm() {
       this.code = JSON.stringify(parsedConfig, null, 2);
     }
   }
-
+  onEditorClick(event: any) {
+    if (this.createMode && this.sinkBackend === undefined && !this.selectBackendWarning) {
+      this.selectBackendWarning = true;
+      setTimeout(() => {
+        this.selectBackendWarning = false;
+      }, 2000);
+    }
+    this.warningMessageTop = event.target.clientY;
+    this.warningMessageLeft = event.target.clientX;
+  }
 }

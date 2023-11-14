@@ -1,10 +1,12 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { NbDialogService } from '@nebular/theme';
 import { Agent, AgentStates } from 'app/common/interfaces/orb/agent.interface';
 import { Tags } from 'app/common/interfaces/orb/tag';
 import { AgentsService } from 'app/common/services/agents/agents.service';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { OrbService } from 'app/common/services/orb.service';
+import { AgentResetComponent } from 'app/pages/fleet/agents/reset/agent.reset.component';
 
 @Component({
   selector: 'ngx-agent-information',
@@ -34,6 +36,7 @@ export class AgentInformationComponent implements OnInit, OnChanges {
     protected notificationService: NotificationsService,
     private fb: FormBuilder,
     private orb: OrbService,
+    private dialogService: NbDialogService,
   ) {
     this.isResetting = false;
     this.isRequesting = false;
@@ -138,5 +141,20 @@ export class AgentInformationComponent implements OnInit, OnChanges {
       return true;
     }
     return false;
+  }
+  onOpenResetAgents() {
+    const agent = this.agent;
+    this.dialogService
+      .open(AgentResetComponent, {
+        context: { agent },
+        autoFocus: true,
+        closeOnEsc: true,
+      })
+      .onClose.subscribe((confirm) => {
+        if (confirm) {
+          this.resetAgent();
+          this.orb.refreshNow();
+        }
+      });
   }
 }

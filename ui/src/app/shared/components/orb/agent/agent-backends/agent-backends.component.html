@@ -17,8 +17,8 @@
           </ng-container>
       </nb-tab>
     </nb-tabset>
-    <span *ngIf="agent?.state === agentStates.new" class="summary-accent">
+    <p *ngIf="agent?.state === agentStates.new" class="summary-accent">
       Agent needs to be connected to have a backend.
-    </span>
+    </p>
   </nb-card-body>
 </nb-card>

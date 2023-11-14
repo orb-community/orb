@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"fmt"
+
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq" // required for SQL access
 	"github.com/orb-community/orb/pkg/config"
@@ -31,11 +32,11 @@ func migrateDB(db *sqlx.DB) error {
 		Migrations: []*migrate.Migration{
 			{
 				Id: "1",
-				Up: []string{
+				Up: []string{					
 					`CREATE TABLE IF NOT EXISTS deployments (
 					    id			    UUID NOT NULL DEFAULT gen_random_uuid(),
-					    owner_id                VARCHAR(255),
-					    sink_id                 VARCHAR(255),
+					    owner_id                VARCHAR(255) NOT NULL,
+					    sink_id                 VARCHAR(255) NOT NULL,
 					    backend                 VARCHAR(255), 
 					    config                  JSONB,
 					    last_status             VARCHAR(255),
@@ -46,6 +47,7 @@ func migrateDB(db *sqlx.DB) error {
 					    last_collector_deploy_time TIMESTAMP,
 					    last_collector_stop_time   TIMESTAMP
 					);`,
+					`ALTER TABLE "deployments" ADD CONSTRAINT "deployments_owner_id_sink_id" UNIQUE ("owner_id", "sink_id");`,
 				},
 				Down: []string{
 					"DROP TABLE deployments",

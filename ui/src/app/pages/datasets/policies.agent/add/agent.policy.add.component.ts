@@ -123,7 +123,7 @@ kind: collection`;
     `;
 
   // is config specified wizard mode or in YAML or JSON
-  isJsonMode = true;
+  isJsonMode = false;
 
   // format definition
   format = 'yaml';
@@ -345,7 +345,7 @@ kind: collection`;
         this.errorConfigMessage = '';
         return true;
       } else {
-        this.errorConfigMessage = 'Invalid JSON configuration, check syntax errors';
+        this.errorConfigMessage = 'Invalid JSON configuration, check syntax errors.';
         return false;
       }
     } else {
@@ -353,7 +353,7 @@ kind: collection`;
         this.errorConfigMessage = '';
         return true;
       } else {
-        this.errorConfigMessage = 'Invalid YAML configuration, check syntax errors';
+        this.errorConfigMessage = 'Invalid YAML configuration, check syntax errors.';
         return false;
       }
     }

@@ -26,6 +26,15 @@ input {
   &idle {
     color: #f2994a;
   }
+  &provisioning {
+    color: #3089fc;
+  }
+  &provioning_error {
+    color: #df316f;
+  }
+  &warning {
+    color: #f2c94c;
+  }
 }
 .ns1red {
   color: #df316f;
@@ -44,6 +53,7 @@ nb-card {
     padding: 0.5rem 1rem;
   }
   nb-card-body {
+    margin: 0 !important;
     label {
       color: #969fb9;
     }

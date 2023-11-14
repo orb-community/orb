@@ -29,7 +29,8 @@
         class="policy-save"
         nbButton
         *ngIf="isEditMode()"
-        shape="round">
+        shape="round"
+        style="margin-left: 20px;">
         <nb-icon icon="save-outline"></nb-icon>
         Save
       </button>
@@ -68,7 +69,7 @@
     </ngx-sink-details>
   </div>
   <div class="card-col col-8" style="padding-left: 0;">
-    <ngx-sink-config [(editMode)]="editMode.config" [sink]="sink" [detailsEditMode]="editMode.details">
+    <ngx-sink-config [(editMode)]="editMode.config" [sink]="sink" [detailsEditMode]="editMode.details" [errorConfigMessage]="errorConfigMessage">
     </ngx-sink-config>
   </div>
 </div>

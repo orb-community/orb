@@ -5,6 +5,7 @@ export enum FilterTypes {
   AutoComplete,
   Select, // allows select one option
   MultiSelect, // allows select multi options
+  MultiSelectAsync, // allows select multi options | async
   Checkbox, // on|off option
   Number, // number input
 }
@@ -60,6 +61,10 @@ export function filterTags(item: any, prop: any, value: any, exact?: any) {
 
 export function filterMultiSelect(item: any, prop: any, values: any, exact?: any) {
   return values.reduce((prev, cur) => {
-    return item[prop] === cur || prev;
+    if (exact) {
+      return item[prop] === cur || prev;
+    } else {
+      return item[prop].includes(cur) || prev;
+    }
   }, false);
 }

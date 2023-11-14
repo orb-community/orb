@@ -7,9 +7,10 @@ package sinker
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/orb-community/orb/sinker/redis/consumer"
 	"github.com/orb-community/orb/sinker/redis/producer"
-	"time"
 
 	"github.com/go-kit/kit/metrics"
 	"github.com/go-redis/redis/v8"

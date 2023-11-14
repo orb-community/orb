@@ -1,0 +1,6 @@
+<div class="floating-div" [style.left.px]="left" [style.top.px]="top">
+    <button *ngFor="let item of items" class="button-action {{item.action}}" (click)="handleClick(item)">
+        <nb-icon icon="{{item.icon}}">
+        </nb-icon>
+    </button>
+</div>

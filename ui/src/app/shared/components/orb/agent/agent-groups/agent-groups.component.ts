@@ -54,4 +54,7 @@ export class AgentGroupsComponent implements OnInit, OnChanges {
       relativeTo: this.route,
     });
   }
+  identify(index, item) {
+    return item.id;
+  }
 }

@@ -2,10 +2,13 @@ package service
 
 import (
 	"context"
+	"encoding/json"
+	maestroerrors "github.com/orb-community/orb/maestro/errors"
+	"github.com/orb-community/orb/pkg/types"
+	"github.com/orb-community/orb/sinks/pb"
 	"time"
 
 	"github.com/orb-community/orb/maestro/deployment"
-	"github.com/orb-community/orb/maestro/kubecontrol"
 	maestroredis "github.com/orb-community/orb/maestro/redis"
 	"github.com/orb-community/orb/pkg/errors"
 	"go.uber.org/zap"
@@ -23,15 +26,16 @@ type EventService interface {
 type eventService struct {
 	logger            *zap.Logger
 	deploymentService deployment.Service
+	sinkGrpcClient    pb.SinkServiceClient
 	// Configuration for KafkaURL from Orb Deployment
 	kafkaUrl string
 }
 
 var _ EventService = (*eventService)(nil)
 
-func NewEventService(logger *zap.Logger, service deployment.Service, _ kubecontrol.Service) EventService {
+func NewEventService(logger *zap.Logger, service deployment.Service, sinksGrpcClient *pb.SinkServiceClient) EventService {
 	namedLogger := logger.Named("deploy-service")
-	return &eventService{logger: namedLogger, deploymentService: service}
+	return &eventService{logger: namedLogger, deploymentService: service, sinkGrpcClient: *sinksGrpcClient}
 }
 
 // HandleSinkCreate will create deployment entry in postgres, will create deployment in Redis, to prepare for SinkActivity
@@ -110,10 +114,39 @@ func (d *eventService) HandleSinkActivity(ctx context.Context, event maestroredi
 	}
 	deploymentEntry, _, err := d.deploymentService.GetDeployment(ctx, event.OwnerID, event.SinkID)
 	if err != nil {
-		d.logger.Warn("did not find collector entry for sink", zap.String("sink-id", event.SinkID))
-		return err
+		if err == maestroerrors.NotFound {
+			d.logger.Info("did not find collector entry for sink, retrieving from sinks grpc", zap.String("sink-id", event.SinkID))
+			sink, err := d.sinkGrpcClient.RetrieveSink(ctx, &pb.SinkByIDReq{
+				SinkID:  event.SinkID,
+				OwnerID: event.OwnerID,
+			})
+			if err != nil {
+				d.logger.Error("error retrieving sink from grpc", zap.Error(err))
+				return err
+			}
+			metadata := make(map[string]interface{})
+			err = json.Unmarshal(sink.Config, &metadata)
+			if err != nil {
+				d.logger.Error("error unmarshalling sink metadata", zap.Error(err))
+				return err
+			}
+			newEntry := deployment.NewDeployment(event.OwnerID, event.SinkID, types.FromMap(metadata), sink.Backend)
+			err = d.deploymentService.CreateDeployment(ctx, &newEntry)
+			if err != nil {
+				d.logger.Error("error trying to recreate deployment entry", zap.Error(err))
+				return err
+			}
+			deploymentEntry, _, err = d.deploymentService.GetDeployment(ctx, event.OwnerID, event.SinkID)
+			if err != nil {
+				d.logger.Error("error trying to recreate deployment entry", zap.Error(err))
+				return err
+			}
+		} else {
+			d.logger.Warn("did not find collector entry for sink", zap.String("sink-id", event.SinkID))
+			return err
+		}
 	}
-	d.logger.Debug("handling sink activity event", zap.String("sink-id", event.SinkID), zap.String("deployment-status",deploymentEntry.LastStatus))
+	d.logger.Debug("handling sink activity event", zap.String("sink-id", event.SinkID), zap.String("deployment-status", deploymentEntry.LastStatus))
 	if deploymentEntry.LastStatus == "unknown" || deploymentEntry.LastStatus == "idle" {
 		// async update sink status to provisioning
 		go func() {
@@ -142,7 +175,7 @@ func (d *eventService) HandleSinkActivity(ctx context.Context, event maestroredi
 
 func (d *eventService) HandleSinkIdle(ctx context.Context, event maestroredis.SinkerUpdateEvent) error {
 	// check if exists deployment entry from postgres
-	d.logger.Debug("handling sink idle event", zap.String("sink-id", event.SinkID))
+	d.logger.Debug("handling sink idle event", zap.String("sink-id", event.SinkID), zap.String("owner-id", event.OwnerID))
 	// async update sink status to idle
 	go func() {
 		err := d.deploymentService.UpdateStatus(ctx, event.OwnerID, event.SinkID, "idle", "")
@@ -151,7 +184,7 @@ func (d *eventService) HandleSinkIdle(ctx context.Context, event maestroredis.Si
 		}
 	}()
 	// dropping idle otel collector
-	_, err := d.deploymentService.NotifyCollector(ctx, event.OwnerID, event.SinkID, "delete", "", "")
+	_, err := d.deploymentService.NotifyCollector(ctx, event.OwnerID, event.SinkID, "delete", "idle", "")
 	if err != nil {
 		d.logger.Error("error trying to notify collector", zap.Error(err))
 		err2 := d.deploymentService.UpdateStatus(ctx, event.OwnerID, event.SinkID, "provisioning_error", err.Error())

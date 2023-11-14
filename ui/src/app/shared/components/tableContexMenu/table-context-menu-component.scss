@@ -1,0 +1,28 @@
+.floating-div {
+  position: absolute;
+  transform: translate(3%, -90%);
+  background-color: #171c30; 
+  padding: 7px 10px;
+  border-radius: 30px;
+  border-bottom-left-radius: 0;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+}
+.button-action {
+  border: none;
+  background-color: transparent;
+  color: #969fb9;
+  outline: none;
+}
+.openview, .openedit, .openduplicate {
+  transition: color 0.3s ease;
+  &:hover {
+    color: #3089fc;
+  }
+}
+.opendelete {
+  transition: color 0.3s ease;
+  &:hover {
+    color: #df316f;
+  }
+}
