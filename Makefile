@@ -232,6 +232,7 @@ agent_bin:
 
 agent:
 	docker build --no-cache \
+	  --build-arg GOARCH=$(GOARCH) \
 	  --build-arg PKTVISOR_TAG=$(PKTVISOR_TAG) \
 	  --tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(REF_TAG) \
 	  --tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(ORB_VERSION) \
@@ -240,6 +241,7 @@ agent:
 	  
 agent_full:
 	docker build --no-cache \
+      --build-arg GOARCH=$(GOARCH) \
 	  --build-arg PKTVISOR_TAG=$(PKTVISOR_TAG) \
 	  --build-arg DIODE_TAG=$(DIODE_TAG) \
 	  --build-arg ORB_TAG=${REF_TAG} \
