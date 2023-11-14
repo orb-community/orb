@@ -35,7 +35,7 @@ func (a *orbAgent) connect(ctx context.Context, config config.MQTTConfig) (mqtt.
 	opts.SetCleanSession(true)
 	opts.SetConnectTimeout(5 * time.Minute)
 	opts.SetResumeSubs(true)
-	opts.SetOnConnectHandler(func(client mqtt.Client) {
+	opts.SetReconnectingHandler(func(client mqtt.Client, options *mqtt.ClientOptions) {
 		go func() {
 			ok := false
 			for i := 1; i < 10; i++ {
@@ -43,6 +43,10 @@ func (a *orbAgent) connect(ctx context.Context, config config.MQTTConfig) (mqtt.
 				case <-ctx.Done():
 					return
 				default:
+					if len(a.backends) == 0 {
+						time.Sleep(time.Duration(i) * time.Second)
+						continue
+					}
 					for name, be := range a.backends {
 						backendStatus, s, _ := be.GetRunningStatus()
 						a.logger.Debug("backend in status", zap.String("backend", name), zap.String("status", s))
@@ -69,7 +73,45 @@ func (a *orbAgent) connect(ctx context.Context, config config.MQTTConfig) (mqtt.
 				ctx.Done()
 			}
 		}()
-
+	})
+	opts.SetOnConnectHandler(func(client mqtt.Client) {
+		go func() {
+			ok := false
+			for i := 1; i < 10; i++ {
+				select {
+				case <-ctx.Done():
+					return
+				default:
+					if len(a.backends) == 0 {
+						time.Sleep(time.Duration(i) * time.Second)
+						continue
+					}
+					for name, be := range a.backends {
+						backendStatus, s, _ := be.GetRunningStatus()
+						a.logger.Debug("backend in status", zap.String("backend", name), zap.String("status", s))
+						switch backendStatus {
+						case backend.Running:
+							ok = true
+							a.requestReconnection(ctx, client, config)
+							return
+						case backend.Waiting:
+							ok = true
+							a.requestReconnection(ctx, client, config)
+							return
+						default:
+							a.logger.Info("waiting until a backend is in running state", zap.String("backend", name),
+								zap.String("current state", s), zap.String("wait time", (time.Duration(i)*time.Second).String()))
+							time.Sleep(time.Duration(i) * time.Second)
+							continue
+						}
+					}
+				}
+			}
+			if !ok {
+				a.logger.Error("backend wasn't able to change to running, stopping connection")
+				ctx.Done()
+			}
+		}()
 	})
 
 	if !a.config.OrbAgent.TLS.Verify {

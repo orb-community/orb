@@ -89,5 +89,4 @@ func (o *openTelemetryBackend) receiveOtlp() {
 			}
 		}
 	}()
-	//waitGrp.Wait()
 }

@@ -135,7 +135,7 @@ func (a *orbAgent) startBackends(agentCtx context.Context) error {
 		if err := be.Start(context.WithCancel(backendCtx)); err != nil {
 			a.logger.Info("failed to start backend", zap.String("backend", name), zap.Error(err))
 			a.backendState[name] = &backend.State{
-				Status:        backend.Unknown,
+				Status:        be.GetInitialState(),
 				LastError:     err.Error(),
 				LastRestartTS: time.Now(),
 			}
@@ -303,7 +303,9 @@ func (a *orbAgent) RestartAll(ctx context.Context, reason string) error {
 	} else {
 		ctx = context.WithValue(ctx, "agent_id", "auto-provisioning-without-id")
 	}
-	a.logger.Info("restarting all backends", zap.String("reason", reason))
+	if err := a.restartComms(ctx); err != nil {
+		a.logger.Error("failed to restart comms", zap.Error(err))
+	}
 	for name := range a.backends {
 		a.logger.Info("restarting backend", zap.String("backend", name), zap.String("reason", reason))
 		err := a.RestartBackend(ctx, name, reason)
@@ -313,10 +315,6 @@ func (a *orbAgent) RestartAll(ctx context.Context, reason string) error {
 	}
 	a.logger.Info("restarting comms", zap.String("reason", reason))
 	a.logoffWithHeartbeat(ctx)
-	err := a.restartComms(ctx)
-	if err != nil {
-		a.logger.Error("failed to restart comms", zap.Error(err))
-	}
 	a.logonWithHearbeat()
 	a.logger.Info("all backends and comms were restarted")
 

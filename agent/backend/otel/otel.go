@@ -14,12 +14,15 @@ import (
 	"go.opentelemetry.io/collector/exporter"
 	"go.uber.org/zap"
 	"os"
+	"strconv"
 	"time"
 )
 
 var _ backend.Backend = (*openTelemetryBackend)(nil)
 
 const DefaultPath = "/usr/local/bin/otelcol-contrib"
+const DefaultHost = "localhost"
+const DefaultPort = 4317
 
 type openTelemetryBackend struct {
 	logger    *zap.Logger
@@ -71,16 +74,19 @@ func (o *openTelemetryBackend) Configure(logger *zap.Logger, repo policies.Polic
 	if agentTags, ok := otelConfig["agent_tags"]; ok {
 		o.agentTags = agentTags.(map[string]string)
 	}
-	for k, v := range otelConfig {
-		switch k {
-		case "Port":
-			o.otelReceiverPort = v.(int)
+	if otelPort, ok := config["otlp_port"]; ok {
+		o.otelReceiverPort, err = strconv.Atoi(otelPort)
+		if err != nil {
+			o.logger.Error("failed to parse otlp port using default", zap.Error(err))
+			o.otelReceiverPort = DefaultPort
 		}
+	} else {
+		o.otelReceiverPort = DefaultPort
 	}
-	if o.otelReceiverPort == 0 {
-		// TODO use default values if not configured in YAML
-		o.otelReceiverHost = "localhost"
-		o.otelReceiverPort = 4317
+	if otelHost, ok := config["otlp_host"]; ok {
+		o.otelReceiverHost = otelHost
+	} else {
+		o.otelReceiverHost = DefaultHost
 	}
 
 	return nil
@@ -163,8 +169,8 @@ func (o *openTelemetryBackend) Stop(_ context.Context) error {
 	return nil
 }
 
-func (o *openTelemetryBackend) FullReset(_ context.Context) error {
-	o.logger.Info("resetting all policies and restarting")
+func (o *openTelemetryBackend) FullReset(ctx context.Context) error {
+	o.logger.Info("resetting all policies and restarting, skipping if already killed", zap.Int("policies", len(o.runningCollectors)))
 	for policyID, policyEntry := range o.runningCollectors {
 		o.logger.Debug("stopping policy context", zap.String("policy_id", policyID))
 		policyEntry.ctx.Done()
@@ -172,6 +178,10 @@ func (o *openTelemetryBackend) FullReset(_ context.Context) error {
 		if err != nil {
 			return err
 		}
+	}
+	backendCtx, cancelFunc := context.WithCancel(context.WithValue(ctx, "routine", "otel"))
+	if err := o.Start(backendCtx, cancelFunc); err != nil {
+		return err
 	}
 	return nil
 }

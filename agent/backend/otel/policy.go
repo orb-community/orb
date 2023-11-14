@@ -98,7 +98,7 @@ func (o *openTelemetryBackend) addRunner(policyData policies.PolicyData, policyF
 			select {
 			case v := <-ctx.Done():
 				err := command.Stop()
-				if err != nil {
+				if err != nil && err.Error() != "command not running" {
 					logger.Error("failed to stop otel", zap.String("policy_id", policyData.ID),
 						zap.Any("value", v), zap.Error(err))
 					return
@@ -153,7 +153,7 @@ func (o *openTelemetryBackend) RemovePolicy(data policies.PolicyData) error {
 		policyPath := o.policyConfigDirectory + fmt.Sprintf(tempFileNamePattern, data.ID)
 		err = os.Remove(policyPath)
 		if err != nil {
-			o.logger.Error("error removing temporary file with policy")
+			o.logger.Error("error removing temporary file with policy", zap.Error(err))
 			return err
 		}
 	}
