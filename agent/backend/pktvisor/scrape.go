@@ -165,6 +165,9 @@ func (p *pktvisorBackend) receiveOtlp() {
 						Logger:         p.logger,
 						TracerProvider: trace.NewNoopTracerProvider(),
 						MeterProvider:  metric.NewMeterProvider(),
+						ReportComponentStatus: func(*component.StatusEvent) error {
+							return nil
+						},
 					},
 					BuildInfo: component.NewDefaultBuildInfo(),
 				}
