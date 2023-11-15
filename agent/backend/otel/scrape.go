@@ -111,6 +111,9 @@ func (o *openTelemetryBackend) startOtelMetric(exeCtx context.Context, execCance
 
 // TODO fix when create otlpmqtt trace
 //func (o *openTelemetryBackend) startOtelTraces(exeCtx context.Context, execCancelF context.CancelFunc) bool {
+//  if o.tracesExporter != nil {
+//     return true
+//  }
 //	var err error
 //	o.tracesExporter, err = o.createOtlpTraceMqttExporter(exeCtx, execCancelF)
 //	if err != nil {
