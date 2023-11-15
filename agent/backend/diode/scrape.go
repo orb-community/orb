@@ -74,6 +74,9 @@ func (d *diodeBackend) receiveOtlp() {
 						Logger:         d.logger,
 						TracerProvider: trace.NewNoopTracerProvider(),
 						MeterProvider:  metric.NewMeterProvider(),
+						ReportComponentStatus: func(*component.StatusEvent) error {
+							return nil
+						},
 					},
 					BuildInfo: component.NewDefaultBuildInfo(),
 				}
