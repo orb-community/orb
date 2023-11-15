@@ -22,14 +22,14 @@ func (o *openTelemetryBackend) receiveOtlp() {
 		max := 20
 		for {
 			if o.mqttClient != nil {
-				if o.startOtelMetric(exeCtx, execCancelF) {
+				if ok := o.startOtelMetric(exeCtx, execCancelF); !ok {
 					return
 				}
 				// TODO add this when add otlpmqttexporter to implement createTraceExporter
 				//if o.startOtelTraces(exeCtx, execCancelF) {
 				//	return
 				//}
-				if o.startOtelLogs(exeCtx, execCancelF) {
+				if ok := o.startOtelLogs(exeCtx, execCancelF); !ok {
 					return
 				}
 				break
@@ -59,11 +59,14 @@ func (o *openTelemetryBackend) receiveOtlp() {
 }
 
 func (o *openTelemetryBackend) startOtelMetric(exeCtx context.Context, execCancelF context.CancelFunc) bool {
+	if o.metricsExporter != nil {
+		return true
+	}
 	var err error
 	o.metricsExporter, err = o.createOtlpMetricMqttExporter(exeCtx, execCancelF)
 	if err != nil {
 		o.logger.Error("failed to create a exporter", zap.Error(err))
-		return true
+		return false
 	}
 	pFactory := otlpreceiver.NewFactory()
 	cfg := pFactory.CreateDefaultConfig()
@@ -89,21 +92,21 @@ func (o *openTelemetryBackend) startOtelMetric(exeCtx context.Context, execCance
 	o.metricsReceiver, err = pFactory.CreateMetricsReceiver(exeCtx, set, cfg, o.metricsExporter)
 	if err != nil {
 		o.logger.Error("failed to create a receiver", zap.Error(err))
-		return true
+		return false
 	}
 	err = o.metricsExporter.Start(exeCtx, nil)
 	if err != nil {
 		o.logger.Error("otel mqtt exporter startup error", zap.Error(err))
-		return true
+		return false
 	}
 	o.logger.Info("Started receiver for OTLP in orb-agent",
 		zap.String("host", o.otelReceiverHost), zap.Int("port", o.otelReceiverPort))
 	err = o.metricsReceiver.Start(exeCtx, nil)
 	if err != nil {
 		o.logger.Error("otel receiver startup error", zap.Error(err))
-		return true
+		return false
 	}
-	return false
+	return true
 }
 
 // TODO fix when create otlpmqtt trace
@@ -156,11 +159,14 @@ func (o *openTelemetryBackend) startOtelMetric(exeCtx context.Context, execCance
 //}
 
 func (o *openTelemetryBackend) startOtelLogs(exeCtx context.Context, execCancelF context.CancelFunc) bool {
+	if o.logsExporter != nil {
+		return true
+	}
 	var err error
 	o.logsExporter, err = o.createOtlpLogsMqttExporter(exeCtx, execCancelF)
 	if err != nil {
 		o.logger.Error("failed to create a exporter", zap.Error(err))
-		return true
+		return false
 	}
 	pFactory := otlpreceiver.NewFactory()
 	cfg := pFactory.CreateDefaultConfig()
@@ -186,19 +192,19 @@ func (o *openTelemetryBackend) startOtelLogs(exeCtx context.Context, execCancelF
 	o.metricsReceiver, err = pFactory.CreateLogsReceiver(exeCtx, set, cfg, o.logsExporter)
 	if err != nil {
 		o.logger.Error("failed to create a receiver", zap.Error(err))
-		return true
+		return false
 	}
 	err = o.metricsExporter.Start(exeCtx, nil)
 	if err != nil {
 		o.logger.Error("otel mqtt exporter startup error", zap.Error(err))
-		return true
+		return false
 	}
 	o.logger.Info("Started receiver for OTLP in orb-agent",
 		zap.String("host", o.otelReceiverHost), zap.Int("port", o.otelReceiverPort))
 	err = o.metricsReceiver.Start(exeCtx, nil)
 	if err != nil {
 		o.logger.Error("otel receiver startup error", zap.Error(err))
-		return true
+		return false
 	}
-	return false
+	return true
 }
