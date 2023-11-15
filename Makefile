@@ -241,7 +241,7 @@ agent:
 	  
 agent_full:
 	docker build --no-cache \
-      --build-arg GOARCH=$(GOARCH) \
+	  --build-arg GOARCH=$(GOARCH) \
 	  --build-arg PKTVISOR_TAG=$(PKTVISOR_TAG) \
 	  --build-arg DIODE_TAG=$(DIODE_TAG) \
 	  --build-arg ORB_TAG=${REF_TAG} \
