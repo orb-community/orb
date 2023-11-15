@@ -182,8 +182,8 @@ func (o *openTelemetryBackend) FullReset(ctx context.Context) error {
 	for policyID, policyEntry := range o.runningCollectors {
 		o.logger.Debug("stopping policy context", zap.String("policy_id", policyID))
 		policyEntry.ctx.Done()
-		err := o.ApplyPolicy(policyEntry.policyData, true)
-		if err != nil {
+		if err := o.ApplyPolicy(policyEntry.policyData, true); err != nil {
+			o.logger.Error("failed to apply policy", zap.Error(err))
 			return err
 		}
 	}
