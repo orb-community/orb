@@ -8,7 +8,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"go.opentelemetry.io/collector/config/confighttp"
+	"go.opentelemetry.io/collector/config/configgrpc"
+	"go.opentelemetry.io/collector/config/confignet"
 	"net/http"
 	"strconv"
 	"time"
@@ -152,9 +153,10 @@ func (p *pktvisorBackend) receiveOtlp() {
 				pFactory := otlpreceiver.NewFactory()
 				cfg := pFactory.CreateDefaultConfig()
 				cfg.(*otlpreceiver.Config).Protocols = otlpreceiver.Protocols{
-					HTTP: &otlpreceiver.HTTPConfig{
-						HTTPServerSettings: &confighttp.HTTPServerSettings{
-							Endpoint: p.otelReceiverHost + ":" + strconv.Itoa(p.otelReceiverPort),
+					GRPC: &configgrpc.GRPCServerSettings{
+						NetAddr: confignet.NetAddr{
+							Endpoint:  p.otelReceiverHost + ":" + strconv.Itoa(p.otelReceiverPort),
+							Transport: "tcp",
 						},
 					},
 				}
@@ -166,11 +168,7 @@ func (p *pktvisorBackend) receiveOtlp() {
 					},
 					BuildInfo: component.NewDefaultBuildInfo(),
 				}
-				//p.logger.Info("Started receiver for OTLP in orb-agent", zap.Any("exect", exeCtx),
-				//	zap.Any("set", set),
-				//	zap.Any("cfg", cfg),
-				//	zap.Any("exporter", p.exporter),
-				//	zap.Any("receiver", p.receiver))
+
 				p.receiver, err = pFactory.CreateMetricsReceiver(exeCtx, set, cfg, p.exporter)
 				if err != nil {
 					p.logger.Error("failed to create a receiver", zap.Error(err))
