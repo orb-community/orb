@@ -303,6 +303,7 @@ func (a *orbAgent) RestartAll(ctx context.Context, reason string) error {
 	} else {
 		ctx = context.WithValue(ctx, "agent_id", "auto-provisioning-without-id")
 	}
+	a.logoffWithHeartbeat(ctx)
 	a.logger.Info("restarting comms", zap.String("reason", reason))
 	if err := a.restartComms(ctx); err != nil {
 		a.logger.Error("failed to restart comms", zap.Error(err))
@@ -314,8 +315,6 @@ func (a *orbAgent) RestartAll(ctx context.Context, reason string) error {
 			a.logger.Error("failed to restart backend", zap.Error(err))
 		}
 	}
-
-	a.logoffWithHeartbeat(ctx)
 	a.logonWithHearbeat()
 	a.logger.Info("all backends and comms were restarted")
 
