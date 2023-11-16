@@ -21,6 +21,7 @@ import {
   FilterOption, filterString, filterTags,
   FilterTypes,
   filterMultiSelect,
+  filterMultiTags,
 } from 'app/common/interfaces/orb/filter-option';
 import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
 import { FilterService } from 'app/common/services/filter.service';
@@ -136,19 +137,27 @@ export class AgentPolicyListComponent
         prop: 'tags',
         autoSuggestion: orb.getPolicyTags(),
         filter: filterTags,
-        type: FilterTypes.AutoComplete,
+        type: FilterTypes.Tags,
+      },
+      {
+        name: 'MultiTags',
+        prop: 'tags',
+        filter: filterMultiTags,
+        autoSuggestion: orb.getAgentsTags(),
+        type: FilterTypes.MultiSelect,
       },
       {
         name: 'Version',
         prop: 'version',
-        filter: filterNumber,
-        type: FilterTypes.Number,
+        filter: filterMultiSelect,
+        type: FilterTypes.MultiSelect,
+        exact: true,
       },
       {
         name: 'Description',
         prop: 'description',
-        filter: filterString,
-        type: FilterTypes.Input,
+        filter: filterMultiSelect,
+        type: FilterTypes.MultiSelect,
       },
       {
         name: 'Usage',

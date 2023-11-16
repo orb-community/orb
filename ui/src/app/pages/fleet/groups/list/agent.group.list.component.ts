@@ -18,6 +18,7 @@ import {
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import {
   filterMultiSelect,
+  filterMultiTags,
   FilterOption, filterString,
   filterTags,
   FilterTypes,
@@ -131,13 +132,20 @@ export class AgentGroupListComponent
         prop: 'tags',
         filter: filterTags,
         autoSuggestion: orb.getGroupsTags(),
-        type: FilterTypes.AutoComplete,
+        type: FilterTypes.Tags,
+      },
+      {
+        name: 'MultiTags',
+        prop: 'tags',
+        filter: filterMultiTags,
+        autoSuggestion: orb.getAgentsTags(),
+        type: FilterTypes.MultiSelect,
       },
       {
         name: 'Description',
         prop: 'description',
-        filter: filterString,
-        type: FilterTypes.Input,
+        filter: filterMultiSelect,
+        type: FilterTypes.MultiSelect,
       },
     ];
 

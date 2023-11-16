@@ -24,7 +24,7 @@
     id="filterInput"
     class="apply-filter-input"
     nbInput
-    placeholder="{{currentFilter.name}}"
+    placeholder="{{ currentFilter.name === 'MultiTags' ? 'Tags' : currentFilter.name}}"
     [readonly]="currentFilter?.options"
     [(ngModel)]="filterText"
     (click)="showOptions = true"
@@ -66,14 +66,14 @@
       <span>{{ option | titlecase }}</span>
     </div>
   </div>
-  <div class="filter-menu" *ngIf="optionsMenuType === 'input' && showOptions">
+  <div class="filter-menu" *ngIf="optionsMenuType === 'tags' && showOptions">
     <div 
       *ngFor="let option of currentFilter?.autoSuggestion | async" 
       class="apply-filter-option"
-      (click)="handleClickInput($event, option)"
+      (click)="handleClickTags($event, option)"
     > 
       <input type="checkbox" 
-        (click)="onCheckboxInput($event, option)"
+        (click)="onCheckboxTags($event, option)"
         [checked]="isOptionSelected(option) | async"            
       >
       <span>{{ option }}</span>
@@ -90,13 +90,23 @@
     class="search-input"
     (ngModelChange)="onSearchTextChange()">
 </div>
+<button
+  *ngIf="optionsMenuType === 'tags' && currentFilter"
+  class="multi-tags-button"
+  (click)="toggleMultiTags()"
+>
+  Use <span style="color: #3089fc;" nbTooltip="Multiple filters will be added using {{ isMultiTags ? 'OR' : 'AND' }} condition. Click to toggle.">
+    {{ isMultiTags ? 'OR' : 'AND' }}
+  </span> 
+  Condition
+</button>
 <div *ngIf="(hasActiveFilters() | async)" class="list-div">
   <div class="filters-list">
     <div class="filter-list-display">
       <ng-container *ngFor="let filter of activeFilters$ | async; let index = index" >
         <div class="filter-item" *ngIf="filter.name !== 'Name'">
           <div class="filter-name">
-            <span>{{ filter?.name }}</span>
+            <span>{{ filter.name === 'MultiTags' ? 'Tags' : filter.name }}</span>
           </div>
           <div class="filter-param">
             <span>{{ filter?.param | paramformatter}}</span>

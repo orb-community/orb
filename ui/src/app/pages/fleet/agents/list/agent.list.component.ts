@@ -18,6 +18,7 @@ import {
 import {Agent, AgentPolicyAggStates, AgentStates} from 'app/common/interfaces/orb/agent.interface';
 import {
   filterMultiSelect,
+  filterMultiTags,
   FilterOption, filterString,
   filterTags,
   FilterTypes,
@@ -151,7 +152,14 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
         prop: 'combined_tags',
         filter: filterTags,
         autoSuggestion: orb.getAgentsTags(),
-        type: FilterTypes.AutoComplete,
+        type: FilterTypes.Tags,
+      },
+      {
+        name: 'MultiTags',
+        prop: 'combined_tags',
+        filter: filterMultiTags,
+        autoSuggestion: orb.getAgentsTags(),
+        type: FilterTypes.MultiSelect,
       },
       {
         name: 'Status',
