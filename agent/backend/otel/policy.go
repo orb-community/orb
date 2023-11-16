@@ -35,7 +35,7 @@ func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, up
 		return err
 	}
 	// Find unused port
-	port := 8888
+	port := 8889
 	for _, policy := range o.runningCollectors {
 		if policy.telemetryPort == port {
 			port++
