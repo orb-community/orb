@@ -55,7 +55,7 @@ service:
 			if err != nil {
 				t.Errorf("failed to merge default value with policy: %v", err)
 			}
-			expectedStruct, err := exporterBuilder.MergeDefaultValueWithPolicy(gotOtelConfig, testCase.policyId, testCase.policyName)
+			expectedStruct, err := exporterBuilder.MergeDefaultValueWithPolicy(gotOtelConfig, testCase.policyId, testCase.policyName, 8888)
 			if err != nil {
 				t.Errorf("failed to merge default value with policy: %v", err)
 			}
