@@ -14,11 +14,12 @@ import (
 const tempFileNamePattern = "otel-%s-config.yml"
 
 type runningPolicy struct {
-	ctx        context.Context
-	cancel     context.CancelFunc
-	policyId   string
-	policyData policies.PolicyData
-	statusChan *cmd.Status
+	ctx           context.Context
+	cancel        context.CancelFunc
+	policyId      string
+	telemetryPort int
+	policyData    policies.PolicyData
+	statusChan    *cmd.Status
 }
 
 func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, updatePolicy bool) error {
@@ -33,7 +34,14 @@ func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, up
 	if err != nil {
 		return err
 	}
-	otelConfig, err = builder.MergeDefaultValueWithPolicy(otelConfig, newPolicyData.ID, newPolicyData.Name)
+	// Find unused port
+	port := 8888
+	for _, policy := range o.runningCollectors {
+		if policy.telemetryPort == port {
+			port++
+		}
+	}
+	otelConfig, err = builder.MergeDefaultValueWithPolicy(otelConfig, newPolicyData.ID, newPolicyData.Name, port)
 	if err != nil {
 		return err
 	}

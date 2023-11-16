@@ -30,6 +30,15 @@ type tls struct {
 
 type service struct {
 	Pipelines *pipelines `yaml:"pipelines"`
+	Telemetry *telemetry `yaml:"telemetry,omitempty"`
+}
+
+type telemetry struct {
+	Metrics *metrics `yaml:"metrics"`
+}
+
+type metrics struct {
+	Address string `yaml:"address"`
 }
 
 type pipelines struct {
@@ -64,7 +73,7 @@ func (e *exporterBuilder) GetStructFromYaml(yamlString string) (openTelemetryCon
 	return config, nil
 }
 
-func (e *exporterBuilder) MergeDefaultValueWithPolicy(config openTelemetryConfig, policyId string, policyName string) (openTelemetryConfig, error) {
+func (e *exporterBuilder) MergeDefaultValueWithPolicy(config openTelemetryConfig, policyId string, policyName string, telemetryPort int) (openTelemetryConfig, error) {
 	endpoint := e.host + ":" + strconv.Itoa(e.port)
 	defaultOtlpExporter := defaultOtlpExporter{
 		Endpoint: endpoint,
@@ -92,6 +101,7 @@ func (e *exporterBuilder) MergeDefaultValueWithPolicy(config openTelemetryConfig
 	if config.Extensions == nil {
 		config.Extensions = make(map[string]interface{})
 	}
+	config.Service.Telemetry.Metrics.Address = "0.0.0.0:" + strconv.Itoa(telemetryPort)
 	// Override metrics exporter and append attributes/policy_data processor
 	if config.Service.Pipelines.Metrics != nil {
 		config.Service.Pipelines.Metrics.Exporters = []string{"otlp"}
@@ -108,7 +118,7 @@ func (e *exporterBuilder) MergeDefaultValueWithPolicy(config openTelemetryConfig
 	return config, nil
 }
 
-func (o *openTelemetryBackend) buildDefaultExporterAndProcessor(policyYaml string, policyId string, policyName string) (openTelemetryConfig, error) {
+func (o *openTelemetryBackend) buildDefaultExporterAndProcessor(policyYaml string, policyId string, policyName string, telemetryPort int) (openTelemetryConfig, error) {
 	defaultPolicyYaml, err := yaml.Marshal(policyYaml)
 	if err != nil {
 		o.logger.Warn("yaml policy marshal failure", zap.String("policy_id", policyId))
@@ -120,7 +130,11 @@ func (o *openTelemetryBackend) buildDefaultExporterAndProcessor(policyYaml strin
 	if err != nil {
 		return openTelemetryConfig{}, err
 	}
-	defaultPolicyStruct, err = builder.MergeDefaultValueWithPolicy(defaultPolicyStruct, policyId, policyName)
+	defaultPolicyStruct, err = builder.MergeDefaultValueWithPolicy(
+		defaultPolicyStruct,
+		policyId,
+		policyName,
+		telemetryPort)
 	if err != nil {
 		return openTelemetryConfig{}, err
 	}
