@@ -101,7 +101,10 @@ func (e *exporterBuilder) MergeDefaultValueWithPolicy(config openTelemetryConfig
 	if config.Extensions == nil {
 		config.Extensions = make(map[string]interface{})
 	}
-	config.Service.Telemetry.Metrics.Address = "0.0.0.0:" + strconv.Itoa(telemetryPort)
+	tel := &telemetry{
+		Metrics: &metrics{Address: "0.0.0.0:" + strconv.Itoa(telemetryPort)},
+	}
+	config.Service.Telemetry = tel
 	// Override metrics exporter and append attributes/policy_data processor
 	if config.Service.Pipelines.Metrics != nil {
 		config.Service.Pipelines.Metrics.Exporters = []string{"otlp"}
