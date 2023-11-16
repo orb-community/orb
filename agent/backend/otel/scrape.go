@@ -110,56 +110,56 @@ func (o *openTelemetryBackend) startOtelMetric(exeCtx context.Context, execCance
 }
 
 // TODO fix when create otlpmqtt trace
-//func (o *openTelemetryBackend) startOtelTraces(exeCtx context.Context, execCancelF context.CancelFunc) bool {
-//  if o.tracesExporter != nil {
-//     return true
-//  }
-//	var err error
-//	o.tracesExporter, err = o.createOtlpTraceMqttExporter(exeCtx, execCancelF)
-//	if err != nil {
-//		o.logger.Error("failed to create a exporter", zap.Error(err))
-//		return true
-//	}
-//	pFactory := otlpreceiver.NewFactory()
-//	cfg := pFactory.CreateDefaultConfig()
-//	cfg.(*otlpreceiver.Config).Protocols = otlpreceiver.Protocols{
-//		GRPC: &configgrpc.GRPCServerSettings{
-//			NetAddr: confignet.NetAddr{
-//				Endpoint:  o.otelReceiverHost + ":" + strconv.Itoa(o.otelReceiverPort),
-//				Transport: "tcp",
-//			},
-//		},
-//	}
-//	set := receiver.CreateSettings{
-//		TelemetrySettings: component.TelemetrySettings{
-//			Logger:         o.logger,
-//			TracerProvider: trace.NewNoopTracerProvider(),
-//			MeterProvider:  metric.NewMeterProvider(),
-//			ReportComponentStatus: func(*component.StatusEvent) error {
-//				return nil
-//			},
-//		},
-//		BuildInfo: component.NewDefaultBuildInfo(),
-//	}
-//	o.tracesReceiver, err = pFactory.CreateTracesReceiver(exeCtx, set, cfg, o.tracesExporter)
-//	if err != nil {
-//		o.logger.Error("failed to create a receiver", zap.Error(err))
-//		return true
-//	}
-//	err = o.metricsExporter.Start(exeCtx, nil)
-//	if err != nil {
-//		o.logger.Error("otel mqtt exporter startup error", zap.Error(err))
-//		return true
-//	}
-//	o.logger.Info("Started receiver for OTLP in orb-agent",
-//		zap.String("host", o.otelReceiverHost), zap.Int("port", o.otelReceiverPort))
-//	err = o.metricsReceiver.Start(exeCtx, nil)
-//	if err != nil {
-//		o.logger.Error("otel receiver startup error", zap.Error(err))
-//		return true
-//	}
-//	return false
-//}
+func (o *openTelemetryBackend) startOtelTraces(exeCtx context.Context, execCancelF context.CancelFunc) bool {
+	if o.tracesExporter != nil {
+		return true
+	}
+	var err error
+	o.tracesExporter, err = o.createOtlpTraceMqttExporter(exeCtx, execCancelF)
+	if err != nil {
+		o.logger.Error("failed to create a exporter", zap.Error(err))
+		return true
+	}
+	pFactory := otlpreceiver.NewFactory()
+	cfg := pFactory.CreateDefaultConfig()
+	cfg.(*otlpreceiver.Config).Protocols = otlpreceiver.Protocols{
+		GRPC: &configgrpc.GRPCServerSettings{
+			NetAddr: confignet.NetAddr{
+				Endpoint:  o.otelReceiverHost + ":" + strconv.Itoa(o.otelReceiverPort),
+				Transport: "tcp",
+			},
+		},
+	}
+	set := receiver.CreateSettings{
+		TelemetrySettings: component.TelemetrySettings{
+			Logger:         o.logger,
+			TracerProvider: trace.NewNoopTracerProvider(),
+			MeterProvider:  metric.NewMeterProvider(),
+			ReportComponentStatus: func(*component.StatusEvent) error {
+				return nil
+			},
+		},
+		BuildInfo: component.NewDefaultBuildInfo(),
+	}
+	o.tracesReceiver, err = pFactory.CreateTracesReceiver(exeCtx, set, cfg, o.tracesExporter)
+	if err != nil {
+		o.logger.Error("failed to create a receiver", zap.Error(err))
+		return true
+	}
+	err = o.metricsExporter.Start(exeCtx, nil)
+	if err != nil {
+		o.logger.Error("otel mqtt exporter startup error", zap.Error(err))
+		return true
+	}
+	o.logger.Info("Started receiver for OTLP in orb-agent",
+		zap.String("host", o.otelReceiverHost), zap.Int("port", o.otelReceiverPort))
+	err = o.metricsReceiver.Start(exeCtx, nil)
+	if err != nil {
+		o.logger.Error("otel receiver startup error", zap.Error(err))
+		return true
+	}
+	return false
+}
 
 func (o *openTelemetryBackend) startOtelLogs(exeCtx context.Context, execCancelF context.CancelFunc) bool {
 	if o.logsExporter != nil {

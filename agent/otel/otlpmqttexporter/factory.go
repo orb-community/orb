@@ -90,7 +90,7 @@ func CreateConfigClient(client *mqtt.Client, topic, pktvisor string, bridgeServi
 	}
 }
 
-func createTracesExporter(
+func CreateTracesExporter(
 	ctx context.Context,
 	set exporter.CreateSettings,
 	cfg component.Config,
