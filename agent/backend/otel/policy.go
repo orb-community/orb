@@ -30,8 +30,10 @@ func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, up
 	}
 	builder := getExporterBuilder(o.logger, o.otelReceiverHost, o.otelReceiverPort)
 	otelConfig, err := builder.GetStructFromYaml(string(policyYaml))
-	err = o.ValidatePolicy(otelConfig)
 	if err != nil {
+		return err
+	}
+	if err = o.ValidatePolicy(otelConfig); err != nil {
 		return err
 	}
 	// Find unused port
