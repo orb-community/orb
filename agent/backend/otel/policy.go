@@ -156,8 +156,7 @@ func (o *openTelemetryBackend) removePolicyControl(policyID string) {
 func (o *openTelemetryBackend) RemovePolicy(data policies.PolicyData) error {
 	if o.policyRepo.Exists(data.ID) {
 		o.removePolicyControl(data.ID)
-		err := o.policyRepo.Remove(data.ID)
-		if err != nil {
+		if err := o.policyRepo.Remove(data.ID); err != nil {
 			return err
 		}
 		policyPath := o.policyConfigDirectory + fmt.Sprintf(tempFileNamePattern, data.ID)
