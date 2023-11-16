@@ -95,18 +95,18 @@ export class SinkDetailsComponent implements OnInit, OnChanges {
       const { name, description, backend, tags } = this.sink;
       this.formGroup = this.fb.group({
         name: [
-          name, 
+          name,
           [
-            Validators.required, 
-            Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$'), 
-            Validators.maxLength(64)
-          ]
+            Validators.required,
+            Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$'),
+            Validators.maxLength(64),
+          ],
         ],
         description: [description, [Validators.maxLength(64)]],
         backend: [backend, Validators.required],
       });
       this.selectedTags = { ...tags };
-      
+
     } else {
       this.formGroup = this.fb.group({
         name: null,

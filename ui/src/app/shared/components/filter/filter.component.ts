@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, HostListener, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { MatSelectChange } from '@angular/material/select';
 import {
   FilterOption,
@@ -42,6 +42,7 @@ export class FilterComponent implements OnInit, OnDestroy {
 
   selectedFilterParams = [];
 
+  isMultiTags = false;
 
   @ViewChild('filtersDisplay') filtersDisplay!: ElementRef;
 
@@ -92,7 +93,7 @@ export class FilterComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.availableFilters = this.availableFilters.filter(filter => filter.name !== 'Name');
+    this.availableFilters = this.availableFilters.filter(filter => filter.name !== 'Name' && filter.name !== 'MultiTags');
     this.searchText = this.filter.searchName || '';
     if (this.filter.searchName) {
       this.searchText = this.filter.searchName;
@@ -143,6 +144,7 @@ export class FilterComponent implements OnInit, OnDestroy {
 
   clearAllFilters() {
     this.filter.cleanFilters();
+    this.selectedFilterParams = [];
   }
 
   toggleExactMatch() {
@@ -160,7 +162,7 @@ export class FilterComponent implements OnInit, OnDestroy {
   }
   handleFilterOptionClick(option: any) {
     this.showMenu = false;
-    this.currentFilter = option;
+    this.currentFilter = Object.assign({}, option);
     const icon = document.querySelector('.icon');
     icon.classList.toggle('flipped');
 
@@ -170,8 +172,9 @@ export class FilterComponent implements OnInit, OnDestroy {
     } else if (this.currentFilter.type === FilterTypes.MultiSelectAsync) {
       this.selectedFilterParams = this.filter.getMultiAppliedParams(this.currentFilter.name);
       this.optionsMenuType = 'multiselectasync';
-    } else {
-      this.optionsMenuType = 'input';
+    } else if (this.currentFilter.type === FilterTypes.Tags) {
+      this.optionsMenuType = 'tags';
+      this.isMultiTags = false;
     }
   }
 
@@ -204,28 +207,63 @@ export class FilterComponent implements OnInit, OnDestroy {
       this.filter.addFilter({ ...this.currentFilter, param: this.selectedFilterParams });
     }
   }
-
-  handleClickInput(event: any, param: any) {
-    if (event.target.type !== 'checkbox') {
-      if (this.filter.findFilter(param, this.currentFilter.name) === -1) {
-        this.filter.addFilter({ ...this.currentFilter, param: param });
-      }
-      this.currentFilter = null;
-      this.filterText = '';
+  toggleMultiTags() {
+    this.isMultiTags = !this.isMultiTags;
+    if (this.isMultiTags) {
+      this.currentFilter.name = 'MultiTags';
+      this.selectedFilterParams = this.filter.getMultiAppliedParams(this.currentFilter.name);
+    } else {
+      this.currentFilter.name = 'Tags';
+      this.selectedFilterParams = [];
     }
   }
-  onCheckboxInput(event: Event, param: any) {
+  handleClickTags(event: any, param: any) {
+    if (event.target.type !== 'checkbox') {
+      if (this.isMultiTags) {
+        if (!this.selectedFilterParams.find(f => f === param)) {
+          this.filter.findAndRemove(this.selectedFilterParams, this.currentFilter.name);
+          this.selectedFilterParams.push(param);
+          this.filter.addFilter({ ...this.currentFilter, param: this.selectedFilterParams });
+        }
+        this.currentFilter = null;
+        this.selectedFilterParams = [];
+        this.filterText = '';
+      } else {
+        if (this.filter.findFilter(param, this.currentFilter.name) === -1) {
+          this.filter.addFilter({ ...this.currentFilter, param: param });
+        }
+        this.currentFilter = null;
+        this.filterText = '';
+      }
+    }
+  }
+  onCheckboxTags(event: Event, param: any) {
     const checkbox = event.target as HTMLInputElement;
     const isChecked = checkbox.checked;
+    const oldParamList = this.selectedFilterParams;
 
-    if (isChecked) {
-      this.filter.addFilter({ ...this.currentFilter, param: param });
+    if (this.isMultiTags) {
+      if (isChecked) {
+        this.selectedFilterParams.push(param);
+      } else {
+        this.selectedFilterParams = this.selectedFilterParams.filter((f) => f !== param);
+      }
+      this.filter.findAndRemove(oldParamList, this.currentFilter.name);
+      if (this.selectedFilterParams.length > 0) {
+        this.filter.addFilter({ ...this.currentFilter, param: this.selectedFilterParams });
+      }
     } else {
-      this.filter.findAndRemove(param, this.currentFilter.name);
+      if (isChecked) {
+        this.filter.addFilter({ ...this.currentFilter, param: param });
+      } else {
+        this.filter.findAndRemove(param, this.currentFilter.name);
+      }
     }
   }
+
   onAddFilterButton(param: any) {
-    if (this.currentFilter.type === FilterTypes.MultiSelectAsync) {
+    const isTags = this.currentFilter.name === 'Tags';
+    if (!isTags || (isTags  && this.isMultiTags)) {
       if (this.selectedFilterParams.length > 0) {
         this.filter.findAndRemove(this.selectedFilterParams, this.currentFilter.name);
         this.selectedFilterParams.push(param);
