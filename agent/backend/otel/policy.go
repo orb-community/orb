@@ -160,7 +160,7 @@ func (o *openTelemetryBackend) RemovePolicy(data policies.PolicyData) error {
 			return err
 		}
 		policyPath := o.policyConfigDirectory + fmt.Sprintf(tempFileNamePattern, data.ID)
-		if err = os.Remove(policyPath); err != nil && err != os.ErrNotExist {
+		if err := os.Remove(policyPath); err != nil && err != os.ErrNotExist {
 			o.logger.Error("error removing temporary file with policy", zap.Error(err))
 			return err
 		}
