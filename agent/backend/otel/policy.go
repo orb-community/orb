@@ -58,13 +58,11 @@ func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, up
 			return err
 		}
 		o.logger.Debug("writing policy to temporary file", zap.String("policy_id", newPolicyData.ID), zap.String("policyData", string(policyYaml)))
-		_, err = temporaryFile.Write(newPolicyYaml)
-		if err != nil {
+		if _, err = temporaryFile.Write(newPolicyYaml); err != nil {
 			o.logger.Error("failed to write temporary file", zap.Error(err), zap.String("policy_id", newPolicyData.ID))
 			return err
 		}
-		err = o.addRunner(newPolicyData, temporaryFile.Name())
-		if err != nil {
+		if err = o.addRunner(newPolicyData, temporaryFile.Name()); err != nil {
 			return err
 		}
 	} else {
@@ -77,12 +75,10 @@ func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, up
 			o.logger.Info("new policy version received, updating",
 				zap.String("policy_id", newPolicyData.ID),
 				zap.Int32("version", newPolicyData.Version))
-			err := os.WriteFile(currentPolicyPath, []byte(policyYaml), os.ModeTemporary)
-			if err != nil {
+			if err := os.WriteFile(currentPolicyPath, []byte(policyYaml), os.ModeTemporary); err != nil {
 				return err
 			}
-			err = o.policyRepo.Update(newPolicyData)
-			if err != nil {
+			if err = o.policyRepo.Update(newPolicyData); err != nil {
 				return err
 			}
 			o.otelReceiverTaps = append(o.otelReceiverTaps, newPolicyData.ID)
