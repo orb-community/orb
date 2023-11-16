@@ -80,9 +80,12 @@ func Run(_ *cobra.Command, _ []string) {
 	_, err = os.Stat(pktvisor.DefaultBinary)
 	logger.Info("backends loaded", zap.Any("backends", configData.OrbAgent.Backends))
 	if err == nil && configData.OrbAgent.Backends == nil {
+		logger.Info("no backends loaded, adding pktvisor as default")
 		configData.OrbAgent.Backends = make(map[string]map[string]string)
 		configData.OrbAgent.Backends["pktvisor"] = make(map[string]string)
 		configData.OrbAgent.Backends["pktvisor"]["binary"] = pktvisor.DefaultBinary
+		configData.OrbAgent.Backends["pktvisor"]["api_host"] = "localhost"
+		configData.OrbAgent.Backends["pktvisor"]["api_port"] = "10853"
 		if len(cfgFiles) > 0 {
 			configData.OrbAgent.Backends["pktvisor"]["config_file"] = cfgFiles[0]
 		}
@@ -151,11 +154,6 @@ func mergeOrError(path string) {
 	v.SetDefault("orb.otel.host", "localhost")
 	v.SetDefault("orb.otel.port", 0)
 	v.SetDefault("orb.debug.enable", Debug)
-
-	v.SetDefault("orb.backends.pktvisor.binary", "/usr/local/sbin/pktvisord")
-	v.SetDefault("orb.backends.pktvisor.config_file", "/opt/orb/agent.yaml")
-	v.SetDefault("orb.backends.pktvisor.api_host", "localhost")
-	v.SetDefault("orb.backends.pktvisor.api_port", "10853")
 
 	if len(path) > 0 {
 		cobra.CheckErr(v.ReadInConfig())
