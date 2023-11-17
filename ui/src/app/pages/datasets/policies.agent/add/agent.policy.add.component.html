@@ -144,14 +144,14 @@
           </ng-template>
           <div class="div-language-button">
             <button 
-            class="language-button {{isJsonMode}}"
-            (click)="isJsonMode = true">
-              JSON
-            </button>
-            <button 
             class="language-button {{!isJsonMode}}"
             (click)="isJsonMode = false">
               YAML
+            </button>
+            <button 
+            class="language-button {{isJsonMode}}"
+            (click)="isJsonMode = true">
+              JSON
             </button>
           </div>
           <div style="display: flex; margin-top: 10px; margin-bottom: 10px; gap: 60px;">

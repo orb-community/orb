@@ -11,6 +11,7 @@ nb-card {
   border: transparent;
   border-radius: 0.5rem;
   padding: 0 !important;
+  min-height: 641px;
 
   nb-card-header {
     background-color: #232940;
@@ -21,6 +22,7 @@ nb-card {
   }
 
   nb-card-body {
+    margin: 0 !important;
     label {
       color: #969fb9;
     }

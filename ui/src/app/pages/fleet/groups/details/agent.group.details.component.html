@@ -1,9 +1,7 @@
-<nb-card size="large" class="nb-card-medium">
+<nb-card>
   <nb-card-header>
     {{strings.details.header}}
-
-
-    <button nbButton ghost="true" size="small" class="orb-close-dialog"
+    <button nbButton ghost="true" class="orb-close-dialog"
             (click)="onClose()"><span class="nb-close"></span>
     </button>
   </nb-card-header>
@@ -11,21 +9,26 @@
     <div class="row">
       <div class="col-6 d-flex flex-column align-items-start">
         <p class="detail-title">{{strings.propNames.name}}</p>
-        <p>{{ agentGroup.name }}</p>
+        <p class="overflow-ellipsis" nbTooltip="{{agentGroup.name}}">{{ agentGroup.name }}</p>
       </div>
-      <div class="col-6 d-flex flex-column align-items-start" *ngIf="agentGroup?.description">
+      <div class="col-6 d-flex flex-column align-items-start" >
         <p class="detail-title">{{strings.propNames.description}}</p>
-        <p>{{ agentGroup.description }}</p>
+        <p *ngIf="agentGroup?.description">{{ agentGroup.description }}</p>
+        <p *ngIf="!agentGroup?.description" style="font-size: 14px; font-style: italic; "> No description Provided </p>
       </div>
     </div>
     <div class="row">
       <div class="col-6 d-flex flex-column align-items-start">
         <p class="detail-title">{{strings.propNames.matches}}</p>
-        <p>{{ agentGroup.matching_agents.total }} {{strings.match.agents}}</p>
+        <button class="match-agents-button" (click)="onMatchingAgentsModal()">{{ agentGroup.matching_agents.total }} {{strings.match.agents}}</button>
+      </div>
+      <div class="col-6 d-flex flex-column align-items-start">
+        <p class="detail-title">Date Created</p>
+        <p>{{ agentGroup?.ts_created | date:'MM-dd-yy h:mm a' }}</p>
       </div>
     </div>
     <div class="row">
-      <div class="col-6 d-flex flex-column align-items-start">
+      <div class="col-12 d-flex flex-column align-items-start">
         <p class="detail-title">{{strings.propNames.tags}}</p>
         <div class="background">
           <mat-chip-list>
@@ -53,6 +56,6 @@
   </nb-card-body>
 
   <nb-card-footer>
-    <button nbButton status="primary" class="sink-edit-button" (click)="onOpenEdit(agentGroup)">Edit</button>
+    <button status="primary" class="group-edit-button" (click)="onOpenEdit(agentGroup)">Edit</button>
   </nb-card-footer>
 </nb-card>

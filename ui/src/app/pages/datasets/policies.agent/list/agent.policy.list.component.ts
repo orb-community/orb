@@ -21,6 +21,7 @@ import {
   FilterOption, filterString, filterTags,
   FilterTypes,
   filterMultiSelect,
+  filterMultiTags,
 } from 'app/common/interfaces/orb/filter-option';
 import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
 import { FilterService } from 'app/common/services/filter.service';
@@ -85,6 +86,19 @@ export class AgentPolicyListComponent
   filters$!: Observable<FilterOption[]>;
   filteredPolicies$: Observable<AgentPolicy[]>;
 
+  contextMenuRow: any;
+
+  showContextMenu = false;
+  menuPositionLeft: number;
+  menuPositionTop: number;
+
+  policyContextMenu = [
+    {icon: 'search-outline', action: 'openview'},
+    {icon: 'edit-outline', action: 'openview'},
+    {icon: 'copy-outline', action: 'openduplicate'},
+    {icon: 'trash-2-outline', action: 'opendelete'},
+  ];
+
   constructor(
     private cdr: ChangeDetectorRef,
     private dialogService: NbDialogService,
@@ -121,20 +135,29 @@ export class AgentPolicyListComponent
       {
         name: 'Tags',
         prop: 'tags',
+        autoSuggestion: orb.getPolicyTags(),
         filter: filterTags,
-        type: FilterTypes.AutoComplete,
+        type: FilterTypes.Tags,
+      },
+      {
+        name: 'MultiTags',
+        prop: 'tags',
+        filter: filterMultiTags,
+        autoSuggestion: orb.getAgentsTags(),
+        type: FilterTypes.MultiSelect,
       },
       {
         name: 'Version',
         prop: 'version',
-        filter: filterNumber,
-        type: FilterTypes.Number,
+        filter: filterMultiSelect,
+        type: FilterTypes.MultiSelect,
+        exact: true,
       },
       {
         name: 'Description',
         prop: 'description',
-        filter: filterString,
-        type: FilterTypes.Input,
+        filter: filterMultiSelect,
+        type: FilterTypes.MultiSelect,
       },
       {
         name: 'Usage',
@@ -142,6 +165,7 @@ export class AgentPolicyListComponent
         filter: filterMultiSelect,
         type: FilterTypes.MultiSelect,
         options: Object.values(AgentPolicyUsage).map((value) => value as string),
+        exact: true,
       },
     ];
 
@@ -150,6 +174,25 @@ export class AgentPolicyListComponent
       this.filters$,
       this.filterOptions,
     );
+  }
+
+  onTableContextMenu(event) {
+    event.event.preventDefault();
+    event.event.stopPropagation();
+    if (event.type === 'body') {
+      this.contextMenuRow = {
+        objectType: 'policy',
+        ...event.content,
+      };
+      this.menuPositionLeft = event.event.clientX;
+      this.menuPositionTop = event.event.clientY;
+      this.showContextMenu = true;
+    }
+  }
+  handleContextClick() {
+    if (this.showContextMenu) {
+      this.showContextMenu = false;
+    }
   }
 
   onOpenDuplicatePolicy(agentPolicy: any) {
@@ -208,9 +251,10 @@ export class AgentPolicyListComponent
       {
         name: '',
         prop: 'checkbox',
-        width: 1,
+        width: 62,
         minWidth: 62,
-        canAutoResize: true,
+        canAutoResize: false,
+        resizeable: false,
         sortable: false,
         cellTemplate: this.checkboxTemplateCell,
         headerTemplate: this.checkboxTemplateHeader,
@@ -230,14 +274,15 @@ export class AgentPolicyListComponent
         resizeable: true,
         canAutoResize: true,
         width: 130,
-        minWidth: 100,
+        minWidth: 130,
+        maxWidth: 140,
         cellTemplate: this.usageStateTemplateCell,
       },
       {
         prop: 'description',
         name: 'Description',
         resizeable: true,
-        width: 280,
+        width: 250,
         minWidth: 100,
         cellTemplate: this.nameTemplateCell,
       },
@@ -263,7 +308,8 @@ export class AgentPolicyListComponent
         name: 'Version',
         resizeable: true,
         width: 100,
-        minWidth: 50,
+        minWidth: 100,
+        maxWidth: 110,
         cellTemplate: this.versionTemplateCell,
       },
       {
@@ -273,17 +319,19 @@ export class AgentPolicyListComponent
             this.datePipe.transform(value, 'M/d/yy, HH:mm z'),
         },
         name: 'Last Modified',
-        minWidth: 110,
-        width: 150,
+        minWidth: 160,
+        width: 160,
+        maxWidth: 170,
         resizeable: true,
       },
       {
         name: '',
         prop: 'actions',
         minWidth: 200,
+        width: 200,
+        maxWidth: 200,
         resizeable: true,
         sortable: false,
-        width: 150,
         cellTemplate: this.actionsTemplateCell,
       },
     ];

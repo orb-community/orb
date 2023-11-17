@@ -1,18 +1,34 @@
 <nb-card>
   <nb-card-header>Active Groups</nb-card-header>
   <nb-card-body>
-    <span class="error-accent" *ngIf="errors?.nogroup">{{ errors.nogroup }}</span>
+    <span class="summary-accent" *ngIf="errors?.nogroup">{{ errors.nogroup }}</span>
 
-    <ng-container *ngFor="let group of groups; last as isLast" >
-      <button class='agent-group-button'
-      *ngIf="!group.statusText"
-      (click)="showAgentGroupMatches(group)">
-        <span matTooltip="{{group?.matching_agents?.online}} online out of {{group?.matching_agents?.total}} agent(s)"
-        class="agent-group-accent">{{ group?.name }} ( {{ group?.matching_agents?.online}}
-                                                    / {{ group?.matching_agents?.total }} )</span>
-        <span *ngIf="!isLast">,</span>
-      </button>
-      <span *ngIf="group.statusText" class="error-accent">{{ group.id + ': ' + group.status + ' ' + group.statusText }}</span>
-    </ng-container>
+    <nb-accordion *ngFor="let group of groups; trackBy: identify">
+      <nb-accordion-item>
+        <nb-accordion-item-header> 
+          <span class="summary-accent">Group:</span>&nbsp;{{ group?.name }} 
+        </nb-accordion-item-header>
+        <nb-accordion-item-body> 
+          <button *ngIf="group?.matching_agents?.online !== 0"
+          (click)="showAgentGroupMatches(group)"
+          class="agent-group-button">
+            <span>
+              {{ group?.matching_agents?.online }} out of {{ group?.matching_agents?.total }} agents are <span style="color: #6fcf97">online</span>
+            </span>
+          </button>
+          <button *ngIf="group?.matching_agents?.online === 0 && group?.matching_agents?.total !== 0"
+          (click)="showAgentGroupMatches(group)"
+          class="agent-group-button">
+            <span>
+              None of {{ group?.matching_agents?.total }} agents are online.
+            </span>
+          </button>
+          <span *ngIf="group?.matching_agents?.total === 0"  class="agent-group-button">
+            Group don't have any agents.
+          </span>
+
+        </nb-accordion-item-body>
+      </nb-accordion-item>
+    </nb-accordion>
   </nb-card-body>
 </nb-card>
