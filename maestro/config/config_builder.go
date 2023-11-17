@@ -86,7 +86,7 @@ var k8sOtelCollector = `
             "containers": [
               {
                 "name": "otel-collector",
-                "image": "otel/opentelemetry-collector-contrib:0.75.0",
+                "image": "otel/opentelemetry-collector-contrib:0.87.0",
                 "ports": [
                   {
                     "containerPort": 13133,
@@ -296,7 +296,7 @@ var JsonDeployment = `
             "containers": [
               {
                 "name": "otel-collector",
-                "image": "otel/opentelemetry-collector-contrib:0.82.0",
+                "image": "otel/opentelemetry-collector-contrib:0.87.0",
                 "ports": [
                   {
                     "containerPort": 13133,

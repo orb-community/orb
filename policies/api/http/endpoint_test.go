@@ -23,6 +23,7 @@ import (
 	sinkmocks "github.com/orb-community/orb/sinks/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -116,8 +117,9 @@ func newService(auth mainflux.AuthServiceClient) policies.Service {
 	policyRepo := plmocks.NewPoliciesRepository()
 	fleetGrpcClient := flmocks.NewClient()
 	SinkServiceClient := sinkmocks.NewClient()
+	logger := zap.NewNop()
 
-	return policies.New(nil, auth, policyRepo, fleetGrpcClient, SinkServiceClient)
+	return policies.New(logger, auth, policyRepo, fleetGrpcClient, SinkServiceClient)
 }
 
 func newServer(svc policies.Service) *httptest.Server {
