@@ -1,19 +1,15 @@
 ARG ORB_TAG=develop
 ARG PKTVISOR_TAG=develop
 ARG DIODE_TAG=develop
+ARG OTEL_TAG=0.87.0
+
 FROM orbcommunity/orb-agent:${ORB_TAG} AS orb
 
 FROM orbcommunity/diode-agent:${DIODE_TAG} AS diode
 
-RUN SQPATH=$(pip show suzieq |  sed -n 's/Location: \(.*\)/\1/p') \
-    && cp -rf "$SQPATH/suzieq" "/tmp/suzieq-patched"
+FROM otel/opentelemetry-collector-contrib:${OTEL_TAG} AS otelcol-contrib
 
 FROM orbcommunity/pktvisor:${PKTVISOR_TAG}
-
-ARG GOOS=linux
-ARG GOARCH=amd64
-ENV OTEL_TAG=0.87.0
-ENV OTEL_URL=https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v${OTEL_TAG}/otelcol-contrib_${OTEL_TAG}_${GOOS}_${GOARCH}.tar.gz
 
 # adding orb-agent
 RUN mkdir /opt/orb
@@ -25,26 +21,10 @@ COPY --from=orb /run-agent.sh /run-agent.sh
 # adding diode-agent
 COPY --from=diode /usr/local/bin/diode-agent /usr/local/bin/diode-agent
 
-# adding suzieq
-RUN apt-get update && apt-get install -y python3 python3-pip
-RUN python3 -m pip install --upgrade pip && pip install suzieq==0.20.1
-
-# adding otelcol-contrib
-RUN mkdir /opt/otelcol-contrib
-RUN wget -O /opt/otelcol-contrib/otelcol_contrib.tar.gz ${OTEL_URL}
-RUN tar -xvf /opt/otelcol-contrib/otelcol_contrib.tar.gz -C /opt/otelcol-contrib/
-RUN ls /opt/otelcol-contrib
-RUN cp /opt/otelcol-contrib/otelcol-contrib /usr/local/bin/otelcol-contrib
-RUN rm /opt/otelcol-contrib/LICENSE
-RUN rm /opt/otelcol-contrib/README.md
-RUN chmod +x /usr/local/bin/otelcol-contrib
-
 # adding suzieq patched
 COPY --from=diode /root/.suzieq /root/.suzieq
-COPY --from=diode /tmp/suzieq-patched /tmp/suzieq-patched
-RUN SQPATH=$(pip show suzieq |  sed -n 's/Location: \(.*\)/\1/p') \
-    && cp -rf /tmp/suzieq-patched/* "$SQPATH/suzieq/" \
-    && rm -rf /tmp/suzieq-patched
+
+COPY --from=otelcol-contrib /otelcol-contrib /usr/local/bin/otelcol-contrib
 
 RUN chmod a+x /run-agent.sh
 
