@@ -4,6 +4,7 @@ import { Sink, SinkBackends } from 'app/common/interfaces/orb/sink.interface';
 import * as YAML from 'yaml';
 import IStandaloneEditorConstructionOptions = monaco.editor.IStandaloneEditorConstructionOptions;
 import { OrbService } from 'app/common/services/orb.service';
+import { SINK_OTLP_CONFIG_YAML, SINK_PROMETHEUS_CONFIG_YAML } from 'app/shared/configurations/configurations';
 
 @Component({
   selector: 'ngx-sink-config',
@@ -52,10 +53,6 @@ export class SinkConfigComponent implements OnInit, OnChanges {
   };
   code = '';
 
-  sinkConfigSchemaPrometheus: any;
-
-  sinkConfigSchemaOtlp: any;
-
   formControl: FormControl;
 
   isYaml: boolean;
@@ -71,45 +68,15 @@ export class SinkConfigComponent implements OnInit, OnChanges {
     this.detailsEditMode = false;
     this.updateForm();
     this.errorConfigMessage = '';
-    this.sinkConfigSchemaPrometheus = {
-      'authentication' : {
-        'type': 'basicauth',
-        'password': '',
-        'username': '',
-      },
-      'exporter' : {
-        'remote_host': '',
-      },
-      'opentelemetry': 'enabled',
-    };
-    this.sinkConfigSchemaOtlp = {
-      'authentication' : {
-        'type': 'basicauth',
-        'password': '',
-        'username': '',
-      },
-      'exporter' : {
-        'endpoint': '',
-      },
-      'opentelemetry': 'enabled',
-    };
   }
 
   ngOnInit(): void {
     if (this.createMode) {
       this.updateForm();
-      this.code = YAML.stringify(this.sinkConfigSchemaOtlp);
+      this.code = SINK_OTLP_CONFIG_YAML;
     } else {
-      // if (this.sink.config_data && this.sink.format === 'yaml') {
-      // this.isYaml = true;
       const parsedCode = YAML.parse(JSON.stringify(this.sink.config));
       this.code = YAML.stringify(parsedCode);
-      // }
-      // else if (this.isJson(JSON.stringify(this.sink.config))) {
-      //   this.isYaml = false;
-      //   this.code = JSON.stringify(this.sink.config, null, 2);
-      // }
-
     }
   }
   isJson(str: string) {
@@ -126,14 +93,7 @@ ngOnChanges(changes: SimpleChanges) {
     this.toggleEdit(editMode.currentValue, false);
   }
   if (sinkBackend) {
-    const sinkConfigSchema = this.sinkBackend === SinkBackends.prometheus
-      ? this.sinkConfigSchemaPrometheus
-      : this.sinkConfigSchemaOtlp;
-
-    this.code = this.isYaml
-      ? YAML.stringify(sinkConfigSchema, null)
-      : JSON.stringify(sinkConfigSchema, null, 2);
-    this.code = YAML.stringify(sinkConfigSchema, null);
+    this.code = this.sinkBackend === SinkBackends.prometheus ? SINK_PROMETHEUS_CONFIG_YAML : SINK_OTLP_CONFIG_YAML;
     if (sinkBackend.currentValue) {
       this.editorOptionsYaml = { ...this.editorOptionsYaml, readOnly: false };
     }

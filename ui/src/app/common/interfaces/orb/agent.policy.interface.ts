@@ -18,6 +18,12 @@ export enum AgentPolicyUsage {
   notInUse = 'not in use',
 }
 
+export enum AgentPolicyBackend {
+  pktvisor = 'pktvisor',
+  diode = 'diode',
+  otel = 'otel',
+}
+
 export interface AgentPolicyState {
   id?: string;
   name?: string;
