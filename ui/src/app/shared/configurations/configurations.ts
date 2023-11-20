@@ -1,4 +1,4 @@
-export const POLICY_OTEL_CONFIG_YAML = 
+export const POLICY_OTEL_CONFIG_YAML =
 `receivers:
   httpcheck:
     targets:
@@ -13,11 +13,11 @@ service:
   pipelines:
     metrics:
       exporters:
-      receivers: 
+      receivers:
         - httpcheck
-`
+`;
 
-export const POLICY_PKTVISOR_CONFIG_YAML = 
+export const POLICY_PKTVISOR_CONFIG_YAML =
 `handlers:
   modules:
     default_dns:
@@ -28,9 +28,9 @@ input:
   input_type: pcap
   tap: default_pcap
 kind: collection
-`
+`;
 
-export const POLICY_OTEL_CONFIG_JSON = 
+export const POLICY_OTEL_CONFIG_JSON =
 `{
   "receivers": {
     "httpcheck": {
@@ -59,9 +59,9 @@ export const POLICY_OTEL_CONFIG_JSON =
       }
     }
   }
-}` 
+}`;
 
-export const POLICY_PKTVISOR_CONFIG_JSON = 
+export const POLICY_PKTVISOR_CONFIG_JSON =
 `{
   "handlers": {
     "modules": {
@@ -78,8 +78,8 @@ export const POLICY_PKTVISOR_CONFIG_JSON =
     "tap": "default_pcap"
   },
   "kind": "collection"
-}` 
-export const SINK_OTLP_CONFIG_YAML = 
+}`;
+export const SINK_OTLP_CONFIG_YAML =
 `authentication:
   type: basicauth
   password: ""
@@ -87,8 +87,8 @@ export const SINK_OTLP_CONFIG_YAML =
 exporter:
   endpoint: ""
 opentelemetry: enabled
-`
-export const SINK_PROMETHEUS_CONFIG_YAML = 
+`;
+export const SINK_PROMETHEUS_CONFIG_YAML =
 `authentication:
   type: basicauth
   password: ""
@@ -96,6 +96,6 @@ export const SINK_PROMETHEUS_CONFIG_YAML =
 exporter:
   remote_host: ""
 opentelemetry: enabled
-`
+`;
 
 
