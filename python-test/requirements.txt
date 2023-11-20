@@ -8,7 +8,7 @@ selenium==4.14.0
 behavex==3.0.0
 deepdiff==6.6.1
 jsonschema==4.18.4
-mkdocs==1.5.1
+mkdocs==1.5.3
 mkdocs-material==9.4.7
 prometheus-client==0.17.1
 psutil==5.9.6
