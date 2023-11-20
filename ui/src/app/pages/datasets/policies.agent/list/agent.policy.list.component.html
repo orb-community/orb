@@ -164,6 +164,12 @@
   </span>
 </ng-template>
 
+<ng-template #backendStateTemplateCell let-value="value">
+  <span>
+    {{ value }}
+  </span>
+</ng-template>
+
 <ng-template #checkboxTemplateCell let-i="index" let-row="row" let-value="value">
   <input type="checkbox" [checked]="getChecked(row)" 
   (change)="onCheckboxChange($event, row)">
