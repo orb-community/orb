@@ -35,11 +35,20 @@ type service struct {
 
 type telemetry struct {
 	Metrics *metrics `yaml:"metrics,omitempty"`
-	Enable  bool     `yaml:"enable"`
+	Logs    *logs    `yaml:"logs,omitempty"`
+	Traces  *traces  `yaml:"traces,omitempty"`
 }
 
 type metrics struct {
-	Address string `yaml:"address"`
+	Enable bool `yaml:"enable"`
+}
+
+type traces struct {
+	Enable bool `yaml:"enable"`
+}
+
+type logs struct {
+	Enable bool `yaml:"enable"`
 }
 
 type pipelines struct {
@@ -102,7 +111,7 @@ func (e *exporterBuilder) MergeDefaultValueWithPolicy(config openTelemetryConfig
 		config.Extensions = make(map[string]interface{})
 	}
 	tel := &telemetry{
-		Enable: false,
+		Metrics: &metrics{Enable: false},
 	}
 	config.Service.Telemetry = tel
 	// Override metrics exporter and append attributes/policy_data processor
