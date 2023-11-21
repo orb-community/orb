@@ -85,7 +85,9 @@ func Run(_ *cobra.Command, _ []string) {
 		configData.OrbAgent.Backends["pktvisor"] = make(map[string]string)
 		configData.OrbAgent.Backends["pktvisor"]["binary"] = pktvisor.DefaultBinary
 		configData.OrbAgent.Backends["pktvisor"]["api_host"] = "localhost"
-		configData.OrbAgent.Backends["pktvisor"]["api_port"] = "10853"
+		if _, ok := configData.OrbAgent.Backends["pktvisor"]["api_port"]; !ok {
+			configData.OrbAgent.Backends["pktvisor"]["api_port"] = "10853"
+		}
 		if len(cfgFiles) > 0 {
 			configData.OrbAgent.Backends["pktvisor"]["config_file"] = cfgFiles[0]
 		}
