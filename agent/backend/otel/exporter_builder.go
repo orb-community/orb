@@ -40,7 +40,8 @@ type telemetry struct {
 }
 
 type metrics struct {
-	Enabled bool `yaml:"enabled"`
+	Level   string `yaml:"level,omitempty"`
+	Address string `yaml:"address,omitempty"`
 }
 
 type traces struct {
@@ -111,7 +112,7 @@ func (e *exporterBuilder) MergeDefaultValueWithPolicy(config openTelemetryConfig
 		config.Extensions = make(map[string]interface{})
 	}
 	tel := &telemetry{
-		Metrics: &metrics{Enabled: false},
+		Metrics: &metrics{Level: "none"},
 	}
 	config.Service.Telemetry = tel
 	// Override metrics exporter and append attributes/policy_data processor
