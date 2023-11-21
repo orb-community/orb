@@ -9,6 +9,7 @@ import (
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 	"os"
+	"strings"
 )
 
 const tempFileNamePattern = "otel-%s-config.yml"
@@ -153,7 +154,7 @@ func (o *openTelemetryBackend) RemovePolicy(data policies.PolicyData) error {
 			return err
 		}
 		policyPath := o.policyConfigDirectory + fmt.Sprintf(tempFileNamePattern, data.ID)
-		if err := os.Remove(policyPath); err != nil && err != os.ErrNotExist {
+		if err := os.Remove(policyPath); err != nil && strings.Contains(err.Error(), "no such file or directory") {
 			o.logger.Error("error removing temporary file with policy", zap.Error(err))
 			return err
 		}
