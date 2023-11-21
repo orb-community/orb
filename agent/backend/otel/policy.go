@@ -36,14 +36,7 @@ func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, up
 	if err = o.ValidatePolicy(otelConfig); err != nil {
 		return err
 	}
-	// Find unused port
-	port := 8889
-	for _, policy := range o.runningCollectors {
-		if policy.telemetryPort == port {
-			port++
-		}
-	}
-	otelConfig, err = builder.MergeDefaultValueWithPolicy(otelConfig, newPolicyData.ID, newPolicyData.Name, port)
+	otelConfig, err = builder.MergeDefaultValueWithPolicy(otelConfig, newPolicyData.ID, newPolicyData.Name)
 	if err != nil {
 		return err
 	}
