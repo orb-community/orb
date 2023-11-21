@@ -50,7 +50,7 @@ func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, up
 			o.logger.Error("failed to create temporary file", zap.Error(err), zap.String("policy_id", newPolicyData.ID))
 			return err
 		}
-		o.logger.Debug("writing policy to temporary file", zap.String("policy_id", newPolicyData.ID), zap.String("policyData", string(policyYaml)))
+		o.logger.Debug("writing policy to temporary file", zap.String("policy_id", newPolicyData.ID), zap.String("policyData", string(newPolicyYaml)))
 		if _, err = temporaryFile.Write(newPolicyYaml); err != nil {
 			o.logger.Error("failed to write temporary file", zap.Error(err), zap.String("policy_id", newPolicyData.ID))
 			return err
