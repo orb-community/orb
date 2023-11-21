@@ -68,7 +68,7 @@ func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, up
 			o.logger.Info("new policy version received, updating",
 				zap.String("policy_id", newPolicyData.ID),
 				zap.Int32("version", newPolicyData.Version))
-			if err := os.WriteFile(currentPolicyPath, []byte(policyYaml), os.ModeTemporary); err != nil {
+			if err := os.WriteFile(currentPolicyPath, policyYaml, os.ModeTemporary); err != nil {
 				return err
 			}
 			if err = o.policyRepo.Update(newPolicyData); err != nil {
