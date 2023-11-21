@@ -17,6 +17,7 @@ import {
 } from '@swimlane/ngx-datatable';
 import {
   filterMultiSelect,
+  filterMultiTags,
   FilterOption, filterString,
   filterTags,
   FilterTypes,
@@ -94,7 +95,7 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
   sinkContextMenu = [
     {icon: 'search-outline', action: 'openview'},
     {icon: 'edit-outline', action: 'openview'},
-    {icon: 'trash-outline', action: 'opendelete'},
+    {icon: 'trash-2-outline', action: 'opendelete'},
   ];
 
   constructor(
@@ -123,7 +124,14 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
         prop: 'tags',
         filter: filterTags,
         autoSuggestion: orb.getSinksTags(),
-        type: FilterTypes.AutoComplete,
+        type: FilterTypes.Tags,
+      },
+      {
+        name: 'MultiTags',
+        prop: 'tags',
+        filter: filterMultiTags,
+        autoSuggestion: orb.getAgentsTags(),
+        type: FilterTypes.MultiSelect,
       },
       {
         name: 'Status',
@@ -131,6 +139,7 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
         filter: filterMultiSelect,
         type: FilterTypes.MultiSelect,
         options: Object.values(SinkStates).map((value) => value as string),
+        exact: true,
       },
       {
         name: 'Backend',
@@ -138,12 +147,13 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
         filter: filterMultiSelect,
         type: FilterTypes.MultiSelect,
         options: Object.values(SinkBackends).map((value) => value as string),
+        exact: true,
       },
       {
         name: 'Description',
         prop: 'description',
-        filter: filterString,
-        type: FilterTypes.Input,
+        filter: filterMultiSelect,
+        type: FilterTypes.MultiSelect,
       },
     ];
 
@@ -180,9 +190,10 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
       {
         name: '',
         prop: 'checkbox',
-        width: 1,
+        width: 62,
         minWidth: 62,
-        canAutoResize: true,
+        canAutoResize: false,
+        resizeable: false,
         sortable: false,
         cellTemplate: this.checkboxTemplateCell,
         headerTemplate: this.checkboxTemplateHeader,
@@ -192,37 +203,41 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
         name: 'Name',
         canAutoResize: true,
         resizeable: true,
-        width: 220,
-        minWidth: 150,
+        width: 250,
+        minWidth: 250,
         cellTemplate: this.sinkNameTemplateCell,
       },
       {
         prop: 'state',
         name: 'Status',
         resizeable: true,
-        width: 150,
+        width: 140,
+        minWidth: 140,
+        maxWidth: 150,
         cellTemplate: this.sinkStateTemplateCell,
       },
       {
         prop: 'backend',
         name: 'Backend',
         resizeable: true,
-        minWidth: 120,
-        width: 150,
+        minWidth: 140,
+        width: 140,
+        maxWidth: 150,
         cellTemplate: this.sinkNameTemplateCell,
       },
       {
         prop: 'description',
         name: 'Description',
         resizeable: true,
-        minWidth: 150,
-        width: 350,
+        width: 240,
+        minWidth: 230,
         cellTemplate: this.sinkNameTemplateCell,
       },
       {
         prop: 'tags',
         name: 'Tags',
-        width: 350,
+        width: 250,
+        minWidth: 200,
         resizeable: true,
         cellTemplate: this.sinkTagsTemplateCell,
         comparator: (a, b) =>
@@ -238,10 +253,11 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
       {
         name: '',
         prop: 'actions',
+        width: 150,
         minWidth: 150,
+        maxWidth: 150,
         resizeable: true,
         sortable: false,
-        width: 150,
         cellTemplate: this.actionsTemplateCell,
       },
     ];

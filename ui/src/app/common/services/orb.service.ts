@@ -124,11 +124,14 @@ export class OrbService implements OnDestroy {
     return pollInterval;
   }
 
-  private mapTags = (list: AgentGroup[] & Sink[]) => {
+  private mapTags = (list: (AgentGroup & Sink)[]) => {
     return list
-      .map((item) =>
-        Object.entries(item.tags).map((entry) => `${entry[0]}: ${entry[1]}`),
-      )
+      .map((item) => {
+        if (item.tags) {
+          return Object.entries(item.tags).map((entry) => `${entry[0]}: ${entry[1]}`);
+        }
+        return [];
+      })
       .reduce((acc, val) => acc.concat(val), [])
       .filter(this.onlyUnique);
   }
@@ -157,6 +160,16 @@ export class OrbService implements OnDestroy {
           .reduce((acc, val) => acc.concat(val), [])
           .filter(this.onlyUnique),
       ),
+    );
+  }
+  getAgentsVersions() {
+    return this.observe(this.agent.getAllAgents()).pipe(
+      map((agents) => {
+        return agents
+          .map((_agent) => _agent?.agent_metadata?.orb_agent?.version)
+          .filter(version => version !== undefined)
+          .filter(this.onlyUnique);
+      }),
     );
   }
 
@@ -287,6 +300,10 @@ export class OrbService implements OnDestroy {
       map((sinks) => this.mapTags(sinks)),
     );
   }
-
+  getPolicyTags() {
+    return this.observe(this.policy.getAllAgentPolicies()).pipe(
+      map((policies) => this.mapTags(policies)),
+    );
+  }
   onlyUnique = (value, index, self) => self.indexOf(value) === index;
 }

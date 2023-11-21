@@ -8,6 +8,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"go.opentelemetry.io/collector/config/configgrpc"
+	"go.opentelemetry.io/collector/config/confignet"
 	"net/http"
 	"strconv"
 	"time"
@@ -17,7 +19,6 @@ import (
 	"github.com/orb-community/orb/agent/otel/otlpmqttexporter"
 	"github.com/orb-community/orb/fleet"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/confighttp"
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
@@ -152,8 +153,11 @@ func (p *pktvisorBackend) receiveOtlp() {
 				pFactory := otlpreceiver.NewFactory()
 				cfg := pFactory.CreateDefaultConfig()
 				cfg.(*otlpreceiver.Config).Protocols = otlpreceiver.Protocols{
-					HTTP: &confighttp.HTTPServerSettings{
-						Endpoint: p.otelReceiverHost + ":" + strconv.Itoa(p.otelReceiverPort),
+					GRPC: &configgrpc.GRPCServerSettings{
+						NetAddr: confignet.NetAddr{
+							Endpoint:  p.otelReceiverHost + ":" + strconv.Itoa(p.otelReceiverPort),
+							Transport: "tcp",
+						},
 					},
 				}
 				set := receiver.CreateSettings{
@@ -161,9 +165,13 @@ func (p *pktvisorBackend) receiveOtlp() {
 						Logger:         p.logger,
 						TracerProvider: trace.NewNoopTracerProvider(),
 						MeterProvider:  metric.NewMeterProvider(),
+						ReportComponentStatus: func(*component.StatusEvent) error {
+							return nil
+						},
 					},
 					BuildInfo: component.NewDefaultBuildInfo(),
 				}
+
 				p.receiver, err = pFactory.CreateMetricsReceiver(exeCtx, set, cfg, p.exporter)
 				if err != nil {
 					p.logger.Error("failed to create a receiver", zap.Error(err))

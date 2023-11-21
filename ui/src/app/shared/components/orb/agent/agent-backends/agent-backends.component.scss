@@ -16,6 +16,7 @@ nb-card {
   border: transparent;
   border-radius: 0.5rem;
   padding: 0 !important;
+  margin-bottom: 15px !important;
 
   nb-card-header {
     background-color: #232940;
@@ -28,6 +29,7 @@ nb-card {
   nb-card-body {
     padding-top: 0;
     padding-bottom: 0 !important;
+    margin: 0 !important;
     label {
       color: #969fb9;
     }

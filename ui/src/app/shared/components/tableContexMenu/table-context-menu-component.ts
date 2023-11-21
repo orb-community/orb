@@ -19,7 +19,7 @@ import { SinkDeleteComponent } from 'app/pages/sinks/delete/sink.delete.componen
   templateUrl: './table-context-menu-component.html',
   styleUrls: ['./table-context-menu-component.scss'],
 })
-export class TableContextMenu {
+export class TableContextMenuComponent {
 
   @Input()
   items: any[];

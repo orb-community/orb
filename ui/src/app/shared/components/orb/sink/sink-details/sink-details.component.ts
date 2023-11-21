@@ -33,13 +33,14 @@ export class SinkDetailsComponent implements OnInit, OnChanges {
   @Input()
   configEditMode: boolean;
 
+  @Input()
+  sinkTypesList = [];
+
   formGroup: FormGroup;
 
   selectedTags: Tags;
 
   mode: string;
-
-  sinkTypesList = [];
 
   sinkStates = SinkStates;
 
@@ -56,13 +57,10 @@ export class SinkDetailsComponent implements OnInit, OnChanges {
     this.editModeChange = new EventEmitter<boolean>();
     this.configEditMode = false;
     this.updateForm();
-    Promise.all([this.getSinkBackends()]).then((responses) => {
-      const backends = responses[0];
-      this.sinkTypesList = backends.map(entry => entry.backend);
-    });
   }
 
   ngOnInit(): void {
+    this.updateForm();
     this.getMode();
     this.selectedTags = this.sink?.tags || {};
   }
@@ -92,17 +90,23 @@ export class SinkDetailsComponent implements OnInit, OnChanges {
         description: [description],
       });
       this.selectedTags = {...tags} || {};
+
     } else if (this.createMode) {
-
       const { name, description, backend, tags } = this.sink;
-
       this.formGroup = this.fb.group({
-        name: [name, [Validators.required, Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$'), Validators.maxLength(64)]],
+        name: [
+          name,
+          [
+            Validators.required,
+            Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$'),
+            Validators.maxLength(64),
+          ],
+        ],
         description: [description, [Validators.maxLength(64)]],
         backend: [backend, Validators.required],
       });
-
       this.selectedTags = { ...tags };
+
     } else {
       this.formGroup = this.fb.group({
         name: null,
@@ -131,14 +135,6 @@ export class SinkDetailsComponent implements OnInit, OnChanges {
     } else {
       this.mode = 'read';
     }
-  }
-
-  getSinkBackends() {
-    return new Promise<SinkFeature[]>(resolve => {
-      this.sinksService.getSinkBackends().subscribe(backends => {
-        resolve(backends);
-      });
-    });
   }
 
   onChangeConfigBackend(backend: any) {

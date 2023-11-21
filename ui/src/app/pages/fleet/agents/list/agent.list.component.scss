@@ -181,15 +181,22 @@ tr div p {
 input[type=checkbox] {
   margin-left: 10px;
 }
+.selected-buttons {
+  width: 270px; 
+  display: flex; 
+  align-self: flex-end; 
+  gap: 5px; 
+}
 .agent-reset {
   color: #fff !important;
   font-family: 'Montserrat', sans-serif;
   font-weight: 600;
   text-transform: none !important;
-  width: 160px;
+  width: 150px;
   opacity: 0;
   animation: appear 0.3s forwards;
-
+  height: 27px;
+  font-size: 14px;
   &.btn-disabled {
     background: #2b3148;
   }
@@ -200,7 +207,6 @@ input[type=checkbox] {
 }
 .options {
   display: flex;
-  flex-direction: row;
   align-items: center;
   gap: 10px;
 }
