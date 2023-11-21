@@ -75,6 +75,8 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
     },
   ];
 
+  policyTags: any;
+
   private popstateListener: () => void;
 
   @ViewChild(PolicyDetailsComponent) detailsComponent: PolicyDetailsComponent;
@@ -232,6 +234,7 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
         this.datasets = datasets;
         this.groups = groups;
         this.isLoading = false;
+        this.policyTags = Object.assign({}, policy.tags);
         this.cdr.markForCheck();
       });
   }
@@ -302,7 +305,7 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
     const formsDescription = policyDetails.description === null ? '' : policyDetails.description;
 
     const selectedTags = JSON.stringify(tags);
-    const orb_tags = JSON.stringify(this.policy.tags);
+    const orb_tags = JSON.stringify(this.policyTags);
 
     if (policyDetails.name !== this.policy.name || formsDescription !== description || selectedTags !== orb_tags) {
       return true;
