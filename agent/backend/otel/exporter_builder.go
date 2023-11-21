@@ -34,11 +34,22 @@ type service struct {
 }
 
 type telemetry struct {
-	Metrics *metrics `yaml:"metrics"`
+	Metrics *metrics `yaml:"metrics,omitempty"`
+	Logs    *logs    `yaml:"logs,omitempty"`
+	Traces  *traces  `yaml:"traces,omitempty"`
 }
 
 type metrics struct {
-	Address string `yaml:"address"`
+	Level   string `yaml:"level,omitempty"`
+	Address string `yaml:"address,omitempty"`
+}
+
+type traces struct {
+	Enabled bool `yaml:"enabled"`
+}
+
+type logs struct {
+	Enabled bool `yaml:"enabled"`
 }
 
 type pipelines struct {
@@ -72,7 +83,7 @@ func (e *exporterBuilder) GetStructFromYaml(yamlString string) (openTelemetryCon
 	return config, nil
 }
 
-func (e *exporterBuilder) MergeDefaultValueWithPolicy(config openTelemetryConfig, policyId string, policyName string, telemetryPort int) (openTelemetryConfig, error) {
+func (e *exporterBuilder) MergeDefaultValueWithPolicy(config openTelemetryConfig, policyId string, policyName string) (openTelemetryConfig, error) {
 	endpoint := e.host + ":" + strconv.Itoa(e.port)
 	defaultOtlpExporter := defaultOtlpExporter{
 		Endpoint: endpoint,
@@ -101,7 +112,7 @@ func (e *exporterBuilder) MergeDefaultValueWithPolicy(config openTelemetryConfig
 		config.Extensions = make(map[string]interface{})
 	}
 	tel := &telemetry{
-		Metrics: &metrics{Address: "0.0.0.0:" + strconv.Itoa(telemetryPort)},
+		Metrics: &metrics{Level: "none"},
 	}
 	config.Service.Telemetry = tel
 	// Override metrics exporter and append attributes/policy_data processor
@@ -135,8 +146,7 @@ func (o *openTelemetryBackend) buildDefaultExporterAndProcessor(policyYaml strin
 	defaultPolicyStruct, err = builder.MergeDefaultValueWithPolicy(
 		defaultPolicyStruct,
 		policyId,
-		policyName,
-		telemetryPort)
+		policyName)
 	if err != nil {
 		return openTelemetryConfig{}, err
 	}

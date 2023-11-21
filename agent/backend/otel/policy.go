@@ -9,6 +9,7 @@ import (
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 	"os"
+	"strings"
 )
 
 const tempFileNamePattern = "otel-%s-config.yml"
@@ -36,14 +37,7 @@ func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, up
 	if err = o.ValidatePolicy(otelConfig); err != nil {
 		return err
 	}
-	// Find unused port
-	port := 8889
-	for _, policy := range o.runningCollectors {
-		if policy.telemetryPort == port {
-			port++
-		}
-	}
-	otelConfig, err = builder.MergeDefaultValueWithPolicy(otelConfig, newPolicyData.ID, newPolicyData.Name, port)
+	otelConfig, err = builder.MergeDefaultValueWithPolicy(otelConfig, newPolicyData.ID, newPolicyData.Name)
 	if err != nil {
 		return err
 	}
@@ -57,7 +51,7 @@ func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, up
 			o.logger.Error("failed to create temporary file", zap.Error(err), zap.String("policy_id", newPolicyData.ID))
 			return err
 		}
-		o.logger.Debug("writing policy to temporary file", zap.String("policy_id", newPolicyData.ID), zap.String("policyData", string(policyYaml)))
+		o.logger.Debug("writing policy to temporary file", zap.String("policy_id", newPolicyData.ID), zap.String("policyData", string(newPolicyYaml)))
 		if _, err = temporaryFile.Write(newPolicyYaml); err != nil {
 			o.logger.Error("failed to write temporary file", zap.Error(err), zap.String("policy_id", newPolicyData.ID))
 			return err
@@ -75,7 +69,7 @@ func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, up
 			o.logger.Info("new policy version received, updating",
 				zap.String("policy_id", newPolicyData.ID),
 				zap.Int32("version", newPolicyData.Version))
-			if err := os.WriteFile(currentPolicyPath, []byte(policyYaml), os.ModeTemporary); err != nil {
+			if err := os.WriteFile(currentPolicyPath, policyYaml, os.ModeTemporary); err != nil {
 				return err
 			}
 			if err = o.policyRepo.Update(newPolicyData); err != nil {
@@ -160,7 +154,7 @@ func (o *openTelemetryBackend) RemovePolicy(data policies.PolicyData) error {
 			return err
 		}
 		policyPath := o.policyConfigDirectory + fmt.Sprintf(tempFileNamePattern, data.ID)
-		if err := os.Remove(policyPath); err != nil && err != os.ErrNotExist {
+		if err := os.Remove(policyPath); err != nil && strings.Contains(err.Error(), "no such file or directory") {
 			o.logger.Error("error removing temporary file with policy", zap.Error(err))
 			return err
 		}
