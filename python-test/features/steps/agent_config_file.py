@@ -127,3 +127,97 @@ class FleetAgent:
                 agent['orb']['otel'] = {"enable": enable_otel}
         agent = yaml.dump(agent)
         return agent, tap.taps
+
+    @classmethod
+    def config_file_of_orb_agent_with_otel_backend(cls, name, token, orb_url, base_orb_mqtt, tls_verify=True,
+                                                   auto_provision=True, orb_cloud_mqtt_id=None, orb_cloud_mqtt_key=None,
+                                                   orb_cloud_mqtt_channel_id=None, include_otel_env_var=False,
+                                                   enable_otel=True,
+                                                   overwrite_default=False):
+        if isinstance(include_otel_env_var, str):
+            assert_that(include_otel_env_var.lower(), any_of("true", "false"), "Unexpected value for "
+                                                                               "'include_otel_env_var'.")
+            include_otel_env_var = eval(include_otel_env_var.title())
+        else:
+            assert_that(include_otel_env_var, any_of(False, True), "Unexpected value for 'include_otel_env_var'")
+        if isinstance(enable_otel, str):
+            assert_that(enable_otel.lower(), any_of("true", "false"), "Unexpected value for "
+                                                                      "'enable_otel'.")
+            enable_otel = eval(enable_otel.title())
+        else:
+            assert_that(enable_otel, any_of(False, True), "Unexpected value for 'enable_otel'")
+
+            assert_that(tls_verify, any_of(equal_to(True), equal_to(False)), "Unexpected value for tls_verify on "
+                                                                             "agent pcap config file creation")
+
+        assert_that(auto_provision, any_of(equal_to(True), equal_to(False)), "Unexpected value for auto_provision "
+                                                                             "on agent pcap config file creation")
+        if overwrite_default is True:
+            otel_name_file = "agent"
+        else:
+            otel_name_file = name
+        if auto_provision:
+            agent = {
+                "version": "1.0",
+                "orb": {
+                    "backends": {
+                        "otel": {
+                            "config_file": f"{default_path_config_file}/{otel_name_file}.yaml"
+                        }
+                    },
+                    "tls": {
+                        "verify": tls_verify
+                    },
+                    "cloud": {
+                        "config": {
+                            "auto_provision": auto_provision,
+                            "agent_name": name
+                        },
+                        "api": {
+                            "address": orb_url,
+                            "token": token
+                        },
+                        "mqtt": {
+                            "address": base_orb_mqtt
+                        }
+                    }
+                }
+            }
+            if include_otel_env_var is True:
+                agent['orb']['otel'] = {"enable": enable_otel}
+        else:
+            assert_that(orb_cloud_mqtt_id, not_(is_(None)), "orb_cloud_mqtt_id must have a valid value")
+            assert_that(orb_cloud_mqtt_channel_id, not_(is_(None)), "orb_cloud_mqtt_channel_id must have a valid value")
+            assert_that(orb_cloud_mqtt_key, not_(is_(None)), "orb_cloud_mqtt_key must have a valid value")
+            agent = {
+                "version": "1.0",
+                "orb": {
+                    "backends": {
+                        "otel": {
+                            "config_file": f"{default_path_config_file}/{otel_name_file}.yaml"
+                        }
+                    },
+                    "tls": {
+                        "verify": tls_verify
+
+                    },
+                    "cloud": {
+                        "config": {
+                            "auto_provision": auto_provision
+                        },
+                        "api": {
+                            "address": orb_url
+                        },
+                        "mqtt": {
+                            "address": base_orb_mqtt,
+                            "id": orb_cloud_mqtt_id,
+                            "key": orb_cloud_mqtt_key,
+                            "channel_id": orb_cloud_mqtt_channel_id
+                        }
+                    }
+                }
+            }
+            if include_otel_env_var is True:
+                agent['orb']['otel'] = {"enable": enable_otel}
+        agent = yaml.dump(agent)
+        return agent

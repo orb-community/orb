@@ -441,6 +441,68 @@ def provision_agent_using_config_file(context, input_type, settings, provision, 
                 f"Agent: {json.dumps(context.agent, indent=4)}. \n Logs: {logs}")
 
 
+@step("an agent with otel backend is {provision} via a configuration file on port {port} "
+      "with {agent_tags} agent tags and has status {status}. [Overwrite default: {overwrite_default}. Paste only "
+      "file: {paste_only_file}]")
+def provision_otel_backend_agent_using_config_file(context, provision, port, agent_tags, status, overwrite_default,
+                                                   paste_only_file, **kwargs):
+    assert_that(provision, any_of(equal_to("self-provisioned"), equal_to("provisioned")), "Unexpected provision "
+                                                                                          "attribute")
+    overwrite_default = overwrite_default.title()
+    paste_only_file = paste_only_file.title()
+    assert_that(overwrite_default, any_of("True", "False"), "Unexpected value for overwrite_default parameter.")
+    assert_that(paste_only_file, any_of("True", "False"), "Unexpected value for overwrite_default parameter.")
+    overwrite_default = eval(overwrite_default)
+    paste_only_file = eval(paste_only_file)
+    if provision == "provisioned":
+        auto_provision = "false"
+        orb_cloud_mqtt_id = context.agent['id']
+        orb_cloud_mqtt_key = context.agent['key']
+        orb_cloud_mqtt_channel_id = context.agent['channel_id']
+        agent_name = context.agent['name']
+    else:
+        auto_provision = "true"
+        orb_cloud_mqtt_id = None
+        orb_cloud_mqtt_key = None
+        orb_cloud_mqtt_channel_id = None
+        agent_name = f"{agent_name_prefix}{random_string(10)}"
+    orb_url = configs.get('orb_url')
+    context.port = return_port_by_availability(context, True)
+    otel_configs = {"config_file": "default"}
+    if 'otel_config' in kwargs.keys():
+        if "config_file" in kwargs['pkt_config'].keys():
+            otel_configs["config_file"] = kwargs['pkt_config']["config_file"]
+    context.agent_file_name, tags_on_agent, safe_config_file = \
+        create_agent_with_otel_backend_config_file(context.token, agent_name, agent_tags, orb_url, context.port,
+                                                   context.agent_groups, auto_provision,
+                                                   orb_cloud_mqtt_id, orb_cloud_mqtt_key, orb_cloud_mqtt_channel_id,
+                                                   overwrite_default, paste_only_file, otel_configs['config_file'])
+    context.container_id = run_agent_config_file(context.agent_file_name, overwrite_default, paste_only_file)
+    if context.container_id not in context.containers_id.keys():
+        context.containers_id[context.container_id] = str(context.port)
+    msg = f"Starting GRPC server"
+    agent_started, logs = get_logs_and_check(context.container_id, msg, element_to_check="msg")
+    assert_that(agent_started, equal_to(True), f"Log {msg} not found on agent logs. Agent Name: {agent_name}.\n"
+                                               f"Logs:{logs}")
+    context.agent, is_agent_created = check_agent_exists_on_backend(context.token, agent_name, timeout=60)
+    logs = get_orb_agent_logs(context.container_id)
+    assert_that(is_agent_created, equal_to(True), f"Agent {agent_name} not found in /agents route."
+                                                  f"\n Config File (json converted): {safe_config_file}."
+                                                  f"\nLogs: {logs}.")
+    context.agent, are_tags_correct = get_agent_tags(context.token, context.agent['id'], tags_on_agent)
+    assert_that(are_tags_correct, equal_to(True), f"Agent tags created does not match with the required ones. Agent:"
+                                                  f"{context.agent}. Tags that would be present: {tags_on_agent}.\n"
+                                                  f"Agent Logs: {logs}")
+    assert_that(context.agent, is_not(None), f"Agent {agent_name} not correctly created. Logs: {logs}")
+    agent_id = context.agent['id']
+    existing_agents = get_agent(context.token, agent_id)
+    assert_that(len(existing_agents), greater_than(0), f"Agent not created. Logs: {logs}")
+    agent_status, context.agent = wait_until_expected_agent_status(context.token, agent_id, status)
+    assert_that(agent_status, is_(equal_to(status)),
+                f"Agent did not get '{status}' after 30 seconds, but was '{agent_status}'. \n"
+                f"Agent: {json.dumps(context.agent, indent=4)}. \n Logs: {logs}")
+
+
 @step("remotely restart the agent")
 def reset_agent_remotely(context):
     context.considered_timestamp_reset = datetime.now().timestamp()
@@ -936,6 +998,87 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
     with open(f"{dir_path}/{agent_name}.yaml", "w+") as f:
         f.write(agent_config_file_yaml)
     return agent_name, tags, tap, safe_agent_config_file
+
+
+def create_agent_with_otel_backend_config_file(token, agent_name, agent_tags, orb_url, port,
+                                               existing_agent_groups, auto_provision="true",
+                                               orb_cloud_mqtt_id=None, orb_cloud_mqtt_key=None,
+                                               orb_cloud_mqtt_channel_id=None,
+                                               overwrite_default=False, only_file=False, otel_config_file=None):
+    """
+    Create a file .yaml with configs of the agent that will be provisioned
+
+    :param (str) token: used for API authentication
+    :param (str) agent_name: name of the agent that will be created
+    :param (str) agent_tags: agent tags
+    :param (str) orb_url: entire orb url
+    :param (str) port: port on which agent must run.
+    :param (dict) existing_agent_groups: all agent groups available
+    :param (str) auto_provision: if true auto_provision the agent. If false, provision an agent already existent on orb
+    :param (str) orb_cloud_mqtt_id: agent mqtt id.
+    :param (str) orb_cloud_mqtt_key: agent mqtt key.
+    :param (str) orb_cloud_mqtt_channel_id: agent mqtt channel id.
+    :param (bool) overwrite_default: if True and only_file is False saves the agent as "agent.yaml". Else, save it with
+    agent name
+    :param (bool) only_file: is true copy only the file. If false, copy the directory.
+    :param (str) otel_config_file: path to otel config file.
+    :return: path to the directory where the agent config file was created
+    """
+    assert_that(auto_provision, any_of(equal_to("true"), equal_to("false")), "Unexpected value for auto_provision "
+                                                                             "on agent config file creation")
+    convert_type = {"true": True, "false": False}
+    auto_provision = convert_type[auto_provision]
+
+    if re.match(r"matching (\d+|all|the) group*", agent_tags):
+        amount_of_group = re.search(r"(\d+|all|the)", agent_tags).groups()[0]
+        all_used_tags = tags_to_match_k_groups(token, amount_of_group, existing_agent_groups)
+        tags = {"tags": all_used_tags}
+    else:
+        tags = {"tags": create_tags_set(agent_tags)}
+    include_otel_env_var = configs.get('include_otel_env_var')
+    enable_otel = configs.get('enable_otel')
+    mqtt_url = configs.get('mqtt_url')
+    if configs.get('verify_ssl') == 'false':
+        agent_config_file = (
+            FleetAgent.config_file_of_orb_agent_with_otel_backend(agent_name, token, orb_url,
+                                                                  mqtt_url, tls_verify=True,
+                                                                  auto_provision=auto_provision,
+                                                                  orb_cloud_mqtt_id=orb_cloud_mqtt_id,
+                                                                  orb_cloud_mqtt_key=orb_cloud_mqtt_key,
+                                                                  orb_cloud_mqtt_channel_id=orb_cloud_mqtt_channel_id,
+                                                                  include_otel_env_var=include_otel_env_var,
+                                                                  enable_otel=enable_otel,
+                                                                  overwrite_default=overwrite_default))
+    else:
+        agent_config_file = (
+            FleetAgent.config_file_of_orb_agent_with_otel_backend(agent_name, token, orb_url,
+                                                                  mqtt_url, tls_verify=True,
+                                                                  auto_provision=auto_provision,
+                                                                  orb_cloud_mqtt_id=orb_cloud_mqtt_id,
+                                                                  orb_cloud_mqtt_key=orb_cloud_mqtt_key,
+                                                                  orb_cloud_mqtt_channel_id=orb_cloud_mqtt_channel_id,
+                                                                  include_otel_env_var=include_otel_env_var,
+                                                                  enable_otel=enable_otel,
+                                                                  overwrite_default=overwrite_default))
+    agent_config_file = yaml.load(agent_config_file, Loader=SafeLoader)
+    if otel_config_file is None or otel_config_file == "None":
+        agent_config_file['orb']['backends']['otel'].pop("config_file", None)
+    elif otel_config_file == "default":
+        pass
+    else:
+        agent_config_file['orb']['backends']['otel']["config_file"] = otel_config_file
+    agent_config_file['orb'].update(tags)
+    agent_config_file['orb']['backends']['otel'].update({"otlp_port": int(f"{port}")})
+    agent_config_file_yaml = yaml.dump(agent_config_file)
+    safe_agent_config_file = agent_config_file.copy()
+    if "token" in safe_agent_config_file['orb']['cloud']['api'].keys():
+        safe_agent_config_file['orb']['cloud']['api']['token'] = "token omitted for security reason"
+    dir_path = configs.get("local_orb_path")
+    if overwrite_default is True and only_file is False:
+        agent_name = "agent"
+    with open(f"{dir_path}/{agent_name}.yaml", "w+") as f:
+        f.write(agent_config_file_yaml)
+    return agent_name, tags, safe_agent_config_file
 
 
 @threading_wait_until
