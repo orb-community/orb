@@ -8,6 +8,7 @@ import { OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { environment } from 'environments/environment';
 import { catchError, expand, map, scan, takeWhile } from 'rxjs/operators';
+import { getStatusCodeText } from '../http-codes';
 
 @Injectable()
 export class AgentPoliciesService {
@@ -47,7 +48,7 @@ export class AgentPoliciesService {
       .catch((err) => {
         this.notificationsService.error(
           'Failed to duplicate Agent Policy',
-          `Error: ${err.status} - ${err.statusText} - ${err.error.error}`,
+          `Error: ${err.status} - ${getStatusCodeText(err.status)} - ${err.error.error}`,
         );
         return of(err);
       });
@@ -58,7 +59,7 @@ export class AgentPoliciesService {
       catchError((err) => {
         this.notificationsService.error(
           'Failed to fetch Agent Policy',
-          `Error: ${err.status} - ${err.statusText}`,
+          `Error: ${err.status} - ${getStatusCodeText(err.status)}`,
         );
         err['id'] = id;
         return of(err);
@@ -72,7 +73,7 @@ export class AgentPoliciesService {
       .catch((err) => {
         this.notificationsService.error(
           'Failed to Edit Agent Policy',
-          `Error: ${err.status} - ${err.statusText}`,
+          `Error: ${err.status} - ${getStatusCodeText(err.status)}`,
         );
         return throwError(err);
       });
@@ -84,7 +85,7 @@ export class AgentPoliciesService {
       .catch((err) => {
         this.notificationsService.error(
           'Failed to Delete Agent Policies',
-          `Error: ${err.status} - ${err.statusText}`,
+          `Error: ${err.status} - ${getStatusCodeText(err.status)}`,
         );
         return Observable.throwError(err);
       });
@@ -144,7 +145,7 @@ export class AgentPoliciesService {
       .catch((err) => {
         this.notificationsService.error(
           'Failed to get Agent Policies',
-          `Error: ${err.status} - ${err.statusText}`,
+          `Error: ${err.status} - ${getStatusCodeText(err.status)}`,
         );
         return Observable.throwError(err);
       });
@@ -159,7 +160,7 @@ export class AgentPoliciesService {
       .catch((err) => {
         this.notificationsService.error(
           'Failed to get Available Backends',
-          `Error: ${err.status} - ${err.statusText}`,
+          `Error: ${err.status} - ${getStatusCodeText(err.status)}`,
         );
         return Observable.throwError(err);
       });
@@ -176,7 +177,7 @@ export class AgentPoliciesService {
       .catch((err) => {
         this.notificationsService.error(
           'Failed to get Available Backends',
-          `Error: ${err.status} - ${err.statusText}`,
+          `Error: ${err.status} - ${getStatusCodeText(err.status)}`,
         );
         return Observable.throwError(err);
       });

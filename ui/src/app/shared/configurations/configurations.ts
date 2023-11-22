@@ -86,6 +86,7 @@ export const SINK_OTLP_CONFIG_YAML =
   username: ""
 exporter:
   endpoint: ""
+opentelemetry: enabled
 `;
 export const SINK_PROMETHEUS_CONFIG_YAML =
 `authentication:
@@ -94,6 +95,7 @@ export const SINK_PROMETHEUS_CONFIG_YAML =
   username: ""
 exporter:
   remote_host: ""
+opentelemetry: enabled
 `;
 
 

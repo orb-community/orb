@@ -8,6 +8,7 @@ import { Sink } from 'app/common/interfaces/orb/sink.interface';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { environment } from 'environments/environment';
 import { catchError, expand, map, scan, takeWhile } from 'rxjs/operators';
+import { getStatusCodeText } from '../http-codes';
 
 @Injectable()
 export class SinksService {
@@ -29,7 +30,7 @@ export class SinksService {
       .catch((err) => {
         this.notificationsService.error(
           'Failed to create Sink',
-          `Error: ${err.status} - ${err.statusText} - ${err.error.error}`,
+          `Error: ${err.status} - ${getStatusCodeText(err.status)} - ${err.error.error}`,
         );
         return Observable.throwError(err);
       });
@@ -40,7 +41,7 @@ export class SinksService {
       catchError((err) => {
         this.notificationsService.error(
           'Failed to fetch Sink',
-          `Error: ${err.status} - ${err.statusText}`,
+          `Error: ${err.status} - ${getStatusCodeText(err.status)}`,
         );
         err['id'] = sinkId;
         return of(err);
@@ -57,7 +58,7 @@ export class SinksService {
       .catch((err) => {
         this.notificationsService.error(
           'Failed to get Sink Backends',
-          `Error: ${err.status} - ${err.statusText}`,
+          `Error: ${err.status} - ${getStatusCodeText(err.status)}`,
         );
         return Observable.throwError(err);
       });
@@ -123,7 +124,7 @@ export class SinksService {
       .catch((err) => {
         this.notificationsService.error(
           'Failed to get Sinks',
-          `Error: ${err.status} - ${err.statusText}`,
+          `Error: ${err.status} - ${getStatusCodeText(err.status)}`,
         );
         return Observable.throwError(err);
       });
@@ -138,7 +139,7 @@ export class SinksService {
       .catch((err) => {
         this.notificationsService.error(
           'Failed to edit Sink',
-          `Error: ${err.status} - ${err.statusText}`,
+          `Error: ${err.status} - ${getStatusCodeText(err.status)}`,
         );
         return Observable.throwError(err);
       });
@@ -153,7 +154,7 @@ export class SinksService {
       .catch((err) => {
         this.notificationsService.error(
           'Failed to delete Sink',
-          `Error: ${err.status} - ${err.statusText}`,
+          `Error: ${err.status} - ${getStatusCodeText(err.status)}`,
         );
         return Observable.throwError(err);
       });
