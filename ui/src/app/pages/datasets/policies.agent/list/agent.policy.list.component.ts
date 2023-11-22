@@ -15,12 +15,13 @@ import {
   DatatableComponent,
   TableColumn,
 } from '@swimlane/ngx-datatable';
-import { AgentPolicy, AgentPolicyUsage } from 'app/common/interfaces/orb/agent.policy.interface';
+import { AgentPolicy, AgentPolicyBackend, AgentPolicyUsage } from 'app/common/interfaces/orb/agent.policy.interface';
 import {
   filterNumber,
   FilterOption, filterString, filterTags,
   FilterTypes,
   filterMultiSelect,
+  filterMultiTags,
 } from 'app/common/interfaces/orb/filter-option';
 import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
 import { FilterService } from 'app/common/services/filter.service';
@@ -60,6 +61,8 @@ export class AgentPolicyListComponent
   @ViewChild('actionsTemplateCell') actionsTemplateCell: TemplateRef<any>;
 
   @ViewChild('usageStateTemplateCell') usageStateTemplateCell: TemplateRef<any>;
+
+  @ViewChild('backendStateTemplateCell') backendStateTemplateCell: TemplateRef<any>;
 
   @ViewChild('checkboxTemplateCell') checkboxTemplateCell: TemplateRef<any>;
 
@@ -136,19 +139,27 @@ export class AgentPolicyListComponent
         prop: 'tags',
         autoSuggestion: orb.getPolicyTags(),
         filter: filterTags,
-        type: FilterTypes.AutoComplete,
+        type: FilterTypes.Tags,
+      },
+      {
+        name: 'MultiTags',
+        prop: 'tags',
+        filter: filterMultiTags,
+        autoSuggestion: orb.getAgentsTags(),
+        type: FilterTypes.MultiSelect,
       },
       {
         name: 'Version',
         prop: 'version',
-        filter: filterNumber,
-        type: FilterTypes.Number,
+        filter: filterMultiSelect,
+        type: FilterTypes.MultiSelect,
+        exact: true,
       },
       {
         name: 'Description',
         prop: 'description',
-        filter: filterString,
-        type: FilterTypes.Input,
+        filter: filterMultiSelect,
+        type: FilterTypes.MultiSelect,
       },
       {
         name: 'Usage',
@@ -156,6 +167,14 @@ export class AgentPolicyListComponent
         filter: filterMultiSelect,
         type: FilterTypes.MultiSelect,
         options: Object.values(AgentPolicyUsage).map((value) => value as string),
+        exact: true,
+      },
+      {
+        name: 'Backend',
+        prop: 'backend',
+        filter: filterMultiSelect,
+        type: FilterTypes.MultiSelect,
+        options: Object.values(AgentPolicyBackend).map((value) => value as string),
         exact: true,
       },
     ];
@@ -264,10 +283,20 @@ export class AgentPolicyListComponent
         name: 'Usage',
         resizeable: true,
         canAutoResize: true,
-        width: 130,
-        minWidth: 130,
-        maxWidth: 140,
+        width: 140,
+        minWidth: 140,
+        maxWidth: 150,
         cellTemplate: this.usageStateTemplateCell,
+      },
+      {
+        prop: 'backend',
+        name: 'Backend',
+        resizeable: true,
+        canAutoResize: true,
+        width: 110,
+        minWidth: 110,
+        maxWidth: 120,
+        cellTemplate: this.backendStateTemplateCell,
       },
       {
         prop: 'description',

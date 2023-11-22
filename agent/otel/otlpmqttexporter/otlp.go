@@ -147,10 +147,11 @@ func (e *baseExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) erro
 	scopes := pmetricotlp.NewExportRequestFromMetrics(md).Metrics().ResourceMetrics().At(0).ScopeMetrics()
 	for i := 0; i < scopes.Len(); i++ {
 		scope := scopes.At(i)
-		policyName := scope.Scope().Name()
-		agentData, err := e.config.OrbAgentService.RetrieveAgentInfoByPolicyName(policyName)
+		policyName, _ := scope.Scope().Attributes().Get("policy_name")
+		policyNameStr := policyName.AsString()
+		agentData, err := e.config.OrbAgentService.RetrieveAgentInfoByPolicyName(policyNameStr)
 		if err != nil {
-			e.logger.Warn("Policy is not managed by orb", zap.String("policyName", policyName))
+			e.logger.Warn("Policy is not managed by orb", zap.String("policyName", policyNameStr))
 			continue
 		}
 
@@ -167,7 +168,7 @@ func (e *baseExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) erro
 		scope.Scope().Attributes().PutStr("policy_id", agentData.PolicyID)
 		scope.Scope().Attributes().PutStr("dataset_ids", datasets)
 		scope.CopyTo(ref.ScopeMetrics().AppendEmpty())
-		e.logger.Info("scraped metrics for policy", zap.String("policy", policyName), zap.String("policy_id", agentData.PolicyID))
+		e.logger.Debug("scraped metrics for policy", zap.String("policy", policyNameStr), zap.String("policy_id", agentData.PolicyID))
 	}
 
 	request, err := tr.MarshalProto()
@@ -301,7 +302,9 @@ func (e *baseExporter) export(ctx context.Context, topic string, request []byte)
 		e.config.OrbAgentService.NotifyAgentDisconnection(ctx, token.Error())
 		return token.Error()
 	}
-	e.logger.Info("scraped and published telemetry", zap.String("topic", topic), zap.Int("payload_size_b", len(request)), zap.Int("compressed_payload_size_b", len(compressedPayload)))
+	e.logger.Info("scraped and published telemetry", zap.String("topic", topic),
+		zap.Int("payload_size_b", len(request)),
+		zap.Int("compressed_payload_size_b", len(compressedPayload)))
 
 	return nil
 }

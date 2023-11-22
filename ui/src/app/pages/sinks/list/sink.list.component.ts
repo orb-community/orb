@@ -17,6 +17,7 @@ import {
 } from '@swimlane/ngx-datatable';
 import {
   filterMultiSelect,
+  filterMultiTags,
   FilterOption, filterString,
   filterTags,
   FilterTypes,
@@ -123,7 +124,14 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
         prop: 'tags',
         filter: filterTags,
         autoSuggestion: orb.getSinksTags(),
-        type: FilterTypes.AutoComplete,
+        type: FilterTypes.Tags,
+      },
+      {
+        name: 'MultiTags',
+        prop: 'tags',
+        filter: filterMultiTags,
+        autoSuggestion: orb.getAgentsTags(),
+        type: FilterTypes.MultiSelect,
       },
       {
         name: 'Status',
@@ -144,8 +152,8 @@ export class SinkListComponent implements AfterViewInit, AfterViewChecked, OnDes
       {
         name: 'Description',
         prop: 'description',
-        filter: filterString,
-        type: FilterTypes.Input,
+        filter: filterMultiSelect,
+        type: FilterTypes.MultiSelect,
       },
     ];
 
