@@ -54,15 +54,15 @@ Then fill in the correct values:
 - **orb_address**:
   - Mandatory!
   - URL of the Orb deployment. Do NOT include the protocol (`https://`, `http://` or `mqtt://`).
-- **prometheus_username**
+- **prometheus_username** | **otlp_publisher_username**
   - Mandatory!
-  - Your Grafana Cloud Prometheus username
-- **prometheus_key**
+  - Your sink username
+- **prometheus_key** | **otlp_publisher_key**
   - Mandatory!
-  - Your Grafana Cloud API Key. Be sure to grant the key a role with metrics push privileges
-- **remote_prometheus_endpoint**
+  - Your sink API Key. Be sure to grant the key a role with metrics push privileges
+- **remote_prometheus_endpoint** | **otlp_publisher_endpoint**
   - Mandatory!
-  - base URL to send Prometheus metrics to Grafana Cloud> `(ex. prometheus-prod-10-prod-us-central-0.grafana.net)`
+  - base URL to send metrics > `(ex. prometheus-prod-10-prod-us-central-0.grafana.net)`
 - **verify_ssl**:
   - Bool
   - When it is False, replaces HTTPS connections with HTTP and disables SSL certificate validation in MQTT connections.
