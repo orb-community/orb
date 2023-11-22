@@ -174,12 +174,28 @@ func mergeOrError(path string) {
 		}
 	}
 
+	// load backend static functions for setting up default values
+	backendVarsFunction := make(map[string]func(*viper.Viper))
+	backendVarsFunction["pktvisor"] = pktvisor.RegisterBackendSpecificVariables
+	backendVarsFunction["otel"] = otel.RegisterBackendSpecificVariables
+
+	// check if backends are configured
+	// if not then add pktvisor as default
+	if len(path) > 0 && len(viper.GetStringMap("orb.backends")) == 0 {
+		pktvisor.RegisterBackendSpecificVariables(v)
+	} else {
+		for backendName, _ := range viper.GetStringMap("orb.backends") {
+			if backend := v.GetStringMap("orb.backends." + backendName); backend != nil {
+				backendVarsFunction[backendName](v)
+			}
+		}
+	}
+
 	cobra.CheckErr(viper.MergeConfigMap(v.AllSettings()))
 }
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-
 	// set defaults first
 	mergeOrError("")
 	if len(cfgFiles) == 0 {
