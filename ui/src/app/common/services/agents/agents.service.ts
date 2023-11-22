@@ -15,6 +15,7 @@ import { OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { environment } from 'environments/environment';
 import { expand, map, scan, takeWhile } from 'rxjs/operators';
+import { getStatusCodeText } from '../http-codes';
 
 export enum AvailableOS {
   DOCKER = 'docker',
@@ -43,10 +44,9 @@ export class AgentsService {
         return agent;
       })
       .catch((err) => {
-        console.log(err);
         this.notificationsService.error(
           'Failed to create Agent',
-          `Error: ${err.status} - ${err.statusText} - ${err.error.error}`,
+          `Error: ${err.status} - ${getStatusCodeText(err.status)} - ${err.error.error}`,
         );
         return Observable.throwError(err);
       });
@@ -62,7 +62,7 @@ export class AgentsService {
       .catch((err) => {
         this.notificationsService.error(
           'Failed to reset Agent',
-          `Error: ${err.status} - ${err.statusText} - ${err.error.error}`,
+          `Error: ${err.status} - ${getStatusCodeText(err.status)} - ${err.error.error}`,
         );
         return Observable.throwError(err);
       });
@@ -81,7 +81,7 @@ export class AgentsService {
       .catch((err) => {
         this.notificationsService.error(
           'Failed to Validate Agent',
-          `Error: ${err.status} - ${err.statusText} - ${err.error.error}`,
+          `Error: ${err.status} - ${getStatusCodeText(err.status)} - ${err.error.error}`,
         );
         return Observable.throwError(err);
       });
@@ -99,7 +99,7 @@ export class AgentsService {
       .catch((err) => {
         this.notificationsService.error(
           'Failed to fetch Agent',
-          `Error: ${err.status} - ${err.statusText}`,
+          `Error: ${err.status} - ${getStatusCodeText(err.status)}`,
         );
         return Observable.throwError(err);
       });
@@ -117,7 +117,7 @@ export class AgentsService {
       .catch((err) => {
         this.notificationsService.error(
           'Failed to edit Agent',
-          `Error: ${err.status} - ${err.statusText}`,
+          `Error: ${err.status} - ${getStatusCodeText(err.status)}`,
         );
         return Observable.throwError(err);
       });
@@ -129,7 +129,7 @@ export class AgentsService {
       .catch((err) => {
         this.notificationsService.error(
           'Failed to Delete Agent',
-          `Error: ${err.status} - ${err.statusText}`,
+          `Error: ${err.status} - ${getStatusCodeText(err.status)}`,
         );
         return Observable.throwError(err);
       });
@@ -203,7 +203,7 @@ export class AgentsService {
       .catch((err) => {
         this.notificationsService.error(
           'Failed to get Agents',
-          `Error: ${err.status} - ${err.statusText}`,
+          `Error: ${err.status} - ${getStatusCodeText(err.status)}`,
         );
         return Observable.throwError(err);
       });

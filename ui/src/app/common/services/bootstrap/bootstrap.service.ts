@@ -6,6 +6,7 @@ import { Gateway } from 'app/common/interfaces/gateway.interface';
 import { Config, ConfigContent, ConfigUpdate } from 'app/common/interfaces/bootstrap.interface';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { ThingsService } from 'app/common/services/things/things.service';
+import { getStatusCodeText } from '../http-codes';
 
 @Injectable()
 export class BootstrapService {
@@ -70,7 +71,7 @@ export class BootstrapService {
         err => {
           this.notificationsService.error(
             'Failed to add bootstrap config to gateway',
-            `Error: ${err.status} - ${err.statusText}`);
+            `Error: ${err.status} - ${getStatusCodeText(err.status)}`);
         },
       );
   }
