@@ -43,6 +43,7 @@ export class AgentsService {
         return agent;
       })
       .catch((err) => {
+        console.log(err);
         this.notificationsService.error(
           'Failed to create Agent',
           `Error: ${err.status} - ${err.statusText} - ${err.error.error}`,
