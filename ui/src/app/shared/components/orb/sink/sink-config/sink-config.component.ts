@@ -4,7 +4,7 @@ import { Sink, SinkBackends } from 'app/common/interfaces/orb/sink.interface';
 import * as YAML from 'yaml';
 import IStandaloneEditorConstructionOptions = monaco.editor.IStandaloneEditorConstructionOptions;
 import { OrbService } from 'app/common/services/orb.service';
-import { SINK_OTLP_CONFIG_YAML, SINK_PROMETHEUS_CONFIG_YAML } from 'app/shared/configurations/configurations';
+import { SINK_OTLP_CONFIG_YAML, SINK_PROMETHEUS_CONFIG_YAML } from 'app/shared/configurations/configurations_schemas';
 
 @Component({
   selector: 'ngx-sink-config',
