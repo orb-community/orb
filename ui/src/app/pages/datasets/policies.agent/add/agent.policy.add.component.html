@@ -94,6 +94,7 @@
                          placeholder="Select backend type"
                          size="medium"
                          [(ngModel)]="backendName"
+                         required
               >
                 <nb-option *ngFor="let type of availableBackends | keyvalue"
                            [value]="type.value.backend">{{ type.key | titlecase }}</nb-option>
