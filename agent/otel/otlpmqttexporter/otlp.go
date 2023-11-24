@@ -29,6 +29,7 @@ import (
 )
 
 type baseExporter struct {
+	ctx context.Context
 	// Input configuration.
 	config   *Config
 	client   *http.Client
@@ -67,6 +68,7 @@ func newExporter(cfg component.Config, set exporter.CreateSettings, ctx context.
 
 	// Client construction is deferred to start
 	return &baseExporter{
+		ctx:       ctx,
 		config:    oCfg,
 		logger:    set.Logger,
 		userAgent: userAgent,
@@ -75,7 +77,7 @@ func newExporter(cfg component.Config, set exporter.CreateSettings, ctx context.
 }
 
 // start actually creates the MQTT client.
-func (e *baseExporter) start(_ context.Context, _ component.Host) error {
+func (e *baseExporter) start(ctx context.Context, _ component.Host) error {
 	token := e.config.Client
 	if token == nil {
 		opts := mqtt.NewClientOptions().AddBroker(e.config.Address).SetClientID(e.config.Id)
@@ -94,10 +96,13 @@ func (e *baseExporter) start(_ context.Context, _ component.Host) error {
 
 		client := mqtt.NewClient(opts)
 		if token := client.Connect(); token.Wait() && token.Error() != nil {
+			e.logger.Error("error connecting to mqtt server", zap.Error(token.Error()))
 			return token.Error()
 		}
 		e.config.Client = &client
 	}
+	e.ctx = ctx
+	e.logger.Info("connected to mqtt server", zap.String("address", e.config.Address))
 
 	return nil
 }
