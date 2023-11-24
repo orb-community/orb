@@ -94,7 +94,12 @@ func (p *pktvisorBackend) getFreePort() (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	defer l.Close()
+	defer func() {
+		err := l.Close()
+		if err != nil {
+			p.logger.Error("failed to close listener", zap.Error(err))
+		}
+	}()
 	return l.Addr().(*net.TCPAddr).Port, nil
 }
 
