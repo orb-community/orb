@@ -22,7 +22,6 @@ import {
   debounceTime,
   map,
   mergeMap,
-  retry,
   shareReplay,
   switchMap,
   takeUntil,
@@ -91,7 +90,6 @@ export class OrbService implements OnDestroy {
           }),
         ),
       ),
-      retry(),
       shareReplay(1),
     );
   }
