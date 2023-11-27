@@ -901,7 +901,7 @@ Scenario: Remotely restart agents without policies applied
         And the container logs that were output after reset the agent contain the message "pktvisor process stopped" within 30 seconds
         And the container logs that were output after reset the agent contain the message "all backends and comms were restarted" within 30 seconds
         And 2 simple policies are applied to the group
-    Then the container logs should contain the message "restarting all backends" within 30 seconds
+    Then the container logs should contain the message "all backends and comms were restarted" within 30 seconds
         And this agent's heartbeat shows that 2 policies are applied and all has status running
         And the container logs that were output after reset the agent contain the message "policy applied successfully" referred to each applied policy within 20 seconds
         And the container logs that were output after reset the agent contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds

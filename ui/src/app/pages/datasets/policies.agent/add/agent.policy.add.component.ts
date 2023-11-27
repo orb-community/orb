@@ -8,7 +8,7 @@ import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.
 import { STRINGS } from '../../../../../assets/text/strings';
 import { Tags } from 'app/common/interfaces/orb/tag';
 import { CodeEditorService } from 'app/common/services/code.editor.service';
-import { POLICY_OTEL_CONFIG_JSON, POLICY_OTEL_CONFIG_YAML, POLICY_PKTVISOR_CONFIG_JSON, POLICY_PKTVISOR_CONFIG_YAML } from 'app/shared/configurations/configurations';
+import { POLICY_DIODE_CONFIG_JSON, POLICY_DIODE_CONFIG_YAML, POLICY_OTEL_CONFIG_JSON, POLICY_OTEL_CONFIG_YAML, POLICY_PKTVISOR_CONFIG_JSON, POLICY_PKTVISOR_CONFIG_YAML } from 'app/shared/configurations/configurations_schemas';
 const CONFIG = {
   TAPS: 'TAPS',
   BACKEND: 'BACKEND',
@@ -341,9 +341,13 @@ export class AgentPolicyAddComponent implements OnInit {
     if (this.backendName === AgentPolicyBackend.otel) {
       this.codeyaml = POLICY_OTEL_CONFIG_YAML;
       this.codejson = POLICY_OTEL_CONFIG_JSON;
-    } else {
+    } else if (this.backendName === AgentPolicyBackend.pktvisor) {
       this.codeyaml = POLICY_PKTVISOR_CONFIG_YAML;
       this.codejson = POLICY_PKTVISOR_CONFIG_JSON;
+    }
+    else {
+      this.codeyaml = POLICY_DIODE_CONFIG_YAML;
+      this.codejson = POLICY_DIODE_CONFIG_JSON;
     }
   }
 }

@@ -72,6 +72,9 @@ func (p *pktvisorBackend) request(url string, payload interface{}, method string
 }
 
 func (p *pktvisorBackend) getProcRunningStatus() (backend.RunningStatus, string, error) {
+	if p.proc == nil {
+		return backend.Unknown, "backend not started yet", nil
+	}
 	status := p.proc.Status()
 
 	if status.Error != nil {

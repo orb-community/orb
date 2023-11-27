@@ -340,6 +340,7 @@ input {
   transition: background-color 0.3s ease !important;
   font-family: 'Montserrat';
   max-height: 32px !important;
+  line-height: 1.15 !important;
 }
 .next-button:hover {
   background-color: #509afc!important;
@@ -360,6 +361,7 @@ input {
   margin-right: 0 !important;
   font-family: 'Montserrat';
   max-height: 32px !important;
+  line-height: 1.15 !important;
 }
 .cancel-back-button:hover {
   background-color: rgba(255, 255, 255, 0.05) !important;

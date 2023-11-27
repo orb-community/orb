@@ -321,7 +321,16 @@ func (p *pktvisorBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo
 		case "Host":
 			p.otelReceiverHost = v.(string)
 		case "Port":
-			p.otelReceiverPort = v.(int)
+			if v.(int) == 0 {
+				var err error
+				p.otelReceiverPort, err = p.getFreePort()
+				if err != nil {
+					p.logger.Error("pktvisor otlp startup error", zap.Error(err))
+					return err
+				}
+			} else {
+				p.otelReceiverPort = v.(int)
+			}
 		}
 	}
 	p.logger.Info("configured otel receiver host", zap.String("host", p.otelReceiverHost), zap.Int("port", p.otelReceiverPort))

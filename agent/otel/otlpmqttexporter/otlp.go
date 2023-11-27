@@ -168,7 +168,7 @@ func (e *baseExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) erro
 		scope.Scope().Attributes().PutStr("policy_id", agentData.PolicyID)
 		scope.Scope().Attributes().PutStr("dataset_ids", datasets)
 		scope.CopyTo(ref.ScopeMetrics().AppendEmpty())
-		e.logger.Debug("scraped metrics for policy", zap.String("policy", policyNameStr), zap.String("policy_id", agentData.PolicyID))
+		e.logger.Info("scraped metrics for policy", zap.String("policy", policyNameStr), zap.String("policy_id", agentData.PolicyID))
 	}
 
 	request, err := tr.MarshalProto()

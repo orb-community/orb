@@ -79,6 +79,15 @@ export const POLICY_PKTVISOR_CONFIG_JSON =
   },
   "kind": "collection"
 }`;
+
+// yet to be defined
+export const POLICY_DIODE_CONFIG_YAML = ``;
+
+export const POLICY_DIODE_CONFIG_JSON = 
+`{
+  
+}`;
+
 export const SINK_OTLP_CONFIG_YAML =
 `authentication:
   type: basicauth
@@ -86,7 +95,6 @@ export const SINK_OTLP_CONFIG_YAML =
   username: ""
 exporter:
   endpoint: ""
-opentelemetry: enabled
 `;
 export const SINK_PROMETHEUS_CONFIG_YAML =
 `authentication:
@@ -95,7 +103,6 @@ export const SINK_PROMETHEUS_CONFIG_YAML =
   username: ""
 exporter:
   remote_host: ""
-opentelemetry: enabled
 `;
 
 
