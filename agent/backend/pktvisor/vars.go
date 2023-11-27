@@ -4,7 +4,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func RegisterBackendSpecificVariables(viper *viper.Viper) {
+func RegisterBackendSpecificVariables() {
 	viper.SetDefault("orb.backends.pktvisor.binary", "/usr/local/sbin/pktvisord")
 	viper.SetDefault("orb.backends.pktvisor.config_file", "/opt/orb/agent.yaml")
 	viper.SetDefault("orb.backends.pktvisor.api_host", "localhost")
