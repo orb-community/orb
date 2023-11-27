@@ -175,18 +175,18 @@ func mergeOrError(path string) {
 	}
 
 	// load backend static functions for setting up default values
-	backendVarsFunction := make(map[string]func(*viper.Viper))
+	backendVarsFunction := make(map[string]func())
 	backendVarsFunction["pktvisor"] = pktvisor.RegisterBackendSpecificVariables
 	backendVarsFunction["otel"] = otel.RegisterBackendSpecificVariables
 
 	// check if backends are configured
 	// if not then add pktvisor as default
-	if len(path) > 0 && len(viper.GetStringMap("orb.backends")) == 0 {
-		pktvisor.RegisterBackendSpecificVariables(v)
+	if len(path) > 0 && len(v.GetStringMap("orb.backends")) == 0 {
+		pktvisor.RegisterBackendSpecificVariables()
 	} else {
-		for backendName, _ := range viper.GetStringMap("orb.backends") {
+		for backendName := range v.GetStringMap("orb.backends") {
 			if backend := v.GetStringMap("orb.backends." + backendName); backend != nil {
-				backendVarsFunction[backendName](v)
+				backendVarsFunction[backendName]()
 			}
 		}
 	}
