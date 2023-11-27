@@ -124,12 +124,11 @@ func CreateMetricsExporter(
 		return nil, err
 	}
 	oCfg := cfg.(*Config)
-	pFunc := oce.pushMetrics
 	return exporterhelper.NewMetricsExporter(
 		ctx,
 		set,
 		cfg,
-		pFunc,
+		oce.pushMetrics,
 		exporterhelper.WithStart(oce.start),
 		exporterhelper.WithCapabilities(consumer.Capabilities{MutatesData: false}),
 		// explicitly disable since we rely on http.Client timeout logic.

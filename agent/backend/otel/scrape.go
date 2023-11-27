@@ -19,7 +19,7 @@ func (o *openTelemetryBackend) receiveOtlp() {
 	go func() {
 		defer execCancelF()
 		count := 0
-		max := 20
+		maxRetries := 20
 		for {
 			if o.mqttClient != nil {
 				if ok := o.startOtelMetric(exeCtx, execCancelF); !ok {
@@ -32,12 +32,12 @@ func (o *openTelemetryBackend) receiveOtlp() {
 				//if ok := o.startOtelLogs(exeCtx, execCancelF); !ok {
 				//	return
 				//}
-				//break
+				break
 			} else {
 				count++
-				o.logger.Info("waiting until mqtt client is connected try " + strconv.Itoa(count) + " from " + strconv.Itoa(max))
+				o.logger.Info("waiting until mqtt client is connected try " + strconv.Itoa(count) + " from " + strconv.Itoa(maxRetries))
 				time.Sleep(time.Second * time.Duration(count))
-				if count >= max {
+				if count >= maxRetries {
 					execCancelF()
 					o.mainCancelFunction()
 					break
