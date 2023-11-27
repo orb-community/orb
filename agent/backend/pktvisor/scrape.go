@@ -36,15 +36,6 @@ func (p *pktvisorBackend) scrapeMetrics(period uint) (map[string]interface{}, er
 }
 
 func (p *pktvisorBackend) createOtlpMqttExporter(ctx context.Context, cancelFunc context.CancelFunc) (exporter.Metrics, error) {
-	go func() {
-		for {
-			select {
-			case <-ctx.Done():
-				p.logger.Info("stopped Orb OpenTelemetry exporter context")
-				return
-			}
-		}
-	}()
 	bridgeService := otel.NewBridgeService(ctx, cancelFunc, &p.policyRepo, p.agentTags)
 	if p.mqttClient != nil {
 		cfg := otlpmqttexporter.CreateConfigClient(p.mqttClient, p.otlpMetricsTopic, p.pktvisorVersion, bridgeService)
