@@ -102,7 +102,7 @@ func (e *baseExporter) start(ctx context.Context, _ component.Host) error {
 		e.config.Client = &client
 	}
 	e.ctx = ctx
-	e.logger.Info("connected to mqtt server", zap.String("address", e.config.Address))
+	e.logger.Info("connected to mqtt server")
 
 	return nil
 }

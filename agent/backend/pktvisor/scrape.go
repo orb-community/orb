@@ -8,8 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"go.opentelemetry.io/collector/config/configgrpc"
-	"go.opentelemetry.io/collector/config/confignet"
+	"go.opentelemetry.io/collector/config/confighttp"
 	"net/http"
 	"strconv"
 	"time"
@@ -161,11 +160,11 @@ func (p *pktvisorBackend) receiveOtlp() {
 				pFactory := otlpreceiver.NewFactory()
 				cfg := pFactory.CreateDefaultConfig()
 				cfg.(*otlpreceiver.Config).Protocols = otlpreceiver.Protocols{
-					GRPC: &configgrpc.GRPCServerSettings{
-						NetAddr: confignet.NetAddr{
-							Endpoint:  p.otelReceiverHost + ":" + strconv.Itoa(p.otelReceiverPort),
-							Transport: "tcp",
+					HTTP: &otlpreceiver.HTTPConfig{
+						HTTPServerSettings: &confighttp.HTTPServerSettings{
+							Endpoint: p.otelReceiverHost + ":" + strconv.Itoa(p.otelReceiverPort),
 						},
+						MetricsURLPath: "/v1/metrics",
 					},
 				}
 				set := receiver.CreateSettings{
