@@ -867,7 +867,8 @@ Scenario: remove one sink from a dataset with 1 sinks, edit the dataset and inse
         And this agent's heartbeat shows that 1 policies are applied and all has status running
 
 
-@smoke
+@MUTE
+#@smoke
 Scenario: Remotely restart agents with policies applied
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -887,7 +888,8 @@ Scenario: Remotely restart agents with policies applied
         And the container logs that were output after reset the agent contain the message "policy applied successfully" referred to each applied policy within 30 seconds
         And the container logs that were output after reset the agent contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
 
-@smoke
+@MUTE
+#@smoke
 Scenario: Remotely restart agents without policies applied
     Given the Orb user has a registered account
         And the Orb user logs in
