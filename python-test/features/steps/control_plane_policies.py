@@ -11,6 +11,7 @@ from random import choice, choices, sample
 from deepdiff import DeepDiff
 import json
 import ciso8601
+import yaml
 
 policy_name_prefix = "test_policy_name_"
 configs = TestConfig.configs()
@@ -383,6 +384,24 @@ def check_agent_logs_for_policies(context, text_to_match, time_to_wait):
                 f"Agent Logs: {logs}")
 
 
+@step('{amount_of_policies} policies with otel backend and yaml format are applied to the group')
+def apply_n_otel_policies(context, amount_of_policies):
+    policies = return_policies_otel(int(amount_of_policies))
+    for policy_data in policies:
+        name = f"{policy_name_prefix}otel_{random_string(10)}"
+        description = "policy with otel backend"
+        policy_yaml = yaml.dump(policy_data)
+        policy_json = make_otel_policy_json(name, description, policy_yaml)
+        context.policy = create_policy(context.token, policy_json)
+        check_policies(context)
+        if 'policies_created' in context:
+            context.policies_created[context.policy['id']] = context.policy['name']
+        else:
+            context.policies_created = dict()
+            context.policies_created[context.policy['id']] = context.policy['name']
+        create_new_dataset(context, 1, 'last', 1, 'sink')
+
+
 @step('{amount_of_policies} {type_of_policies} policies are applied to the group')
 def apply_n_policies(context, amount_of_policies, type_of_policies):
     args_for_policies = return_policies_type(int(amount_of_policies), type_of_policies)
@@ -643,6 +662,15 @@ def make_policy_json(name, handler_label, handler, description=None, tap="defaul
     return json_request
 
 
+def make_otel_policy_json(name, description, policy_data):
+    json_payload = {"name": name,
+                    "backend": "otel",
+                    "policy_data": policy_data,
+                    "description": description,
+                    "format": "yaml"}
+    json_request = remove_empty_from_json(json_payload.copy())
+    return json_request
+
 def make_policy_flow_json(name, handler_label, handler, description=None, tap="default_flow",
                           input_type="flow", port=None, bind=None, flow_type=None, sample_rate_scaling=None,
                           only_devices=None, only_ips=None, only_ports=None, only_interfaces=None, geoloc_notfound=None,
@@ -716,7 +744,7 @@ def make_policy_netprobe_json(name, handler_label, handler, description=None, ta
     assert_that(handler, equal_to("netprobe"), "Unexpected handler for policy")
     assert_that(name, not_none(), "Unable to create policy without name")
 
-    #netprobe configs are on tap level
+    # netprobe configs are on tap level
     json_request = {"name": name,
                     "description": description,
                     "backend": backend_type,
@@ -955,6 +983,68 @@ def list_datasets_for_a_policy(policy_id, datasets_list):
         if dataset['agent_policy_id'] == policy_id:
             id_of_related_datasets.append(dataset['id'])
     return id_of_related_datasets
+
+
+def return_policies_otel(k):
+    policies_otel = list()
+    policies_otel.append({
+        "receivers": {
+            "httpcheck": {
+                "targets": [
+                    {
+                        "endpoint": "http://orb.community",
+                        "method": "GET"
+                    },
+                    {
+                        "endpoint": "https://orb.live",
+                        "method": "GET"
+                    }
+                ],
+                "collection_interval": "60s"
+            }
+        },
+        "extensions": None,
+        "exporters": None,
+        "service": {
+            "pipelines": {
+                "metrics": {
+                    "exporters": None,
+                    "receivers": [
+                        "httpcheck"
+                    ]
+                }
+            }
+        }
+    })
+    policies_otel.append({
+        "receivers": {
+            "httpcheck": {
+                "targets": [
+                    {
+                        "endpoint": "https://github.com/orb-community/orb",
+                        "method": "GET"
+                    }
+                ],
+                "collection_interval": "10s"
+            }
+        },
+        "extensions": None,
+        "exporters": None,
+        "service": {
+            "pipelines": {
+                "metrics": {
+                    "exporters": ["otlp"],
+                    "receivers": [
+                        "httpcheck"
+                    ]
+                }
+            }
+        }
+    })
+    if k <= len(policies_otel):
+        return sample(policies_otel, k=k)
+
+    return choices(policies_otel, k=k)
 
 
 def return_policies_type(k, policies_type='mixed', input_type="pcap"):

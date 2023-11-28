@@ -16,19 +16,38 @@ backend_type = configs.get('backend_type')
 
 @given("that the user has the prometheus/grafana credentials")
 def check_prometheus_grafana_credentials(context):
-    context.remote_prometheus_endpoint = configs.get('remote_prometheus_endpoint')
-    assert_that(context.remote_prometheus_endpoint, not_none(), 'No remote write endpoint to send Prometheus metrics '
-                                                                'to Grafana Cloud was provided!')
-    assert_that(context.remote_prometheus_endpoint, not_(""), 'No remote write endpoint to send Prometheus metrics to '
-                                                              'Grafana Cloud was provided!')
+    if backend_type == "otlphttp":
+        context.remote_prometheus_endpoint = configs.get('otlp_publisher_endpoint')
+        assert_that(context.remote_prometheus_endpoint, not_none(), 'No remote write endpoint to send otlp '
+                                                                    'metrics'
+                                                                    'to Grafana Cloud was provided!')
+        assert_that(context.remote_prometheus_endpoint, not_(""), 'No remote write endpoint to send otlp '
+                                                                  'metrics to'
+                                                                  'Grafana Cloud was provided!')
 
-    context.prometheus_username = configs.get('prometheus_username')
-    assert_that(context.prometheus_username, not_none(), 'No Grafana Cloud Prometheus username was provided!')
-    assert_that(context.prometheus_username, not_(""), 'No Grafana Cloud Prometheus username was provided!')
+        context.prometheus_username = configs.get('otlp_publisher_username')
+        assert_that(context.prometheus_username, not_none(), 'No Grafana Cloud otlp username was provided!')
+        assert_that(context.prometheus_username, not_(""), 'No Grafana Cloud otlp username was provided!')
 
-    context.prometheus_key = configs.get('prometheus_key')
-    assert_that(context.prometheus_key, not_none(), 'No Grafana Cloud API Key was provided!')
-    assert_that(context.prometheus_key, not_(""), 'No Grafana Cloud API Key was provided!')
+        context.prometheus_key = configs.get('otlp_publisher_key')
+        assert_that(context.prometheus_key, not_none(), 'No Grafana Cloud API Key was provided!')
+        assert_that(context.prometheus_key, not_(""), 'No Grafana Cloud API Key was provided!')
+    else:
+        context.remote_prometheus_endpoint = configs.get('remote_prometheus_endpoint')
+        assert_that(context.remote_prometheus_endpoint, not_none(), 'No remote write endpoint to send Prometheus '
+                                                                    'metrics'
+                                                                    'to Grafana Cloud was provided!')
+        assert_that(context.remote_prometheus_endpoint, not_(""), 'No remote write endpoint to send Prometheus '
+                                                                  'metrics to'
+                                                                  'Grafana Cloud was provided!')
+
+        context.prometheus_username = configs.get('prometheus_username')
+        assert_that(context.prometheus_username, not_none(), 'No Grafana Cloud Prometheus username was provided!')
+        assert_that(context.prometheus_username, not_(""), 'No Grafana Cloud Prometheus username was provided!')
+
+        context.prometheus_key = configs.get('prometheus_key')
+        assert_that(context.prometheus_key, not_none(), 'No Grafana Cloud API Key was provided!')
+        assert_that(context.prometheus_key, not_(""), 'No Grafana Cloud API Key was provided!')
 
 
 @step("a new sink is created")
