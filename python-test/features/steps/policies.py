@@ -6,7 +6,7 @@ from utils import random_string, filter_list_by_parameter_start_with, safe_load_
 from local_agent import get_orb_agent_logs
 from configs import TestConfig
 from datetime import datetime
-from control_plane_datasets import create_new_dataset, list_datasets
+from datasets import create_new_dataset, list_datasets
 from random import choice, choices, sample
 from deepdiff import DeepDiff
 import json

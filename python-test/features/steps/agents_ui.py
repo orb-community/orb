@@ -1,6 +1,6 @@
 from behave import given, then, step
 from ui_utils import *
-from control_plane_agents import agent_name_prefix, get_agent
+from agents import agent_name_prefix, get_agent
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By

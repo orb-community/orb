@@ -1,9 +1,9 @@
 from behave import step
 from configs import TestConfig
-from control_plane_sink import get_sink
+from sink import get_sink
 from ui_utils import *
 from page_objects import *
-from control_plane_datasets import list_datasets
+from datasets import list_datasets
 
 configs = TestConfig.configs()
 orb_url = configs.get('orb_url')
