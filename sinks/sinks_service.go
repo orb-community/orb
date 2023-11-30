@@ -406,10 +406,10 @@ func (svc sinkService) ViewSinkInternal(ctx context.Context, ownerID string, key
 	return res, nil
 }
 
-func (svc sinkService) ListSinksInternal(ctx context.Context, filter Filter) (sinks []Sink, err error) {
-	sinks, err = svc.sinkRepo.SearchAllSinks(ctx, filter)
+func (svc sinkService) ListSinksInternal(ctx context.Context, filter Filter) (sinksResp Page, err error) {
+	sinks, err := svc.sinkRepo.SearchAllSinks(ctx, filter)
 	if err != nil {
-		return nil, errors.Wrap(errors.ErrNotFound, err)
+		return Page{}, errors.Wrap(errors.ErrNotFound, err)
 	}
 	for _, sink := range sinks {
 		authType, _ := authentication_type.GetAuthType(sink.GetAuthenticationTypeName())
@@ -420,8 +420,9 @@ func (svc sinkService) ListSinksInternal(ctx context.Context, filter Filter) (si
 		}
 		sink, err = svc.decryptMetadata(cfg, sink)
 		if err != nil {
-			return nil, errors.Wrap(errors.ErrViewEntity, err)
+			return Page{}, errors.Wrap(errors.ErrViewEntity, err)
 		}
+		sinksResp.Sinks = append(sinksResp.Sinks, sink)
 	}
 
 	return

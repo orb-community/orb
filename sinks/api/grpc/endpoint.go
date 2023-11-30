@@ -49,15 +49,14 @@ func retrieveSinksEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(sinksFilter)
 		filter := sinks.Filter{
-			OpenTelemetry: req.isOtel,
-			StateFilter:   req.state,
+			StateFilter: req.state,
 		}
 		sinksInternal, err := svc.ListSinksInternal(ctx, filter)
 		if err != nil {
 			return sinksInternal, err
 		}
 		responseStr := sinksRes{}
-		for _, sink := range sinksInternal {
+		for _, sink := range sinksInternal.Sinks {
 			sinkResponse, err := buildSinkResponse(sink)
 			if err != nil {
 

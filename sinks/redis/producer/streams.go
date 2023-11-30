@@ -33,7 +33,7 @@ type sinksStreamProducer struct {
 }
 
 // ListSinksInternal will only call following service
-func (es sinksStreamProducer) ListSinksInternal(ctx context.Context, filter sinks.Filter) ([]sinks.Sink, error) {
+func (es sinksStreamProducer) ListSinksInternal(ctx context.Context, filter sinks.Filter) (sinks.Page, error) {
 	return es.svc.ListSinksInternal(ctx, filter)
 }
 
