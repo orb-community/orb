@@ -1,5 +1,5 @@
 from behave import step
-from test_config import TestConfig
+from configs import TestConfig
 from control_plane_sink import get_sink
 from ui_utils import *
 from page_objects import *

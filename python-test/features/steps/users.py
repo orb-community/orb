@@ -1,6 +1,6 @@
 from hamcrest import *
 from behave import given, step, then
-from test_config import TestConfig
+from configs import TestConfig
 import requests
 from utils import random_string
 

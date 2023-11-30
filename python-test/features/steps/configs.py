@@ -23,6 +23,17 @@ def _read_configs():
     parser.read('test_config.ini')
     configs = parser['test_config']
 
+    # log level
+    log_level = configs.get("log_level", "debug")
+    configs["log_level"] = log_level.lower()
+    assert_that(configs.get('log_level'), any_of("debug", "info", "warning", "error", "critical"),
+                'Invalid log level')
+
+    # stream logs
+    stream_logs = configs.get("stream_logs", "true")
+    assert_that(stream_logs.lower(), any_of("true", "false"), 'Invalid log stream option')
+    configs["stream_logs"] = stream_logs.lower()
+
     # Make sure mandatory parameters are set!
     assert_that(configs.get('orb_address'), not_none(), 'No Orb URL was provided!')
     assert_that(configs.get('orb_address'), not_(""), 'No Orb URL was provided!')
@@ -34,24 +45,24 @@ def _read_configs():
     assert_that(configs.get('password'), not_(""), 'No Orb user password was provided!')
     assert_that(configs.get('password'), has_length(greater_than_or_equal_to(8)),
                 'Orb password must be at least 8 digits')
-    
+
     configs['backend_type'] = configs.get("backend_type", "prometheus")
     if configs['backend_type'] == "otlphttp":
         assert_that(configs.get('otlp_publisher_username'), not_none(), 'No otlp_publisher username was provided!')
         assert_that(configs.get('otlp_publisher_username'), not_(""), 'No otlp_publisher username was provided!')
-    
+
         assert_that(configs.get('otlp_publisher_key'), not_none(), 'No Orb otlp_publisher key was provided!')
         assert_that(configs.get('otlp_publisher_key'), not_(""), 'No Orb otlp_publisher key was provided!')
-    
+
         assert_that(configs.get('otlp_publisher_endpoint'), not_none(), 'No Orb otlp_publisher endpoint was provided!')
         assert_that(configs.get('otlp_publisher_endpoint'), not_(""), 'No Orb otlp_publisher endpoint was provided!')
     else:
         assert_that(configs.get('prometheus_username'), not_none(), 'No prometheus username was provided!')
         assert_that(configs.get('prometheus_username'), not_(""), 'No prometheus username was provided!')
-    
+
         assert_that(configs.get('prometheus_key'), not_none(), 'No Orb prometheus key was provided!')
         assert_that(configs.get('prometheus_key'), not_(""), 'No Orb prometheus key was provided!')
-    
+
         assert_that(configs.get('remote_prometheus_endpoint'), not_none(), 'No Orb prometheus endpoint was provided!')
         assert_that(configs.get('remote_prometheus_endpoint'), not_(""), 'No Orb prometheus endpoint was provided!')
 

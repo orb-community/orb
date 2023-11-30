@@ -4,7 +4,7 @@ from behave import then, step
 from utils import random_string, filter_list_by_parameter_start_with, validate_json, threading_wait_until
 from hamcrest import *
 import requests
-from test_config import TestConfig
+from configs import TestConfig
 from datetime import datetime
 from random import choice
 

@@ -1,5 +1,5 @@
 import re
-from test_config import TestConfig
+from configs import TestConfig
 from local_agent import get_orb_agent_logs
 from users import get_auth_token
 from utils import random_string, filter_list_by_parameter_start_with, generate_random_string_with_predefined_prefix, \

@@ -1,6 +1,6 @@
 from hamcrest import *
 from behave import given, then, step
-from test_config import TestConfig
+from configs import TestConfig
 from utils import random_string, send_terminal_commands, return_port_by_availability
 import os
 import json

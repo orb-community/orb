@@ -4,7 +4,7 @@ from behave import given, then, step
 from utils import random_string, filter_list_by_parameter_start_with, safe_load_json, remove_empty_from_json, \
     threading_wait_until, UtilsManager, create_tags_set, is_json, values_to_boolean
 from local_agent import get_orb_agent_logs
-from test_config import TestConfig
+from configs import TestConfig
 from datetime import datetime
 from control_plane_datasets import create_new_dataset, list_datasets
 from random import choice, choices, sample

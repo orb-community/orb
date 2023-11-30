@@ -1,7 +1,7 @@
 from utils import safe_load_json, random_string, threading_wait_until, return_port_by_availability
 from behave import then, step
 from hamcrest import *
-from test_config import TestConfig, LOCAL_AGENT_CONTAINER_NAME
+from configs import TestConfig, LOCAL_AGENT_CONTAINER_NAME
 import docker
 import subprocess
 import shlex

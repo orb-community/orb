@@ -1,5 +1,5 @@
 from behave import given, when, then
-from test_config import TestConfig
+from configs import TestConfig
 from hamcrest import *
 from users import authenticate, register_account
 from utils import random_string, insert_str

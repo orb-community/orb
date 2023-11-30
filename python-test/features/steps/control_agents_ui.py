@@ -6,7 +6,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 from utils import random_string, create_tags_set, threading_wait_until
-from test_config import TestConfig
+from configs import TestConfig
 from hamcrest import *
 from page_objects import *
 

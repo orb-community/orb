@@ -1,5 +1,5 @@
 from behave import when, then, step
-from test_config import TestConfig
+from configs import TestConfig
 from ui_utils import *
 from hamcrest import *
 from utils import random_string, create_tags_set

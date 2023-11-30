@@ -1,6 +1,6 @@
 from behave import step
 from control_plane_policies import parse_policy_params, get_policy, make_policy_json, list_policies
-from test_config import TestConfig
+from configs import TestConfig
 from ui_utils import *
 from utils import remove_empty_from_json
 from page_objects import *

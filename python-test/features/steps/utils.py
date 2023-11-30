@@ -135,6 +135,11 @@ def check_logs_contain_message_and_name(logs, expected_message, name, name_key):
     return False, "Logs doesn't contain the message and name expected"
 
 
+# Convert "true" and "false" strings to boolean values
+def str_to_bool(s):
+    return s.lower() == 'true'
+
+
 def values_to_boolean(json_file):
     """
     Transform boolean string values into boolean
