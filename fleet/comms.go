@@ -19,6 +19,7 @@ import (
 	"github.com/orb-community/orb/buildinfo"
 	"github.com/orb-community/orb/policies/pb"
 	"go.uber.org/zap"
+	"gopkg.in/yaml.v3"
 	"time"
 )
 
@@ -133,10 +134,15 @@ func (svc fleetCommsService) NotifyGroupNewDataset(ctx context.Context, ag Agent
 	if err != nil {
 		return err
 	}
-
 	var pdata interface{}
-	if err := json.Unmarshal(p.Data, &pdata); err != nil {
-		return err
+	if p.Backend == "pktvisor" {
+		if err := json.Unmarshal(p.Data, &pdata); err != nil {
+			return err
+		}
+	} else if p.Backend == "otel" {
+		if err := yaml.Unmarshal(p.Data, &pdata); err != nil {
+			return err
+		}
 	}
 
 	payload := []AgentPolicyRPCPayload{{

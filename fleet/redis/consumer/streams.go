@@ -127,7 +127,7 @@ func (es eventStore) handleDatasetCreate(ctx context.Context, e createDatasetEve
 
 	ag, err := es.fleetService.ViewAgentGroupByIDInternal(ctx, e.agentGroupID, e.ownerID)
 	if err != nil {
-		es.logger.Info("Failed to retrieve agent group", zap.String("group_id", e.agentGroupID), zap.String("owner_id", e.ownerID), zap.Error(err))
+		es.logger.Error("Failed to retrieve dataset", zap.String("group_id", e.agentGroupID), zap.String("owner_id", e.ownerID), zap.Error(err))
 		return err
 	}
 
