@@ -877,7 +877,7 @@ def get_groups_to_which_agent_is_matching(token, agent_id, groups_matching_ids, 
     return list_groups_id, agent
 
 
-def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base_orb_address, port,
+def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, port,
                              existing_agent_groups, tap_name, input_type="pcap", input_tags='3', auto_provision="true",
                              orb_cloud_mqtt_id=None, orb_cloud_mqtt_key=None, orb_cloud_mqtt_channel_id=None,
                              settings=None, overwrite_default=False, only_file=False, pktvisor_binary=None,
@@ -889,7 +889,6 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
     :param (str) agent_name: name of the agent that will be created
     :param (str) iface: network interface
     :param (str) agent_tags: agent tags
-    :param (str) orb_url: entire orb url
     :param (str) base_orb_address: base orb url address
     :param (str) port: port on which agent must run.
     :param (dict) existing_agent_groups: all agent groups available
@@ -919,8 +918,6 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
         tags = {"tags": all_used_tags}
     else:
         tags = {"tags": create_tags_set(agent_tags)}
-    include_otel_env_var = configs.get('include_otel_env_var')
-    enable_otel = configs.get('enable_otel')
     mqtt_url = configs.get('mqtt_url')
     if configs.get('verify_ssl') == 'false':
         agent_config_file, tap = FleetAgent.config_file_of_orb_agent(agent_name, token, iface, orb_url, mqtt_url,
@@ -931,8 +928,6 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
                                                                      orb_cloud_mqtt_channel_id=orb_cloud_mqtt_channel_id,
                                                                      input_type=input_type, input_tags=input_tags,
                                                                      settings=settings,
-                                                                     include_otel_env_var=include_otel_env_var,
-                                                                     enable_otel=enable_otel,
                                                                      overwrite_default=overwrite_default)
     else:
         agent_config_file, tap = FleetAgent.config_file_of_orb_agent(agent_name, token, iface, orb_url, mqtt_url,
@@ -943,8 +938,6 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, base
                                                                      orb_cloud_mqtt_channel_id=orb_cloud_mqtt_channel_id,
                                                                      input_type=input_type, input_tags=input_tags,
                                                                      settings=settings,
-                                                                     include_otel_env_var=include_otel_env_var,
-                                                                     enable_otel=enable_otel,
                                                                      overwrite_default=overwrite_default)
     agent_config_file = yaml.load(agent_config_file, Loader=SafeLoader)
     if pktvisor_config_file is None or pktvisor_config_file == "None":
