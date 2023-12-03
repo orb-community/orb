@@ -13,7 +13,10 @@ from jsonschema import validate
 from abc import ABC, abstractmethod
 import shlex
 import subprocess
+import requests
+from logger import Logger
 
+log = Logger().logger_instance()
 tag_prefix = "test_tag_"
 
 
@@ -274,6 +277,86 @@ def validate_json(json_data, path_to_file):
     return True
 
 
+def is_json(json_string):
+    """
+    Test if some string can be converted to json.
+    :param json_string: string to be tested
+    :return: bool: is string is a valid json, error_message or string in json
+    """
+    try:
+        json_converted = json.loads(json_string)
+    except ValueError as e:
+        return False, e
+    return True, json_converted
+
+
+def send_terminal_commands(command, cwd_run=None):
+    args = shlex.split(command)
+    p = subprocess.Popen(args, stdin=subprocess.PIPE, stderr=subprocess.PIPE,
+                         stdout=subprocess.PIPE, cwd=cwd_run, universal_newlines=True)
+    subprocess_return_terminal = p.communicate()
+    return subprocess_return_terminal
+
+
+def log_response(response):
+    if response.ok:
+        log.info(f"{response.request.method} {response.url} -> Status Code: {response.status_code}")
+    else:
+        log.error(
+            f"{response.request.method} {response.url} -> Status Code: {response.status_code}, Response: {response.text}")
+
+
+def return_api_get_response(token, api_path, params=None):
+    headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
+    response = requests.get(api_path, headers=headers_request, params=params)
+    log_response(response)
+    try:
+        response_json = response.json()
+    except ValueError:
+        response_json = response.text
+
+    return response.status_code, response_json
+
+
+def return_api_post_response(token, api_path, request_body=None):
+    headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
+    response = requests.post(api_path, json=request_body, headers=headers_request)
+    log_response(response)
+    try:
+        response_json = response.json()
+    except ValueError:
+        response_json = response.text
+
+    return response.status_code, response_json
+
+
+def return_api_delete_response(token, api_path, request_body=None):
+    headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
+    if request_body is not None:
+        response = requests.delete(api_path, json=request_body, headers=headers_request)
+    else:
+        response = requests.delete(api_path, headers=headers_request)
+    log_response(response)
+    try:
+        response_json = response.json()
+    except ValueError:
+        response_json = response.text
+
+    return response.status_code, response_json
+
+
+def return_api_put_response(token, api_path, request_body=None):
+    headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
+    response = requests.put(api_path, json=request_body, headers=headers_request)
+    log_response(response)
+    try:
+        response_json = response.json()
+    except ValueError:
+        response_json = response.text
+
+    return response.status_code, response_json
+
+
 class UtilsManager(ABC):
     def __init__(self):
         pass
@@ -317,24 +400,3 @@ class UtilsManager(ABC):
     @abstractmethod
     def json(self):
         pass
-
-
-def is_json(json_string):
-    """
-    Test if some string can be converted to json.
-    :param json_string: string to be tested
-    :return: bool: is string is a valid json, error_message or string in json
-    """
-    try:
-        json_converted = json.loads(json_string)
-    except ValueError as e:
-        return False, e
-    return True, json_converted
-
-
-def send_terminal_commands(command, cwd_run=None):
-    args = shlex.split(command)
-    p = subprocess.Popen(args, stdin=subprocess.PIPE, stderr=subprocess.PIPE,
-                         stdout=subprocess.PIPE, cwd=cwd_run, universal_newlines=True)
-    subprocess_return_terminal = p.communicate()
-    return subprocess_return_terminal
