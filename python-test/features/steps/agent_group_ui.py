@@ -4,7 +4,7 @@ from ui_utils import *
 from hamcrest import *
 from utils import random_string, create_tags_set
 from page_objects import *
-from plane_agent_groups import agent_group_name_prefix, agent_group_description, list_agent_groups
+from agent_groups import agent_group_name_prefix, agent_group_description, list_agent_groups
 
 configs = TestConfig.configs()
 orb_url = configs.get('orb_url')

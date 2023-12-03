@@ -44,15 +44,6 @@ def check_metrics_by_handler(context, handler_type):
 def run_local_agent_container(context, status_port, **kwargs):
     use_orb_live_address_pattern = configs.get("use_orb_live_address_pattern")
     verify_ssl = configs.get('verify_ssl')
-    if "include_otel_env_var" in kwargs: # this if/else logic can be removed after otel migration (only else is needed)
-        include_otel_env_var = kwargs["include_otel_env_var"]
-    else:
-        include_otel_env_var = configs.get("include_otel_env_var")
-    if "enable_otel" in kwargs: # this if/else logic can be removed after otel migration (only else is needed)
-        enable_otel = kwargs["enable_otel"]
-    else:
-        enable_otel = configs.get("enable_otel")
-
     env_vars = create_agent_env_vars_set(context.agent['id'], context.agent['channel_id'], context.agent_key,
                                          verify_ssl, use_orb_live_address_pattern, include_otel_env_var, enable_otel)
     env_vars.update(kwargs)

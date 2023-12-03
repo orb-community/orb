@@ -1,7 +1,7 @@
 from configs import TestConfig
 from utils import *
 from local_agent import run_local_agent_container, run_agent_config_file, get_orb_agent_logs, get_logs_and_check
-from plane_agent_groups import return_matching_groups, tags_to_match_k_groups
+from agent_groups import return_matching_groups, tags_to_match_k_groups
 from behave import given, then, step
 from hamcrest import *
 from datetime import datetime
