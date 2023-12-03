@@ -138,6 +138,15 @@ def new_sink(context, configuration_type):
         create_sink(context, configuration_type=configuration_type.lower())
 
 
+# this step is only necessary for OTEL migration tests, so we can exclude it after the migration
+@step("that a/an {sink_type} sink already exists (migration)")
+def new_sink(context, sink_type):
+    assert_that(sink_type, any_of("OTEL", "legacy"), "Unexpected type of sink")
+    otel_map = {"OTEL": "true", "legacy": "false"}
+    check_prometheus_grafana_credentials(context)
+    create_sink(context, enable_otel=otel_map[sink_type])
+
+
 @step("that {amount_of_sinks} sinks already exists")
 def new_multiple_sinks(context, amount_of_sinks):
     check_prometheus_grafana_credentials(context)
@@ -204,6 +213,36 @@ def check_sink_status(context, status, time_to_wait):
     context.sink = get_sink_status_and_check(context.token, sink_id, status)
 
     assert_that(context.sink['state'], equal_to(status), f"Sink {context.sink} state failed")
+
+
+# this step is only necessary for OTEL migration tests, so we can exclude it after the migration
+@step("the sink is updated and OTEL is {otel}")
+def edit_sink_field(context, otel):
+    assert_that(otel, any_of("enabled", "disabled"))
+    sink = get_sink(context.token, context.sink['id'])
+    sink['config']['authentication']['password'] = configs.get('prometheus_key')
+    sink['config']["opentelemetry"] = otel
+    context.sink = edit_sink(context.token, context.sink['id'], sink)
+
+
+# this step is only necessary for OTEL migration tests, so we can exclude it after the migration
+@step("all existing sinks must have OTEL enabled")
+def check_all_sinks_status(context):
+    all_sinks = list_sinks(context.token)
+    otel_sinks = list()
+    legacy_sinks = list()
+    migrated_sinks = list()
+    for sink in all_sinks:
+        if "opentelemetry" in sink["config"].keys() and sink["config"]["opentelemetry"] == "enabled":
+            otel_sinks.append(sink["id"])
+        else:
+            legacy_sinks.append(sink["id"])
+
+        if "migrated" in sink["config"].keys() and sink["config"]["migrated"] == "m3":
+            migrated_sinks.append(sink["id"])
+    print(f"{len(migrated_sinks)} of {len(all_sinks)} sinks have migration tags")
+    assert_that(len(otel_sinks), equal_to(len(all_sinks)), f"{len(legacy_sinks)} sinks are not with otel tag enabled: "
+                                                           f"{legacy_sinks}")
 
 
 @step("the sink {field_to_edit} is edited and an {type_of_field} one is used")
