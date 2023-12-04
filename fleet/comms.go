@@ -134,6 +134,7 @@ func (svc fleetCommsService) NotifyGroupNewDataset(ctx context.Context, ag Agent
 	if err != nil {
 		return err
 	}
+	svc.logger.Info("new dataset", zap.String("dataset_id", datasetID), zap.Any("policy", p))
 	var pdata interface{}
 	if p.Format == "yaml" {
 		if err := yaml.Unmarshal(p.Data, &pdata); err != nil {
@@ -256,6 +257,7 @@ func (svc fleetCommsService) NotifyAgentAllDatasets(ctx context.Context, a Agent
 				Name:         policy.Name,
 				Backend:      policy.Backend,
 				Version:      policy.Version,
+				Format:       policy.Format,
 				Data:         pdata,
 				DatasetID:    policy.DatasetId,
 				AgentGroupID: policy.AgentGroupId,

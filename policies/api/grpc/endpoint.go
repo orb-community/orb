@@ -79,6 +79,7 @@ func retrievePoliciesByGroupsEndpoint(svc policies.Service) endpoint.Endpoint {
 				name:         policy.Name.String(),
 				backend:      policy.Backend,
 				version:      policy.Version,
+				format:       policy.Format,
 				data:         data,
 				datasetID:    policy.DatasetID,
 				agentGroupID: policy.AgentGroupID,

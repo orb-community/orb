@@ -25,6 +25,7 @@ type policyInDSRes struct {
 	data         []byte
 	datasetID    string
 	agentGroupID string
+	format       string
 }
 
 type policyInDSListRes struct {
