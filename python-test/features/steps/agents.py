@@ -317,10 +317,11 @@ def provision_agent_using_config_file_drop_pkt_config(context, input_type, setti
                                       overwrite_default, paste_only_file, pkt_config=pkt_config)
 
 
-@step("an agent(input_type:{input_type}, settings: {settings}) is {provision} via a configuration file on port {port} "
+@step("an agent(backend_type:{backend_type}, settings: {settings}) is {provision} via a configuration file on port {"
+      "port}"
       "with {agent_tags} agent tags and has status {status}. [Overwrite default: {overwrite_default}. Paste only "
       "file: {paste_only_file}]")
-def provision_agent_using_config_file(context, input_type, settings, provision, port, agent_tags, status,
+def provision_agent_using_config_file(context, backend_type, settings, provision, port, agent_tags, status,
                                       overwrite_default, paste_only_file, **kwargs):
     assert_that(provision, any_of(equal_to("self-provisioned"), equal_to("provisioned")), "Unexpected provision "
                                                                                           "attribute")
@@ -344,11 +345,6 @@ def provision_agent_using_config_file(context, input_type, settings, provision, 
             settings["port"] = port_to_attach
     if "port" in settings.keys() and settings["port"] == "switch":
         settings["port"] = context.switch_port
-    if 'input_tags' in settings.keys():
-        input_tags = settings['input_tags']
-        settings.pop('input_tags')
-    else:
-        input_tags = '3'
     if provision == "provisioned":
         auto_provision = "false"
         orb_cloud_mqtt_id = context.agent['id']
@@ -366,6 +362,7 @@ def provision_agent_using_config_file(context, input_type, settings, provision, 
         interface = context.mock_iface_name
     else:
         interface = configs.get('orb_agent_interface', 'auto')
+    settings["iface"] = interface
     orb_url = configs.get('orb_url')
     base_orb_address = configs.get('orb_address')
     context.port = return_port_by_availability(context, True)
@@ -373,6 +370,7 @@ def provision_agent_using_config_file(context, input_type, settings, provision, 
         tap_name = context.tap_name
     else:
         tap_name = agent_name
+    settings["tap_name"] = tap_name
     pkt_configs = {"binary": "default", "config_file": "default"}
     if 'pkt_config' in kwargs.keys():
         if "binary" in kwargs['pkt_config'].keys():
@@ -380,9 +378,9 @@ def provision_agent_using_config_file(context, input_type, settings, provision, 
         if "config_file" in kwargs['pkt_config'].keys():
             pkt_configs["config_file"] = kwargs['pkt_config']["config_file"]
     context.agent_file_name, tags_on_agent, context.tap, safe_config_file = \
-        create_agent_config_file(context.token, agent_name, interface, agent_tags, orb_url, base_orb_address,
+        create_agent_config_file(context.token, agent_name, agent_tags, orb_url, base_orb_address,
                                  context.port,
-                                 context.agent_groups, tap_name, input_type, input_tags, auto_provision,
+                                 context.agent_groups, auto_provision,
                                  orb_cloud_mqtt_id, orb_cloud_mqtt_key, orb_cloud_mqtt_channel_id, settings,
                                  overwrite_default, paste_only_file, pkt_configs['binary'], pkt_configs['config_file'])
     for key, value in context.tap.items():
@@ -882,8 +880,8 @@ def get_groups_to_which_agent_is_matching(token, agent_id, groups_matching_ids, 
 #                              orb_cloud_mqtt_id=None, orb_cloud_mqtt_key=None, orb_cloud_mqtt_channel_id=None,
 #                              settings=None, overwrite_default=False, only_file=False, pktvisor_binary=None,
 #                              pktvisor_config_file=None):
-def create_agent_config_file(backend_type, token, agent_name, iface, agent_tags, orb_url, port,
-                             existing_agent_groups, tap_name, input_type="pcap", input_tags='3', auto_provision="true",
+def create_agent_config_file(backend_type, token, agent_name, agent_tags, orb_url, port,
+                             existing_agent_groups, auto_provision="true",
                              orb_cloud_mqtt_id=None, orb_cloud_mqtt_key=None, orb_cloud_mqtt_channel_id=None,
                              settings=None, overwrite_default=False, only_file=False, pktvisor_binary=None,
                              pktvisor_config_file=None):
@@ -904,7 +902,7 @@ def create_agent_config_file(backend_type, token, agent_name, iface, agent_tags,
     :param (str) orb_cloud_mqtt_id: agent mqtt id.
     :param (str) orb_cloud_mqtt_key: agent mqtt key.
     :param (str) orb_cloud_mqtt_channel_id: agent mqtt channel id.
-    :param (str) settings: settings of input
+    :param (dict) settings: settings of input
     :param (bool) overwrite_default: if True and only_file is False saves the agent as "agent.yaml". Else, save it with
     agent name
     :param (bool) only_file: is true copy only the file. If false, copy the directory.
@@ -928,11 +926,28 @@ def create_agent_config_file(backend_type, token, agent_name, iface, agent_tags,
     cloud_settings = {"orb_cloud_mqtt_id": orb_cloud_mqtt_id,
                       "orb_cloud_mqtt_key": orb_cloud_mqtt_key,
                       "orb_cloud_mqtt_channel_id": orb_cloud_mqtt_channel_id}
+    if backend_type == "pktvisor":
+        assert_that(settings, has_key("iface"), f"Missing iface on agent config file creation")
+        iface = settings.get('iface')
+        settings.pop('iface', None)
+        assert_that(settings, has_key("tap_name"), f"Missing tap_name on agent config file creation")
+        tap_name = settings.get('tap_name')
+        settings.pop('tap_name', None)
+        input_type = settings.get('input_type', 'pcap')
+        settings.pop('input_type', None)
+        input_tags = settings.get('input_tags', '3')
+        settings.pop('input_tags', None)
+        backend_settings = ConfigFiles(backend_type).pktvisor_config_file(iface, tap_name, input_type, input_tags,
+                                                                          settings)
+    elif backend_type == "otel":
+        backend_settings = ConfigFiles(backend_type).otel_config_file()
+    else:
+        raise Exception(f"Unexpected value for backend_type on agent config file creation: {backend_type}")
 
     # todo parei no backend settings
 
     agent_config_file = FleetAgent.config_file_of_orb_agent(agent_name, backend_type, auto_provision,
-                                                            f"{port}", {}, cloud_settings,
+                                                            f"{port}", backend_settings, cloud_settings,
                                                             orb_url, mqtt_url, tls_verify=verify_ssl)
     # if configs.get('verify_ssl') == 'false':
     #     agent_config_file, tap = FleetAgent.config_file_of_orb_agent(agent_name, token, iface, orb_url, mqtt_url,
