@@ -135,12 +135,13 @@ func (svc fleetCommsService) NotifyGroupNewDataset(ctx context.Context, ag Agent
 		return err
 	}
 	var pdata interface{}
-	if p.Backend == "pktvisor" {
-		if err := json.Unmarshal(p.Data, &pdata); err != nil {
+	if p.Format == "yaml" {
+		if err := yaml.Unmarshal(p.Data, &pdata); err != nil {
 			return err
 		}
-	} else if p.Backend == "otel" {
-		if err := yaml.Unmarshal(p.Data, &pdata); err != nil {
+	} else { // today we only have json and yaml as formats,
+		// once we add more, it would be best to add an enumerator to validate this in a switch
+		if err := json.Unmarshal(p.Data, &pdata); err != nil {
 			return err
 		}
 	}

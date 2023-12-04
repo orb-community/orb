@@ -155,7 +155,9 @@ func (o *openTelemetryBackend) RemovePolicy(data policies.PolicyData) error {
 		o.removePolicyControl(data.ID)
 		policyPath := o.policyConfigDirectory + fmt.Sprintf(tempFileNamePattern, data.ID)
 		// This is a temp file, if it fails to remove, it will be erased once the container is restarted
-		_ = os.Remove(policyPath)
+		if err := os.Remove(policyPath); err != nil {
+			o.logger.Warn("failed to remove policy file, this won't fail policy removal", zap.String("policy_id", data.ID), zap.Error(err))
+		}
 	}
 	return nil
 }
