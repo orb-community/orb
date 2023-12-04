@@ -215,7 +215,6 @@ func (r policiesRepository) RetrievePoliciesByGroupID(ctx context.Context, group
 		}
 
 		th := toPolicy(dbth)
-		r.logger.Info("policy format", zap.String("policy_format", th.Format))
 		items = append(items, policies.PolicyInDataset{Policy: th, DatasetID: dbth.DataSetID, AgentGroupID: dbth.AgentGroupID})
 	}
 
@@ -237,7 +236,6 @@ func (r policiesRepository) RetrievePolicyByID(ctx context.Context, policyID str
 		}
 		return policies.Policy{}, errors.Wrap(errors.ErrSelectEntity, err)
 	}
-	r.logger.Info("policy format", zap.String("policy.format", dbp.Format))
 	return toPolicy(dbp), nil
 }
 

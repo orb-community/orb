@@ -134,7 +134,6 @@ func (svc fleetCommsService) NotifyGroupNewDataset(ctx context.Context, ag Agent
 	if err != nil {
 		return err
 	}
-	svc.logger.Info("retrieved policy format", zap.Any("policy_format", p.Format))
 	var pdata interface{}
 	if p.Format == "yaml" {
 		if err := yaml.Unmarshal(p.Data, &pdata); err != nil {
@@ -397,7 +396,6 @@ func (svc fleetCommsService) NotifyGroupPolicyUpdate(ctx context.Context, ag Age
 	if err != nil {
 		return err
 	}
-	svc.logger.Info("policy update", zap.String("policy_id", policyID), zap.String("policy_name", p.Name))
 
 	var pdata interface{}
 	if err := json.Unmarshal(p.Data, &pdata); err != nil {

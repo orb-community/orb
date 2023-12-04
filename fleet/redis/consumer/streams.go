@@ -75,7 +75,6 @@ func (es eventStore) Subscribe(context context.Context) error {
 
 		for _, msg := range streams[0].Messages {
 			event := msg.Values
-			es.logger.Debug("Received event", zap.Any("event", event))
 			var err error
 			switch event["operation"] {
 			case datasetCreate:
