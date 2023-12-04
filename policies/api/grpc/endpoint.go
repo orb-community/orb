@@ -35,6 +35,7 @@ func retrievePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 		return policyRes{
 			id:      policy.ID,
 			name:    policy.Name.String(),
+			format:  policy.Format,
 			backend: policy.Backend,
 			version: policy.Version,
 			data:    data,

@@ -14,6 +14,7 @@ type policyRes struct {
 	backend string
 	version int32
 	data    []byte
+	format  string
 }
 
 type policyInDSRes struct {

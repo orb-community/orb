@@ -388,6 +388,7 @@ func (svc fleetCommsService) NotifyGroupPolicyUpdate(ctx context.Context, ag Age
 	if err != nil {
 		return err
 	}
+	svc.logger.Info("policy update", zap.String("policy_id", policyID), zap.String("policy_name", p.Name))
 
 	var pdata interface{}
 	if err := json.Unmarshal(p.Data, &pdata); err != nil {
