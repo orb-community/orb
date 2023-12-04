@@ -27,7 +27,7 @@ func retrievePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 		if err != nil {
 			return policyRes{}, err
 		}
-		data, err := extractData(policy)
+		data, format, err := extractData(policy)
 		if err != nil {
 			return policyRes{}, err
 		}
@@ -35,7 +35,7 @@ func retrievePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 		return policyRes{
 			id:      policy.ID,
 			name:    policy.Name.String(),
-			format:  policy.Format,
+			format:  format,
 			backend: policy.Backend,
 			version: policy.Version,
 			data:    data,
@@ -43,18 +43,20 @@ func retrievePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 	}
 }
 
-func extractData(policy policies.Policy) (data []byte, err error) {
+func extractData(policy policies.Policy) (data []byte, format string, err error) {
 	// TODO This can cause error in agent side if the policy is sent in yaml but not for otel backend
 	// TODO Since we plan to move everything to yaml, we should remove the backend check in the future
 	if policy.Format == "yaml" && policy.Backend == "otel" {
 		data, err = yaml.Marshal(policy.Policy)
+		format = "yaml"
 	} else {
 		data, err = json.Marshal(policy.Policy)
+		format = "json"
 	}
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
-	return data, nil
+	return data, format, nil
 }
 
 func retrievePoliciesByGroupsEndpoint(svc policies.Service) endpoint.Endpoint {
@@ -70,7 +72,7 @@ func retrievePoliciesByGroupsEndpoint(svc policies.Service) endpoint.Endpoint {
 		}
 		policies := make([]policyInDSRes, len(plist))
 		for i, policy := range plist {
-			data, err := extractData(policy.Policy)
+			data, format, err := extractData(policy.Policy)
 			if err != nil {
 				return policyInDSListRes{}, err
 			}
@@ -79,7 +81,7 @@ func retrievePoliciesByGroupsEndpoint(svc policies.Service) endpoint.Endpoint {
 				name:         policy.Name.String(),
 				backend:      policy.Backend,
 				version:      policy.Version,
-				format:       policy.Format,
+				format:       format,
 				data:         data,
 				datasetID:    policy.DatasetID,
 				agentGroupID: policy.AgentGroupID,
