@@ -11,9 +11,9 @@ package grpc
 import (
 	"context"
 	"encoding/json"
-	"github.com/orb-community/orb/policies"
-
 	"github.com/go-kit/kit/endpoint"
+	"github.com/orb-community/orb/policies"
+	"gopkg.in/yaml.v3"
 )
 
 func retrievePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
@@ -27,10 +27,11 @@ func retrievePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 		if err != nil {
 			return policyRes{}, err
 		}
-		data, err := json.Marshal(policy.Policy)
+		data, err := extractData(policy)
 		if err != nil {
 			return policyRes{}, err
 		}
+
 		return policyRes{
 			id:      policy.ID,
 			name:    policy.Name.String(),
@@ -39,6 +40,20 @@ func retrievePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 			data:    data,
 		}, nil
 	}
+}
+
+func extractData(policy policies.Policy) (data []byte, err error) {
+	// TODO This can cause error in agent side if the policy is sent in yaml but not for otel backend
+	// TODO Since we plan to move everything to yaml, we should remove the backend check in the future
+	if policy.Format == "yaml" && policy.Backend == "otel" {
+		data, err = yaml.Marshal(policy.Policy)
+	} else {
+		data, err = json.Marshal(policy.Policy)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
 }
 
 func retrievePoliciesByGroupsEndpoint(svc policies.Service) endpoint.Endpoint {
@@ -54,7 +69,7 @@ func retrievePoliciesByGroupsEndpoint(svc policies.Service) endpoint.Endpoint {
 		}
 		policies := make([]policyInDSRes, len(plist))
 		for i, policy := range plist {
-			data, err := json.Marshal(policy.Policy.Policy)
+			data, err := extractData(policy.Policy)
 			if err != nil {
 				return policyInDSListRes{}, err
 			}

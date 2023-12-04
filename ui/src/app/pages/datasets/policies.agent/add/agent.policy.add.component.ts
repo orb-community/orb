@@ -3,11 +3,12 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
+import { AgentPolicy, AgentPolicyBackend } from 'app/common/interfaces/orb/agent.policy.interface';
 import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
 import { STRINGS } from '../../../../../assets/text/strings';
 import { Tags } from 'app/common/interfaces/orb/tag';
 import { CodeEditorService } from 'app/common/services/code.editor.service';
+import { POLICY_DIODE_CONFIG_JSON, POLICY_DIODE_CONFIG_YAML, POLICY_OTEL_CONFIG_JSON, POLICY_OTEL_CONFIG_YAML, POLICY_PKTVISOR_CONFIG_JSON, POLICY_PKTVISOR_CONFIG_YAML } from 'app/shared/configurations/configurations_schemas';
 const CONFIG = {
   TAPS: 'TAPS',
   BACKEND: 'BACKEND',
@@ -59,6 +60,8 @@ export class AgentPolicyAddComponent implements OnInit {
 
   isEdit: boolean;
 
+  backendName = '';
+
   editorOptions = {
     theme: 'vs-dark',
     language: 'yaml',
@@ -91,36 +94,9 @@ export class AgentPolicyAddComponent implements OnInit {
     lineNumbersMinChars: 0,
   };
 
-  codeyaml = `handlers:
-  modules:
-    default_dns:
-      type: dns
-    default_net:
-      type: net
-input:
-  input_type: pcap
-  tap: default_pcap
-kind: collection`;
+  codeyaml = ``;
 
-  codejson =
-  `{
-  "handlers": {
-    "modules": {
-      "default_dns": {
-        "type": "dns"
-      },
-      "default_net": {
-        "type": "net"
-      }
-    }
-  },
-  "input": {
-    "input_type": "pcap",
-    "tap": "default_pcap"
-  },
-  "kind": "collection"
-}
-    `;
+  codejson = ``;
 
   // is config specified wizard mode or in YAML or JSON
   isJsonMode = false;
@@ -345,7 +321,7 @@ kind: collection`;
         this.errorConfigMessage = '';
         return true;
       } else {
-        this.errorConfigMessage = 'Invalid JSON configuration, check syntax errors';
+        this.errorConfigMessage = 'Invalid JSON configuration, check syntax errors.';
         return false;
       }
     } else {
@@ -353,7 +329,7 @@ kind: collection`;
         this.errorConfigMessage = '';
         return true;
       } else {
-        this.errorConfigMessage = 'Invalid YAML configuration, check syntax errors';
+        this.errorConfigMessage = 'Invalid YAML configuration, check syntax errors.';
         return false;
       }
     }
@@ -361,5 +337,17 @@ kind: collection`;
   refreshEditor() {
     this.editorVisible = false; setTimeout(() => { this.editorVisible = true; }, 0);
   }
-
+  defineDefaultConfig() {
+    if (this.backendName === AgentPolicyBackend.otel) {
+      this.codeyaml = POLICY_OTEL_CONFIG_YAML;
+      this.codejson = POLICY_OTEL_CONFIG_JSON;
+    } else if (this.backendName === AgentPolicyBackend.pktvisor) {
+      this.codeyaml = POLICY_PKTVISOR_CONFIG_YAML;
+      this.codejson = POLICY_PKTVISOR_CONFIG_JSON;
+    }
+    else {
+      this.codeyaml = POLICY_DIODE_CONFIG_YAML;
+      this.codejson = POLICY_DIODE_CONFIG_JSON;
+    }
+  }
 }

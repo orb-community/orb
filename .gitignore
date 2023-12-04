@@ -36,3 +36,5 @@ docker/otel-collector-config.yaml
 
 kind/*
 !kind/README.md
+
+otelcol-contrib

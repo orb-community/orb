@@ -7,6 +7,7 @@ import { Router } from '@angular/router';
 import { environment } from 'environments/environment';
 import { User } from 'app/common/interfaces/mainflux.interface';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
+import { getStatusCodeText } from '../http-codes';
 
 const defLimit: number = 100;
 
@@ -31,7 +32,7 @@ export class FleetsService {
       .catch(
         err => {
           this.notificationsService.error('Failed to create User',
-            `Error: ${err.status} - ${err.statusText}`);
+            `Error: ${err.status} - ${getStatusCodeText(err.status)}`);
           return Observable.throw(err);
         },
       );
@@ -77,7 +78,7 @@ export class FleetsService {
       .catch(
         err => {
           this.notificationsService.error('Failed to fetch Users',
-            `Error: ${err.status} - ${err.statusText}`);
+            `Error: ${err.status} - ${getStatusCodeText(err.status)}`);
           return Observable.throw(err);
         },
       );
@@ -93,7 +94,7 @@ export class FleetsService {
       .catch(
         err => {
           this.notificationsService.error('Failed to edit User',
-            `Error: ${err.status} - ${err.statusText}`);
+            `Error: ${err.status} - ${getStatusCodeText(err.status)}`);
           return Observable.throw(err);
         },
       );
@@ -109,7 +110,7 @@ export class FleetsService {
       .catch(
         err => {
           this.notificationsService.error('Failed to change User password',
-            `Error: ${err.status} - ${err.statusText}`);
+            `Error: ${err.status} - ${getStatusCodeText(err.status)}`);
           return Observable.throw(err);
         },
       );
@@ -133,7 +134,7 @@ export class FleetsService {
       .catch(
         err => {
           this.notificationsService.error('Failed to fetch Group memberships',
-            `Error: ${err.status} - ${err.statusText}`);
+            `Error: ${err.status} - ${getStatusCodeText(err.status)}`);
           return Observable.throw(err);
         },
       );

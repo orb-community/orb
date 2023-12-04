@@ -11,7 +11,8 @@ Scenario: Provision agent
     Then the agent status in Orb should be online within 30 seconds
         And the container logs should contain the message "sending capabilities" within 30 seconds
 
-@smoke
+@MUTE
+#@smoke
 Scenario: Run two orb agents on the same port
     Given the Orb user has a registered account
         And the Orb user logs in

@@ -4,14 +4,14 @@
         <ng-container
           *xngBreadcrumbItem="let breadcrumb; let info = info; let first = first"
         >
-          <ng-container [ngClass]="{ my_class: first === '' }">{{
+          <ng-container>{{
             breadcrumb
           }}</ng-container>
         </ng-container>
       </xng-breadcrumb>
-      <h4>{{ strings.sink.add.header }}</h4>
+      <h4>Create Sink</h4>
     </div>
-    <div class="col-4">
+    <div class="col-4" *ngIf="!isLoading">
       <div style="float: right; margin-top: 20px;">
         <button
         (click)="goBack()"
@@ -31,18 +31,26 @@
         </button> 
       </div>
     </div>
-      
 </header>
-<div class="row">
+
+<div *ngIf="isLoading">
+  <div class="loading-spinner"></div>
+</div>
+
+<div class="row" *ngIf="!isLoading">
   <div class="card-col col-4">
     <ngx-sink-details 
     [(createMode)]="createMode"
     (sinkBackend)="getBackendEmit($event)"
+    [sinkTypesList]="sinkTypesList"
     >
     </ngx-sink-details>
   </div>
   <div class="card-col col-8" style="padding-left: 0;">
-    <ngx-sink-config [(createMode)]="createMode" [(sinkBackend)]="sinkBackend" [errorConfigMessage]="errorConfigMessage">
+    <ngx-sink-config 
+    [(createMode)]="createMode" 
+    [(sinkBackend)]="sinkBackend" 
+    [errorConfigMessage]="errorConfigMessage">
     </ngx-sink-config>
   </div>
 </div>

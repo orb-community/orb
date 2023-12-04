@@ -18,6 +18,7 @@ import {
 import {Agent, AgentPolicyAggStates, AgentStates} from 'app/common/interfaces/orb/agent.interface';
 import {
   filterMultiSelect,
+  filterMultiTags,
   FilterOption, filterString,
   filterTags,
   FilterTypes,
@@ -93,6 +94,17 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
   filteredAgents$: Observable<Agent[]>;
   private currentComponentWidth;
 
+  contextMenuRow: any;
+
+  showContextMenu = false;
+  menuPositionLeft: number;
+  menuPositionTop: number;
+
+  agentContextMenu = [
+    {icon: 'search-outline', action: 'openview'},
+    {icon: 'edit-outline', action: 'openview'},
+    {icon: 'trash-2-outline', action: 'opendelete'},
+  ];
   constructor(
     private cdr: ChangeDetectorRef,
     private dialogService: NbDialogService,
@@ -140,7 +152,14 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
         prop: 'combined_tags',
         filter: filterTags,
         autoSuggestion: orb.getAgentsTags(),
-        type: FilterTypes.AutoComplete,
+        type: FilterTypes.Tags,
+      },
+      {
+        name: 'MultiTags',
+        prop: 'combined_tags',
+        filter: filterMultiTags,
+        autoSuggestion: orb.getAgentsTags(),
+        type: FilterTypes.MultiSelect,
       },
       {
         name: 'Status',
@@ -148,6 +167,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
         filter: filterMultiSelect,
         type: FilterTypes.MultiSelect,
         options: Object.values(AgentStates).map((value) => value as string),
+        exact: true,
       },
       {
         name: 'Policies',
@@ -155,12 +175,15 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
         filter: filterMultiSelect,
         type: FilterTypes.MultiSelect,
         options: Object.values(AgentPolicyAggStates).map((value) => value as string),
+        exact: true,
       },
       {
         name: 'Version',
         prop: 'version',
-        filter: filterString,
-        type: FilterTypes.Input,
+        filter: filterMultiSelect,
+        type: FilterTypes.MultiSelectAsync,
+        autoSuggestion: orb.getAgentsVersions(),
+        exact: false,
       },
     ];
 
@@ -191,14 +214,34 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
     }
   }
 
+  onTableContextMenu(event) {
+    event.event.preventDefault();
+    event.event.stopPropagation();
+    if (event.type === 'body') {
+      this.contextMenuRow = {
+        objectType: 'agent',
+        ...event.content,
+      };
+      this.menuPositionLeft = event.event.clientX;
+      this.menuPositionTop = event.event.clientY;
+      this.showContextMenu = true;
+    }
+  }
+  handleContextClick() {
+    if (this.showContextMenu) {
+      this.showContextMenu = false;
+    }
+  }
+
   ngAfterViewInit() {
     this.columns = [
       {
         name: '',
         prop: 'checkbox',
-        width: 1,
+        width: 62,
         minWidth: 62,
-        canAutoResize: true,
+        canAutoResize: false,
+        resizeable: false,
         sortable: false,
         cellTemplate: this.checkboxTemplateCell,
         headerTemplate: this.checkboxTemplateHeader,
@@ -207,15 +250,16 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
         prop: 'name',
         width: 250,
         canAutoResize: true,
-        minWidth: 150,
+        minWidth: 250,
         name: 'Name',
         cellTemplate: this.agentNameTemplateCell,
         resizeable: true,
       },
       {
         prop: 'state',
-        width: 100,
+        width: 120,
         minWidth: 90,
+        maxWidth: 130,
         canAutoResize: true,
         name: 'Status',
         cellTemplate: this.agentStateTemplateRef,
@@ -223,9 +267,10 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
       },
       {
         prop: 'policy_agg_info',
-        width: 170,
+        width: 190,
         canAutoResize: true,
         minWidth: 150,
+        maxWidth: 200,
         name: 'Policies',
         cellTemplate: this.agentPolicyStateTemplateRef,
         resizeable: true,
@@ -233,6 +278,7 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
       {
         prop: 'combined_tags',
         width: 300,
+        minWidth: 300,
         canAutoResize: true,
         name: 'Tags',
         cellTemplate: this.agentTagsTemplateCell,
@@ -249,8 +295,9 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
       },
       {
         prop: 'version',
-        width: 200,
+        width: 210,
         minWidth: 150,
+        maxWidth: 220,
         canAutoResize: true,
         name: 'Version',
         sortable: true,
@@ -259,8 +306,9 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
       },
       {
         prop: 'ts_last_hb',
-        width: 150,
-        minWidth: 150,
+        width: 170,
+        minWidth: 160,
+        maxWidth: 180,
         canAutoResize: true,
         name: 'Last Activity',
         sortable: true,
@@ -270,8 +318,9 @@ export class AgentListComponent implements AfterViewInit, AfterViewChecked, OnDe
       {
         name: '',
         prop: 'actions',
-        width: 150,
-        minWidth: 150,
+        width: 155,
+        minWidth: 155,
+        maxWidth: 155,
         canAutoResize: true,
         sortable: false,
         cellTemplate: this.actionsTemplateCell,

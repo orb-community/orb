@@ -1,4 +1,4 @@
-<div>
+<div (click)="handleContextClick()">
   <header>
     <xng-breadcrumb class="orb-breadcrumb"> </xng-breadcrumb>
     <div
@@ -53,8 +53,16 @@
       class="orb orb-table"
       [selected]="selected"
       [selectionType]="'checkbox'"
+      (tableContextmenu)="onTableContextMenu($event)"
     >
     </ngx-datatable>
+    <ngx-table-context-menu 
+      *ngIf="showContextMenu" 
+      [items]="sinkContextMenu" 
+      [left]="menuPositionLeft" 
+      [top]="menuPositionTop" 
+      [rowObject]="contextMenuRow">
+    </ngx-table-context-menu>
   </div>
 </div>
 
@@ -85,7 +93,7 @@
 
 <ng-template #sinkTagsTemplateCell let-i="index" let-row="row" let-value="value">
   <div class="d-block">
-    <mat-chip-list nbTooltip="{{ value | json }}">
+    <mat-chip-list nbTooltip="{{ !row?.tags ? 'No tag were created' : value | jsonlist }}">
       <mat-chip
         *ngFor="let tag of value | keyvalue"
         style="background-color: #2B3148;"

@@ -19,6 +19,7 @@ const (
 	BackendError
 	AgentError
 	Offline
+	Waiting
 )
 
 type RunningStatus int
@@ -29,6 +30,7 @@ var runningStatusMap = [...]string{
 	"backend_error",
 	"agent_error",
 	"offline",
+	"waiting",
 }
 
 var runningStatusRevMap = map[string]RunningStatus{
@@ -37,6 +39,7 @@ var runningStatusRevMap = map[string]RunningStatus{
 	"backend_error": BackendError,
 	"agent_error":   AgentError,
 	"offline":       Offline,
+	"waiting":       Waiting,
 }
 
 type State struct {
@@ -62,6 +65,7 @@ type Backend interface {
 	GetStartTime() time.Time
 	GetCapabilities() (map[string]interface{}, error)
 	GetRunningStatus() (RunningStatus, string, error)
+	GetInitialState() RunningStatus
 
 	ApplyPolicy(data policies.PolicyData, updatePolicy bool) error
 	RemovePolicy(data policies.PolicyData) error

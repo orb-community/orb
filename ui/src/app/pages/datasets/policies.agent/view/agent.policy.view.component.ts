@@ -1,6 +1,7 @@
 import {
   ChangeDetectorRef,
   Component,
+  HostListener,
   OnChanges,
   OnDestroy,
   OnInit,
@@ -61,6 +62,23 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
 
   errorConfigMessage: string;
 
+  tabs = [
+    {
+      title: 'Details & Configuration',
+      urlState: 'details-configuration',
+      active: false,
+    },
+    {
+      title: 'Datasets',
+      urlState: 'datasets',
+      active: false,
+    },
+  ];
+
+  policyTags: any;
+
+  private popstateListener: () => void;
+
   @ViewChild(PolicyDetailsComponent) detailsComponent: PolicyDetailsComponent;
 
   @ViewChild(PolicyInterfaceComponent)
@@ -78,11 +96,13 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
   ) {
     this.isRequesting = false;
     this.errorConfigMessage = '';
+    this.popstateListener = this.onPopState.bind(this);
   }
 
   ngOnInit() {
     this.fetchData();
     updateMenuItems('Policy Management');
+    this.getUrlState();
   }
 
   fetchData(newPolicyId?: any) {
@@ -214,6 +234,7 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
         this.datasets = datasets;
         this.groups = groups;
         this.isLoading = false;
+        this.policyTags = Object.assign({}, policy.tags);
         this.cdr.markForCheck();
       });
   }
@@ -250,6 +271,7 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
     this.policySubscription?.unsubscribe();
     this.orb.isPollingPaused ? this.orb.startPolling() : null;
     this.orb.killPolling.next();
+    window.removeEventListener('popstate', this.popstateListener);
   }
   openDeleteModal() {
     const { name: name, id } = this.policy as AgentPolicy;
@@ -283,11 +305,55 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
     const formsDescription = policyDetails.description === null ? '' : policyDetails.description;
 
     const selectedTags = JSON.stringify(tags);
-    const orb_tags = JSON.stringify(this.policy.tags);
+    const orb_tags = JSON.stringify(this.policyTags);
 
     if (policyDetails.name !== this.policy.name || formsDescription !== description || selectedTags !== orb_tags) {
       return true;
     }
     return false;
+  }
+
+  @HostListener('window:popstate', ['$event'])
+  onPopState(event) {
+    if (event.target.location.search) {
+      this.getUrlState();
+    } else if (event.target.location.pathname.includes('view')) {
+      window.history.back();
+    }
+  }
+
+  getUrlState() {
+    this.route.queryParams.subscribe(queryParams => {
+      this.tabs.forEach(tab => {
+        if (tab.urlState === queryParams.tab) {
+          tab.active = true;
+          this.pageState(tab.urlState);
+        } else {
+          tab.active = false;
+        }
+      });
+    });
+    if (this.tabs.filter(tab => tab.active === true).length === 0) {
+      this.pageState('details-configuration');
+    }
+  }
+  onTabChange(selectedTab) {
+    this.tabs.forEach(tab => {
+      if (tab.urlState === selectedTab.urlState) {
+        tab.active = true;
+        this.pageState(tab.urlState);
+      } else {
+        tab.active = false;
+      }
+    });
+  }
+  pageState(option: string) {
+    this.router.navigate(
+      [],
+      {
+        queryParams: { tab: option },
+        queryParamsHandling: 'merge',
+      },
+    );
   }
 }
