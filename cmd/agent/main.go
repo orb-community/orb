@@ -7,6 +7,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/orb-community/orb/agent/backend/otel"
 	"os"
 	"os/signal"
 	"strings"
@@ -34,35 +35,25 @@ var (
 
 func init() {
 	pktvisor.Register()
+	otel.Register()
 	diode.Register()
 }
 
-func Version(cmd *cobra.Command, args []string) {
+func Version(_ *cobra.Command, _ []string) {
 	fmt.Printf("orb-agent %s\n", buildinfo.GetVersion())
 	os.Exit(0)
 }
 
-func Run(cmd *cobra.Command, args []string) {
+func Run(_ *cobra.Command, _ []string) {
 
 	initConfig()
 
 	// configuration
-	var config config.Config
-	err := viper.Unmarshal(&config)
+	var configData config.Config
+	err := viper.Unmarshal(&configData)
 	if err != nil {
-		cobra.CheckErr(fmt.Errorf("agent start up error (config): %w", err))
+		cobra.CheckErr(fmt.Errorf("agent start up error (configData): %w", err))
 		os.Exit(1)
-	}
-
-	// include pktvisor backend by default if binary is at default location
-	_, err = os.Stat(pktvisor.DefaultBinary)
-	if err == nil && config.OrbAgent.Backends == nil {
-		config.OrbAgent.Backends = make(map[string]map[string]string)
-		config.OrbAgent.Backends["pktvisor"] = make(map[string]string)
-		config.OrbAgent.Backends["pktvisor"]["binary"] = pktvisor.DefaultBinary
-		if len(cfgFiles) > 0 {
-			config.OrbAgent.Backends["pktvisor"]["config_file"] = cfgFiles[0]
-		}
 	}
 
 	// logger
@@ -85,8 +76,25 @@ func Run(cmd *cobra.Command, args []string) {
 		_ = logger.Sync()
 	}(logger)
 
+	// include pktvisor backend by default if binary is at default location
+	_, err = os.Stat(pktvisor.DefaultBinary)
+	logger.Info("backends loaded", zap.Any("backends", configData.OrbAgent.Backends))
+	if err == nil && configData.OrbAgent.Backends == nil {
+		logger.Info("no backends loaded, adding pktvisor as default")
+		configData.OrbAgent.Backends = make(map[string]map[string]string)
+		configData.OrbAgent.Backends["pktvisor"] = make(map[string]string)
+		configData.OrbAgent.Backends["pktvisor"]["binary"] = pktvisor.DefaultBinary
+		configData.OrbAgent.Backends["pktvisor"]["api_host"] = "localhost"
+		if _, ok := configData.OrbAgent.Backends["pktvisor"]["api_port"]; !ok {
+			configData.OrbAgent.Backends["pktvisor"]["api_port"] = "10853"
+		}
+		if len(cfgFiles) > 0 {
+			configData.OrbAgent.Backends["pktvisor"]["config_file"] = cfgFiles[0]
+		}
+	}
+
 	// new agent
-	a, err := agent.New(logger, config)
+	a, err := agent.New(logger, configData)
 	if err != nil {
 		logger.Error("agent start up error", zap.Error(err))
 		os.Exit(1)
@@ -149,11 +157,6 @@ func mergeOrError(path string) {
 	v.SetDefault("orb.otel.port", 0)
 	v.SetDefault("orb.debug.enable", Debug)
 
-	v.SetDefault("orb.backends.pktvisor.binary", "/usr/local/sbin/pktvisord")
-	v.SetDefault("orb.backends.pktvisor.config_file", "/opt/orb/agent.yaml")
-	v.SetDefault("orb.backends.pktvisor.api_host", "localhost")
-	v.SetDefault("orb.backends.pktvisor.api_port", "10853")
-
 	if len(path) > 0 {
 		cobra.CheckErr(v.ReadInConfig())
 	}
@@ -171,12 +174,28 @@ func mergeOrError(path string) {
 		}
 	}
 
+	// load backend static functions for setting up default values
+	backendVarsFunction := make(map[string]func(*viper.Viper))
+	backendVarsFunction["pktvisor"] = pktvisor.RegisterBackendSpecificVariables
+	backendVarsFunction["otel"] = otel.RegisterBackendSpecificVariables
+
+	// check if backends are configured
+	// if not then add pktvisor as default
+	if len(path) > 0 && len(v.GetStringMap("orb.backends")) == 0 {
+		pktvisor.RegisterBackendSpecificVariables(v)
+	} else {
+		for backendName := range v.GetStringMap("orb.backends") {
+			if backend := v.GetStringMap("orb.backends." + backendName); backend != nil {
+				backendVarsFunction[backendName](v)
+			}
+		}
+	}
+
 	cobra.CheckErr(viper.MergeConfigMap(v.AllSettings()))
 }
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-
 	// set defaults first
 	mergeOrError("")
 	if len(cfgFiles) == 0 {
@@ -214,5 +233,5 @@ func main() {
 
 	rootCmd.AddCommand(runCmd)
 	rootCmd.AddCommand(versionCmd)
-	rootCmd.Execute()
+	_ = rootCmd.Execute()
 }

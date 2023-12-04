@@ -3,7 +3,7 @@ button {
 
   &.policy-duplicate {
     color: #fff !important;
-    font-family: "Montserrat", sans-serif;
+    font-family: 'Montserrat', sans-serif;
     font-weight: 700;
     text-transform: none !important;
 
@@ -18,7 +18,7 @@ button {
 
   &.policy-save {
     color: #fff !important;
-    font-family: "Montserrat", sans-serif;
+    font-family: 'Montserrat', sans-serif;
     font-weight: 700;
     text-transform: none !important;
 
@@ -33,7 +33,7 @@ button {
 
   &.policy-discard {
     color: #fff !important;
-    font-family: "Montserrat", sans-serif;
+    font-family: 'Montserrat', sans-serif;
     font-weight: 700;
     text-transform: none !important;
 
@@ -96,12 +96,15 @@ h4 {
     }
   }
 }
-.fa.fa-circle {
-  font-size: 11px;
+.state-circle {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
 }
 .state {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
+  font-family: 'Montserrat';
 }
 .orb-service- {
   &active {
@@ -114,7 +117,16 @@ h4 {
     color: #df316f;
   }
   &idle {
-    color: #f2994a; 
+    color: #f2994a;
+  }
+  &provisioning {
+    color: #3089fc;
+  }
+  &provioning_error {
+    color: #df316f;
+  }
+  &warning {
+    color: #f2c94c;
   }
 }
 
@@ -122,4 +134,13 @@ h4 {
   color: #969fb9;
   font-size: 14px;
 }
+.state-div {
+  margin-bottom: 23px;
+}
+.date {
+  font-size: 14px;
+  font-weight: 400;
+  margin-top: 23px;
+  line-height: 1.25rem;
+} 
 

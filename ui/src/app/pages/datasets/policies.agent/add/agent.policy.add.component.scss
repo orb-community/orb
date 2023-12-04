@@ -23,7 +23,7 @@ mat-chip nb-icon {
   font-size: 1rem;
 }
 label {
-  color: #969FB9;
+  color: #969fb9;
 }
 
 ngx-tag-control, ngx-tag-display {
@@ -33,36 +33,36 @@ ngx-tag-control, ngx-tag-display {
 .review-label {
   font-family: 'Montserrat';
   font-size: 13px;
-  font-weight: 400 !important; 
+  font-weight: 400 !important;
   margin: 0;
   color: #969fb9 !important;
 }
 .language-button {
   border-radius: 16px;
-
-  padding: 8px 24px; 
+  padding: 8px 24px;
   color: #fff;
-  border: none; 
+  border: none;
   outline: none;
   font-size: 14px;
   font-weight: 600;
   transition: background-color 0.2s ease;
-  margin: 8px 4px 8px 4px;
+  margin: 8px 4px;
   width: 90px;
-
+  max-height: 32px !important;
+  line-height: 1.15 !important;
 }
 .div-language-button {
-  background-color: #24293E;
+  background-color: #24293e;
   width: fit-content;
-  padding: 0 4px 0 4px;
+  padding: 0 4px;
   border-radius: 25px;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 .true {
-  background: #3089FC; 
+  background: #3089fc;
 }
 .false {
-  background-color: #181C2F;
+  background-color: #181c2f;
 }
 
 ::ng-deep {
@@ -233,7 +233,7 @@ ngx-tag-control, ngx-tag-display {
   min-height: 300px;
   min-width: 200px;
   height: calc(50vh);
-  width: calc(100%);
+  width: calc(105%);
 }
 .stepper {
   margin: 0 !important;
@@ -264,5 +264,10 @@ ngx-tag-control, ngx-tag-display {
   color: #969fb9 !important;
 }
 .align {
-  margin: 0px;
+  margin: 0;
+}
+.errorMessage {
+  color: #df316f;
+  font-size: 14px;
+  font-weight: 600;
 }

@@ -14,6 +14,8 @@ export class FilterService {
 
   private activeRoute$: Observable<string>;
 
+  public searchName: string;
+
   constructor(private router: Router) {
     this.activeRoute$ = this.router.events.pipe(
       filter((event) => event instanceof NavigationEnd),
@@ -29,6 +31,18 @@ export class FilterService {
 
   private loadFromRoute(route: string) {
     const storedFilters = window.sessionStorage.getItem(route) || '[]';
+    const storedFiltersList = JSON.parse(storedFilters);
+    let found = false;
+
+    storedFiltersList.map((filter) => {
+      if (filter.name === 'Name' && filter.prop === 'name') {
+        this.searchName = filter.param;
+        found = true;
+      }
+    });
+    if (!found) {
+      this.searchName = '';
+    }
 
     this.resetFilters(JSON.parse(storedFilters));
   }
@@ -53,7 +67,8 @@ export class FilterService {
   }
 
   cleanFilters() {
-    this.commitFilter([]);
+    const filters = this._filters.filter((f) => f.name === 'Name');
+    this.commitFilter(filters);
   }
 
   private commitFilter(filters: FilterOption[]) {
@@ -74,8 +89,17 @@ export class FilterService {
     }
   }
 
-  removeFilterByParam(param: string) {
-    this.removeFilter(this._filters.findIndex((filter) => filter.param === param && filter.name === 'Name' && filter));
+  findAndRemove(param: any, name: string) {
+    this.removeFilter(this._filters.findIndex((f) => f.param === param && f.name === name && f));
+  }
+
+  findFilter(param: any, name: string) {
+    return this._filters.findIndex((f) => f.param === param && f.name === name && f);
+  }
+
+  getMultiAppliedParams(filterName: string) {
+    const filter = this._filters.find((f) => f.name === filterName);
+    return filter?.param ? filter.param : [];
   }
 
   // make a decorator out of this?

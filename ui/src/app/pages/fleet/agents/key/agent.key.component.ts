@@ -18,12 +18,11 @@ export class AgentKeyComponent implements OnInit {
   fileConfigCommandShow: string;
 
   copyCommandIcon: string;
+  copyCommandIcon2: string;
 
   key2copy: string;
   copyKeyIcon: string;
   saveKeyIcon: string;
-  hideCommand: boolean;
-  hideCommand2: boolean;
 
   @Input() agent: Agent = {};
 
@@ -32,14 +31,14 @@ export class AgentKeyComponent implements OnInit {
     protected route: ActivatedRoute,
     protected router: Router,
   ) {
-    this.hideCommand = false;
-    this.hideCommand2 = false;
+
   }
 
   ngOnInit(): void {
     this.makeCommand2Copy();
     this.key2copy = this.agent.key;
     this.copyCommandIcon = 'copy-outline';
+    this.copyCommandIcon2 = 'copy-outline';
     this.copyKeyIcon = 'copy-outline';
     this.saveKeyIcon = 'save-outline';
   }
@@ -66,18 +65,16 @@ orbcommunity/orb-agent`;
 -e ORB_CLOUD_MQTT_ID=${ this.agent.id } \\
 -e ORB_CLOUD_MQTT_CHANNEL_ID=${ this.agent.channel_id } \\
 -e ORB_CLOUD_MQTT_KEY=${ this.agent.key } \\
--e PKTVISOR_PCAP_IFACE_DEFAULT=auto \\
--v \${PWD}/:/usr/local/orb/ \\
-orbcommunity/orb-agent run -c /usr/local/orb/agent.yaml`;
+-v \${PWD}/:/opt/orb/ \\
+orbcommunity/orb-agent run -c /opt/orb/agent.yaml`;
 
   this.fileConfigCommandShow = `docker run -d --restart=always --net=host \\
 -e ORB_CLOUD_ADDRESS=${ document.location.hostname } \\
 -e ORB_CLOUD_MQTT_ID=${ this.agent.id } \\
 -e ORB_CLOUD_MQTT_CHANNEL_ID=${ this.agent.channel_id } \\
 -e ORB_CLOUD_MQTT_KEY=${ this.agent.key } \\
--e PKTVISOR_PCAP_IFACE_DEFAULT=<mark>auto</mark> \\
--v \${PWD}/:/usr/local/orb/ \\
-orbcommunity/orb-agent run -c /usr/local/orb/agent.yaml`;
+-v \${PWD}/:/opt/orb/ \\
+orbcommunity/orb-agent run -c /opt/orb/agent.yaml`;
   }
 
   toggleIcon (target) {
@@ -89,7 +86,12 @@ orbcommunity/orb-agent run -c /usr/local/orb/agent.yaml`;
     } else if (target === 'command') {
       this.copyCommandIcon = 'checkmark-outline';
       setTimeout(() => {
-        this.copyCommandIcon = "copy-outline";
+        this.copyCommandIcon = 'copy-outline';
+      }, 2000);
+    } else if (target === 'command2') {
+      this.copyCommandIcon2 = 'checkmark-outline';
+      setTimeout(() => {
+        this.copyCommandIcon2 = 'copy-outline';
       }, 2000);
     }
   }
@@ -106,8 +108,7 @@ orbcommunity/orb-agent run -c /usr/local/orb/agent.yaml`;
       a.download = `${this.agent.id}.txt`;
       a.click();
       window.URL.revokeObjectURL(url);
-    }
-    else if (commandType === 'fileConfig') {
+    } else if (commandType === 'fileConfig') {
       const blob = new Blob([this.fileConfigCommandCopy], { type: 'text/plain' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -118,10 +119,5 @@ orbcommunity/orb-agent run -c /usr/local/orb/agent.yaml`;
     }
 
   }
-  toggleProvisioningCommand() {
-    this.hideCommand = !this.hideCommand;
-  }
-  toggleProvisioningCommand2() {
-    this.hideCommand2 = !this.hideCommand2;
-  }
+
 }

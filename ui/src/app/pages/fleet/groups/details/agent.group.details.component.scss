@@ -1,11 +1,59 @@
 nb-icon {
   vertical-align: middle;
 }
+nb-card {
+  padding: 0 !important;
+  width: 650px;
+  height: fit-content;
+  min-height: 400px;
+  nb-card-header {
+    background: #232940 !important;
+    color: #969fb9 !important;
+  }
+  
+  nb-card-body {
+    overflow: hidden !important;
+    margin: 2rem 3rem 0 3rem !important;
+    padding: 0 !important;
+  }
+}
 
 .detail-title {
   color: #969fb9;
+  font-weight: 500;
+  font-size: 14px;
 }
 
+.overflow-ellipsis {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-width: 250px !important;
+}
+.match-agents-button {
+  color: #3089fc;
+  background-color: transparent;
+  border: none;
+  padding: 0;
+  text-decoration: underline;
+  outline: none;
+
+  &:hover {
+    color: #569fff;
+  }
+}
+.group-edit-button {
+  padding: 8px 24px 8px 24px;
+  border-radius: 16px;
+  border: none;
+  background-color: #3089fc;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  outline: none;
+  font-family: 'Montserrat';
+}
 .p {
   color: #ffffff;
   text-align: left;
@@ -48,7 +96,7 @@ nb-tabset {
   > span {
     float: right;
     padding-top: 0.3rem;
-    font-size: large;
+    font-size: 20px;
     color: #3089fc;
     font-weight: 900;
   }

@@ -8,7 +8,7 @@ ARG ENV_GTAGID=""
 
 COPY ./ /app/
 
-RUN GTAGID=$ENV_GTAGID yarn build:prod
+RUN GTAGID=$ENV_GTAGID npm run build:prod
 
 # Stage 1, based on Nginx, to have only the compiled app, ready for production with Nginx
 FROM nginx:1.13-alpine

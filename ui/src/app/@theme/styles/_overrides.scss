@@ -111,7 +111,7 @@
       background: #969fb9;
       border-radius: 16px;
     }
-    scrollbar-color: #969fb9 #969fb980; 
+    scrollbar-color: #969fb9 #969fb980;
     margin: 20px 0 !important;
   }
 
@@ -176,36 +176,36 @@
 
 .tableWrapper {
   display: flex;
-  margin-top: 2em;
+  margin-top: 2em !important;
   flex-direction: column;
   flex-wrap: nowrap;
   align-content: flex-start;
   justify-content: flex-start;
   align-items: stretch;
-  overflow-x: auto;
   min-width: 800px;
+  overflow-x: hidden !important;
 }
 
 .orb-table {
-  min-height: calc(100vh - 300px);
+  min-height: calc(100vh - 300px) !important;
   min-width: 800px;
-  max-height: calc(100vh - 300px);
+  max-height: calc(100vh - 300px) !important;
 }
 
 .orb-table-small {
-  min-height: calc(25vh);
+  min-height: calc(40vh);
   min-width: 600px;
-  max-height: calc(25vh);
+  max-height: calc(40vh);
 }
 
 .orb-service- {
-  &new {
+  &new, &unknown {
     color: #9b51e0;
   }
-  &online, &healthy {
+  &online, &healthy, &active {
     color: #6fcf97;
   }
-  &stale {
+  &stale, &idle {
     color: #f2994a;
   }
   &error, &failure {
@@ -213,6 +213,38 @@
   }
   &offline, &none {
     color: #969fb9;
+  }
+  &provisioning {
+    color: #3089fc;
+  }
+  &provioning_error {
+    color: #df316f;
+  }
+  &warning {
+    color: #f2c94c;
+  }
+}
+.orb-service-background- {
+  &new, &unknown {
+    background-color: #9b51e0;
+  }
+  &online, &healthy, &active {
+    background-color: #6fcf97;
+  }
+  &stale, &idle {
+    background-color: #f2994a;
+  }
+  &error, &failure, &provioning_error {
+    background-color: #df316f;
+  }
+  &offline, &none {
+    background-color: #969fb9;
+  }
+  &warning {
+    background-color: #f2c94c;
+  }
+  &provisioning {
+    background-color: #3089fc;
   }
 }
 .required {
@@ -257,14 +289,18 @@
   }
 }
 .delete-selected {
-  color: #ffffff !important; 
+  color: #ffffff !important;
   font-family: 'Montserrat', sans-serif;
   font-weight: 600;
   text-transform: none !important;
-  width: 110px;
+  width: 105px;
   background-color: #df316f !important;
   opacity: 0;
   animation: appear 0.3s forwards;
+  height: 27px;
+  font-size: 14px;
+  align-self: flex-end;
+  margin-bottom: 5px;
 }
 
 @keyframes appear {
@@ -294,14 +330,17 @@ input {
 }
 .next-button {
   border-radius: 16px !important;
-  background: #3089FC !important; 
+  background: #3089fc !important;
   padding: 8px 24px !important;
   color: #fff !important;
-  border: none !important; 
+  border: none !important;
   outline: none !important;
   font-size: 14px !important;
   font-weight: 600 !important;
   transition: background-color 0.3s ease !important;
+  font-family: 'Montserrat';
+  max-height: 32px !important;
+  line-height: 1.15 !important;
 }
 .next-button:hover {
   background-color: #509afc!important;
@@ -310,16 +349,19 @@ input {
   background: #2b3148 !important;
 }
 .cancel-back-button {
-  border-radius: 16px !important;; 
+  border-radius: 16px !important;
   padding: 8px 24px !important;
   background-color: transparent !important;
-  color: #3089FC !important;
+  color: #3089fc !important;
   border: none !important;
   outline: none !important;
   font-size: 14px !important;
-  font-weight: 600 !important; 
+  font-weight: 600 !important;
   transition: background-color 0.3s ease !important;
   margin-right: 0 !important;
+  font-family: 'Montserrat';
+  max-height: 32px !important;
+  line-height: 1.15 !important;
 }
 .cancel-back-button:hover {
   background-color: rgba(255, 255, 255, 0.05) !important;

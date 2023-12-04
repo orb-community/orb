@@ -30,9 +30,10 @@
             <label class="summary-accent">Name</label>
             <p>{{ sink?.name }}</p>
           </div>
-          <div class="flex-row" *ngIf="sink?.description">
+          <div class="flex-row" >
             <label class="summary-accent">Description</label>
-            <p>{{ sink?.description }}</p>
+            <p *ngIf="sink?.description">{{ sink?.description }}</p>
+            <p *ngIf="!sink?.description" class="italic">No description provided</p>
           </div>
           <div class="flex-row">
             <label class="summary-accent">Backend</label>
@@ -40,8 +41,9 @@
           </div> 
           <div class="flex-row">
             <label class="summary-accent">Status</label>
-            <p *ngIf="sink?.state !== sinkStates.error" class="orb-service-{{sink?.state}}"> {{ sink?.state | titlecase }} </p>
-            <p *ngIf="sink?.state === sinkStates.error" class="orb-service-{{sink?.state}}"> {{ sink?.state | titlecase }} {{ sink?.error | titlecase }} </p>
+            <p *ngIf="sink?.state !== sinkStates.error && sink?.state !== sinkStates.warning" class="orb-service-{{sink?.state}}"> {{ sink?.state | titlecase }} </p>
+            <p *ngIf="sink?.state === sinkStates.error" class="orb-service-{{sink?.state}}"> {{ sink?.state | titlecase }} {{ sink?.error }} </p>
+            <p *ngIf="sink?.state === sinkStates.warning" class="orb-service-{{sink?.state}}"> {{ sink?.state | titlecase }} {{ sink?.error }} </p>
           </div>
           <div class="flex-row">
             <label class="summary-accent">Tags</label>
@@ -78,6 +80,9 @@
                   <div *ngIf="formGroup.controls?.name.errors?.pattern">
                     Name must start with a letter or "_" and contain only letters, numbers, "-" or "_"
                   </div>
+                  <div *ngIf="formGroup.controls?.name.errors?.maxlength">
+                    Name must not exceed 64 characters.
+                  </div>
                 </div>
               </div>
             </nb-form-field>
@@ -112,9 +117,7 @@
                   data-orb-qa-id="name"
                   fieldSize="medium"
                   formControlName="name"
-                  fullWidth="true"
-                  required
-                  pattern="^[a-zA-Z_][a-zA-Z0-9_-]*$"          
+                  fullWidth="true"       
                   nbInput
                   [status]="formGroup?.controls.name.dirty  ? (!formGroup.controls.name.valid  ? 'danger' : 'success') : 'basic'"
                   placeholder="Sink Name"/>
@@ -127,6 +130,9 @@
                   </div>
                   <div *ngIf="formGroup.controls?.name.errors?.pattern">
                     Sink name must start with a letter or "_" and contain only letters, numbers, "-" or "_"
+                  </div>
+                  <div *ngIf="formGroup.controls?.name.errors?.maxlength">
+                    Name must not exceed 64 characters.
                   </div>
                 </div>
               </div>

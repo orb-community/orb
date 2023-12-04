@@ -48,6 +48,7 @@ export class TokenInterceptor implements HttpInterceptor {
           if (expirationDate < new Date()) {
             this.authService.logout('email');
             this.router.navigate(['auth/login']);
+            localStorage.removeItem('auth_app_token');
           }
 
           request = request.clone({

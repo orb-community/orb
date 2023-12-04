@@ -1,10 +1,3 @@
-// Copyright (c) Mainflux
-// SPDX-License-Identifier: Apache-2.0
-
-// Adapted for Orb project, modifications licensed under MPL v. 2.0:
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 package redis
 
 import (
@@ -15,29 +8,55 @@ import (
 const (
 	SinkerPrefix = "sinker."
 	SinkerUpdate = SinkerPrefix + "update"
+	GroupMaestro = "orb.maestro"
+	Exists       = "BUSYGROUP Consumer Group name already exists"
 )
 
 type SinksUpdateEvent struct {
 	SinkID    string
 	Owner     string
 	Config    types.Metadata
+	Backend   string
 	Timestamp time.Time
 }
 
 type SinkerUpdateEvent struct {
+	OwnerID   string
 	SinkID    string
-	Owner     string
 	State     string
-	Msg       string
+	Size      string
 	Timestamp time.Time
 }
 
-func (cse SinkerUpdateEvent) Encode() map[string]interface{} {
+func (sue *SinksUpdateEvent) Decode(values map[string]interface{}) {
+	sue.SinkID = values["sink_id"].(string)
+	sue.Owner = values["owner"].(string)
+	sue.Config = types.FromMap(values["config"].(map[string]interface{}))
+	sue.Backend = values["backend"].(string)
+	var err error
+	sue.Timestamp, err = time.Parse(time.RFC3339, values["timestamp"].(string))
+	if err != nil {
+		sue.Timestamp = time.Now()
+	}
+}
+
+func (cse *SinkerUpdateEvent) Decode(values map[string]interface{}) {
+	cse.OwnerID = values["owner_id"].(string)
+	cse.SinkID = values["sink_id"].(string)
+	cse.State = values["state"].(string)
+	cse.Size = values["size"].(string)
+	var err error
+	cse.Timestamp, err = time.Parse(time.RFC3339, values["timestamp"].(string))
+	if err != nil {
+		cse.Timestamp = time.Now()
+	}
+}
+
+func (cse *SinkerUpdateEvent) Encode() map[string]interface{} {
 	return map[string]interface{}{
 		"sink_id":   cse.SinkID,
-		"owner":     cse.Owner,
+		"owner":     cse.OwnerID,
 		"state":     cse.State,
-		"msg":       cse.Msg,
 		"timestamp": cse.Timestamp.Unix(),
 		"operation": SinkerUpdate,
 	}

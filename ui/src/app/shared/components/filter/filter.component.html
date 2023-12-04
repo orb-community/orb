@@ -1,41 +1,85 @@
-<nb-select #master [(ngModel)]="selectedFilter" placeholder="Filter by">
-  <nb-option *ngFor="let option of availableFilters" [value]="option">
-    {{ option.name }}
-  </nb-option>
-</nb-select>
+<div class="filter-div"> 
+  <div
+    class="filter-button" 
+    (click)="onFilterClick()"
+  >
+    <span>Filter by</span>
+    <nb-icon icon="chevron-down-outline" class="icon"></nb-icon>
+  </div>
 
-<ng-container *ngIf="selectedFilter">
-  <ng-container [ngSwitch]="selectedFilter?.type">
-    <ng-container *ngSwitchCase="type.Input">
-      <ng-container [ngTemplateOutlet]="input"></ng-container>
-    </ng-container>
-    <ng-container *ngSwitchCase="type.AutoComplete">
-      <ng-container [ngTemplateOutlet]="auto"></ng-container>
-    </ng-container>
-    <ng-container *ngSwitchCase="type.Select">
-      <ng-container [ngTemplateOutlet]="select"></ng-container>
-    </ng-container>
-    <ng-container *ngSwitchCase="type.MultiSelect">
-      <ng-container [ngTemplateOutlet]="multi"></ng-container>
-    </ng-container>
-    <ng-container *ngSwitchCase="type.Checkbox">
-      <ng-container [ngTemplateOutlet]="checkbox"></ng-container>
-    </ng-container>
-    <ng-container *ngSwitchCase="type.Number">
-      <ng-container [ngTemplateOutlet]="number"></ng-container>
-    </ng-container>
-    <button
-      (click)="addFilter()"
-      [disabled]="!filterParam || filterParam === ''"
-      nbButton
-      ghost
-      style="margin-right: 5px;"
-      status="primary"
+  <div id="filterMenu" class="filter-menu" *ngIf="showMenu">
+    <button 
+      id="filterMenu"
+      class="filter-menu-item" 
+      *ngFor="let option of availableFilters"
+      (click)="handleFilterOptionClick(option)"
     >
-      <nb-icon icon="plus-outline"></nb-icon>  
+      <span>{{ option.name }}</span>
     </button>
-  </ng-container>
-</ng-container>
+  </div>
+</div>
+
+<div class="apply-filter-div" *ngIf="currentFilter !== null">
+  <input type="text"
+    id="filterInput"
+    class="apply-filter-input"
+    nbInput
+    placeholder="{{ currentFilter.name === 'MultiTags' ? 'Tags' : currentFilter.name}}"
+    [readonly]="currentFilter?.options"
+    [(ngModel)]="filterText"
+    (click)="showOptions = true"
+    [class.pointer-cursor]="currentFilter?.options"
+    autofocus
+  >
+  <button 
+    *ngIf="!currentFilter?.options"
+    class="add-filter-button"
+    [disabled]="!filterText"
+    nbTooltip="Add Filter"
+    (click)="onAddFilterButton(filterText)"
+  >
+    <nb-icon icon="plus-outline"></nb-icon>
+  </button>
+  <div class="filter-menu" *ngIf="optionsMenuType === 'multiselectsync' && showOptions">
+    <div 
+      *ngFor="let option of currentFilter?.options" 
+      class="apply-filter-option"
+      (click)="handleClickMultiSelect($event, option)"
+    >
+      <input type="checkbox" 
+        (click)="onCheckboxMultiSelect($event, option)"
+        [checked]="isOptionSelected(option) | async"             
+      >
+      <span>{{ option | titlecase }}</span>
+    </div>
+  </div>
+  <div class="filter-menu" *ngIf="optionsMenuType === 'multiselectasync' && showOptions">
+    <div 
+      *ngFor="let option of currentFilter?.autoSuggestion | async" 
+      class="apply-filter-option"
+      (click)="handleClickMultiSelect($event, option)"
+    >
+      <input type="checkbox" 
+        (click)="onCheckboxMultiSelect($event, option)"
+        [checked]="isOptionSelected(option) | async"             
+      >
+      <span>{{ option | titlecase }}</span>
+    </div>
+  </div>
+  <div class="filter-menu" *ngIf="optionsMenuType === 'tags' && showOptions">
+    <div 
+      *ngFor="let option of currentFilter?.autoSuggestion | async" 
+      class="apply-filter-option"
+      (click)="handleClickTags($event, option)"
+    > 
+      <input type="checkbox" 
+        (click)="onCheckboxTags($event, option)"
+        [checked]="isOptionSelected(option) | async"            
+      >
+      <span>{{ option }}</span>
+    </div>
+  </div>
+</div>
 
 <div class="search-input-wrapper">
   <nb-icon icon="search-outline" class="search-icon"></nb-icon>
@@ -43,114 +87,40 @@
     placeholder="Search by name" 
     [(ngModel)]="searchText"
     nbInput
-    class="search-input custom-input"
+    class="search-input"
     (ngModelChange)="onSearchTextChange()">
 </div>
-
-<mat-chip-list>
-  <ng-container *ngFor="let filter of activeFilters$ | async; let index = index">
-    <mat-chip *ngIf="filter.name !== 'Name'" class="filter-chip">
-      {{ filter?.exact ? filter.name + ": '" + filter?.param + "'" : filter.name + ': ' + filter?.param }}
-      <button class="remove-tag-button" (click)="removeFilter(index)" nbButton shape="round">
-        <i class="fa fa-window-close" style="color: #3089fc;">&nbsp;</i>
-      </button>
-    </mat-chip>
-  </ng-container>
-</mat-chip-list>
-
-<ng-template #input>
-  <nb-form-field>
-  <input
-    [(ngModel)]="filterParam"
-    nbInput
-    required
-    type="text"
-    placeholder="{{ selectedFilter?.name }}"
-    style="max-width: 150px;"
-  />
-  <button nbSuffix nbButton ghost class="exact-match-button"
-          [class]="selectedFilter.exact ? 'exact-match' : 'partial-match'"
-          (click)="toggleExactMatch()">
-    <nb-icon [icon]="selectedFilter?.exact ? 'lock-outline' : 'unlock-outline'"
-             [nbTooltip]="selectedFilter.exact ? 'Toggle Partial Match' : 'Toggle Exact Match'"
-             pack="eva"
-             [attr.aria-label]="selectedFilter.exact ? 'Toggle Partial Match' : 'Toggle Exact Match'">
-    </nb-icon>
+<button
+  *ngIf="optionsMenuType === 'tags' && currentFilter"
+  class="multi-tags-button"
+  (click)="toggleMultiTags()"
+>
+  Use <span style="color: #3089fc;" nbTooltip="Multiple filters will be added using {{ isMultiTags ? 'OR' : 'AND' }} condition. Click to toggle.">
+    {{ isMultiTags ? 'OR' : 'AND' }}
+  </span> 
+  Condition
+</button>
+<div *ngIf="(hasActiveFilters() | async)" class="list-div">
+  <div class="filters-list">
+    <div class="filter-list-display">
+      <ng-container *ngFor="let filter of activeFilters$ | async; let index = index" >
+        <div class="filter-item" *ngIf="filter.name !== 'Name'">
+          <div class="filter-name">
+            <span>{{ filter.name === 'MultiTags' ? 'Tags' : filter.name }}</span>
+          </div>
+          <div class="filter-param">
+            <span>{{ filter?.param | paramformatter}}</span>
+          </div>
+          <div class="filter-remove" id="remove-button">
+            <button class="remove-tag-button" (click)="removeFilter(index, filter)">
+              <nb-icon icon="close-outline"></nb-icon>
+            </button>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+  <button class="clear-filters-button" (click)="clearAllFilters()">
+    <span>Clear filters</span>
   </button>
-  </nb-form-field>
-</ng-template>
-<ng-template #select>
-  <nb-select [(selected)]="filterParam" placeholder="--select--" required>
-    <nb-option *ngFor="let option of selectedFilter?.options" [value]="option">
-      {{ option }}
-    </nb-option>
-  </nb-select>
-</ng-template>
-
-<ng-template #number>
-  <nb-form-field>
-    <input
-      [(ngModel)]="filterParam"
-      nbInput
-      required
-      placeholder="{{ selectedFilter?.name }}"
-      style="max-width: 150px;"
-    />
-  </nb-form-field>
-</ng-template>
-
-<ng-template #auto>
-
-  <nb-autocomplete #auto>
-    <nb-option
-      *ngFor="let option of selectedFilter?.autoSuggestion | async"
-      [value]="option"
-    >
-      {{ option }}
-    </nb-option>
-  </nb-autocomplete>
-  <nb-form-field>
-  <input
-    #autoInput
-    [(ngModel)]="filterParam"
-    [nbAutocomplete]="auto"
-    nbInput
-    required
-    type="text"
-    style="max-width: 150px;"
-  />
-  <button nbSuffix nbButton ghost class="exact-match-button"
-          [class]="selectedFilter.exact ? 'exact-match' : 'partial-match'"
-          (click)="toggleExactMatch()">
-    <nb-icon [icon]="selectedFilter?.exact ? 'lock-outline' : 'unlock-outline'"
-             pack="eva"
-             [attr.aria-label]="exact ? 'Toggle Partial Match' : 'Toggle Exact Match'">
-    </nb-icon>
-  </button>
-  </nb-form-field>
-</ng-template>
-<ng-template #select>
-  <nb-select [(selected)]="filterParam" placeholder="--select--" required>
-    <nb-option *ngFor="let option of selectedFilter?.options" [value]="option">
-      {{ option }}
-    </nb-option>
-  </nb-select>
-</ng-template>
-
-<ng-template #multi>
-  <nb-select [(selected)]="filterParam" multiple required>
-    <nb-option
-      *ngFor="let option of selectedFilter?.options"
-      [ngClass]="option"
-      [value]="option"
-    >
-      {{ option | ngxCapitalize }}
-    </nb-option>
-  </nb-select>
-</ng-template>
-
-<ng-template #checkbox>
-  <mat-checkbox [(ngModel)]="filterParam">{{
-    selectedFilter?.name
-  }}</mat-checkbox>
-</ng-template>
+</div>

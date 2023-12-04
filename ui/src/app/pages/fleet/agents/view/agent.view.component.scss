@@ -21,7 +21,10 @@ h4 {
   line-height: 2rem;
   margin-bottom: 1.5rem;
 }
-
+nb-tab {
+  padding: 0 !important;
+  overflow: hidden !important;
+}
 nb-card {
   border: transparent;
   border-radius: 0.5rem;
@@ -199,18 +202,55 @@ nb-card {
   color: #969fb9;
   font-size: 14px;
 }
-.state {
-  font-size: 15px;
-  font-weight: 700;
-}
-.fa.fa-circle {
-  font-size: 11px;
+
+.state-circle {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
 }
 .offline-circle {
-  width: 10px;
-  height: 10px;
+  width: 9px;
+  height: 9px;
   border: 2px solid #969fb9;
   border-radius: 50%;
   background-color: transparent;
 }
-
+.state {
+  font-size: 15px;
+  font-weight: 700;
+  font-family: 'Montserrat';
+}
+.state-div {
+  margin-bottom: 23px;
+}
+.date {
+  font-size: 14px;
+  font-weight: 400;
+  margin-top: 23px;
+  line-height: 1.25rem;
+} 
+.tab-button {
+  padding: 16px 32px;
+  background-color: transparent;
+  border: none;
+  outline: none;
+  font-family: Open Sans,sans-serif;
+  font-size: .875rem;
+  font-weight: 700;
+  line-height: 1rem;
+  text-transform: uppercase;
+  color: #969fb9;
+  border: none;
+  border-bottom: solid 2px transparent;
+  &:hover {
+    color: #5aa1ff;
+    border-color: #5aa1ff;
+  }
+}
+.active {
+  color: #3089fc;
+  border-color: #3089fc;
+  &:hover {
+    border-color: #3089fc !important;
+  }
+}

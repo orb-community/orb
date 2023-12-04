@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"go.opentelemetry.io/collector/receiver/receiverhelper"
 	"io"
 	"sync"
 
@@ -25,7 +26,6 @@ import (
 	"github.com/orb-community/orb/sinker/otel/bridgeservice"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/obsreport"
 	"go.opentelemetry.io/collector/receiver"
 	"go.uber.org/zap"
 )
@@ -101,7 +101,7 @@ func (r *OrbReceiver) registerMetricsConsumer(mc consumer.Metrics) error {
 		r.ctx = context.Background()
 	}
 	var err error
-	obsrecv, err := obsreport.NewReceiver(obsreport.ReceiverSettings{
+	obsrecv, err := receiverhelper.NewObsReport(receiverhelper.ObsReportSettings{
 		ReceiverID:             component.NewIDWithName("otlp", "metrics"),
 		Transport:              "grpc",
 		ReceiverCreateSettings: r.settings,
@@ -131,7 +131,7 @@ func (r *OrbReceiver) registerLogsConsumer(lc consumer.Logs) error {
 		r.ctx = context.Background()
 	}
 	var err error
-	obsrecv, err := obsreport.NewReceiver(obsreport.ReceiverSettings{
+	obsrecv, err := receiverhelper.NewObsReport(receiverhelper.ObsReportSettings{
 		ReceiverID:             component.NewIDWithName("otlp", "logs"),
 		Transport:              "grpc",
 		ReceiverCreateSettings: r.settings,
@@ -161,7 +161,7 @@ func (r *OrbReceiver) registerTracesConsumer(tc consumer.Traces) error {
 		r.ctx = context.Background()
 	}
 	var err error
-	obsrecv, err := obsreport.NewReceiver(obsreport.ReceiverSettings{
+	obsrecv, err := receiverhelper.NewObsReport(receiverhelper.ObsReportSettings{
 		ReceiverID:             component.NewIDWithName("otlp", "traces"),
 		Transport:              "grpc",
 		ReceiverCreateSettings: r.settings,

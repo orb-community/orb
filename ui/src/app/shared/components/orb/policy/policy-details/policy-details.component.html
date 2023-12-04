@@ -66,7 +66,8 @@
           fieldSize="medium"
           formControlName="name"
           fullWidth="true"
-          nbInput/>
+          nbInput
+          [status]="formGroup?.controls.name.dirty  ? (!formGroup.controls.name.valid  ? 'danger' : 'success') : 'basic'"/>
         <div
           *ngIf="formGroup.controls?.name.invalid
           && (formGroup.controls?.name.dirty || formGroup.controls?.name.touched)"

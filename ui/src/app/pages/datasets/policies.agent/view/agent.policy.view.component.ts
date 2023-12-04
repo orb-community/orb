@@ -1,6 +1,7 @@
 import {
   ChangeDetectorRef,
   Component,
+  HostListener,
   OnChanges,
   OnDestroy,
   OnInit,
@@ -59,6 +60,25 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
 
   lastUpdate: Date | null = null;
 
+  errorConfigMessage: string;
+
+  tabs = [
+    {
+      title: 'Details & Configuration',
+      urlState: 'details-configuration',
+      active: false,
+    },
+    {
+      title: 'Datasets',
+      urlState: 'datasets',
+      active: false,
+    },
+  ];
+
+  policyTags: any;
+
+  private popstateListener: () => void;
+
   @ViewChild(PolicyDetailsComponent) detailsComponent: PolicyDetailsComponent;
 
   @ViewChild(PolicyInterfaceComponent)
@@ -75,19 +95,21 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
     private editor: CodeEditorService,
   ) {
     this.isRequesting = false;
+    this.errorConfigMessage = '';
+    this.popstateListener = this.onPopState.bind(this);
   }
 
   ngOnInit() {
     this.fetchData();
     updateMenuItems('Policy Management');
+    this.getUrlState();
   }
 
   fetchData(newPolicyId?: any) {
     this.isLoading = true;
     if (newPolicyId) {
       this.policyId = newPolicyId;
-    }
-    else {
+    } else {
       this.policyId = this.route.snapshot.paramMap.get('id');
     }
     this.retrievePolicy();
@@ -96,10 +118,14 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
 
 
   isEditMode() {
-    return Object.values(this.editMode).reduce(
+    const resp = Object.values(this.editMode).reduce(
       (prev, cur) => prev || cur,
       false,
     );
+    if (!resp) {
+      this.errorConfigMessage = '';
+    }
+    return resp;
   }
 
   canSave() {
@@ -107,13 +133,25 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
       ? this.detailsComponent?.formGroup?.status === 'VALID'
       : true;
 
-    let config = this.interfaceComponent?.code
+    const config = this.interfaceComponent?.code;
     let interfaceValid = false;
 
-    if (this.editor.isJson(config)) {
-      interfaceValid = true;
-    } else if (this.editor.isYaml(config)) {
-      interfaceValid = true;
+    if (this.policy.format === 'json') {
+      if (this.editor.isJson(config)) {
+        interfaceValid = true;
+        this.errorConfigMessage = '';
+      } else {
+        interfaceValid = false;
+        this.errorConfigMessage = 'Invalid JSON configuration, check syntax errors';
+      }
+    } else if (this.policy.format === 'yaml') {
+      if (this.editor.isYaml(config) && !this.editor.isJson(config)) {
+        interfaceValid = true;
+        this.errorConfigMessage = '';
+      } else {
+        interfaceValid = false;
+        this.errorConfigMessage = 'Invalid YAML configuration, check syntax errors';
+      }
     }
     return detailsValid && interfaceValid;
   }
@@ -142,6 +180,9 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
 
     try {
       if (format === 'yaml') {
+        if (this.editor.isJson(policyInterface)) {
+          throw new Error('Invalid YAML format');
+        }
         yaml.load(policyInterface);
 
         interfacePartial = {
@@ -165,22 +206,23 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
 
       this.policiesService.editAgentPolicy(payload).subscribe(
         (resp) => {
-        this.notifications.success('Agent Policy updated successfully', '');
-        this.discard();
-        this.policy = resp;
-        this.orb.refreshNow();
-        this.isRequesting = false;
-        },
-        (error) => {
+          this.notifications.success('Agent Policy updated successfully', '');
+          this.discard();
+          this.policy = resp;
+          this.orb.refreshNow();
           this.isRequesting = false;
-        }
-        );
+        },
+        (err) => {
+          this.isRequesting = false;
+        },
+      );
 
     } catch (err) {
       this.notifications.error(
         'Failed to edit Agent Policy',
         `Error: Invalid ${format.toUpperCase()}`,
       );
+      this.isRequesting = false;
     }
   }
 
@@ -192,6 +234,7 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
         this.datasets = datasets;
         this.groups = groups;
         this.isLoading = false;
+        this.policyTags = Object.assign({}, policy.tags);
         this.cdr.markForCheck();
       });
   }
@@ -207,27 +250,28 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
         if (confirm) {
           this.duplicatePolicy(this.policy);
         }
-      })
+      });
   }
   duplicatePolicy(agentPolicy: any) {
     this.policiesService
-    .duplicateAgentPolicy(agentPolicy.id)
-    .subscribe((newAgentPolicy) => {
-      if (newAgentPolicy?.id) {
-        this.notifications.success(
-          'Agent Policy Duplicated',
-          `New Agent Policy Name: ${newAgentPolicy?.name}`,
-        );
-        this.router.navigateByUrl(`/pages/datasets/policies/view/${newAgentPolicy?.id}`);
-        this.fetchData(newAgentPolicy.id);
-      }
-    });
+      .duplicateAgentPolicy(agentPolicy.id)
+      .subscribe((newAgentPolicy) => {
+        if (newAgentPolicy?.id) {
+          this.notifications.success(
+            'Agent Policy Duplicated',
+            `New Agent Policy Name: ${newAgentPolicy?.name}`,
+          );
+          this.router.navigateByUrl(`/pages/datasets/policies/view/${newAgentPolicy?.id}`);
+          this.fetchData(newAgentPolicy.id);
+        }
+      });
   }
 
   ngOnDestroy() {
     this.policySubscription?.unsubscribe();
     this.orb.isPollingPaused ? this.orb.startPolling() : null;
     this.orb.killPolling.next();
+    window.removeEventListener('popstate', this.popstateListener);
   }
   openDeleteModal() {
     const { name: name, id } = this.policy as AgentPolicy;
@@ -254,18 +298,62 @@ export class AgentPolicyViewComponent implements OnInit, OnDestroy {
   }
 
   hasChanges() {
-    let policyDetails = this.detailsComponent.formGroup?.value;
+    const policyDetails = this.detailsComponent.formGroup?.value;
     const tags = this.detailsComponent.selectedTags;
 
-    const description = this.policy.description ? this.policy.description : "";
-    const formsDescription = policyDetails.description === null ? "" : policyDetails.description
+    const description = this.policy.description ? this.policy.description : '';
+    const formsDescription = policyDetails.description === null ? '' : policyDetails.description;
 
-    let selectedTags = JSON.stringify(tags);
-    let orb_tags = JSON.stringify(this.policy.tags);
+    const selectedTags = JSON.stringify(tags);
+    const orb_tags = JSON.stringify(this.policyTags);
 
     if (policyDetails.name !== this.policy.name || formsDescription !== description || selectedTags !== orb_tags) {
       return true;
     }
     return false;
+  }
+
+  @HostListener('window:popstate', ['$event'])
+  onPopState(event) {
+    if (event.target.location.search) {
+      this.getUrlState();
+    } else if (event.target.location.pathname.includes('view')) {
+      window.history.back();
+    }
+  }
+
+  getUrlState() {
+    this.route.queryParams.subscribe(queryParams => {
+      this.tabs.forEach(tab => {
+        if (tab.urlState === queryParams.tab) {
+          tab.active = true;
+          this.pageState(tab.urlState);
+        } else {
+          tab.active = false;
+        }
+      });
+    });
+    if (this.tabs.filter(tab => tab.active === true).length === 0) {
+      this.pageState('details-configuration');
+    }
+  }
+  onTabChange(selectedTab) {
+    this.tabs.forEach(tab => {
+      if (tab.urlState === selectedTab.urlState) {
+        tab.active = true;
+        this.pageState(tab.urlState);
+      } else {
+        tab.active = false;
+      }
+    });
+  }
+  pageState(option: string) {
+    this.router.navigate(
+      [],
+      {
+        queryParams: { tab: option },
+        queryParamsHandling: 'merge',
+      },
+    );
   }
 }

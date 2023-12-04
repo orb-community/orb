@@ -537,6 +537,7 @@ def expected_metrics_by_handlers_and_groups(handler, groups_enabled, groups_disa
                 ("all" in groups_enabled and "counters" not in groups_disabled):
             metric_groups.add("netprobe_attempts")
             metric_groups.add("netprobe_dns_lookup_failures")
+            metric_groups.add("netprobe_connect_failures")
             metric_groups.add("netprobe_packets_timeout")
             metric_groups.add("netprobe_successes")
             if (("quantiles" in groups_enabled and "quantiles" not in groups_disabled) or
