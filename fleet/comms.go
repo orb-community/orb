@@ -134,7 +134,7 @@ func (svc fleetCommsService) NotifyGroupNewDataset(ctx context.Context, ag Agent
 	if err != nil {
 		return err
 	}
-	svc.logger.Info("new dataset", zap.String("dataset_id", datasetID), zap.Any("policy", p))
+	svc.logger.Info("retrieved policy format", zap.Any("policy_format", p.Format))
 	var pdata interface{}
 	if p.Format == "yaml" {
 		if err := yaml.Unmarshal(p.Data, &pdata); err != nil {
@@ -247,8 +247,14 @@ func (svc fleetCommsService) NotifyAgentAllDatasets(ctx context.Context, a Agent
 		for i, policy := range p.Policies {
 
 			var pdata interface{}
-			if err := json.Unmarshal(policy.Data, &pdata); err != nil {
-				return err
+			if policy.Format == "yaml" {
+				if err := yaml.Unmarshal(policy.Data, &pdata); err != nil {
+					return err
+				}
+			} else {
+				if err := json.Unmarshal(policy.Data, &pdata); err != nil {
+					return err
+				}
 			}
 
 			payload[i] = AgentPolicyRPCPayload{
