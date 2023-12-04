@@ -20,8 +20,10 @@ class TestConfig:
 
 def _read_configs():
     parser = configparser.ConfigParser()
-    parser.read('test_config.ini')
+    parser.read('/home/amanda-silva/Documents/orb/python-test/test_config.ini')
     configs = parser['test_config']
+    ################
+    # todo remover
 
     # log level
     log_level = configs.get("log_level", "debug")

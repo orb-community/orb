@@ -6,7 +6,7 @@ from behave import given, then, step
 from hamcrest import *
 from datetime import datetime
 import requests
-from agent_config_file import FleetAgent
+from agent_config_file import FleetAgent, ConfigFiles
 import yaml
 from yaml.loader import SafeLoader
 import re
@@ -877,7 +877,12 @@ def get_groups_to_which_agent_is_matching(token, agent_id, groups_matching_ids, 
     return list_groups_id, agent
 
 
-def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, port,
+# def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, port,
+#                              existing_agent_groups, tap_name, input_type="pcap", input_tags='3', auto_provision="true",
+#                              orb_cloud_mqtt_id=None, orb_cloud_mqtt_key=None, orb_cloud_mqtt_channel_id=None,
+#                              settings=None, overwrite_default=False, only_file=False, pktvisor_binary=None,
+#                              pktvisor_config_file=None):
+def create_agent_config_file(backend_type, token, agent_name, iface, agent_tags, orb_url, port,
                              existing_agent_groups, tap_name, input_type="pcap", input_tags='3', auto_provision="true",
                              orb_cloud_mqtt_id=None, orb_cloud_mqtt_key=None, orb_cloud_mqtt_channel_id=None,
                              settings=None, overwrite_default=False, only_file=False, pktvisor_binary=None,
@@ -909,8 +914,9 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, port
     """
     assert_that(auto_provision, any_of(equal_to("true"), equal_to("false")), "Unexpected value for auto_provision "
                                                                              "on agent config file creation")
-    convert_type = {"true": True, "false": False}
-    auto_provision = convert_type[auto_provision]
+    verify_ssl_str = configs.get('verify_ssl')
+    verify_ssl = str_to_bool(verify_ssl_str)
+    auto_provision = str_to_bool(auto_provision)
 
     if re.match(r"matching (\d+|all|the) group*", agent_tags):
         amount_of_group = re.search(r"(\d+|all|the)", agent_tags).groups()[0]
@@ -919,26 +925,35 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, port
     else:
         tags = {"tags": create_tags_set(agent_tags)}
     mqtt_url = configs.get('mqtt_url')
-    if configs.get('verify_ssl') == 'false':
-        agent_config_file, tap = FleetAgent.config_file_of_orb_agent(agent_name, token, iface, orb_url, mqtt_url,
-                                                                     tap_name,
-                                                                     tls_verify=False, auto_provision=auto_provision,
-                                                                     orb_cloud_mqtt_id=orb_cloud_mqtt_id,
-                                                                     orb_cloud_mqtt_key=orb_cloud_mqtt_key,
-                                                                     orb_cloud_mqtt_channel_id=orb_cloud_mqtt_channel_id,
-                                                                     input_type=input_type, input_tags=input_tags,
-                                                                     settings=settings,
-                                                                     overwrite_default=overwrite_default)
-    else:
-        agent_config_file, tap = FleetAgent.config_file_of_orb_agent(agent_name, token, iface, orb_url, mqtt_url,
-                                                                     tap_name,
-                                                                     auto_provision=auto_provision,
-                                                                     orb_cloud_mqtt_id=orb_cloud_mqtt_id,
-                                                                     orb_cloud_mqtt_key=orb_cloud_mqtt_key,
-                                                                     orb_cloud_mqtt_channel_id=orb_cloud_mqtt_channel_id,
-                                                                     input_type=input_type, input_tags=input_tags,
-                                                                     settings=settings,
-                                                                     overwrite_default=overwrite_default)
+    cloud_settings = {"orb_cloud_mqtt_id": orb_cloud_mqtt_id,
+                      "orb_cloud_mqtt_key": orb_cloud_mqtt_key,
+                      "orb_cloud_mqtt_channel_id": orb_cloud_mqtt_channel_id}
+
+    # todo parei no backend settings
+
+    agent_config_file = FleetAgent.config_file_of_orb_agent(agent_name, backend_type, auto_provision,
+                                                            f"{port}", {}, cloud_settings,
+                                                            orb_url, mqtt_url, tls_verify=verify_ssl)
+    # if configs.get('verify_ssl') == 'false':
+    #     agent_config_file, tap = FleetAgent.config_file_of_orb_agent(agent_name, token, iface, orb_url, mqtt_url,
+    #                                                                  tap_name,
+    #                                                                  tls_verify=False, auto_provision=auto_provision,
+    #                                                                  orb_cloud_mqtt_id=orb_cloud_mqtt_id,
+    #                                                                  orb_cloud_mqtt_key=orb_cloud_mqtt_key,
+    #                                                                  orb_cloud_mqtt_channel_id=orb_cloud_mqtt_channel_id,
+    #                                                                  input_type=input_type, input_tags=input_tags,
+    #                                                                  settings=settings,
+    #                                                                  overwrite_default=overwrite_default)
+    # else:
+    #     agent_config_file, tap = FleetAgent.config_file_of_orb_agent(agent_name, token, iface, orb_url, mqtt_url,
+    #                                                                  tap_name,
+    #                                                                  auto_provision=auto_provision,
+    #                                                                  orb_cloud_mqtt_id=orb_cloud_mqtt_id,
+    #                                                                  orb_cloud_mqtt_key=orb_cloud_mqtt_key,
+    #                                                                  orb_cloud_mqtt_channel_id=orb_cloud_mqtt_channel_id,
+    #                                                                  input_type=input_type, input_tags=input_tags,
+    #                                                                  settings=settings,
+    #                                                                  overwrite_default=overwrite_default)
     agent_config_file = yaml.load(agent_config_file, Loader=SafeLoader)
     if pktvisor_config_file is None or pktvisor_config_file == "None":
         agent_config_file['orb']['backends']['pktvisor'].pop("config_file", None)
@@ -953,7 +968,7 @@ def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, port
     else:
         agent_config_file['orb']['backends']['pktvisor']["binary"] = pktvisor_binary
     agent_config_file['orb'].update(tags)
-    agent_config_file['orb']['backends']['pktvisor'].update({"api_port": f"{port}"})
+    # agent_config_file['orb']['backends']['pktvisor'].update({"api_port": f"{port}"})
     agent_config_file_yaml = yaml.dump(agent_config_file)
     safe_agent_config_file = agent_config_file.copy()
     if "token" in safe_agent_config_file['orb']['cloud']['api'].keys():
