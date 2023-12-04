@@ -59,14 +59,17 @@ nb-card {
     &stale, &none, &not, &idle {
       color: #f2994a;
     }
-    &error, &failure {
+    &error, &failure, &provioning_error {
       color: #df316f;
     }
     &offline {
       color: #969fb9;
     }
+    &provisioning {
+      color: #3089fc;
+    }
     &warning {
-      color: #f2dc4a; 
+      color: #f2c94c;
     }
   }
   .element-list {

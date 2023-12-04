@@ -6,6 +6,14 @@ h4 {
   line-height: 2rem;
   margin-bottom: 1.5rem;
 }
+.row {
+  display: flex;
+
+}
+nb-tab {
+  padding: 0 !important;
+  overflow: hidden !important;
+}
 
 nb-card {
   border: transparent;
@@ -249,5 +257,32 @@ header {
 .right-content {
   display: flex;
   align-items: center;
+}
+.tab-button {
+  margin: 0 !important;
+  box-sizing: content-box !important;
+  padding: 16px 32px !important;
+  background-color: transparent;
+  border: none;
+  outline: none;
+  font-family: Open Sans,sans-serif;
+  font-size: .875rem;
+  font-weight: 700;
+  line-height: 1rem;
+  text-transform: uppercase;
+  color: #969fb9;
+  border: none;
+  border-bottom: solid 2px transparent;
+  &:hover {
+    color: #5aa1ff;
+    border-color: #5aa1ff;
+  }
+}
+.active {
+  color: #3089fc;
+  border-color: #3089fc;
+  &:hover {
+    border-color: #3089fc !important;
+  }
 }
 

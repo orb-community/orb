@@ -6,6 +6,8 @@ package http
 
 import (
 	"context"
+	"time"
+
 	"github.com/go-kit/kit/metrics"
 	"github.com/mainflux/mainflux"
 	"github.com/orb-community/orb/pkg/errors"
@@ -13,7 +15,6 @@ import (
 	"github.com/orb-community/orb/sinks/authentication_type"
 	"github.com/orb-community/orb/sinks/backend"
 	"go.uber.org/zap"
-	"time"
 )
 
 var _ sinks.SinkService = (*metricsMiddleware)(nil)

@@ -1,8 +1,8 @@
 <nb-card>
-  <nb-card-header>Assigned Groups</nb-card-header>
+  <nb-card-header>Assigned Groups ({{ groups?.length }})</nb-card-header>
   <nb-card-body>
     <div *ngIf="!isLoading">
-      <nb-accordion *ngFor="let group of groups;">
+      <nb-accordion *ngFor="let group of groups; trackBy: identify">
         <nb-accordion-item>
           <nb-accordion-item-header> 
             <span class="summary-accent">Group:</span>&nbsp;{{ group?.name }} 

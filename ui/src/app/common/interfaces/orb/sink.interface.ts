@@ -16,6 +16,9 @@ export enum SinkStates {
   error = 'error',
   idle = 'idle',
   unknown = 'unknown',
+  provisioning = 'provisioning',
+  provisioning_error = 'provisioning_error',
+  warning = 'warning',
 }
 
 /**
@@ -23,7 +26,7 @@ export enum SinkStates {
  */
 export enum SinkBackends {
   prometheus = 'prometheus',
-  otlp = 'otlphttp'
+  otlp = 'OTLP HTTP',
 }
 
 /**

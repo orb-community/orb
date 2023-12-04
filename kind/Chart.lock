@@ -1,6 +1,0 @@
-dependencies:
-- name: orb
-  repository: https://orb-community.github.io/orb-helm/
-  version: 1.0.44
-digest: sha256:054a0e4810a7d857f4c0b156bb92e909f485096242098f62ab5b558140e48a22
-generated: "2023-02-13T13:18:58.67925487-03:00"

@@ -23,8 +23,12 @@ DOCKERS = $(addprefix docker_,$(SERVICES))
 DOCKERS_DEV = $(addprefix docker_dev_,$(SERVICES))
 CGO_ENABLED ?= 0
 GOARCH ?= $(shell dpkg-architecture -q DEB_BUILD_ARCH)
+GOOS ?= $(shell dpkg-architecture -q DEB_TARGET_ARCH_OS)
+DIODE_TAG ?= develop
 ORB_VERSION = $(shell cat VERSION)
 COMMIT_HASH = $(shell git rev-parse --short HEAD)
+OTEL_COLLECTOR_CONTRIB_VERSION ?= 0.87.0
+OTEL_CONTRIB_URL ?= "https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v$(OTEL_COLLECTOR_CONTRIB_VERSION)/otelcol-contrib_$(OTEL_COLLECTOR_CONTRIB_VERSION)_$(GOOS)_$(GOARCH).tar.gz"
 
 define compile_service
     echo "ORB_VERSION: $(ORB_VERSION)"
@@ -153,7 +157,7 @@ install-helm:
 
 install-kubectl:
 	cd /tmp && \
-	curl -LO "https://dl.k8s.io/release/v1.22.1/bin/linux/amd64/kubectl" && \
+	curl -LO "https://dl.k8s.io/release/v1.27.4/bin/linux/amd64/kubectl" && \
 	chmod a+x ./kubectl && \
 	sudo mv ./kubectl /usr/local/bin/kubectl
 
@@ -182,7 +186,7 @@ kind-create-all: kind-create-cluster kind-install-orb
 kind-upgrade-all: kind-load-images kind-upgrade-orb
 
 kind-create-cluster:
-	kind create cluster --image kindest/node:v1.22.15 --config=./kind/config.yaml
+	kind create cluster --image kindest/node:v1.24.0 --config=./kind/config.yaml
 
 kind-delete-cluster:
 	kind delete cluster
@@ -228,6 +232,7 @@ agent_bin:
 
 agent:
 	docker build --no-cache \
+	  --build-arg GOARCH=$(GOARCH) \
 	  --build-arg PKTVISOR_TAG=$(PKTVISOR_TAG) \
 	  --tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(REF_TAG) \
 	  --tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent:$(ORB_VERSION) \
@@ -236,9 +241,11 @@ agent:
 	  
 agent_full:
 	docker build --no-cache \
+	  --build-arg GOARCH=$(GOARCH) \
 	  --build-arg PKTVISOR_TAG=$(PKTVISOR_TAG) \
 	  --build-arg DIODE_TAG=$(DIODE_TAG) \
-	  --build-arg ORB_TAG=${ORB_TAG} \
+	  --build-arg ORB_TAG=${REF_TAG} \
+	  --build-arg OTEL_TAG=${OTEL_COLLECTOR_CONTRIB_VERSION} \
 	  --tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent-full:$(REF_TAG) \
 	  --tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent-full:$(ORB_VERSION) \
 	  --tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent-full:$(ORB_VERSION)-$(COMMIT_HASH) \
@@ -284,3 +291,11 @@ ui:
 		-f docker/Dockerfile .
 
 platform: dockers_dev agent ui
+
+pull-latest-otel-collector-contrib:
+	wget -O ./agent/backend/otel/otelcol_contrib.tar.gz $(OTEL_CONTRIB_URL)
+	tar -xvf ./agent/backend/otel/otelcol_contrib.tar.gz -C ./agent/backend/otel/
+	cp ./agent/backend/otel/otelcol-contrib .
+	rm ./agent/backend/otel/otelcol_contrib.tar.gz
+	rm ./agent/backend/otel/LICENSE
+	rm ./agent/backend/otel/README.md

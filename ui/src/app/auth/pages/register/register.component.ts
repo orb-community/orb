@@ -59,7 +59,7 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
     this.errors = this.messages = [];
     this.submitted = true;
     this.repeatedEmail = null;
-    
+
     const { email, password, company } = this.user;
     this.authService
       .register(this.strategy, {
@@ -87,7 +87,7 @@ export class RegisterComponent extends NbRegisterComponent implements OnInit {
           }
         }
       });
-    
+
   }
 
   authenticateAndRedirect(email, password) {

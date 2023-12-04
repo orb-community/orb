@@ -8,6 +8,7 @@ import { OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { environment } from 'environments/environment';
 import { catchError, expand, map, scan, takeWhile } from 'rxjs/operators';
+import { getStatusCodeText } from '../http-codes';
 
 @Injectable()
 export class DatasetPoliciesService {
@@ -29,7 +30,7 @@ export class DatasetPoliciesService {
       .catch((err) => {
         this.notificationsService.error(
           'Failed to create Dataset for this Policy',
-          `Error: ${err.status} - ${err.statusText} - ${err.error.error}`,
+          `Error: ${err.status} - ${getStatusCodeText(err.status)} - ${err.error.error}`,
         );
         return Observable.throwError(err);
       });
@@ -40,10 +41,10 @@ export class DatasetPoliciesService {
       .get<Dataset>(`${environment.datasetPoliciesUrl}/${id}`)
       .pipe(
         catchError((err) => {
-          if (err.status !== 404 && err.error.error !== "non-existent entity") {
+          if (err.status !== 404 && err.error.error !== 'non-existent entity') {
             this.notificationsService.error(
               'Failed to fetch Dataset of this Policy',
-              `Error: ${err.status} - ${err.statusText}`,
+              `Error: ${err.status} - ${getStatusCodeText(err.status)}`,
             );
           }
           err['id'] = id;
@@ -61,7 +62,7 @@ export class DatasetPoliciesService {
       .catch((err) => {
         this.notificationsService.error(
           'Failed to edit Dataset',
-          `Error: ${err.status} - ${err.statusText}`,
+          `Error: ${err.status} - ${getStatusCodeText(err.status)}`,
         );
         return Observable.throwError(err);
       });
@@ -76,7 +77,7 @@ export class DatasetPoliciesService {
       .catch((err) => {
         this.notificationsService.error(
           'Failed to Delete Dataset Policies',
-          `Error: ${err.status} - ${err.statusText}`,
+          `Error: ${err.status} - ${getStatusCodeText(err.status)}`,
         );
         return Observable.throwError(err);
       });
@@ -144,7 +145,7 @@ export class DatasetPoliciesService {
       .catch((err) => {
         this.notificationsService.error(
           'Failed to get Datasets',
-          `Error: ${err.status} - ${err.statusText}`,
+          `Error: ${err.status} - ${getStatusCodeText(err.status)}`,
         );
         return Observable.throwError(err);
       });

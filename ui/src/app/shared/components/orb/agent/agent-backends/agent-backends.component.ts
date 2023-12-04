@@ -11,7 +11,11 @@ export class AgentBackendsComponent implements OnInit {
   @Input() agent: Agent;
 
   agentStates = AgentStates;
-  
+
+  identify(index, item) {
+    return item.id;
+  }
+
   constructor(
     protected notificationService: NotificationsService,
   ) {
