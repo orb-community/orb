@@ -7,7 +7,7 @@ retry==0.9.2
 selenium==4.14.0
 behavex==3.0.0
 deepdiff==6.7.1
-jsonschema==4.18.4
+jsonschema==4.20.0
 mkdocs==1.5.3
 mkdocs-material==9.4.7
 prometheus-client==0.17.1
