@@ -16,13 +16,10 @@ class ConfigFiles:
                     f"Unsuported agent backend type: {config_type}")
         self.config_type = config_type
 
-    def pktvisor_config_file(self, iface, tap_name, input_type="pcap", input_tags="3", settings=None):
+    def pktvisor_config_file(self, tap_name, input_type="pcap", input_tags="3", settings=None):
         assert_that(self.config_type, equal_to("pktvisor"))
         assert_that(input_type, any_of(equal_to("pcap"), equal_to("flow"), equal_to("dnstap"), equal_to("netprobe")),
                     "Unexpect type of input type.")
-        if "iface" in settings.keys() and isinstance(settings["iface"], str) and \
-                (settings["iface"].lower() == "default" or settings["iface"].lower() == "mocked"):
-            settings['iface'] = iface
         tap = Taps()
         if input_type == "pcap":
             tap.add_pcap(tap_name, **settings)
@@ -51,7 +48,6 @@ class ConfigFiles:
         agent = AgentConfigs(tls_verify)
         agent.add_backend(backend_type, config_file, port, **backend_settings)
         agent.set_cloud(auto_provision, orb_url, base_orb_mqtt, **cloud_settings)
-        log.debug(f"Orb Agent Config File: {agent.config}")
         return agent.config
 
 
@@ -59,10 +55,12 @@ class AgentConfigs:
     def __init__(self, tls_verify=True):
         assert_that(tls_verify, any_of(equal_to(True), equal_to(False)), "Unexpected value for tls_verify on "
                                                                          "agent config file creation")
-        self.config = {
-            "backends": {},
-            "cloud": {},
-            "tls": {"verify": tls_verify}
+        self.config = {"orb":
+            {
+                "backends": {},
+                "cloud": {},
+                "tls": {"verify": tls_verify}
+            }
         }
 
     def add_backend(self, backend_type, config_file, port, **settings):
@@ -73,7 +71,7 @@ class AgentConfigs:
             backend[backend_type].update({"api_port": port})
         elif backend_type == "otel":
             backend[backend_type].update({"otlp_port": port})
-        self.config["backends"].update(backend)
+        self.config["orb"]["backends"].update(backend)
         return self.config
 
     def remove_backend(self, backend):
@@ -104,7 +102,7 @@ class AgentConfigs:
 
         cloud = {"api": cloud_api, "mqtt": cloud_mqtt, "config": cloud_config}
 
-        self.config["cloud"].update(cloud)
+        self.config["orb"]["cloud"].update(cloud)
         return self.config
 
 
@@ -113,17 +111,20 @@ class FleetAgent:
         pass
 
     @classmethod
-    def config_file_of_orb_agent(cls, agent_name, backend_type, auto_provision, port, backend_settings,
+    def config_file_of_orb_agent(cls, backend_type, auto_provision, port, backend_settings,
                                  cloud_settings, orb_url, base_orb_mqtt, tls_verify=True, backend_file=None,
                                  config_file="default", overwrite_default=False):
         assert_that(tls_verify, any_of(equal_to(True), equal_to(False)), "Unexpected value for tls_verify on "
                                                                          "agent pcap config file creation")
         assert_that(overwrite_default, any_of(equal_to(True), equal_to(False)),
                     "Unexpected value for overwrite_default")
+        agent_name = cloud_settings.get("name", None)
+        assert_that(agent_name, not_none(), "Missing agent name for agent config file")
         if overwrite_default is True:
             name_agent_file = "agent"
         else:
             name_agent_file = agent_name
+        cloud_settings.update({"name": agent_name})
         if config_file == "default":
             config_file = f"{default_path_config_file}/{name_agent_file}.yaml"
         orb_agent_file = ConfigFiles("orb_agent").orb_agent_config_file(backend_type, config_file, auto_provision, port,
@@ -133,7 +134,6 @@ class FleetAgent:
             assert_that(isinstance(backend_file, dict), equal_to(True), f"Invalid backend file: {backend_file}")
             orb_agent_file.update(backend_file)
         agent = yaml.dump(orb_agent_file)
-        log.debug(f"Orb Agent Config File: {agent}")
         return agent
 
     # @classmethod
