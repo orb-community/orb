@@ -37,7 +37,7 @@ Scenario: Test agents backend routes
         And inputs route must be enabled
 
 
-@smoke @sanity
+@smoke @sanity @bla
 Scenario: Create dataset with name conflict
     Given the Orb user has a registered account
         And the Orb user logs in
