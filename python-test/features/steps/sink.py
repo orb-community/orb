@@ -1,7 +1,8 @@
 from behave import given, when, then, step
 from configs import TestConfig
-from utils import random_string, filter_list_by_parameter_start_with, threading_wait_until, validate_json, \
-    remove_empty_from_json
+from utils import (random_string, filter_list_by_parameter_start_with, threading_wait_until, validate_json, \
+                   remove_empty_from_json, return_api_get_response, return_api_put_response, return_api_post_response,
+                   return_api_delete_response)
 from hamcrest import *
 import requests
 import threading
@@ -299,17 +300,15 @@ def create_new_sink(token, name_label, remote_host, username, password, backend_
     else:
         json_request = {"name": name_label, "description": description, "tags": {tag_key: tag_value},
                         "backend": backend_type, "config": sink_configs}
-    headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
+
     json_request = remove_empty_from_json(json_request)
-    response = requests.post(orb_url + '/api/v1/sinks', json=json_request, headers=headers_request,
-                             verify=verify_ssl_bool)
-    try:
-        response_json = response.json()
-    except ValueError:
-        response_json = response.text
-    assert_that(response.status_code, equal_to(expected_status_code),
-                'Request to create sink failed with status=' + str(response.status_code) + ': ' + str(response_json))
-    return response_json
+
+    status_code, response = return_api_post_response(f"{orb_url}/api/v1/sinks", request_body=json_request,
+                                                     token=token, verify=verify_ssl_bool)
+
+    assert_that(status_code, equal_to(expected_status_code),
+                'Request to create sink failed with status=' + str(status_code) + ': ' + str(response))
+    return response
 
 
 def get_sink(token, sink_id):
@@ -321,19 +320,14 @@ def get_sink(token, sink_id):
     :returns: (dict) the fetched sink
     """
 
-    get_sink_response = requests.get(orb_url + '/api/v1/sinks/' + sink_id, headers={'Authorization': f'Bearer {token}'},
-                                     verify=verify_ssl_bool)
+    status_code, response = return_api_get_response(f"{orb_url}/api/v1/sinks/{sink_id}", token=token,
+                                                    verify=verify_ssl_bool)
 
-    try:
-        response_json = get_sink_response.json()
-    except ValueError:
-        response_json = get_sink_response.text
-
-    assert_that(get_sink_response.status_code, equal_to(200),
+    assert_that(status_code, equal_to(200),
                 'Request to get sink id=' + sink_id + ' failed with status=' + str(
-                    get_sink_response.status_code) + ': ' + str(response_json))
+                    status_code) + ': ' + str(response))
 
-    return response_json
+    return response
 
 
 def list_sinks(token, limit=100, offset=0):
@@ -367,19 +361,17 @@ def list_up_to_limit_sinks(token, limit=100, offset=0):
     :returns: (list) a list of sinks, (int) total sinks on orb, (int) offset
     """
 
-    response = requests.get(orb_url + '/api/v1/sinks', headers={'Authorization': f'Bearer {token}'},
-                            params={'limit': limit, 'offset': offset}, verify=verify_ssl_bool)
+    status_code, response = return_api_get_response(f"{orb_url}/api/v1/sinks", token=token,
+                                                    params={'limit': limit, 'offset': offset}, verify=verify_ssl_bool)
 
-    try:
-        response_json = response.json()
-    except ValueError:
-        response_json = response.text
+    assert_that(status_code, equal_to(200),
+                'Request to list sinks failed with status=' + str(status_code) + ': ' + str(response))
 
-    assert_that(response.status_code, equal_to(200),
-                'Request to list sinks failed with status=' + str(response.status_code) + ': ' + str(response_json))
+    assert_that(response, has_key('sinks'), f"Response does not contain 'sinks' key: {response}")
+    assert_that(response, has_key('total'), f"Response does not contain 'total' key: {response}")
+    assert_that(response, has_key('offset'), f"Response does not contain 'offset' key: {response}")
 
-    sinks_as_json = response.json()
-    return sinks_as_json['sinks'], sinks_as_json['total'], sinks_as_json['offset']
+    return response['sinks'], response['total'], response['offset']
 
 
 def delete_sinks(token, list_of_sinks):
@@ -402,11 +394,11 @@ def delete_sink(token, sink_id):
     :param (str) sink_id: that identifies the sink to be deleted
     """
 
-    response = requests.delete(orb_url + '/api/v1/sinks/' + sink_id, headers={'Authorization': f'Bearer {token}'},
-                               verify=verify_ssl_bool)
+    status_code, response = return_api_delete_response(f"{orb_url}/api/v1/sinks/{sink_id}", token=token,
+                                                       verify=verify_ssl_bool)
 
-    assert_that(response.status_code, equal_to(204),
-                'Request to delete sink id=' + sink_id + ' failed with status=' + str(response.status_code))
+    assert_that(status_code, equal_to(204),
+                f"Request to delete sink id= {sink_id} failed with status= {status_code}. Response: {response}.")
 
 
 @threading_wait_until
@@ -436,16 +428,10 @@ def edit_sink(token, sink_id, sink_body, expected_status_code=200):
     :returns: (dict) the edited agent group
     """
 
-    headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
+    status_code, response = return_api_put_response(f"{orb_url}/api/v1/sinks/{sink_id}",
+                                                    request_body=sink_body, token=token, verify=verify_ssl_bool)
 
-    response = requests.put(orb_url + '/api/v1/sinks/' + sink_id, json=sink_body, headers=headers_request,
-                            verify=verify_ssl_bool)
-    try:
-        response_json = response.json()
-    except ValueError:
-        response_json = response.text
+    assert_that(status_code, equal_to(expected_status_code),
+                'Request to edit sink failed with status=' + str(status_code) + ":" + str(response))
 
-    assert_that(response.status_code, equal_to(expected_status_code),
-                'Request to edit sink failed with status=' + str(response.status_code) + ":" + str(response_json))
-
-    return response.json()
+    return response
