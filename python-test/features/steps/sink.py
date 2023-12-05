@@ -1,7 +1,8 @@
 from behave import given, when, then, step
-from test_config import TestConfig
-from utils import random_string, filter_list_by_parameter_start_with, threading_wait_until, validate_json, \
-    remove_empty_from_json
+from configs import TestConfig
+from utils import (random_string, filter_list_by_parameter_start_with, threading_wait_until, validate_json, \
+                   remove_empty_from_json, return_api_get_response, return_api_put_response, return_api_post_response,
+                   return_api_delete_response)
 from hamcrest import *
 import requests
 import threading
@@ -16,19 +17,38 @@ backend_type = configs.get('backend_type')
 
 @given("that the user has the prometheus/grafana credentials")
 def check_prometheus_grafana_credentials(context):
-    context.remote_prometheus_endpoint = configs.get('remote_prometheus_endpoint')
-    assert_that(context.remote_prometheus_endpoint, not_none(), 'No remote write endpoint to send Prometheus metrics '
-                                                                'to Grafana Cloud was provided!')
-    assert_that(context.remote_prometheus_endpoint, not_(""), 'No remote write endpoint to send Prometheus metrics to '
-                                                              'Grafana Cloud was provided!')
+    if backend_type == "otlphttp":
+        context.remote_prometheus_endpoint = configs.get('otlp_publisher_endpoint')
+        assert_that(context.remote_prometheus_endpoint, not_none(), 'No remote write endpoint to send otlp '
+                                                                    'metrics'
+                                                                    'to Grafana Cloud was provided!')
+        assert_that(context.remote_prometheus_endpoint, not_(""), 'No remote write endpoint to send otlp '
+                                                                  'metrics to'
+                                                                  'Grafana Cloud was provided!')
 
-    context.prometheus_username = configs.get('prometheus_username')
-    assert_that(context.prometheus_username, not_none(), 'No Grafana Cloud Prometheus username was provided!')
-    assert_that(context.prometheus_username, not_(""), 'No Grafana Cloud Prometheus username was provided!')
+        context.prometheus_username = configs.get('otlp_publisher_username')
+        assert_that(context.prometheus_username, not_none(), 'No Grafana Cloud otlp username was provided!')
+        assert_that(context.prometheus_username, not_(""), 'No Grafana Cloud otlp username was provided!')
 
-    context.prometheus_key = configs.get('prometheus_key')
-    assert_that(context.prometheus_key, not_none(), 'No Grafana Cloud API Key was provided!')
-    assert_that(context.prometheus_key, not_(""), 'No Grafana Cloud API Key was provided!')
+        context.prometheus_key = configs.get('otlp_publisher_key')
+        assert_that(context.prometheus_key, not_none(), 'No Grafana Cloud API Key was provided!')
+        assert_that(context.prometheus_key, not_(""), 'No Grafana Cloud API Key was provided!')
+    else:
+        context.remote_prometheus_endpoint = configs.get('remote_prometheus_endpoint')
+        assert_that(context.remote_prometheus_endpoint, not_none(), 'No remote write endpoint to send Prometheus '
+                                                                    'metrics'
+                                                                    'to Grafana Cloud was provided!')
+        assert_that(context.remote_prometheus_endpoint, not_(""), 'No remote write endpoint to send Prometheus '
+                                                                  'metrics to'
+                                                                  'Grafana Cloud was provided!')
+
+        context.prometheus_username = configs.get('prometheus_username')
+        assert_that(context.prometheus_username, not_none(), 'No Grafana Cloud Prometheus username was provided!')
+        assert_that(context.prometheus_username, not_(""), 'No Grafana Cloud Prometheus username was provided!')
+
+        context.prometheus_key = configs.get('prometheus_key')
+        assert_that(context.prometheus_key, not_none(), 'No Grafana Cloud API Key was provided!')
+        assert_that(context.prometheus_key, not_(""), 'No Grafana Cloud API Key was provided!')
 
 
 @step("a new sink is created")
@@ -38,26 +58,12 @@ def create_sink(context, **kwargs):
     endpoint = context.remote_prometheus_endpoint
     username = context.prometheus_username
     password = context.prometheus_key
-    if "enable_otel" in kwargs:  # this if/else logic can be removed after otel migration
-        kwargs["enable_otel"] = kwargs["enable_otel"].lower()
-        assert_that(kwargs["enable_otel"], any_of("true", "false"))
-        include_otel_env_var = "true"
-        enable_otel = kwargs["enable_otel"]
-    else:
-        include_otel_env_var = configs.get("include_otel_env_var")
-        enable_otel = configs.get("enable_otel")
-    otel_map = {"true": "enabled", "false": "disabled"}
     if "configuration_type" in kwargs:
         configuration_type = kwargs["configuration_type"].lower()
     else:
         configuration_type = ""
-    if include_otel_env_var == "true":
-        context.sink = create_new_sink(token, sink_label_name, endpoint, username, password, backend_type=backend_type,
-                                       include_otel=include_otel_env_var, otel=otel_map[enable_otel],
-                                       configuration_type=configuration_type)
-    else:
-        context.sink = create_new_sink(token, sink_label_name, endpoint, username, password, backend_type=backend_type,
-                                       configuration_type=configuration_type)
+    context.sink = create_new_sink(token, sink_label_name, endpoint, username, password, backend_type=backend_type,
+                                   configuration_type=configuration_type)
     local_orb_path = configs.get("local_orb_path")
     schema_map = {"prometheus": "/sink_schema.json", "otlphttp": "/sink_otlphttp_schema.json"}
     sink_schema_path = f"{local_orb_path}/python-test/features/steps/schemas{schema_map[backend_type]}"
@@ -81,16 +87,8 @@ def create_sink_with_conflict_name(context):
     endpoint = context.remote_prometheus_endpoint
     username = context.prometheus_username
     password = context.prometheus_key
-    include_otel_env_var = configs.get("include_otel_env_var")
-    enable_otel = configs.get("enable_otel")
-    otel_map = {"true": "enabled", "false": "disabled"}
-    if include_otel_env_var == "true":
-        context.error_message = create_new_sink(token, context.sink['name'], endpoint, username, password,
-                                                backend_type=backend_type, include_otel=include_otel_env_var,
-                                                otel=otel_map[enable_otel], expected_status_code=409)
-    else:
-        context.error_message = create_new_sink(token, context.sink['name'], endpoint, username, password,
-                                                backend_type=backend_type, expected_status_code=409)
+    context.error_message = create_new_sink(token, context.sink['name'], endpoint, username, password,
+                                            backend_type=backend_type, expected_status_code=409)
 
 
 @step("the name of last Sink is edited using an already existent one")
@@ -117,15 +115,6 @@ def new_sink(context, configuration_type):
         assert_that(configuration_type.lower(), any_of(equal_to("yaml"), equal_to("json")),
                     f"Unexpected value for sink configuration type")
         create_sink(context, configuration_type=configuration_type.lower())
-
-
-# this step is only necessary for OTEL migration tests, so we can exclude it after the migration
-@step("that a/an {sink_type} sink already exists (migration)")
-def new_sink(context, sink_type):
-    assert_that(sink_type, any_of("OTEL", "legacy"), "Unexpected type of sink")
-    otel_map = {"OTEL": "true", "legacy": "false"}
-    check_prometheus_grafana_credentials(context)
-    create_sink(context, enable_otel=otel_map[sink_type])
 
 
 @step("that {amount_of_sinks} sinks already exists")
@@ -158,18 +147,9 @@ def create_invalid_sink(context, credential):
     prometheus_credentials = {'endpoint': context.remote_prometheus_endpoint, 'username': context.prometheus_username,
                               'password': context.prometheus_key}
     prometheus_credentials[credential] = prometheus_credentials[credential][:-2]
-    include_otel_env_var = configs.get("include_otel_env_var")
-    enable_otel = configs.get("enable_otel")
-    otel_map = {"true": "enabled", "false": "disabled"}
-    if include_otel_env_var == "true":
-        context.sink = create_new_sink(token, sink_label_name, prometheus_credentials['endpoint'],
-                                       prometheus_credentials['username'], prometheus_credentials['password'],
-                                       backend_type=backend_type, include_otel=include_otel_env_var,
-                                       otel=otel_map[enable_otel])
-    else:
-        context.sink = create_new_sink(token, sink_label_name, prometheus_credentials['endpoint'],
-                                       prometheus_credentials['username'], prometheus_credentials['password'],
-                                       backend_type=backend_type)
+    context.sink = create_new_sink(token, sink_label_name, prometheus_credentials['endpoint'],
+                                   prometheus_credentials['username'], prometheus_credentials['password'],
+                                   backend_type=backend_type)
     local_orb_path = configs.get("local_orb_path")
     sink_schema_path = local_orb_path + "/python-test/features/steps/schemas/sink_schema.json"
     is_schema_valid = validate_json(context.sink, sink_schema_path)
@@ -194,36 +174,6 @@ def check_sink_status(context, status, time_to_wait):
     context.sink = get_sink_status_and_check(context.token, sink_id, status)
 
     assert_that(context.sink['state'], equal_to(status), f"Sink {context.sink} state failed")
-
-
-# this step is only necessary for OTEL migration tests, so we can exclude it after the migration
-@step("the sink is updated and OTEL is {otel}")
-def edit_sink_field(context, otel):
-    assert_that(otel, any_of("enabled", "disabled"))
-    sink = get_sink(context.token, context.sink['id'])
-    sink['config']['authentication']['password'] = configs.get('prometheus_key')
-    sink['config']["opentelemetry"] = otel
-    context.sink = edit_sink(context.token, context.sink['id'], sink)
-
-
-# this step is only necessary for OTEL migration tests, so we can exclude it after the migration
-@step("all existing sinks must have OTEL enabled")
-def check_all_sinks_status(context):
-    all_sinks = list_sinks(context.token)
-    otel_sinks = list()
-    legacy_sinks = list()
-    migrated_sinks = list()
-    for sink in all_sinks:
-        if "opentelemetry" in sink["config"].keys() and sink["config"]["opentelemetry"] == "enabled":
-            otel_sinks.append(sink["id"])
-        else:
-            legacy_sinks.append(sink["id"])
-
-        if "migrated" in sink["config"].keys() and sink["config"]["migrated"] == "m3":
-            migrated_sinks.append(sink["id"])
-    print(f"{len(migrated_sinks)} of {len(all_sinks)} sinks have migration tags")
-    assert_that(len(otel_sinks), equal_to(len(all_sinks)), f"{len(legacy_sinks)} sinks are not with otel tag enabled: "
-                                                           f"{legacy_sinks}")
 
 
 @step("the sink {field_to_edit} is edited and an {type_of_field} one is used")
@@ -270,23 +220,11 @@ def sink_partial_update(context, sink_keys):
             remote_host = context.remote_prometheus_endpoint
             username = context.prometheus_username
             password = context.prometheus_key
-            include_otel_env_var = configs.get("include_otel_env_var")
-            enable_otel = configs.get("enable_otel")
-            otel_map = {"true": "enabled", "false": "disabled"}
-            assert_that(enable_otel, any_of("true", "false"), "Unexpected value for 'enable_otel' on sinks "
-                                                              "partial update")
-            assert_that(include_otel_env_var, any_of("true", "false"), "Unexpected value for 'include_otel_env_var' on "
-                                                                       "sinks partial update")
             exporter_key = {"prometheus": "remote_host", "otlphttp": "endpoint"}
             sink_backend = context.sink.get("backend")
             assert_that(sink_backend, any_of("prometheus", "otlphttp"), f"Invalid sink backend: '{sink_backend}'")
-            if include_otel_env_var == "true":
-                sink_configs = {"authentication": {"type": "basicauth", "password": password, "username": username},
-                                "exporter": {exporter_key[sink_backend]: remote_host},
-                                "opentelemetry": otel_map[enable_otel]}
-            else:
-                sink_configs = {"authentication": {"type": "basicauth", "password": password, "username": username},
-                                "exporter": {exporter_key[sink_backend]: remote_host}}
+            sink_configs = {"authentication": {"type": "basicauth", "password": password, "username": username},
+                            "exporter": {exporter_key[sink_backend]: remote_host}}
             context.values_to_use_to_update_sink = {"name": f"{context.sink['name']}_updated",
                                                     "description": "this sink has been updated",
                                                     "tags": {"sink": "updated", "new": "tag"}, "config": sink_configs}
@@ -330,8 +268,7 @@ def clean_sinks(context):
 
 
 def create_new_sink(token, name_label, remote_host, username, password, backend_type=None,
-                    description=None, tag_key=None, tag_value=None, include_otel="false", otel="disabled",
-                    configuration_type="", expected_status_code=201):
+                    description=None, tag_key=None, tag_value=None, configuration_type="", expected_status_code=201):
     """
 
     Creates a new sink in Orb control plane
@@ -345,21 +282,14 @@ def create_new_sink(token, name_label, remote_host, username, password, backend_
     :param (str) description: description of sink
     :param (str) tag_key: the key of the tag to be added to this sink. Default: ''
     :param (str) tag_value: the value of the tag to be added to this sink. Default: None
-    :param (str) include_otel: if true it include 'opentelemetry' on sink's configs
-    :param (str) otel: the value to be used on 'opentelemetry' config
     :param (str) configuration_type: define in which type the configuration will be written
     :param (int) expected_status_code: status code expected as response
     :return: (dict) a dictionary containing the created sink data
     """
-    assert_that(include_otel, any_of("true", "false"), "Unexpected value for 'include_otel' on sinks creation")
     assert_that(backend_type, any_of("prometheus", equal_to("otlphttp")), f"Unexpected type of backend.")
     exporter_key = {"prometheus": "remote_host", "otlphttp": "endpoint"}
-    if include_otel == "true":
-        sink_configs = {"authentication": {"type": "basicauth", "password": password, "username": username},
-                        "exporter": {exporter_key[backend_type]: remote_host}, "opentelemetry": otel}
-    else:
-        sink_configs = {"authentication": {"type": "basicauth", "password": password, "username": username},
-                        "exporter": {exporter_key[backend_type]: remote_host}}
+    sink_configs = {"authentication": {"type": "basicauth", "password": password, "username": username},
+                    "exporter": {exporter_key[backend_type]: remote_host}}
     if configuration_type == "yaml":
         sink_configs_yaml = yaml.dump(sink_configs)
         json_request = {"name": name_label, "description": description, "tags": {tag_key: tag_value},
@@ -370,17 +300,15 @@ def create_new_sink(token, name_label, remote_host, username, password, backend_
     else:
         json_request = {"name": name_label, "description": description, "tags": {tag_key: tag_value},
                         "backend": backend_type, "config": sink_configs}
-    headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
+
     json_request = remove_empty_from_json(json_request)
-    response = requests.post(orb_url + '/api/v1/sinks', json=json_request, headers=headers_request,
-                             verify=verify_ssl_bool)
-    try:
-        response_json = response.json()
-    except ValueError:
-        response_json = response.text
-    assert_that(response.status_code, equal_to(expected_status_code),
-                'Request to create sink failed with status=' + str(response.status_code) + ': ' + str(response_json))
-    return response_json
+
+    status_code, response = return_api_post_response(f"{orb_url}/api/v1/sinks", request_body=json_request,
+                                                     token=token, verify=verify_ssl_bool)
+
+    assert_that(status_code, equal_to(expected_status_code),
+                'Request to create sink failed with status=' + str(status_code) + ': ' + str(response))
+    return response
 
 
 def get_sink(token, sink_id):
@@ -392,19 +320,14 @@ def get_sink(token, sink_id):
     :returns: (dict) the fetched sink
     """
 
-    get_sink_response = requests.get(orb_url + '/api/v1/sinks/' + sink_id, headers={'Authorization': f'Bearer {token}'},
-                                     verify=verify_ssl_bool)
+    status_code, response = return_api_get_response(f"{orb_url}/api/v1/sinks/{sink_id}", token=token,
+                                                    verify=verify_ssl_bool)
 
-    try:
-        response_json = get_sink_response.json()
-    except ValueError:
-        response_json = get_sink_response.text
-
-    assert_that(get_sink_response.status_code, equal_to(200),
+    assert_that(status_code, equal_to(200),
                 'Request to get sink id=' + sink_id + ' failed with status=' + str(
-                    get_sink_response.status_code) + ': ' + str(response_json))
+                    status_code) + ': ' + str(response))
 
-    return response_json
+    return response
 
 
 def list_sinks(token, limit=100, offset=0):
@@ -438,19 +361,17 @@ def list_up_to_limit_sinks(token, limit=100, offset=0):
     :returns: (list) a list of sinks, (int) total sinks on orb, (int) offset
     """
 
-    response = requests.get(orb_url + '/api/v1/sinks', headers={'Authorization': f'Bearer {token}'},
-                            params={'limit': limit, 'offset': offset}, verify=verify_ssl_bool)
+    status_code, response = return_api_get_response(f"{orb_url}/api/v1/sinks", token=token,
+                                                    params={'limit': limit, 'offset': offset}, verify=verify_ssl_bool)
 
-    try:
-        response_json = response.json()
-    except ValueError:
-        response_json = response.text
+    assert_that(status_code, equal_to(200),
+                'Request to list sinks failed with status=' + str(status_code) + ': ' + str(response))
 
-    assert_that(response.status_code, equal_to(200),
-                'Request to list sinks failed with status=' + str(response.status_code) + ': ' + str(response_json))
+    assert_that(response, has_key('sinks'), f"Response does not contain 'sinks' key: {response}")
+    assert_that(response, has_key('total'), f"Response does not contain 'total' key: {response}")
+    assert_that(response, has_key('offset'), f"Response does not contain 'offset' key: {response}")
 
-    sinks_as_json = response.json()
-    return sinks_as_json['sinks'], sinks_as_json['total'], sinks_as_json['offset']
+    return response['sinks'], response['total'], response['offset']
 
 
 def delete_sinks(token, list_of_sinks):
@@ -473,11 +394,11 @@ def delete_sink(token, sink_id):
     :param (str) sink_id: that identifies the sink to be deleted
     """
 
-    response = requests.delete(orb_url + '/api/v1/sinks/' + sink_id, headers={'Authorization': f'Bearer {token}'},
-                               verify=verify_ssl_bool)
+    status_code, response = return_api_delete_response(f"{orb_url}/api/v1/sinks/{sink_id}", token=token,
+                                                       verify=verify_ssl_bool)
 
-    assert_that(response.status_code, equal_to(204),
-                'Request to delete sink id=' + sink_id + ' failed with status=' + str(response.status_code))
+    assert_that(status_code, equal_to(204),
+                f"Request to delete sink id= {sink_id} failed with status= {status_code}. Response: {response}.")
 
 
 @threading_wait_until
@@ -507,16 +428,10 @@ def edit_sink(token, sink_id, sink_body, expected_status_code=200):
     :returns: (dict) the edited agent group
     """
 
-    headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
+    status_code, response = return_api_put_response(f"{orb_url}/api/v1/sinks/{sink_id}",
+                                                    request_body=sink_body, token=token, verify=verify_ssl_bool)
 
-    response = requests.put(orb_url + '/api/v1/sinks/' + sink_id, json=sink_body, headers=headers_request,
-                            verify=verify_ssl_bool)
-    try:
-        response_json = response.json()
-    except ValueError:
-        response_json = response.text
+    assert_that(status_code, equal_to(expected_status_code),
+                'Request to edit sink failed with status=' + str(status_code) + ":" + str(response))
 
-    assert_that(response.status_code, equal_to(expected_status_code),
-                'Request to edit sink failed with status=' + str(response.status_code) + ":" + str(response_json))
-
-    return response.json()
+    return response
