@@ -1,7 +1,7 @@
 from hamcrest import *
 import requests
 from prometheus_client.parser import text_string_to_metric_families
-from utils import threading_wait_until
+from utils import threading_wait_until, return_api_get_response
 from logger import Logger
 
 log = Logger().logger_instance()
@@ -20,6 +20,9 @@ def wait_until_metrics_scraped(local_prometheus_endpoint, expected_metrics, even
     response = requests.get(local_prometheus_endpoint)
     log.info(f"{response.request.method} {response.url} -> Status Code: {response.status_code}")
     log.debug(f"Metrics: {response.text}")
+    bucket_0 = f"{local_prometheus_endpoint.replace('/prometheus', '/bucket/0')}"
+    status_code, response = return_api_get_response(bucket_0)
+    log.debug(f"Bucket 0: {response}")
     for family in text_string_to_metric_families(response.text):
         for sample in family.samples:
             metrics_present.add(sample.name)

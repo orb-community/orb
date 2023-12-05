@@ -21,7 +21,7 @@ Scenario: netprobe handler with default metric groups configuration
         And remove the agent .yaml generated on each scenario
 
 
-@sanity @metric_groups @metrics_netprobe @auto_provision
+@sanity @metric_groups @metrics_netprobe @auto_provision @thisone
 Scenario: netprobe handler with all metric groups enabled
     Given the Orb user has a registered account
         And the Orb user logs in
