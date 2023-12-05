@@ -30,6 +30,7 @@ def wait_until_metrics_scraped(local_prometheus_endpoint, expected_metrics, even
     print(f"calling local_prometheus_endpoint: {local_prometheus_endpoint}")
     metrics_present = set()
     metrics = requests.get(local_prometheus_endpoint)
+    print(f"metrics: {metrics.text}")
     for family in text_string_to_metric_families(metrics.text):
         for sample in family.samples:
             metrics_present.add(sample.name)
