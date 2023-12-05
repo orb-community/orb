@@ -1,8 +1,10 @@
 from hamcrest import *
 import requests
 from behave import given, then, step
-from utils import random_string, filter_list_by_parameter_start_with, safe_load_json, remove_empty_from_json, \
-    threading_wait_until, UtilsManager, create_tags_set, is_json, values_to_boolean, return_api_post_response
+from utils import (random_string, filter_list_by_parameter_start_with, safe_load_json, remove_empty_from_json, \
+                   threading_wait_until, UtilsManager, create_tags_set, is_json, values_to_boolean,
+                   return_api_post_response,
+                   return_api_get_response, return_api_put_response, return_api_delete_response)
 from local_agent import get_orb_agent_logs
 from configs import TestConfig
 from datetime import datetime
@@ -562,19 +564,15 @@ def edit_policy(token, policy_id, json_request, expected_status_code=200):
     :param (int) expected_status_code: status to be returned on response
     :return: response of policy editing
     """
-    headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
 
-    response = requests.put(orb_url + f"/api/v1/policies/agent/{policy_id}", json=json_request,
-                            headers=headers_request, verify=verify_ssl_bool)
-    try:
-        response_json = response.json()
-    except ValueError:
-        response_json = response.text
-    assert_that(response.status_code, equal_to(expected_status_code),
-                'Request to editing policy failed with status=' + str(response.status_code) + ': '
-                + str(response_json))
+    status_code, response = return_api_put_response(f"{orb_url}/api/v1/policies/agent/{policy_id}",
+                                                    request_body=json_request, token=token, verify=verify_ssl_bool)
 
-    return response_json
+    assert_that(status_code, equal_to(expected_status_code),
+                'Request to editing policy failed with status=' + str(status_code) + ': '
+                + str(response))
+
+    return response
 
 
 def make_policy_json(name, handler_label, handler, description=None, tap="default_pcap",
@@ -776,17 +774,14 @@ def get_policy(token, policy_id, expected_status_code=200):
     :returns: (dict) the fetched policy
     """
 
-    get_policy_response = requests.get(orb_url + '/api/v1/policies/agent/' + policy_id,
-                                       headers={'Authorization': f'Bearer {token}'}, verify=verify_ssl_bool)
-    try:
-        response_json = get_policy_response.json()
-    except ValueError:
-        response_json = get_policy_response.text
-    assert_that(get_policy_response.status_code, equal_to(expected_status_code),
-                'Request to get policy id=' + policy_id + ' failed with status= ' + str(get_policy_response.status_code)
-                + " response= " + str(response_json))
+    status_code, response = return_api_get_response(f"{orb_url}/api/v1/policies/agent/{policy_id}", token=token,
+                                                    verify=verify_ssl_bool)
 
-    return response_json
+    assert_that(status_code, equal_to(expected_status_code),
+                'Request to get policy id=' + policy_id + ' failed with status= ' + str(status_code)
+                + " response= " + str(response))
+
+    return response
 
 
 def list_policies(token, limit=100, offset=0):
@@ -821,19 +816,17 @@ def list_up_to_limit_policies(token, limit=100, offset=0):
     :returns: (list) a list of policies, (int) total policies on orb, (int) offset
     """
 
-    response = requests.get(orb_url + '/api/v1/policies/agent', headers={'Authorization': f'Bearer {token}'},
-                            params={'limit': limit, 'offset': offset}, verify=verify_ssl_bool)
-    try:
-        response_json = response.json()
-    except ValueError:
-        response_json = response.text
+    status_code, response = return_api_get_response(f"{orb_url}/api/v1/policies/agent", token=token,
+                                                    params={'limit': limit, 'offset': offset}, verify=verify_ssl_bool)
 
-    assert_that(response.status_code, equal_to(200),
+    assert_that(status_code, equal_to(200),
                 'Request to list policies failed with status=' + str(response.status_code) + ': '
-                + str(response_json))
+                + str(response))
+    assert_that(response, has_key('data'), f"Response does not contain 'data' key: {response}")
+    assert_that(response, has_key('total'), f"Response does not contain 'total' key: {response}")
+    assert_that(response, has_key('offset'), f"Response does not contain 'offset' key: {response}")
 
-    policies_as_json = response_json
-    return policies_as_json['data'], policies_as_json['total'], policies_as_json['offset']
+    return response['data'], response['total'], response['offset']
 
 
 def delete_policies(token, list_of_policies):
@@ -856,11 +849,11 @@ def delete_policy(token, policy_id):
     :param (str) policy_id: that identifies the policy to be deleted
     """
 
-    response = requests.delete(orb_url + '/api/v1/policies/agent/' + policy_id,
-                               headers={'Authorization': f'Bearer {token}'}, verify=verify_ssl_bool)
+    status_code, response = return_api_delete_response(f"{orb_url}/api/v1/policies/agent/{policy_id}",
+                                                       token=token, verify=verify_ssl_bool)
 
-    assert_that(response.status_code, equal_to(204), 'Request to delete policy id='
-                + policy_id + ' failed with status=' + str(response.status_code))
+    assert_that(status_code, equal_to(204), 'Request to delete policy id='
+                + policy_id + ' failed with status=' + str(status_code))
 
 
 def check_logs_contain_message_for_policies(logs, expected_message, list_agent_policies_id, considered_timestamp):
