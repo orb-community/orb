@@ -441,7 +441,7 @@ def run_agent_config_file(agent_name, overwrite_default=False, only_file=False, 
         volume = f"{local_orb_path}:{config_file_path}/"
     agent_command = f"{config_file_path}/{agent_name}.yaml"
     if overwrite_default is True:
-        command = f"docker run -d -v {volume} -p {port}:{port}--net=host {agent_image}"
+        command = f"docker run -d -v {volume} -p {port}:{port} --net=host {agent_image}"
     else:
         command = f"docker run -d -v {volume} -p {port}:{port} --net=host {agent_image} run -c {agent_command}"
     args = shlex.split(command)
