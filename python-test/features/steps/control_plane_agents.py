@@ -415,7 +415,8 @@ def provision_agent_using_config_file(context, input_type, settings, provision, 
     for key, value in context.tap.items():
         if 'tags' in value.keys():
             context.tap_tags.update({key: value['tags']})
-    context.container_id = run_agent_config_file(context.agent_file_name, overwrite_default, paste_only_file)
+    context.container_id = run_agent_config_file(context.agent_file_name, overwrite_default, paste_only_file,
+                                                 context.port)
     if context.container_id not in context.containers_id.keys():
         context.containers_id[context.container_id] = str(context.port)
     log = f"web server listening on localhost:{context.port}"

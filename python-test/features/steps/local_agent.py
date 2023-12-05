@@ -415,7 +415,7 @@ def get_logs_and_check(container_id, expected_message, start_time=0, element_to_
     return text_found, logs
 
 
-def run_agent_config_file(agent_name, overwrite_default=False, only_file=False, config_file_path="/opt/orb",
+def run_agent_config_file(agent_name, overwrite_default=False, only_file=False, port=10583, config_file_path="/opt/orb",
                           time_to_wait=5):
     """
     Run an agent container using an agent config file
@@ -424,6 +424,7 @@ def run_agent_config_file(agent_name, overwrite_default=False, only_file=False, 
     :param only_file: is true copy only the file. If false, copy the directory
     :param (bool) overwrite_default: if True and only_file is False saves the agent as "agent.yaml". Else, save it with
     agent name
+    :param port: port on which pktvisor should run
     :param config_file_path: path to agent config file
     :param time_to_wait: seconds that threading must wait after run the agent
     :return: agent container id
@@ -440,9 +441,9 @@ def run_agent_config_file(agent_name, overwrite_default=False, only_file=False, 
         volume = f"{local_orb_path}:{config_file_path}/"
     agent_command = f"{config_file_path}/{agent_name}.yaml"
     if overwrite_default is True:
-        command = f"docker run -d -v {volume} --net=host {agent_image}"
+        command = f"docker run -d -v {volume} -p {port}:{port}--net=host {agent_image}"
     else:
-        command = f"docker run -d -v {volume} --net=host {agent_image} run -c {agent_command}"
+        command = f"docker run -d -v {volume} -p {port}:{port} --net=host {agent_image} run -c {agent_command}"
     args = shlex.split(command)
     terminal_running = subprocess.Popen(args, stdout=subprocess.PIPE)
     subprocess_return = terminal_running.stdout.read().decode()
