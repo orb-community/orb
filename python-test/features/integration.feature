@@ -25,7 +25,7 @@ Scenario: General smoke test to validate private agent image
         And 2 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
 
 
-@smoke @bla
+@smoke
 Scenario: Test agents backend routes
     Given the Orb user has a registered account
         And the Orb user logs in

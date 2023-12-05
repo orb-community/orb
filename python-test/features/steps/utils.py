@@ -304,6 +304,10 @@ def log_response(response):
     else:
         log.error(
             f"{response.request.method} {response.url} -> Status Code: {response.status_code}, Response: {response.text}")
+        request_body = response.request.body.decode("utf-8")
+        if "password" in request_body:
+            request_body["password"] = "********"
+        log.debug(f"Request body: {request_body}")
 
 
 def return_api_get_response(api_path, token=None, params=None, **kwargs):
