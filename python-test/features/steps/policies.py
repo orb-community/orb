@@ -820,7 +820,7 @@ def list_up_to_limit_policies(token, limit=100, offset=0):
                                                     params={'limit': limit, 'offset': offset}, verify=verify_ssl_bool)
 
     assert_that(status_code, equal_to(200),
-                'Request to list policies failed with status=' + str(response.status_code) + ': '
+                'Request to list policies failed with status=' + str(status_code) + ': '
                 + str(response))
     assert_that(response, has_key('data'), f"Response does not contain 'data' key: {response}")
     assert_that(response, has_key('total'), f"Response does not contain 'total' key: {response}")
