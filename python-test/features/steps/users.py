@@ -2,7 +2,7 @@ from hamcrest import *
 from behave import given, step, then
 from configs import TestConfig
 import requests
-from utils import random_string
+from utils import random_string, return_api_post_response
 
 configs = TestConfig.configs()
 orb_url = configs.get('orb_url')
@@ -94,21 +94,22 @@ def authenticate(user_email, user_password, expected_status_code=201):
     :returns: (dict) response of auth request
     """
 
-    headers = {'Content-type': 'application/json', 'Accept': '*/*'}
+    # headers = {'Content-type': 'application/json', 'Accept': '*/*'}
     json_request = {'email': user_email, 'password': user_password}
     json_request = {parameter: value for parameter, value in json_request.items() if value}
-    response = requests.post(orb_url + '/api/v1/tokens',
-                             json=json_request,
-                             headers=headers,
-                             verify=verify_ssl_bool)
-    try:
-        response_json = response.json()
-    except ValueError:
-        response_json = response.text
-    assert_that(response.status_code, equal_to(expected_status_code),
-                f"Authentication failed with status= {str(response.status_code)}. Response: {str(response_json)}"
+    status_code, response = return_api_post_response(None, f"{orb_url}/api/v1/tokens", json_request)
+    # response = requests.post(orb_url + '/api/v1/tokens',
+    #                          json=json_request,
+    #                          headers=headers,
+    #                          verify=verify_ssl_bool)
+    # try:
+    #     response_json = response.json()
+    # except ValueError:
+    #     response_json = response.text
+    assert_that(status_code, equal_to(expected_status_code),
+                f"Authentication failed with status= {str(status_code)}. Response: {str(response)}"
                 )
-    return response_json
+    return response
 
 
 def register_account(user_email, user_password, company_name=None, user_full_name=None, expected_status_code=201):

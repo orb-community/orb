@@ -33,7 +33,3 @@ class Logger:
 
     def logger_instance(self):
         return self._logger
-
-
-log = Logger().logger_instance()
-log.info("Logger initialized")
