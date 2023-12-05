@@ -307,19 +307,20 @@ def check_agent_exists_on_backend(token, agent_name, event=None):
     return agent, event.is_set()
 
 
-@step("an agent(input_type:{input_type}, settings: {settings}) is {provision} via a configuration file on port {port} "
-      "with {agent_tags} agent tags and has status {status}. [Overwrite default: {overwrite_default}. Paste only "
-      "file: {paste_only_file}. Use specif backend for pktvisor {pkt_config}]")
-def provision_agent_using_config_file_drop_pkt_config(context, input_type, settings, provision, port, agent_tags,
-                                                      status, overwrite_default, paste_only_file, pkt_config):
-    pkt_config = json.loads(pkt_config)
-    provision_agent_using_config_file(context, input_type, settings, provision, port, agent_tags, status,
-                                      overwrite_default, paste_only_file, pkt_config=pkt_config)
+@step("an agent(backend_type:{backend_type}, settings: {settings}) is {provision} via a configuration file on "
+      "port {port} with {agent_tags} agent tags and has status {status}. [Overwrite default: {overwrite_default}. "
+      "Paste only file: {paste_only_file}. Use specif backend config {specific_backend_config}]")
+def provision_agent_using_config_file_drop_pkt_config(context, backend_type, settings, provision, port, agent_tags,
+                                                      status, overwrite_default, paste_only_file,
+                                                      specific_backend_config):
+    specific_backend_config = json.loads(specific_backend_config)
+    provision_agent_using_config_file(context, backend_type, settings, provision, port, agent_tags, status,
+                                      overwrite_default, paste_only_file,
+                                      specific_backend_config=specific_backend_config)
 
 
 @step("an agent(backend_type:{backend_type}, settings: {settings}) is {provision} via a configuration file on port {"
-      "port}"
-      "with {agent_tags} agent tags and has status {status}. [Overwrite default: {overwrite_default}. Paste only "
+      "port} with {agent_tags} agent tags and has status {status}. [Overwrite default: {overwrite_default}. Paste only "
       "file: {paste_only_file}]")
 def provision_agent_using_config_file(context, backend_type, settings, provision, port, agent_tags, status,
                                       overwrite_default, paste_only_file, **kwargs):
@@ -382,7 +383,7 @@ def provision_agent_using_config_file(context, backend_type, settings, provision
                                  context.port,
                                  context.agent_groups, auto_provision,
                                  orb_cloud_mqtt_id, orb_cloud_mqtt_key, orb_cloud_mqtt_channel_id, settings,
-                                 overwrite_default, paste_only_file)
+                                 overwrite_default, paste_only_file, **kwargs)
     if backend_type == "pktvisor":
         for key, value in context.tap.items():
             if 'tags' in value.keys():
@@ -878,28 +879,20 @@ def get_groups_to_which_agent_is_matching(token, agent_id, groups_matching_ids, 
     return list_groups_id, agent
 
 
-# def create_agent_config_file(token, agent_name, iface, agent_tags, orb_url, port,
-#                              existing_agent_groups, tap_name, input_type="pcap", input_tags='3', auto_provision="true",
-#                              orb_cloud_mqtt_id=None, orb_cloud_mqtt_key=None, orb_cloud_mqtt_channel_id=None,
-#                              settings=None, overwrite_default=False, only_file=False, pktvisor_binary=None,
-#                              pktvisor_config_file=None):
 def create_agent_config_file(backend_type, token, agent_name, agent_tags, orb_url, port,
                              existing_agent_groups, auto_provision="true",
                              orb_cloud_mqtt_id=None, orb_cloud_mqtt_key=None, orb_cloud_mqtt_channel_id=None,
-                             settings=None, overwrite_default=False, only_file=False):
+                             settings=None, overwrite_default=False, only_file=False, **kwargs):
     """
     Create a file .yaml with configs of the agent that will be provisioned
 
+    :param backend_type: agent backend type
     :param (str) token: used for API authentication
     :param (str) agent_name: name of the agent that will be created
-    :param (str) iface: network interface
     :param (str) agent_tags: agent tags
-    :param (str) base_orb_address: base orb url address
+    :param orb_url: url address of ORB
     :param (str) port: port on which agent must run.
     :param (dict) existing_agent_groups: all agent groups available
-    :param (str) tap_name: name of the input tap
-    :param (str) input_type: type of tap on agent. Default: pcap
-    :param (str) input_tags: tags to be inserted on input tap
     :param (str) auto_provision: if true auto_provision the agent. If false, provision an agent already existent on orb
     :param (str) orb_cloud_mqtt_id: agent mqtt id.
     :param (str) orb_cloud_mqtt_key: agent mqtt key.
@@ -908,8 +901,6 @@ def create_agent_config_file(backend_type, token, agent_name, agent_tags, orb_ur
     :param (bool) overwrite_default: if True and only_file is False saves the agent as "agent.yaml". Else, save it with
     agent name
     :param (bool) only_file: is true copy only the file. If false, copy the directory.
-    :param (str) pktvisor_binary: path to pktvisor binary.
-    :param (str) pktvisor_config_file: path to pktvisor binary.
     :return: path to the directory where the agent config file was created
     """
     assert_that(auto_provision, any_of(equal_to("true"), equal_to("false")), "Unexpected value for auto_provision "
@@ -932,8 +923,6 @@ def create_agent_config_file(backend_type, token, agent_name, agent_tags, orb_ur
                       "token": token}
     if backend_type == "pktvisor":
         assert_that(settings, has_key("iface"), f"Missing iface on agent config file creation")
-        # iface = settings.get('iface')
-        # settings.pop('iface', None)
         assert_that(settings, has_key("tap_name"), f"Missing tap_name on agent config file creation")
         tap_name = settings.get('tap_name')
         settings.pop('tap_name', None)
@@ -943,54 +932,35 @@ def create_agent_config_file(backend_type, token, agent_name, agent_tags, orb_ur
         settings.pop('input_tags', None)
         backend_file, taps = ConfigFiles(backend_type).pktvisor_config_file(tap_name, input_type, input_tags,
                                                                             settings)
-        backend_settings = {"binary": "/usr/local/sbin/pktvisord"}
+        if "specific_backend_config" in kwargs.keys() and "binary" in kwargs["specific_backend_config"].keys():
+            binary = kwargs["specific_backend_config"]["binary"]
+            if isinstance(binary, str) and binary.lower() == "none":
+                binary = None
+        else:
+            binary = "/usr/local/sbin/pktvisord"
+        backend_settings = {"binary": binary}
+        backend_settings = remove_empty_from_json(backend_settings)
     elif backend_type == "otel":
         backend_file = ConfigFiles(backend_type).otel_config_file()
         taps = {}
         backend_settings = {}
     else:
         raise Exception(f"Unexpected value for backend_type on agent config file creation: {backend_type}")
+    if "specific_backend_config" in kwargs.keys() and "config_file" in kwargs["specific_backend_config"].keys():
+        config_file = kwargs["specific_backend_config"]["config_file"]
+        if isinstance(config_file, str) and config_file.lower() == "none":
+            config_file = None
+    else:
+        config_file = "default"
 
     agent_config_file = FleetAgent.config_file_of_orb_agent(backend_type, auto_provision,
                                                             f"{port}", backend_settings, cloud_settings,
                                                             orb_url, mqtt_url, backend_file=backend_file,
-                                                            tls_verify=verify_ssl, overwrite_default=overwrite_default)
-    # if configs.get('verify_ssl') == 'false':
-    #     agent_config_file, tap = FleetAgent.config_file_of_orb_agent(agent_name, token, iface, orb_url, mqtt_url,
-    #                                                                  tap_name,
-    #                                                                  tls_verify=False, auto_provision=auto_provision,
-    #                                                                  orb_cloud_mqtt_id=orb_cloud_mqtt_id,
-    #                                                                  orb_cloud_mqtt_key=orb_cloud_mqtt_key,
-    #                                                                  orb_cloud_mqtt_channel_id=orb_cloud_mqtt_channel_id,
-    #                                                                  input_type=input_type, input_tags=input_tags,
-    #                                                                  settings=settings,
-    #                                                                  overwrite_default=overwrite_default)
-    # else:
-    #     agent_config_file, tap = FleetAgent.config_file_of_orb_agent(agent_name, token, iface, orb_url, mqtt_url,
-    #                                                                  tap_name,
-    #                                                                  auto_provision=auto_provision,
-    #                                                                  orb_cloud_mqtt_id=orb_cloud_mqtt_id,
-    #                                                                  orb_cloud_mqtt_key=orb_cloud_mqtt_key,
-    #                                                                  orb_cloud_mqtt_channel_id=orb_cloud_mqtt_channel_id,
-    #                                                                  input_type=input_type, input_tags=input_tags,
-    #                                                                  settings=settings,
-    #                                                                  overwrite_default=overwrite_default)
+                                                            tls_verify=verify_ssl, overwrite_default=overwrite_default,
+                                                            config_file=config_file)
     log.debug(f"Agent file: {agent_config_file}")
     agent_config_file = yaml.load(agent_config_file, Loader=SafeLoader)
-    # if pktvisor_config_file is None or pktvisor_config_file == "None":
-    #     agent_config_file['orb']['backends']['pktvisor'].pop("config_file", None)
-    # elif pktvisor_config_file == "default":
-    #     pass
-    # else:
-    #     agent_config_file['orb']['backends']['pktvisor']["config_file"] = pktvisor_config_file
-    # if pktvisor_binary is None or pktvisor_binary == "None":
-    #     agent_config_file['orb']['backends']['pktvisor'].pop("binary", None)
-    # elif pktvisor_binary == "default":
-    #     pass
-    # else:
-    #     agent_config_file['orb']['backends']['pktvisor']["binary"] = pktvisor_binary
     agent_config_file['orb'].update(tags)
-    # agent_config_file['orb']['backends']['pktvisor'].update({"api_port": f"{port}"})
     agent_config_file_yaml = yaml.dump(agent_config_file)
     safe_agent_config_file = agent_config_file.copy()
     if "token" in safe_agent_config_file['orb']['cloud']['api'].keys():
@@ -1000,7 +970,6 @@ def create_agent_config_file(backend_type, token, agent_name, agent_tags, orb_ur
         agent_name = "agent"
     with open(f"{dir_path}/{agent_name}.yaml", "w+") as f:
         f.write(agent_config_file_yaml)
-    # return agent_name, tags, tap, safe_agent_config_file
     return agent_name, tags, taps, safe_agent_config_file
 
 
