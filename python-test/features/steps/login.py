@@ -62,10 +62,10 @@ def request_account_registration(context, password_status, username, company):
         if len(password) > 8: passwords_to_test.append(password[:-1])
         for current_password in passwords_to_test:
             response, status_code = register_account(email, current_password, company, username, 409)
-            assert_that(response.json()['error'], equal_to('entity already exists'), 'Wrong message on API response')
+            assert_that(response['error'], equal_to('entity already exists'), 'Wrong message on API response')
     else:
         response, status_code = register_account(email, password, company, username, 409)
-        assert_that(response.json()['error'], equal_to('entity already exists'), 'Wrong message on API response')
+        assert_that(response['error'], equal_to('entity already exists'), 'Wrong message on API response')
 
 
 @then('account register should not be changed')

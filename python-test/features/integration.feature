@@ -37,7 +37,7 @@ Scenario: Test agents backend routes
         And inputs route must be enabled
 
 
-@smoke @sanity @bla
+@smoke @sanity
 Scenario: Create dataset with name conflict
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -129,7 +129,7 @@ Scenario: Remove group to which agent is linked
         And 0 dataset(s) have validity valid and 2 have validity invalid in 30 seconds
 
 
-@smoke
+@smoke @bla
 Scenario: Remove policy from agent
     Given the Orb user has a registered account
         And the Orb user logs in

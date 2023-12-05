@@ -512,7 +512,7 @@ def create_duplicated_policy(token, policy_id, new_policy_name=None, expected_st
                 'Request to create duplicated policy failed with status=' + str(status_code) + ': '
                 + str(response))
     if status_code == 201:
-        compare_two_policies(token, policy_id, response.json()['id'])
+        compare_two_policies(token, policy_id, response['id'])
     return response
 
 
