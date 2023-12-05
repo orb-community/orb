@@ -785,7 +785,7 @@ def edit_agent(token, agent_id, name, tags, expected_status_code=200):
     json_request = {"name": name, "orb_tags": tags, "validate_only": False}
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*',
                        'Authorization': f'Bearer {token}'}
-    status_code, response = return_api_put_response(orb_url + '/api/v1/agents/' + agent_id, json=json_request,
+    status_code, response = return_api_put_response(orb_url + '/api/v1/agents/' + agent_id, request_body=json_request,
                                        headers=headers_request, verify=verify_ssl_bool)
 
     assert_that(status_code, equal_to(expected_status_code),
