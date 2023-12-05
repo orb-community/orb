@@ -745,10 +745,9 @@ def delete_agent(token, agent_id):
 @threading_wait_until
 def wait_until_agent_being_created(token, name, tags, expected_status_code=201, event=None):
     json_request = {"name": name, "orb_tags": tags, "validate_only": False}
-    headers_request = {'Content-type': 'application/json', 'Accept': '*/*',
-                       'Authorization': f'Bearer {token}'}
 
-    status_code, response = return_api_post_response(f"{orb_url}/api/v1/agents", token=token, json=json_request,
+    status_code, response = return_api_post_response(f"{orb_url}/api/v1/agents", token=token,
+                                                     request_body=json_request,
                                                      verify=verify_ssl_bool)
     if status_code == expected_status_code:
         event.set()

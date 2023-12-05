@@ -324,7 +324,7 @@ def return_api_post_response(api_path, token=None, request_body=None, **kwargs):
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
     if token is None:
         headers_request.pop('Authorization', None)
-    response = requests.post(api_path, json=request_body, headers=headers_request, *kwargs)
+    response = requests.post(api_path, json=request_body, headers=headers_request, **kwargs)
     log_response(response)
     try:
         response_json = response.json()
