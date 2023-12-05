@@ -1,7 +1,7 @@
 import random
-
 from behave import then, step
-from utils import random_string, filter_list_by_parameter_start_with, validate_json, threading_wait_until
+from utils import (random_string, filter_list_by_parameter_start_with, validate_json, threading_wait_until,
+                   return_api_post_response)
 from hamcrest import *
 import requests
 from configs import TestConfig
@@ -176,19 +176,15 @@ def create_dataset(token, name_label, policy_id, agent_group_id, sink_id, expect
 
     json_request = {"name": name_label, "agent_group_id": agent_group_id, "agent_policy_id": policy_id,
                     "sink_ids": sink_id}
-    header_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
+    status_code, response = return_api_post_response(f"{orb_url}/api/v1/policies/dataset",
+                                                     request_body=json_request, token=token,
+                                                     verify=verify_ssl_bool)
 
-    response = requests.post(orb_url + '/api/v1/policies/dataset', json=json_request, headers=header_request,
-                             verify=verify_ssl_bool)
-    try:
-        response_json = response.json()
-    except ValueError:
-        response_json = response.text
-    assert_that(response.status_code, equal_to(expected_status_code),
-                'Request to create dataset failed with status=' + str(response.status_code) + ': ' +
-                str(response_json))
+    assert_that(status_code, equal_to(expected_status_code),
+                'Request to create dataset failed with status=' + str(status_code) + ': ' +
+                str(response))
 
-    return response_json
+    return response
 
 
 def edit_dataset(token, dataset_id, name_label, policy_id, agent_group_id, sink_id, expected_status_code=200):

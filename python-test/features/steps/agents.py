@@ -474,12 +474,12 @@ def provision_otel_backend_agent_using_config_file(context, provision, port, age
 @step("remotely restart the agent")
 def reset_agent_remotely(context):
     context.considered_timestamp_reset = datetime.now().timestamp()
-    headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {context.token}'}
-    response = requests.post(f"{orb_url}/api/v1/agents/{context.agent['id']}/rpc/reset", headers=headers_request,
-                             verify=verify_ssl_bool)
+    status_code, repsonse = (
+        return_api_post_response(f"{orb_url}/api/v1/agents/{context.agent['id']}/rpc/reset",
+                                 token=context.token, verify=verify_ssl_bool))
     logs = get_orb_agent_logs(context.container_id)
-    assert_that(response.status_code, equal_to(200),
-                f"Request to restart agent failed with status= {str(response.status_code)}. \n Agent: {context.agent}\n"
+    assert_that(status_code, equal_to(200),
+                f"Request to restart agent failed with status= {str(status_code)}. \n Agent: {context.agent}\n"
                 f" Logs: {logs}")
 
 
@@ -659,18 +659,18 @@ def wait_until_expected_backend_error(token, agent_id, backend, error, event=Non
         return None, agent
 
 
-def get_agent(token, agent_id, status_code=200):
+def get_agent(token, agent_id, expected_status_code=200):
     """
     Gets an agent from Orb control plane
 
     :param (str) token: used for API authentication
     :param (str) agent_id: that identifies agent to be fetched
-    :param (int) status_code: status code that must be returned on response
+    :param (int) expected_status_code: status code that must be returned on response
     :returns: (dict) the fetched agent
     """
     status_code, response = return_api_get_response(f"{orb_url}/api/v1/agents/{agent_id}", token=token,
                                                     verify=verify_ssl_bool)
-    assert_that(status_code, equal_to(status_code),
+    assert_that(status_code, equal_to(expected_status_code),
                 f"Request to get agent id= {agent_id} failed with status= {status_code}:"
                 f"{response}")
 

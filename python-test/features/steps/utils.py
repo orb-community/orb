@@ -303,8 +303,12 @@ def log_response(response):
         log.info(f"{response.request.method} {response.url} -> Status Code: {response.status_code}")
     else:
         log.error(
-            f"{response.request.method} {response.url} -> Status Code: {response.status_code}, Response: {response.text}")
-        request_body = response.request.body.decode("utf-8")
+            f"{response.request.method} {response.url} -> Status Code: {response.status_code},"
+            f" Response: {response.text}")
+        request_body = response.request.body
+        if request_body is not None:
+            request_body = request_body.decode("utf-8")
+            request_body = json.loads(request_body)
         if "password" in request_body:
             request_body["password"] = "********"
         log.debug(f"Request body: {request_body}")

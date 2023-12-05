@@ -2,7 +2,7 @@ from hamcrest import *
 import requests
 from behave import given, then, step
 from utils import random_string, filter_list_by_parameter_start_with, safe_load_json, remove_empty_from_json, \
-    threading_wait_until, UtilsManager, create_tags_set, is_json, values_to_boolean
+    threading_wait_until, UtilsManager, create_tags_set, is_json, values_to_boolean, return_api_post_response
 from local_agent import get_orb_agent_logs
 from configs import TestConfig
 from datetime import datetime
@@ -492,31 +492,26 @@ def check_duplicated_policies_status(context, amount_successfully_policies, amou
                                                                           f".")
 
 
-def create_duplicated_policy(token, policy_id, new_policy_name=None, status_code=201):
+def create_duplicated_policy(token, policy_id, new_policy_name=None, expected_status_code=201):
     """
 
     :param (str) token: used for API authentication
     :param (str) policy_id: id of policy that will be duplicated
     :param (str) new_policy_name: name for the new policy created
-    :param (int) status_code: status code that must return on response
+    :param (int) expected_status_code: status code that must return on response
     :return: (dict) new policy created
     """
     json_request = {"name": new_policy_name}
     json_request = remove_empty_from_json(json_request)
-    headers_request = {'Content-type': 'application/json', 'Accept': 'application/json',
-                       'Authorization': f'Bearer {token}'}
     post_url = f"{orb_url}/api/v1/policies/agent/{policy_id}/duplicate"
-    response = requests.post(post_url, json=json_request, headers=headers_request, verify=verify_ssl_bool)
-    try:
-        response_json = response.json()
-    except ValueError:
-        response_json = response.text
-    assert_that(response.status_code, equal_to(status_code),
-                'Request to create duplicated policy failed with status=' + str(response.status_code) + ': '
-                + str(response_json))
+    status_code, response = return_api_post_response(post_url, request_body=json_request, token=token,
+                                                     verify=verify_ssl_bool)
+    assert_that(status_code, equal_to(expected_status_code),
+                'Request to create duplicated policy failed with status=' + str(status_code) + ': '
+                + str(response))
     if status_code == 201:
         compare_two_policies(token, policy_id, response.json()['id'])
-    return response_json
+    return response
 
 
 def compare_two_policies(token, id_policy_one, id_policy_two):
@@ -547,19 +542,14 @@ def create_policy(token, json_request, expected_status_code=201):
 
     """
 
-    headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
+    status_code, response = return_api_post_response(f"{orb_url}/api/v1/policies/agent", request_body=json_request,
+                                                     token=token, verify=verify_ssl_bool)
 
-    response = requests.post(orb_url + '/api/v1/policies/agent', json=json_request, headers=headers_request,
-                             verify=verify_ssl_bool)
-    try:
-        response_json = response.json()
-    except ValueError:
-        response_json = response.text
-    assert_that(response.status_code, equal_to(expected_status_code),
-                'Request to create policy failed with status=' + str(response.status_code) + ': '
-                + str(response_json))
+    assert_that(status_code, equal_to(expected_status_code),
+                'Request to create policy failed with status=' + str(status_code) + ': '
+                + str(response))
 
-    return response_json
+    return response
 
 
 def edit_policy(token, policy_id, json_request, expected_status_code=200):
@@ -670,6 +660,7 @@ def make_otel_policy_json(name, description, policy_data):
                     "format": "yaml"}
     json_request = remove_empty_from_json(json_payload.copy())
     return json_request
+
 
 def make_policy_flow_json(name, handler_label, handler, description=None, tap="default_flow",
                           input_type="flow", port=None, bind=None, flow_type=None, sample_rate_scaling=None,
@@ -1084,7 +1075,8 @@ def return_policies_type(k, policies_type='mixed', input_type="pcap"):
         }
 
         if input_type != "dnstap":
-            advanced['advanced_dhcp'] = "handler=dhcp, description='policy_dhcp', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap"
+            advanced[
+                'advanced_dhcp'] = "handler=dhcp, description='policy_dhcp', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap"
             simple['simple_dhcp'] = "handler=dhcp"
 
     mixed = dict()
