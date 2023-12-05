@@ -136,9 +136,11 @@ func (es eventStore) GetPolicyState(ctx context.Context, agent fleet.Agent) (map
 
 // NewEventStoreMiddleware returns wrapper around fleet service that sends
 // events to event store.
-func NewEventStoreMiddleware(svc fleet.Service, client *redis.Client) fleet.Service {
+func NewEventStoreMiddleware(svc fleet.Service, client *redis.Client, logger *zap.Logger) fleet.Service {
+	l := logger.Named("event_store_middleware")
 	return eventStore{
 		svc:    svc,
 		client: client,
+		logger: l,
 	}
 }
