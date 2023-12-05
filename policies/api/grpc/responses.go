@@ -14,6 +14,7 @@ type policyRes struct {
 	backend string
 	version int32
 	data    []byte
+	format  string
 }
 
 type policyInDSRes struct {
@@ -24,6 +25,7 @@ type policyInDSRes struct {
 	data         []byte
 	datasetID    string
 	agentGroupID string
+	format       string
 }
 
 type policyInDSListRes struct {
