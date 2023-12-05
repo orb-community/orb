@@ -365,19 +365,12 @@ def provision_agent_using_config_file(context, backend_type, settings, provision
         interface = configs.get('orb_agent_interface', 'auto')
     settings["iface"] = interface
     orb_url = configs.get('orb_url')
-    # base_orb_address = configs.get('orb_address')
     context.port = return_port_by_availability(context, True)
     if "tap_name" in context:
         tap_name = context.tap_name
     else:
         tap_name = agent_name
     settings["tap_name"] = tap_name
-    # pkt_configs = {"binary": "default", "config_file": "default"}
-    # if 'pkt_config' in kwargs.keys():
-    #     if "binary" in kwargs['pkt_config'].keys():
-    #         pkt_configs["binary"] = kwargs['pkt_config']["binary"]
-    #     if "config_file" in kwargs['pkt_config'].keys():
-    #         pkt_configs["config_file"] = kwargs['pkt_config']["config_file"]
     context.agent_file_name, tags_on_agent, context.tap, safe_config_file = \
         create_agent_config_file(backend_type, context.token, agent_name, agent_tags, orb_url,
                                  context.port,
@@ -499,13 +492,13 @@ def check_agent_backend_pktvisor_routes(context, route):
                             "inputs": "backends/pktvisor/inputs",
                             "handlers": "backends/pktvisor/handlers"}
 
-    response = requests.get(orb_url + '/api/v1/agents/' + agent_backend_routes[route],
-                            headers={'Authorization': f'Bearer {context.token}'}, verify=verify_ssl_bool)
-    assert_that(response.status_code, equal_to(200),
-                f"Request to get {route} route failed with status =" + str(response.status_code))
+    status_code, response = return_api_get_response(f"{orb_url}/api/v1/agents/{agent_backend_routes[route]}",
+                                                    token=context.token, verify=verify_ssl_bool)
+    assert_that(status_code, equal_to(200),
+                f"Request to get {route} route failed with status =" + str(status_code))
     local_orb_path = configs.get("local_orb_path")
     route_schema_path = local_orb_path + f"/python-test/features/steps/schemas/{route}_schema.json"
-    is_schema_valid = validate_json(response.json(), route_schema_path)
+    is_schema_valid = validate_json(response, route_schema_path)
     assert_that(is_schema_valid, equal_to(True), f"Invalid route json. \n Route = {route}")
 
 
@@ -675,19 +668,13 @@ def get_agent(token, agent_id, status_code=200):
     :param (int) status_code: status code that must be returned on response
     :returns: (dict) the fetched agent
     """
+    status_code, response = return_api_get_response(f"{orb_url}/api/v1/agents/{agent_id}", token=token,
+                                                    verify=verify_ssl_bool)
+    assert_that(status_code, equal_to(status_code),
+                f"Request to get agent id= {agent_id} failed with status= {status_code}:"
+                f"{response}")
 
-    get_agents_response = requests.get(orb_url + '/api/v1/agents/' + agent_id,
-                                       headers={'Authorization': f'Bearer {token}'}, verify=verify_ssl_bool)
-    try:
-        response_json = get_agents_response.json()
-    except ValueError:
-        response_json = ValueError
-
-    assert_that(get_agents_response.status_code, equal_to(status_code),
-                f"Request to get agent id= {agent_id} failed with status= {str(get_agents_response.status_code)}:"
-                f"{str(response_json)}")
-
-    return response_json
+    return response
 
 
 def list_agents(token, limit=100, offset=0):
@@ -722,16 +709,12 @@ def list_up_to_limit_agents(token, limit=100, offset=0):
     :returns: (list) a list of agents, (int) total agents on orb, (int) offset
     """
 
-    response = requests.get(orb_url + '/api/v1/agents', headers={'Authorization': f'Bearer {token}'},
-                            params={"limit": limit, "offset": offset}, verify=verify_ssl_bool)
-    try:
-        response_json = response.json()
-    except ValueError:
-        response_json = response.text
-    assert_that(response.status_code, equal_to(200),
-                f"Request to list agents failed with status= {str(response.status_code)}:{str(response_json)}")
-    agents_as_json = response.json()
-    return agents_as_json['agents'], agents_as_json['total'], agents_as_json['offset']
+    status_code, response = return_api_get_response(f"{orb_url}/api/v1/agents", token=token,
+                                                    params={"limit": limit, "offset": offset}, verify=verify_ssl_bool)
+
+    assert_that(status_code, equal_to(200),
+                f"Request to list agents failed with status= {str(status_code)}:{str(response)}")
+    return response['agents'], response['total'], response['offset']
 
 
 def delete_agents(token, list_of_agents):
@@ -753,12 +736,10 @@ def delete_agent(token, agent_id):
     :param (str) token: used for API authentication
     :param (str) agent_id: that identifies the agent to be deleted
     """
+    status_code, response = return_api_delete_response(f"{orb_url}/api/v1/agents/{agent_id}", token=token,
+                                                       verify=verify_ssl_bool)
 
-    response = requests.delete(orb_url + '/api/v1/agents/' + agent_id,
-                               headers={'Authorization': f'Bearer {token}'}, verify=verify_ssl_bool)
-
-    assert_that(response.status_code, equal_to(204), 'Request to delete agent id='
-                + agent_id + ' failed with status=' + str(response.status_code))
+    assert_that(status_code, equal_to(204), f"Request to delete agent id= {agent_id} failed with status= {status_code}")
 
 
 @threading_wait_until
@@ -767,16 +748,12 @@ def wait_until_agent_being_created(token, name, tags, expected_status_code=201, 
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*',
                        'Authorization': f'Bearer {token}'}
 
-    response = requests.post(orb_url + '/api/v1/agents', json=json_request, headers=headers_request,
-                             verify=verify_ssl_bool)
-    try:
-        response_json = response.json()
-    except ValueError:
-        response_json = response.text
-    if response.status_code == expected_status_code:
+    status_code, response = return_api_post_response(f"{orb_url}/api/v1/agents", token=token, json=json_request,
+                                                     verify=verify_ssl_bool)
+    if status_code == expected_status_code:
         event.set()
-        return response, response_json
-    return response, response_json
+        return status_code, response
+    return status_code, response
 
 
 def create_agent(token, name, tags, expected_status_code=201):
@@ -789,11 +766,11 @@ def create_agent(token, name, tags, expected_status_code=201):
     :param expected_status_code: status code to be returned on response
     :returns: (dict) a dictionary containing the created agent data
     """
-    response, response_json = wait_until_agent_being_created(token, name, tags, expected_status_code)
-    assert_that(response.status_code, equal_to(expected_status_code),
-                'Request to create agent failed with status=' + str(response.status_code) + ":" + str(response_json))
+    status_code, response = wait_until_agent_being_created(token, name, tags, expected_status_code)
+    assert_that(status_code, equal_to(expected_status_code),
+                'Request to create agent failed with status=' + str(status_code) + ":" + str(response))
 
-    return response_json
+    return response
 
 
 def edit_agent(token, agent_id, name, tags, expected_status_code=200):
@@ -809,16 +786,13 @@ def edit_agent(token, agent_id, name, tags, expected_status_code=200):
     json_request = {"name": name, "orb_tags": tags, "validate_only": False}
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*',
                        'Authorization': f'Bearer {token}'}
-    response = requests.put(orb_url + '/api/v1/agents/' + agent_id, json=json_request, headers=headers_request,
-                            verify=verify_ssl_bool)
-    try:
-        response_json = response.json()
-    except ValueError:
-        response_json = response.text
-    assert_that(response.status_code, equal_to(expected_status_code),
-                'Request to edit agent failed with status=' + str(response.status_code) + ":" + str(response_json))
+    status_code, response = return_api_put_response(orb_url + '/api/v1/agents/' + agent_id, json=json_request,
+                                       headers=headers_request, verify=verify_ssl_bool)
 
-    return response_json
+    assert_that(status_code, equal_to(expected_status_code),
+                'Request to edit agent failed with status=' + str(status_code) + ":" + str(response))
+
+    return response
 
 
 @threading_wait_until

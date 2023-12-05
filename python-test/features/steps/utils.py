@@ -306,9 +306,11 @@ def log_response(response):
             f"{response.request.method} {response.url} -> Status Code: {response.status_code}, Response: {response.text}")
 
 
-def return_api_get_response(token, api_path, params=None):
+def return_api_get_response(api_path, token=None, params=None, **kwargs):
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
-    response = requests.get(api_path, headers=headers_request, params=params)
+    if token is None:
+        headers_request.pop('Authorization', None)
+    response = requests.get(api_path, headers=headers_request, params=params, **kwargs)
     log_response(response)
     try:
         response_json = response.json()
@@ -318,9 +320,11 @@ def return_api_get_response(token, api_path, params=None):
     return response.status_code, response_json
 
 
-def return_api_post_response(token, api_path, request_body=None):
+def return_api_post_response(api_path, token=None, request_body=None, **kwargs):
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
-    response = requests.post(api_path, json=request_body, headers=headers_request)
+    if token is None:
+        headers_request.pop('Authorization', None)
+    response = requests.post(api_path, json=request_body, headers=headers_request, *kwargs)
     log_response(response)
     try:
         response_json = response.json()
@@ -330,12 +334,12 @@ def return_api_post_response(token, api_path, request_body=None):
     return response.status_code, response_json
 
 
-def return_api_delete_response(token, api_path, request_body=None):
+def return_api_delete_response( api_path, request_body=None, token=None, **kwargs):
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
     if request_body is not None:
-        response = requests.delete(api_path, json=request_body, headers=headers_request)
+        response = requests.delete(api_path, json=request_body, headers=headers_request, **kwargs)
     else:
-        response = requests.delete(api_path, headers=headers_request)
+        response = requests.delete(api_path, headers=headers_request, **kwargs)
     log_response(response)
     try:
         response_json = response.json()
@@ -345,9 +349,9 @@ def return_api_delete_response(token, api_path, request_body=None):
     return response.status_code, response_json
 
 
-def return_api_put_response(token, api_path, request_body=None):
+def return_api_put_response(api_path, request_body=None, token=None, **kwargs):
     headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
-    response = requests.put(api_path, json=request_body, headers=headers_request)
+    response = requests.put(api_path, json=request_body, headers=headers_request, **kwargs)
     log_response(response)
     try:
         response_json = response.json()

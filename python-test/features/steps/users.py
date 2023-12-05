@@ -94,18 +94,9 @@ def authenticate(user_email, user_password, expected_status_code=201):
     :returns: (dict) response of auth request
     """
 
-    # headers = {'Content-type': 'application/json', 'Accept': '*/*'}
     json_request = {'email': user_email, 'password': user_password}
     json_request = {parameter: value for parameter, value in json_request.items() if value}
-    status_code, response = return_api_post_response(None, f"{orb_url}/api/v1/tokens", json_request)
-    # response = requests.post(orb_url + '/api/v1/tokens',
-    #                          json=json_request,
-    #                          headers=headers,
-    #                          verify=verify_ssl_bool)
-    # try:
-    #     response_json = response.json()
-    # except ValueError:
-    #     response_json = response.text
+    status_code, response = return_api_post_response(f"{orb_url}/api/v1/tokens", request_body=json_request)
     assert_that(status_code, equal_to(expected_status_code),
                 f"Authentication failed with status= {str(status_code)}. Response: {str(response)}"
                 )
