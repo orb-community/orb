@@ -10,6 +10,7 @@ import threading
 import json
 from datetime import datetime
 import ciso8601
+import logging
 from metrics import expected_metrics_by_handlers_and_groups, wait_until_metrics_scraped
 
 
@@ -25,6 +26,10 @@ def check_metrics_by_handler(context, handler_type):
     local_prometheus_endpoint = f"http://localhost:{context.port}/api/v1/policies/{policy_name}/metrics/prometheus"
     correct_metrics, metrics_dif, metrics_present = wait_until_metrics_scraped(local_prometheus_endpoint,
                                                                                expected_metrics, timeout=60)
+    logging.info(f"expected_metrics: {expected_metrics}")
+    logging.info(f"correct_metrics: {metrics_present}")
+    logging.info(f"metrics_dif: {metrics_dif}")
+    logging.info(f"metrics_present: {metrics_present}")
     expected_metrics_not_present = expected_metrics.difference(metrics_present)
     if expected_metrics_not_present == set():
         expected_metrics_not_present = None
