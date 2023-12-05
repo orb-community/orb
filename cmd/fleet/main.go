@@ -246,7 +246,7 @@ func newFleetService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.L
 	otel.Register(auth, agentRepo)
 
 	svc := fleet.NewFleetService(logger, auth, agentRepo, agentGroupRepo, agentComms, mfsdk, aDone)
-	svc = redisprod.NewEventStoreMiddleware(svc, esClient)
+	svc = redisprod.NewEventStoreMiddleware(svc, esClient, logger)
 	svc = fleethttp.NewLoggingMiddleware(svc, logger)
 	svc = fleethttp.MetricsMiddleware(
 		auth,
