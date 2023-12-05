@@ -15,13 +15,13 @@ Scenario: provisioning agent with otel backend and applying 1 policy (config fil
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-#        And the container logs that were output after all policies have been applied contain the message "scraped and published telemetry" referred to each applied policy within 180 seconds
+        And the container logs that were output after all policies have been applied contain the message "scraped and published telemetry" referred to each applied policy within 180 seconds
         And referred sink must have active state on response within 180 seconds
         And remove the agent .yaml generated on each scenario
 
 
 @smoke_otel_backend
-Scenario: provisioning agent with otel backend and applying 2 policy (config file - auto_provision=true)
+Scenario: provisioning agent with otel backend and applying 2 policies (config file - auto_provision=true)
     Given the Orb user has a registered account
         And the Orb user logs in
         And that a sink with default configuration type already exists
@@ -34,7 +34,7 @@ Scenario: provisioning agent with otel backend and applying 2 policy (config fil
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 2 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-#        And the container logs that were output after all policies have been applied contain the message "scraped and published telemetry" referred to each applied policy within 180 seconds
+        And the container logs that were output after all policies have been applied contain the message "scraped and published telemetry" referred to each applied policy within 180 seconds
         And referred sink must have active state on response within 180 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -79,6 +79,3 @@ Scenario: Remotely restart agent with otel backend and policies applied
         And the container logs that were output after reset the agent contain the message "all backends and comms were restarted" within 30 seconds
         And the container logs that were output after reset the agent contain the message "policy applied successfully" referred to each applied policy within 30 seconds
         And the container logs that were output after reset the agent contain the message "scraped and published telemetry" referred to each applied policy within 180 seconds
-
-# TODO
-#Scenario: Remotely restart agent with otel backend and without policies applied
