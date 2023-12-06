@@ -54,11 +54,6 @@ func (svc sinkService) CreateSink(ctx context.Context, token string, sink Sink) 
 		return Sink{}, err
 	}
 
-	//// add default values
-	defaultMetadata := make(types.Metadata, 1)
-	defaultMetadata["opentelemetry"] = "enabled"
-	sink.Config.Merge(defaultMetadata)
-
 	id, err := svc.sinkRepo.Save(ctx, sink)
 	if err != nil {
 		return Sink{}, errors.Wrap(ErrCreateSink, err)
@@ -214,10 +209,6 @@ func (svc sinkService) UpdateSinkInternal(ctx context.Context, sink Sink) (Sink,
 			Authentication: at,
 			Exporter:       be,
 		}
-		//// add default values
-		defaultMetadata := make(types.Metadata, 1)
-		defaultMetadata["opentelemetry"] = "enabled"
-		sink.Config.Merge(defaultMetadata)
 		sink.State = Unknown
 		sink.Error = ""
 		if sink.Format == "yaml" {
@@ -306,10 +297,6 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 			Authentication: at,
 			Exporter:       be,
 		}
-		//// add default values
-		defaultMetadata := make(types.Metadata, 1)
-		defaultMetadata["opentelemetry"] = "enabled"
-		sink.Config.Merge(defaultMetadata)
 		if sink.Format == "yaml" {
 			configDataByte, err := yaml.Marshal(sink.Config)
 			if err != nil {
