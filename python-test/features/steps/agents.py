@@ -928,13 +928,13 @@ def create_agent_config_file(backend_type, token, agent_name, agent_tags, orb_ur
                                                             orb_url, mqtt_url, backend_file=backend_file,
                                                             tls_verify=verify_ssl, overwrite_default=overwrite_default,
                                                             config_file=config_file)
-    log.debug(f"Agent file: {agent_config_file}")
     agent_config_file = yaml.load(agent_config_file, Loader=SafeLoader)
     agent_config_file['orb'].update(tags)
     agent_config_file_yaml = yaml.dump(agent_config_file)
     safe_agent_config_file = agent_config_file.copy()
     if "token" in safe_agent_config_file['orb']['cloud']['api'].keys():
         safe_agent_config_file['orb']['cloud']['api']['token'] = "token omitted for security reason"
+    log.debug(f"Agent file: {safe_agent_config_file}")
     dir_path = configs.get("local_orb_path")
     if overwrite_default is True and only_file is False:
         agent_name = "agent"

@@ -82,7 +82,10 @@ class AgentConfigs:
     def set_cloud(self, auto_provision, orb_url, base_orb_mqtt, **settings):
         assert_that(auto_provision, any_of(equal_to(True), equal_to(False)), "Unexpected value for auto_provision "
                                                                              "on agent config file creation")
-        log.debug(f"Setting for agent cloud: {settings}")
+        settings_log = settings.copy()
+        if "token" in settings.keys():
+            settings_log["token"] = "********"
+        log.debug(f"Setting for agent cloud: {settings_log}")
 
         cloud_config = {"auto_provision": auto_provision}
         cloud_api = {"address": orb_url}
