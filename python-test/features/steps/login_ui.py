@@ -1,6 +1,6 @@
 from users import authenticate
 from behave import given, when, then, step
-from test_config import TestConfig
+from configs import TestConfig
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from ui_utils import go_to_page, input_text_by_id
