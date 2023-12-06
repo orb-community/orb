@@ -85,7 +85,7 @@ class AgentConfigs:
         settings_log = settings.copy()
         if "token" in settings.keys():
             settings_log["token"] = "********"
-        log.debug(f"Setting for agent cloud: {settings_log}")
+        log.debug(f"Settings for agent cloud: {settings_log}")
 
         cloud_config = {"auto_provision": auto_provision}
         cloud_api = {"address": orb_url}
