@@ -1,73 +1,108 @@
 documentation:
-  - docs/*
-  - docs/**/*
-  - mkdocs.yml
+  - any:
+      - changed-files:
+          - any-glob-to-any-file:
+              - docs/*
+              - docs/**/*
+              - mkdocs.yml
 
 github-actions:
-  - .github/workflows/*
-  - .github/workflows/**/*
-  - .github/dependabot.yml
-  - .github/boring-cyborg.yml
-  - .github/release-drafter.yml
-  - .github/semantic.yml
-  - .github/stale.yml
-  - .github/mergify.yml
-  - .github/labeler.yml
+  - any:
+      - changed-files:
+          - any-glob-to-any-file:
+              - .github/workflows/*
+              - .github/workflows/**/*
+              - .github/dependabot.yml
+              - .github/boring-cyborg.yml
+              - .github/release-drafter.yml
+              - .github/semantic.yml
+              - .github/stale.yml
+              - .github/mergify.yml
+              - .github/labeler.yml
 
 github-templates:
-  - .github/ISSUE_TEMPLATE/*
-  - .github/PULL_REQUEST_TEMPLATE.md
-  - .github/.chglog/*
-  - .github/.chglog/**/*
+  - any:
+      - changed-files:
+          - any-glob-to-any-file:
+              - .github/ISSUE_TEMPLATE/*
+              - .github/PULL_REQUEST_TEMPLATE.md
+              - .github/.chglog/*
+              - .github/.chglog/**/*
 
 internal:
-  - .flake8
-  - .bandit.baseline
-  - .gitignore
-  - .pre-commit-config.yaml
-  - MANIFEST.in
-  - Makefile
-  - CONTRIBUTING.md
-  - MAINTAINERS.md
-  - CODE_OF_CONDUCT.md
-  - LICENSE
-  - THIRD-PARTY-LICENSES
-  - .dockerignore
-  - .editorconfig
-  - setup.cfg
+  - any:
+      - changed-files:
+          - any-glob-to-any-file:
+              - .flake8
+              - .bandit.baseline
+              - .gitignore
+              - .pre-commit-config.yaml
+              - MANIFEST.in
+              - Makefile
+              - CONTRIBUTING.md
+              - MAINTAINERS.md
+              - CODE_OF_CONDUCT.md
+              - LICENSE
+              - THIRD-PARTY-LICENSES
+              - .dockerignore
+              - .editorconfig
+              - setup.cfg
 
 dependencies:
-  - pyproject.toml
-  - poetry.lock
-  - requirements.txt
+  - any:
+      - changed-files:
+          - any-glob-to-any-file:
+              - pyproject.toml
+              - poetry.lock
+              - requirements.txt
 
 tests:
-  - automated_tests/*
-  - automated_tests/**/*
-  - tests/*
-  - tests/**/*
+  - any:
+      - changed-files:
+          - any-glob-to-any-file:
+              - tests/*
+              - tests/**/*
+              - automated_tests/*
+              - automated_tests/**/*
 
 build:
-  - Dockerfile
+  - any:
+      - changed-files:
+          - any-glob-to-any-file:
+              - Dockerfile
 
 golang:
-  - "**/*.go"
+  - any:
+      - changed-files:
+          - "**/*.go"
 
 javascript:
-  - "**/*.json"
+  - any:
+      - changed-files:
+          - "**/*.json"
 
 json:
-  - "**/*.json"
+  - any:
+      - changed-files:
+          - "**/*.json"
 
 markdown:
-  - "**/*.md"
+  - any:
+      - changed-files:
+          - "**/*.md"
 
 python:
-  - "**/*.py"
+  - any:
+      - changed-files:
+          - "**/*.py"
 
 sql:
-  - "**/*.py"
+  - any:
+      - changed-files:
+          - "**/*.py"
 
 typescript:
-  - "**/*.ts"
-  - "**/*.tsx"
+  - any:
+      - changed-files:
+          - "**/*.ts"
+          - "**/*.tsx"
