@@ -1,73 +1,71 @@
 documentation:
   - changed-files:
-    - any-glob-to-any-file: 'docs/*'
-    - any-glob-to-any-file: 'docs/**/*'
-    - any-glob-to-any-file: 'mkdocs.yml'
+    - any-glob-to-any-file: ['docs/*', 'docs/**/*', 'mkdocs.yml']
 
 github-actions:
   - changed-files:
-      - any-glob-to-any-file: '.github/workflows/*'
-      - any-glob-to-any-file: '.github/workflows/**/*'
-      - any-glob-to-any-file: '.github/dependabot.yml'
-      - any-glob-to-any-file: '.github/boring-cyborg.yml'
-      - any-glob-to-any-file: '..github/release-drafter.yml'
-      - any-glob-to-any-file: '.github/semantic.yml'
-      - any-glob-to-any-file: '.github/stale.yml'
-      - any-glob-to-any-file: '.github/mergify.yml'
-      - any-glob-to-any-file: '.github/labeler.yml'
+      - any-glob-to-any-file: ['.github/workflows/*',
+       '.github/workflows/**/*',
+       '.github/dependabot.yml',
+       '.github/boring-cyborg.yml',
+       '..github/release-drafter.yml',
+       '.github/semantic.yml',
+       '.github/stale.yml',
+       '.github/mergify.yml',
+       '.github/labeler.yml']
 
 github-templates:
   - changed-files:
-      - any-glob-to-any-file: '.github/ISSUE_TEMPLATE/*'
-      - any-glob-to-any-file: '.github/PULL_REQUEST_TEMPLATE.md'
-      - any-glob-to-any-file: '.github/.chglog/*'
-      - any-glob-to-any-file: '.github/.chglog/**/*'
+      - any-glob-to-any-file: ['.github/ISSUE_TEMPLATE/*',
+       '.github/PULL_REQUEST_TEMPLATE.md',
+       '.github/.chglog/*',
+       '.github/.chglog/**/*']
 
 internal:
   - changed-files:
-      - any-glob-to-any-file: '.flake8'
-      - any-glob-to-any-file: '.bandit.baseline'
-      - any-glob-to-any-file: '.gitignore'
-      - any-glob-to-any-file: '.pre-commit-config.yaml'
-      - any-glob-to-any-file: 'MANIFEST.in'
-      - any-glob-to-any-file: 'Makefile'
-      - any-glob-to-any-file: 'CONTRIBUTING.md'
-      - any-glob-to-any-file: 'MAINTAINERS.md'
-      - any-glob-to-any-file: 'CODE_OF_CONDUCT.md'
-      - any-glob-to-any-file: 'LICENSE'
-      - any-glob-to-any-file: 'THIRD-PARTY-LICENSES'
-      - any-glob-to-any-file: '.dockerignore'
-      - any-glob-to-any-file: '.editorconfig'
-      - any-glob-to-any-file: 'setup.cfg'
+      - any-glob-to-any-file: ['.flake8',
+       '.bandit.baseline',
+       '.gitignore',
+       '.pre-commit-config.yaml',
+       'MANIFEST.in',
+       'Makefile',
+       'CONTRIBUTING.md',
+       'MAINTAINERS.md',
+       'CODE_OF_CONDUCT.md',
+       'LICENSE',
+       'THIRD-PARTY-LICENSES',
+       '.dockerignore',
+       '.editorconfig',
+       'setup.cfg']
 
 dependencies:
   - changed-files:
-      - any-glob-to-any-file: 'pyproject.toml'
-      - any-glob-to-any-file: 'poetry.lock'
-      - any-glob-to-any-file: 'requirements.txt'
+      - any-glob-to-any-file: ['pyproject.toml',
+      'poetry.lock',
+      'requirements.txt']
 
 tests:
   - changed-files:
-      - any-glob-to-any-file: 'automated_tests/*'
-      - any-glob-to-any-file: 'automated_tests/**/*'
-      - any-glob-to-any-file: 'tests/*'
-      - any-glob-to-any-file: 'tests/**/*'
+      - any-glob-to-any-file: ['automated_tests/*',
+       'automated_tests/**/*',
+       'tests/*',
+       'tests/**/*']
 
 build:
   - changed-files:
-        - any-glob-to-any-file: 'Dockerfile'
-        - any-glob-to-any-file: 'Dockerfile.*'
-        - any-glob-to-any-file: 'docker-compose.yml'
-        - any-glob-to-any-file: 'docker-compose.*.yml'
-        - any-glob-to-any-file: 'docker-compose.*.yaml'
-        - any-glob-to-any-file: 'docker-compose.*.yaml'
-        - any-glob-to-any-file: 'docker-compose'
+        - any-glob-to-any-file: ['Dockerfile',
+        'Dockerfile.*',
+        'docker-compose.yml',
+        'docker-compose.*.yml',
+        'docker-compose.*.yaml',
+        'docker-compose.*.yaml',
+        'docker-compose']
 
 golang:
   - changed-files:
-      - any-glob-to-any-file: 'go.mod'
-      - any-glob-to-any-file: 'go.sum'
-      - any-glob-to-any-file: '**/*.go'
+      - any-glob-to-any-file: ['go.mod',
+      'go.sum',
+      '**/*.go']
 
 javascript:
   - changed-files:
@@ -83,8 +81,7 @@ markdown:
 
 python:
   - changed-files:
-      - any-glob-to-any-file: 'requirements.txt'
-      - any-glob-to-any-file: '**/*.py'
+      - any-glob-to-any-file: ['requirements.txt', '**/*.py']
 
 sql:
   - changed-files:
@@ -92,5 +89,4 @@ sql:
 
 typescript:
   - changed-files:
-      - any-glob-to-any-file: '**/*.ts'
-      - any-glob-to-any-file: '**/*.tsx'
+      - any-glob-to-any-file: ['**/*.ts', '**/*.tsx']
