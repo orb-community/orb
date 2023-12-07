@@ -1,16 +1,19 @@
 from hamcrest import *
 import requests
 from behave import given, then, step
-from utils import random_string, filter_list_by_parameter_start_with, safe_load_json, remove_empty_from_json, \
-    threading_wait_until, UtilsManager, create_tags_set, is_json, values_to_boolean
+from utils import (random_string, filter_list_by_parameter_start_with, safe_load_json, remove_empty_from_json, \
+                   threading_wait_until, UtilsManager, create_tags_set, is_json, values_to_boolean,
+                   return_api_post_response,
+                   return_api_get_response, return_api_put_response, return_api_delete_response)
 from local_agent import get_orb_agent_logs
-from test_config import TestConfig
+from configs import TestConfig
 from datetime import datetime
-from control_plane_datasets import create_new_dataset, list_datasets
+from datasets import create_new_dataset, list_datasets
 from random import choice, choices, sample
 from deepdiff import DeepDiff
 import json
 import ciso8601
+import yaml
 
 policy_name_prefix = "test_policy_name_"
 configs = TestConfig.configs()
@@ -383,6 +386,24 @@ def check_agent_logs_for_policies(context, text_to_match, time_to_wait):
                 f"Agent Logs: {logs}")
 
 
+@step('{amount_of_policies} policies with otel backend and yaml format are applied to the group')
+def apply_n_otel_policies(context, amount_of_policies):
+    policies = return_policies_otel(int(amount_of_policies))
+    for policy_data in policies:
+        name = f"{policy_name_prefix}otel_{random_string(10)}"
+        description = "policy with otel backend"
+        policy_yaml = yaml.dump(policy_data)
+        policy_json = make_otel_policy_json(name, description, policy_yaml)
+        context.policy = create_policy(context.token, policy_json)
+        check_policies(context)
+        if 'policies_created' in context:
+            context.policies_created[context.policy['id']] = context.policy['name']
+        else:
+            context.policies_created = dict()
+            context.policies_created[context.policy['id']] = context.policy['name']
+        create_new_dataset(context, 1, 'last', 1, 'sink')
+
+
 @step('{amount_of_policies} {type_of_policies} policies are applied to the group')
 def apply_n_policies(context, amount_of_policies, type_of_policies):
     args_for_policies = return_policies_type(int(amount_of_policies), type_of_policies)
@@ -438,7 +459,7 @@ def duplicate_policy_with_same_name(context, times):
         if i <= 2:
             duplicated_policy = create_duplicated_policy(context.token, context.policy['id'])
         else:
-            duplicated_policy = create_duplicated_policy(context.token, context.policy['id'], status_code=409)
+            duplicated_policy = create_duplicated_policy(context.token, context.policy['id'], expected_status_code=409)
         context.duplicate_policies.append(duplicated_policy)
 
 
@@ -473,31 +494,26 @@ def check_duplicated_policies_status(context, amount_successfully_policies, amou
                                                                           f".")
 
 
-def create_duplicated_policy(token, policy_id, new_policy_name=None, status_code=201):
+def create_duplicated_policy(token, policy_id, new_policy_name=None, expected_status_code=201):
     """
 
     :param (str) token: used for API authentication
     :param (str) policy_id: id of policy that will be duplicated
     :param (str) new_policy_name: name for the new policy created
-    :param (int) status_code: status code that must return on response
+    :param (int) expected_status_code: status code that must return on response
     :return: (dict) new policy created
     """
     json_request = {"name": new_policy_name}
     json_request = remove_empty_from_json(json_request)
-    headers_request = {'Content-type': 'application/json', 'Accept': 'application/json',
-                       'Authorization': f'Bearer {token}'}
     post_url = f"{orb_url}/api/v1/policies/agent/{policy_id}/duplicate"
-    response = requests.post(post_url, json=json_request, headers=headers_request, verify=verify_ssl_bool)
-    try:
-        response_json = response.json()
-    except ValueError:
-        response_json = response.text
-    assert_that(response.status_code, equal_to(status_code),
-                'Request to create duplicated policy failed with status=' + str(response.status_code) + ': '
-                + str(response_json))
+    status_code, response = return_api_post_response(post_url, request_body=json_request, token=token,
+                                                     verify=verify_ssl_bool)
+    assert_that(status_code, equal_to(expected_status_code),
+                'Request to create duplicated policy failed with status=' + str(status_code) + ': '
+                + str(response))
     if status_code == 201:
-        compare_two_policies(token, policy_id, response.json()['id'])
-    return response_json
+        compare_two_policies(token, policy_id, response['id'])
+    return response
 
 
 def compare_two_policies(token, id_policy_one, id_policy_two):
@@ -528,19 +544,14 @@ def create_policy(token, json_request, expected_status_code=201):
 
     """
 
-    headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
+    status_code, response = return_api_post_response(f"{orb_url}/api/v1/policies/agent", request_body=json_request,
+                                                     token=token, verify=verify_ssl_bool)
 
-    response = requests.post(orb_url + '/api/v1/policies/agent', json=json_request, headers=headers_request,
-                             verify=verify_ssl_bool)
-    try:
-        response_json = response.json()
-    except ValueError:
-        response_json = response.text
-    assert_that(response.status_code, equal_to(expected_status_code),
-                'Request to create policy failed with status=' + str(response.status_code) + ': '
-                + str(response_json))
+    assert_that(status_code, equal_to(expected_status_code),
+                'Request to create policy failed with status=' + str(status_code) + ': '
+                + str(response))
 
-    return response_json
+    return response
 
 
 def edit_policy(token, policy_id, json_request, expected_status_code=200):
@@ -553,19 +564,15 @@ def edit_policy(token, policy_id, json_request, expected_status_code=200):
     :param (int) expected_status_code: status to be returned on response
     :return: response of policy editing
     """
-    headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
 
-    response = requests.put(orb_url + f"/api/v1/policies/agent/{policy_id}", json=json_request,
-                            headers=headers_request, verify=verify_ssl_bool)
-    try:
-        response_json = response.json()
-    except ValueError:
-        response_json = response.text
-    assert_that(response.status_code, equal_to(expected_status_code),
-                'Request to editing policy failed with status=' + str(response.status_code) + ': '
-                + str(response_json))
+    status_code, response = return_api_put_response(f"{orb_url}/api/v1/policies/agent/{policy_id}",
+                                                    request_body=json_request, token=token, verify=verify_ssl_bool)
 
-    return response_json
+    assert_that(status_code, equal_to(expected_status_code),
+                'Request to editing policy failed with status=' + str(status_code) + ': '
+                + str(response))
+
+    return response
 
 
 def make_policy_json(name, handler_label, handler, description=None, tap="default_pcap",
@@ -643,6 +650,16 @@ def make_policy_json(name, handler_label, handler, description=None, tap="defaul
     return json_request
 
 
+def make_otel_policy_json(name, description, policy_data):
+    json_payload = {"name": name,
+                    "backend": "otel",
+                    "policy_data": policy_data,
+                    "description": description,
+                    "format": "yaml"}
+    json_request = remove_empty_from_json(json_payload.copy())
+    return json_request
+
+
 def make_policy_flow_json(name, handler_label, handler, description=None, tap="default_flow",
                           input_type="flow", port=None, bind=None, flow_type=None, sample_rate_scaling=None,
                           only_devices=None, only_ips=None, only_ports=None, only_interfaces=None, geoloc_notfound=None,
@@ -716,7 +733,7 @@ def make_policy_netprobe_json(name, handler_label, handler, description=None, ta
     assert_that(handler, equal_to("netprobe"), "Unexpected handler for policy")
     assert_that(name, not_none(), "Unable to create policy without name")
 
-    #netprobe configs are on tap level
+    # netprobe configs are on tap level
     json_request = {"name": name,
                     "description": description,
                     "backend": backend_type,
@@ -757,17 +774,14 @@ def get_policy(token, policy_id, expected_status_code=200):
     :returns: (dict) the fetched policy
     """
 
-    get_policy_response = requests.get(orb_url + '/api/v1/policies/agent/' + policy_id,
-                                       headers={'Authorization': f'Bearer {token}'}, verify=verify_ssl_bool)
-    try:
-        response_json = get_policy_response.json()
-    except ValueError:
-        response_json = get_policy_response.text
-    assert_that(get_policy_response.status_code, equal_to(expected_status_code),
-                'Request to get policy id=' + policy_id + ' failed with status= ' + str(get_policy_response.status_code)
-                + " response= " + str(response_json))
+    status_code, response = return_api_get_response(f"{orb_url}/api/v1/policies/agent/{policy_id}", token=token,
+                                                    verify=verify_ssl_bool)
 
-    return response_json
+    assert_that(status_code, equal_to(expected_status_code),
+                'Request to get policy id=' + policy_id + ' failed with status= ' + str(status_code)
+                + " response= " + str(response))
+
+    return response
 
 
 def list_policies(token, limit=100, offset=0):
@@ -802,19 +816,17 @@ def list_up_to_limit_policies(token, limit=100, offset=0):
     :returns: (list) a list of policies, (int) total policies on orb, (int) offset
     """
 
-    response = requests.get(orb_url + '/api/v1/policies/agent', headers={'Authorization': f'Bearer {token}'},
-                            params={'limit': limit, 'offset': offset}, verify=verify_ssl_bool)
-    try:
-        response_json = response.json()
-    except ValueError:
-        response_json = response.text
+    status_code, response = return_api_get_response(f"{orb_url}/api/v1/policies/agent", token=token,
+                                                    params={'limit': limit, 'offset': offset}, verify=verify_ssl_bool)
 
-    assert_that(response.status_code, equal_to(200),
-                'Request to list policies failed with status=' + str(response.status_code) + ': '
-                + str(response_json))
+    assert_that(status_code, equal_to(200),
+                'Request to list policies failed with status=' + str(status_code) + ': '
+                + str(response))
+    assert_that(response, has_key('data'), f"Response does not contain 'data' key: {response}")
+    assert_that(response, has_key('total'), f"Response does not contain 'total' key: {response}")
+    assert_that(response, has_key('offset'), f"Response does not contain 'offset' key: {response}")
 
-    policies_as_json = response_json
-    return policies_as_json['data'], policies_as_json['total'], policies_as_json['offset']
+    return response['data'], response['total'], response['offset']
 
 
 def delete_policies(token, list_of_policies):
@@ -837,11 +849,11 @@ def delete_policy(token, policy_id):
     :param (str) policy_id: that identifies the policy to be deleted
     """
 
-    response = requests.delete(orb_url + '/api/v1/policies/agent/' + policy_id,
-                               headers={'Authorization': f'Bearer {token}'}, verify=verify_ssl_bool)
+    status_code, response = return_api_delete_response(f"{orb_url}/api/v1/policies/agent/{policy_id}",
+                                                       token=token, verify=verify_ssl_bool)
 
-    assert_that(response.status_code, equal_to(204), 'Request to delete policy id='
-                + policy_id + ' failed with status=' + str(response.status_code))
+    assert_that(status_code, equal_to(204), 'Request to delete policy id='
+                + policy_id + ' failed with status=' + str(status_code))
 
 
 def check_logs_contain_message_for_policies(logs, expected_message, list_agent_policies_id, considered_timestamp):
@@ -957,6 +969,68 @@ def list_datasets_for_a_policy(policy_id, datasets_list):
     return id_of_related_datasets
 
 
+def return_policies_otel(k):
+    policies_otel = list()
+    policies_otel.append({
+        "receivers": {
+            "httpcheck": {
+                "targets": [
+                    {
+                        "endpoint": "http://orb.community",
+                        "method": "GET"
+                    },
+                    {
+                        "endpoint": "https://orb.live",
+                        "method": "GET"
+                    }
+                ],
+                "collection_interval": "60s"
+            }
+        },
+        "extensions": None,
+        "exporters": None,
+        "service": {
+            "pipelines": {
+                "metrics": {
+                    "exporters": None,
+                    "receivers": [
+                        "httpcheck"
+                    ]
+                }
+            }
+        }
+    })
+    policies_otel.append({
+        "receivers": {
+            "httpcheck": {
+                "targets": [
+                    {
+                        "endpoint": "https://github.com/orb-community/orb",
+                        "method": "GET"
+                    }
+                ],
+                "collection_interval": "10s"
+            }
+        },
+        "extensions": None,
+        "exporters": None,
+        "service": {
+            "pipelines": {
+                "metrics": {
+                    "exporters": ["otlp"],
+                    "receivers": [
+                        "httpcheck"
+                    ]
+                }
+            }
+        }
+    })
+    if k <= len(policies_otel):
+        return sample(policies_otel, k=k)
+
+    return choices(policies_otel, k=k)
+
+
 def return_policies_type(k, policies_type='mixed', input_type="pcap"):
     assert_that(policies_type, any_of(equal_to('mixed'), any_of('simple'), any_of('advanced')),
                 "Unexpected value for policies type")
@@ -994,7 +1068,8 @@ def return_policies_type(k, policies_type='mixed', input_type="pcap"):
         }
 
         if input_type != "dnstap":
-            advanced['advanced_dhcp'] = "handler=dhcp, description='policy_dhcp', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap"
+            advanced[
+                'advanced_dhcp'] = "handler=dhcp, description='policy_dhcp', host_specification=10.0.1.0/24,10.0.2.1/32,2001:db8::/64, bpf_filter_expression=udp port 53, pcap_source=libpcap"
             simple['simple_dhcp'] = "handler=dhcp"
 
     mixed = dict()

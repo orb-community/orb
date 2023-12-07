@@ -13,7 +13,10 @@ from jsonschema import validate
 from abc import ABC, abstractmethod
 import shlex
 import subprocess
+import requests
+from logger import Logger
 
+log = Logger().logger_instance()
 tag_prefix = "test_tag_"
 
 
@@ -133,6 +136,11 @@ def check_logs_contain_message_and_name(logs, expected_message, name, name_key):
                 return True, log_line
 
     return False, "Logs doesn't contain the message and name expected"
+
+
+# Convert "true" and "false" strings to boolean values
+def str_to_bool(s):
+    return s.lower() == 'true'
 
 
 def values_to_boolean(json_file):
@@ -269,6 +277,98 @@ def validate_json(json_data, path_to_file):
     return True
 
 
+def is_json(json_string):
+    """
+    Test if some string can be converted to json.
+    :param json_string: string to be tested
+    :return: bool: is string is a valid json, error_message or string in json
+    """
+    try:
+        json_converted = json.loads(json_string)
+    except ValueError as e:
+        return False, e
+    return True, json_converted
+
+
+def send_terminal_commands(command, cwd_run=None):
+    args = shlex.split(command)
+    p = subprocess.Popen(args, stdin=subprocess.PIPE, stderr=subprocess.PIPE,
+                         stdout=subprocess.PIPE, cwd=cwd_run, universal_newlines=True)
+    subprocess_return_terminal = p.communicate()
+    return subprocess_return_terminal
+
+
+def log_response(response):
+    if response.ok:
+        log.info(f"{response.request.method} {response.url} -> Status Code: {response.status_code}")
+    else:
+        log.error(
+            f"{response.request.method} {response.url} -> Status Code: {response.status_code},"
+            f" Response: {response.text}")
+        request_body = response.request.body
+        if request_body is not None:
+            request_body = request_body.decode("utf-8")
+            request_body = json.loads(request_body)
+            if "password" in request_body:
+                request_body["password"] = "********"
+        log.debug(f"Request body: {request_body}")
+
+
+def return_api_get_response(api_path, token=None, params=None, **kwargs):
+    headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
+    if token is None:
+        headers_request.pop('Authorization', None)
+    response = requests.get(api_path, headers=headers_request, params=params, **kwargs)
+    log_response(response)
+    try:
+        response_json = response.json()
+    except ValueError:
+        response_json = response.text
+
+    return response.status_code, response_json
+
+
+def return_api_post_response(api_path, token=None, request_body=None, **kwargs):
+    headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
+    if token is None:
+        headers_request.pop('Authorization', None)
+    response = requests.post(api_path, json=request_body, headers=headers_request, **kwargs)
+    log_response(response)
+    try:
+        response_json = response.json()
+    except ValueError:
+        response_json = response.text
+
+    return response.status_code, response_json
+
+
+def return_api_delete_response( api_path, request_body=None, token=None, **kwargs):
+    headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
+    if request_body is not None:
+        response = requests.delete(api_path, json=request_body, headers=headers_request, **kwargs)
+    else:
+        response = requests.delete(api_path, headers=headers_request, **kwargs)
+    log_response(response)
+    try:
+        response_json = response.json()
+    except ValueError:
+        response_json = response.text
+
+    return response.status_code, response_json
+
+
+def return_api_put_response(api_path, request_body=None, token=None, **kwargs):
+    headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
+    response = requests.put(api_path, json=request_body, headers=headers_request, **kwargs)
+    log_response(response)
+    try:
+        response_json = response.json()
+    except ValueError:
+        response_json = response.text
+
+    return response.status_code, response_json
+
+
 class UtilsManager(ABC):
     def __init__(self):
         pass
@@ -312,24 +412,3 @@ class UtilsManager(ABC):
     @abstractmethod
     def json(self):
         pass
-
-
-def is_json(json_string):
-    """
-    Test if some string can be converted to json.
-    :param json_string: string to be tested
-    :return: bool: is string is a valid json, error_message or string in json
-    """
-    try:
-        json_converted = json.loads(json_string)
-    except ValueError as e:
-        return False, e
-    return True, json_converted
-
-
-def send_terminal_commands(command, cwd_run=None):
-    args = shlex.split(command)
-    p = subprocess.Popen(args, stdin=subprocess.PIPE, stderr=subprocess.PIPE,
-                         stdout=subprocess.PIPE, cwd=cwd_run, universal_newlines=True)
-    subprocess_return_terminal = p.communicate()
-    return subprocess_return_terminal

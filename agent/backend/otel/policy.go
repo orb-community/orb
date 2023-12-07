@@ -9,7 +9,6 @@ import (
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 	"os"
-	"strings"
 )
 
 const tempFileNamePattern = "otel-%s-config.yml"
@@ -24,6 +23,7 @@ type runningPolicy struct {
 }
 
 func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, updatePolicy bool) error {
+	o.logger.Debug("applying policy", zap.String("policy_id", newPolicyData.ID))
 	policyYaml, err := yaml.Marshal(newPolicyData.Data)
 	if err != nil {
 		o.logger.Warn("yaml policy marshal failure", zap.String("policy_id", newPolicyData.ID), zap.Any("policy", newPolicyData.Data))
@@ -139,7 +139,7 @@ func (o *openTelemetryBackend) removePolicyControl(policyID string) {
 		o.logger.Error("did not find a running collector for policy id", zap.String("policy_id", policyID))
 		return
 	}
-	policy.cancel()
+	defer policy.cancel()
 	select {
 	case <-policy.ctx.Done():
 		o.logger.Info("policy context done", zap.String("policy_id", policyID))
@@ -149,14 +149,14 @@ func (o *openTelemetryBackend) removePolicyControl(policyID string) {
 
 func (o *openTelemetryBackend) RemovePolicy(data policies.PolicyData) error {
 	if o.policyRepo.Exists(data.ID) {
-		o.removePolicyControl(data.ID)
 		if err := o.policyRepo.Remove(data.ID); err != nil {
 			return err
 		}
+		o.removePolicyControl(data.ID)
 		policyPath := o.policyConfigDirectory + fmt.Sprintf(tempFileNamePattern, data.ID)
-		if err := os.Remove(policyPath); err != nil && strings.Contains(err.Error(), "no such file or directory") {
-			o.logger.Error("error removing temporary file with policy", zap.Error(err))
-			return err
+		// This is a temp file, if it fails to remove, it will be erased once the container is restarted
+		if err := os.Remove(policyPath); err != nil {
+			o.logger.Warn("failed to remove policy file, this won't fail policy removal", zap.String("policy_id", data.ID), zap.Error(err))
 		}
 	}
 	return nil

@@ -1,10 +1,10 @@
 from behave import when, then, step
-from test_config import TestConfig
+from configs import TestConfig
 from ui_utils import *
 from hamcrest import *
 from utils import random_string, create_tags_set
 from page_objects import *
-from control_plane_sink import sink_name_prefix, list_sinks
+from sink import sink_name_prefix, list_sinks
 
 configs = TestConfig.configs()
 orb_url = configs.get('orb_url')
