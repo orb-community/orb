@@ -1,73 +1,96 @@
 documentation:
-  - docs/*
-  - docs/**/*
-  - mkdocs.yml
+  - changed-files:
+    - any-glob-to-any-file: 'docs/*'
+    - any-glob-to-any-file: 'docs/**/*'
+    - any-glob-to-any-file: 'mkdocs.yml'
 
 github-actions:
-  - .github/workflows/*
-  - .github/workflows/**/*
-  - .github/dependabot.yml
-  - .github/boring-cyborg.yml
-  - .github/release-drafter.yml
-  - .github/semantic.yml
-  - .github/stale.yml
-  - .github/mergify.yml
-  - .github/labeler.yml
+  - changed-files:
+      - any-glob-to-any-file: '.github/workflows/*'
+      - any-glob-to-any-file: '.github/workflows/**/*'
+      - any-glob-to-any-file: '.github/dependabot.yml'
+      - any-glob-to-any-file: '.github/boring-cyborg.yml'
+      - any-glob-to-any-file: '..github/release-drafter.yml'
+      - any-glob-to-any-file: '.github/semantic.yml'
+      - any-glob-to-any-file: '.github/stale.yml'
+      - any-glob-to-any-file: '.github/mergify.yml'
+      - any-glob-to-any-file: '.github/labeler.yml'
 
 github-templates:
-  - .github/ISSUE_TEMPLATE/*
-  - .github/PULL_REQUEST_TEMPLATE.md
-  - .github/.chglog/*
-  - .github/.chglog/**/*
+  - changed-files:
+      - any-glob-to-any-file: '.github/ISSUE_TEMPLATE/*'
+      - any-glob-to-any-file: '.github/PULL_REQUEST_TEMPLATE.md'
+      - any-glob-to-any-file: '.github/.chglog/*'
+      - any-glob-to-any-file: '.github/.chglog/**/*'
 
 internal:
-  - .flake8
-  - .bandit.baseline
-  - .gitignore
-  - .pre-commit-config.yaml
-  - MANIFEST.in
-  - Makefile
-  - CONTRIBUTING.md
-  - MAINTAINERS.md
-  - CODE_OF_CONDUCT.md
-  - LICENSE
-  - THIRD-PARTY-LICENSES
-  - .dockerignore
-  - .editorconfig
-  - setup.cfg
+  - changed-files:
+      - any-glob-to-any-file: '.flake8'
+      - any-glob-to-any-file: '.bandit.baseline'
+      - any-glob-to-any-file: '.gitignore'
+      - any-glob-to-any-file: '.pre-commit-config.yaml'
+      - any-glob-to-any-file: 'MANIFEST.in'
+      - any-glob-to-any-file: 'Makefile'
+      - any-glob-to-any-file: 'CONTRIBUTING.md'
+      - any-glob-to-any-file: 'MAINTAINERS.md'
+      - any-glob-to-any-file: 'CODE_OF_CONDUCT.md'
+      - any-glob-to-any-file: 'LICENSE'
+      - any-glob-to-any-file: 'THIRD-PARTY-LICENSES'
+      - any-glob-to-any-file: '.dockerignore'
+      - any-glob-to-any-file: '.editorconfig'
+      - any-glob-to-any-file: 'setup.cfg'
 
 dependencies:
-  - pyproject.toml
-  - poetry.lock
-  - requirements.txt
+  - changed-files:
+      - any-glob-to-any-file: 'pyproject.toml'
+      - any-glob-to-any-file: 'poetry.lock'
+      - any-glob-to-any-file: 'requirements.txt'
 
 tests:
-  - automated_tests/*
-  - automated_tests/**/*
-  - tests/*
-  - tests/**/*
+  - changed-files:
+      - any-glob-to-any-file: 'automated_tests/*'
+      - any-glob-to-any-file: 'automated_tests/**/*'
+      - any-glob-to-any-file: 'tests/*'
+      - any-glob-to-any-file: 'tests/**/*'
 
 build:
-  - Dockerfile
+  - changed-files:
+        - any-glob-to-any-file: 'Dockerfile'
+        - any-glob-to-any-file: 'Dockerfile.*'
+        - any-glob-to-any-file: 'docker-compose.yml'
+        - any-glob-to-any-file: 'docker-compose.*.yml'
+        - any-glob-to-any-file: 'docker-compose.*.yaml'
+        - any-glob-to-any-file: 'docker-compose.*.yaml'
+        - any-glob-to-any-file: 'docker-compose'
 
 golang:
-  - "**/*.go"
+  - changed-files:
+      - any-glob-to-any-file: 'go.mod'
+      - any-glob-to-any-file: 'go.sum'
+      - any-glob-to-any-file: '**/*.go'
 
 javascript:
-  - "**/*.json"
+  - changed-files:
+      - any-glob-to-any-file: '**/*.json'
 
 json:
-  - "**/*.json"
+  - changed-files:
+      - any-glob-to-any-file: '**/*.json'
 
 markdown:
-  - "**/*.md"
+  - changed-files:
+      - any-glob-to-any-file: '**/*.md'
 
 python:
-  - "**/*.py"
+  - changed-files:
+      - any-glob-to-any-file: 'requirements.txt'
+      - any-glob-to-any-file: '**/*.py'
 
 sql:
-  - "**/*.py"
+  - changed-files:
+      - any-glob-to-any-file: '**/*.sql'
 
 typescript:
-  - "**/*.ts"
-  - "**/*.tsx"
+  - changed-files:
+      - any-glob-to-any-file: '**/*.ts'
+      - any-glob-to-any-file: '**/*.tsx'
