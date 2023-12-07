@@ -405,11 +405,10 @@ func toDBSink(sink sinks.Sink) (dbSink, error) {
 func toSink(dba dbSink) (sinks.Sink, error) {
 	var configData string
 	var format string
-	if dba.ConfigData == nil {
-		configData = ""
-		format = ""
-	} else {
+	if dba.ConfigData != nil {
 		configData = *dba.ConfigData
+	}
+	if dba.Format != nil {
 		format = *dba.Format
 	}
 	sink := sinks.Sink{
