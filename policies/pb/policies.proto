@@ -36,6 +36,7 @@ message PolicyRes {
   string backend = 3;
   int32 version = 4;
   bytes data = 5;
+  string format = 6;
 }
 
 message PolicyInDSRes {
@@ -46,6 +47,7 @@ message PolicyInDSRes {
   bytes data = 5;
   string dataset_id = 6;
   string agent_group_id = 7;
+  string format = 8;
 }
 
 message PolicyInDSListRes {

@@ -7,7 +7,7 @@ Scenario: General smoke test to validate private agent image - using configurati
     Given the Orb user has a registered account
         And the Orb user logs in
         And that a sink with default configuration type already exists
-    When an agent(input_type:pcap, settings: {"iface":"default"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: True]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"pcap","iface":"default"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And 3 simple policies same input_type as created via config file are applied to the group
@@ -31,7 +31,7 @@ Scenario: provisioning agent without specify pktvisor binary path and path to co
         And 1 Agent Group(s) is created with 1 orb tag(s) (lower case)
         And 3 simple policies flow are applied to the group
         And a new agent is created with 0 orb tag(s)
-    When an agent(input_type:flow, settings: {"bind":"0.0.0.0", "port":"available_port"}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: True. Paste only file: True. Use specif backend for pktvisor {"binary":"None", "config_file":"None"}]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"flow","bind":"0.0.0.0", "port":"available_port"}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: True. Paste only file: True. Use specif backend config {"binary":"None", "config_file":"None"}]
         And pktvisor state is running
     Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
@@ -50,7 +50,7 @@ Scenario: provisioning agent without specify pktvisor binary path (config file -
         And 1 Agent Group(s) is created with 1 orb tag(s) (lower case)
         And 3 simple policies flow are applied to the group
         And a new agent is created with 0 orb tag(s)
-    When an agent(input_type:flow, settings: {"bind":"0.0.0.0", "port":"available_port"}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: True. Paste only file: True. Use specif backend for pktvisor {"config_file":"None"}]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"flow","bind":"0.0.0.0", "port":"available_port"}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: True. Paste only file: True. Use specif backend config {"config_file":"None"}]
         And pktvisor state is running
     Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
@@ -69,7 +69,7 @@ Scenario: provisioning agent without specify pktvisor path to config file (confi
         And 1 Agent Group(s) is created with 1 orb tag(s) (lower case)
         And 3 simple policies flow are applied to the group
         And a new agent is created with 0 orb tag(s)
-    When an agent(input_type:flow, settings: {"bind":"0.0.0.0", "port":"available_port"}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: True. Paste only file: True. Use specif backend for pktvisor {"binary":"None"}]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"flow","bind":"0.0.0.0", "port":"available_port"}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: True. Paste only file: True. Use specif backend config {"binary":"None"}]
         And pktvisor state is running
     Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
@@ -79,13 +79,13 @@ Scenario: provisioning agent without specify pktvisor path to config file (confi
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
-@smoke @config_file @pktvisor_configs
+@smoke @config_file @pktvisor_configs @bla
 Scenario: provisioning agent without specify pktvisor binary path and path to config file (config file - auto_provision=false)
     Given the Orb user has a registered account
         And the Orb user logs in
         And that a sink with default configuration type already exists
         And a new agent is created with 2 orb tag(s)
-    When an agent(input_type:flow, settings: {"bind":"0.0.0.0", "port":"available_port"}) is provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: True. Paste only file: True. Use specif backend for pktvisor {"binary":"None", "config_file":"None"}]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"flow","bind":"0.0.0.0", "port":"available_port"}) is provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: True. Paste only file: True. Use specif backend config {"binary":"None", "config_file":"None"}]
         And pktvisor state is running
         And edit the orb tags on agent and use 2 orb tag(s)
         And 1 Agent Group(s) is created with all tags contained in the agent
@@ -106,7 +106,7 @@ Scenario: provisioning agent without specify pktvisor binary path (config file -
         And the Orb user logs in
         And that a sink with default configuration type already exists
         And a new agent is created with 2 orb tag(s)
-    When an agent(input_type:flow, settings: {"bind":"0.0.0.0", "port":"available_port"}) is provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: True. Paste only file: True. Use specif backend for pktvisor {"config_file":"None"}]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"flow","bind":"0.0.0.0", "port":"available_port"}) is provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: True. Paste only file: True. Use specif backend config {"config_file":"None"}]
         And pktvisor state is running
         And edit the orb tags on agent and use 2 orb tag(s)
         And 1 Agent Group(s) is created with all tags contained in the agent
@@ -127,7 +127,7 @@ Scenario: provisioning agent without specify pktvisor path to config file (confi
         And the Orb user logs in
         And that a sink with default configuration type already exists
         And a new agent is created with 2 orb tag(s)
-    When an agent(input_type:flow, settings: {"bind":"0.0.0.0", "port":"available_port"}) is provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: True. Paste only file: True. Use specif backend for pktvisor {"binary":"None"}]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"flow","bind":"0.0.0.0", "port":"available_port"}) is provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: True. Paste only file: True. Use specif backend config {"binary":"None"}]
         And pktvisor state is running
         And edit the orb tags on agent and use 2 orb tag(s)
         And 1 Agent Group(s) is created with all tags contained in the agent
@@ -148,7 +148,7 @@ Scenario: tap_selector - any - matching 0 of all tags from an agent
     Given the Orb user has a registered account
         And the Orb user logs in
         And that a sink with default configuration type already exists
-    When an agent(input_type:pcap, settings: {"iface":"default"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: True]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"pcap","iface":"default"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And a net policy pcap with tap_selector matching any tag(s) of the tap from 0 agent, default metric_groups enabled, default metric_groups disabled and settings: {"geoloc_notfound":"False"} is applied to the group
@@ -164,7 +164,7 @@ Scenario: tap_selector - any - matching 1 of all tags from an agent
     Given the Orb user has a registered account
         And the Orb user logs in
         And that a sink with default configuration type already exists
-    When an agent(input_type:pcap, settings: {"iface":"default"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: False]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"pcap","iface":"default"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: False]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And a net policy pcap with tap_selector matching any tag(s) of the tap from 1 agent (1 tag matching), default metric_groups enabled, default metric_groups disabled and settings: {"geoloc_notfound":"False"} is applied to the group
@@ -182,7 +182,7 @@ Scenario: tap_selector - any - matching 1 of all tags (plus 1 random tag) from a
     Given the Orb user has a registered account
         And the Orb user logs in
         And that a sink with default configuration type already exists
-    When an agent(input_type:pcap, settings: {"iface":"default"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: True]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"pcap","iface":"default"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And a net policy pcap with tap_selector matching any tag(s) of the tap from 1 agent (1 tag matching + 1 random tag), default metric_groups enabled, default metric_groups disabled and settings: {"geoloc_notfound":"False"} is applied to the group
@@ -200,7 +200,7 @@ Scenario: tap_selector - all - matching 0 of all tags from an agent
     Given the Orb user has a registered account
         And the Orb user logs in
         And that a sink with default configuration type already exists
-    When an agent(input_type:pcap, settings: {"iface":"default"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: False]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"pcap","iface":"default"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: False]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And a net policy pcap with tap_selector matching all tag(s) of the tap from 0 agent, default metric_groups enabled, default metric_groups disabled and settings: {"geoloc_notfound":"False"} is applied to the group
@@ -216,7 +216,7 @@ Scenario: tap_selector - all - matching 1 of all tags from an agent
     Given the Orb user has a registered account
         And the Orb user logs in
         And that a sink with default configuration type already exists
-    When an agent(input_type:pcap, settings: {"iface":"default"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: True]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"pcap","iface":"default"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And a net policy pcap with tap_selector matching all tag(s) of the tap from 1 agent (1 tag matching), default metric_groups enabled, default metric_groups disabled and settings: {"geoloc_notfound":"False"} is applied to the group
@@ -235,7 +235,7 @@ Scenario: tap_selector - all - matching all tags from an agent
     Given the Orb user has a registered account
         And the Orb user logs in
         And that a sink with default configuration type already exists
-    When an agent(input_type:pcap, settings: {"iface":"default"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: False]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"pcap","iface":"default"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: False]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And a net policy pcap with tap_selector matching all tag(s) of the tap from an agent, default metric_groups enabled, default metric_groups disabled and settings: {"geoloc_notfound":"False"} is applied to the group
@@ -255,7 +255,7 @@ Scenario: agent pcap with only agent tags subscription to a group with policies 
     Given the Orb user has a registered account
         And the Orb user logs in
         And that a sink with default configuration type already exists
-    When an agent(input_type:pcap, settings: {"iface":"default"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: True]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"pcap","iface":"default"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And 3 simple policies same input_type as created via config file are applied to the group
@@ -277,7 +277,7 @@ Scenario: agent pcap with only agent tags subscription to a group with policies 
         And 1 Agent Group(s) is created with 1 orb tag(s) (lower case)
         And 3 simple policies pcap are applied to the group
         And a new agent is created with 0 orb tag(s)
-    When an agent(input_type:pcap, settings: {"iface":"default"}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: False]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"pcap","iface":"default"}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: False]
         And pktvisor state is running
     Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
@@ -294,7 +294,7 @@ Scenario: agent pcap with mixed tags subscription to a group with policies creat
     Given the Orb user has a registered account
         And the Orb user logs in
         And that a sink with default configuration type already exists
-    When an agent(input_type:pcap, settings: {"iface":"default"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: True]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"pcap","iface":"default"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
         And edit the orb tags on agent and use 2 orb tag(s)
         And 1 Agent Group(s) is created with all tags contained in the agent
@@ -317,7 +317,7 @@ Scenario: agent pcap with mixed tags subscription to a group with policies creat
         And 1 Agent Group(s) is created with 2 orb tag(s) (lower case)
         And 3 simple policies pcap are applied to the group
         And a new agent is created with 2 orb tag(s)
-    When an agent(input_type:pcap, settings: {"iface":"default"}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: False]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"pcap","iface":"default"}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: False]
         And pktvisor state is running
     Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
@@ -334,7 +334,7 @@ Scenario: agent pcap with only agent tags subscription to a group with policies 
         And the Orb user logs in
         And that a sink with default configuration type already exists
         And a new agent is created with 0 orb tag(s)
-    When an agent(input_type:pcap, settings: {"iface":"default"}) is provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: True]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"pcap","iface":"default"}) is provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And 3 simple policies same input_type as created via config file are applied to the group
@@ -356,7 +356,7 @@ Scenario: agent pcap with only agent tags subscription to a group with policies 
         And 1 Agent Group(s) is created with 1 orb tag(s) (lower case)
         And 3 simple policies pcap are applied to the group
         And a new agent is created with 0 orb tag(s)
-    When an agent(input_type:pcap, settings: {"iface":"default"}) is provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: False]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"pcap","iface":"default"}) is provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: False]
         And pktvisor state is running
     Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
@@ -373,7 +373,7 @@ Scenario: agent pcap with mixed tags subscription to a group with policies creat
         And the Orb user logs in
         And that a sink with default configuration type already exists
         And a new agent is created with 2 orb tag(s)
-    When an agent(input_type:pcap, settings: {"iface":"default"}) is provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: False]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"pcap","iface":"default"}) is provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: False]
         And pktvisor state is running
         And edit the orb tags on agent and use 2 orb tag(s)
         And 1 Agent Group(s) is created with all tags contained in the agent
@@ -396,7 +396,7 @@ Scenario: agent pcap with mixed tags subscription to a group with policies creat
         And 1 Agent Group(s) is created with 2 orb tag(s) (lower case)
         And 3 simple policies pcap are applied to the group
         And a new agent is created with 2 orb tag(s)
-    When an agent(input_type:pcap, settings: {"iface":"default"}) is provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: False]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"pcap","iface":"default"}) is provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: False]
         And pktvisor state is running
     Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
@@ -415,7 +415,7 @@ Scenario: agent flow with only agent tags subscription to a group with policies 
     Given the Orb user has a registered account
         And the Orb user logs in
         And that a sink with default configuration type already exists
-    When an agent(input_type:flow, settings: {"bind":"0.0.0.0", "port":"available_port"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: True. Paste only file: False]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"flow","bind":"0.0.0.0", "port":"available_port"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: True. Paste only file: False]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And 3 simple policies same input_type as created via config file are applied to the group
@@ -436,7 +436,7 @@ Scenario: agent flow with only agent tags subscription to a group with policies 
         And 1 Agent Group(s) is created with 1 orb tag(s) (lower case)
         And 3 simple policies flow are applied to the group
         And a new agent is created with 0 orb tag(s)
-    When an agent(input_type:flow, settings: {"bind":"0.0.0.0", "port":"available_port"}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: False]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"flow","bind":"0.0.0.0", "port":"available_port"}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: False]
         And pktvisor state is running
     Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
@@ -452,7 +452,7 @@ Scenario: agent flow with mixed tags subscription to a group with policies creat
     Given the Orb user has a registered account
         And the Orb user logs in
         And that a sink with default configuration type already exists
-    When an agent(input_type:flow, settings: {"bind":"0.0.0.0", "port":"available_port"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: False]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"flow","bind":"0.0.0.0", "port":"available_port"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: False]
         And pktvisor state is running
         And edit the orb tags on agent and use 2 orb tag(s)
         And 1 Agent Group(s) is created with all tags contained in the agent
@@ -474,7 +474,7 @@ Scenario: agent flow with mixed tags subscription to a group with policies creat
         And 1 Agent Group(s) is created with 2 orb tag(s) (lower case)
         And 3 simple policies flow are applied to the group
         And a new agent is created with 2 orb tag(s)
-    When an agent(input_type:flow, settings: {"bind":"0.0.0.0", "port":"available_port"}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: False]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"flow","bind":"0.0.0.0", "port":"available_port"}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: False]
         And pktvisor state is running
     Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
@@ -490,7 +490,7 @@ Scenario: agent flow with only agent tags subscription to a group with policies 
         And the Orb user logs in
         And that a sink with default configuration type already exists
         And a new agent is created with 0 orb tag(s)
-    When an agent(input_type:flow, settings: {"bind":"0.0.0.0", "port":"available_port"}) is provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: False]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"flow","bind":"0.0.0.0", "port":"available_port"}) is provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: False]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And 3 simple policies same input_type as created via config file are applied to the group
@@ -511,7 +511,7 @@ Scenario: agent flow with only agent tags subscription to a group with policies 
         And 1 Agent Group(s) is created with 1 orb tag(s) (lower case)
         And 3 simple policies flow are applied to the group
         And a new agent is created with 0 orb tag(s)
-    When an agent(input_type:flow, settings: {"bind":"0.0.0.0", "port":"available_port"}) is provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: False]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"flow","bind":"0.0.0.0", "port":"available_port"}) is provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: False]
         And pktvisor state is running
     Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
@@ -528,7 +528,7 @@ Scenario: agent flow with mixed tags subscription to a group with policies creat
         And the Orb user logs in
         And that a sink with default configuration type already exists
         And a new agent is created with 2 orb tag(s)
-    When an agent(input_type:flow, settings: {"bind":"0.0.0.0", "port":"available_port"}) is provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: False]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"flow","bind":"0.0.0.0", "port":"available_port"}) is provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: False]
         And pktvisor state is running
         And edit the orb tags on agent and use 2 orb tag(s)
         And 1 Agent Group(s) is created with all tags contained in the agent
@@ -550,7 +550,7 @@ Scenario: agent flow with mixed tags subscription to a group with policies creat
         And 1 Agent Group(s) is created with 2 orb tag(s) (lower case)
         And 3 simple policies flow are applied to the group
         And a new agent is created with 2 orb tag(s)
-    When an agent(input_type:flow, settings: {"bind":"0.0.0.0", "port":"available_port"}) is provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: False]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"flow","bind":"0.0.0.0", "port":"available_port"}) is provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: False]
         And pktvisor state is running
     Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
@@ -570,7 +570,7 @@ Scenario: agent dnstap with only agent tags subscription to a group with policie
     Given the Orb user has a registered account
         And the Orb user logs in
         And that a sink with default configuration type already exists
-    When an agent(input_type:dnstap, settings: {"tcp":"0.0.0.0:available_port", "only_hosts":"0.0.0.0/32"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: False]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"dnstap","tcp":"0.0.0.0:available_port", "only_hosts":"0.0.0.0/32"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: False]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And 3 simple policies same input_type as created via config file are applied to the group
@@ -592,7 +592,7 @@ Scenario: agent dnstap with only agent tags subscription to a group with policie
         And 1 Agent Group(s) is created with 1 orb tag(s) (lower case)
         And 3 simple policies dnstap are applied to the group
         And a new agent is created with 0 orb tag(s)
-    When an agent(input_type:dnstap, settings: {"tcp":"0.0.0.0:available_port", "only_hosts":"0.0.0.0/32"}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: False]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"dnstap","tcp":"0.0.0.0:available_port", "only_hosts":"0.0.0.0/32"}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: False]
         And pktvisor state is running
     Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
@@ -609,7 +609,7 @@ Scenario: agent dnstap with mixed tags subscription to a group with policies cre
     Given the Orb user has a registered account
         And the Orb user logs in
         And that a sink with default configuration type already exists
-    When an agent(input_type:dnstap, settings: {"tcp":"0.0.0.0:available_port", "only_hosts":"0.0.0.0/32"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: False]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"dnstap","tcp":"0.0.0.0:available_port", "only_hosts":"0.0.0.0/32"}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: False]
         And pktvisor state is running
         And edit the orb tags on agent and use 2 orb tag(s)
         And 1 Agent Group(s) is created with all tags contained in the agent
@@ -632,7 +632,7 @@ Scenario: agent dnstap with mixed tags subscription to a group with policies cre
         And 1 Agent Group(s) is created with 2 orb tag(s) (lower case)
         And 3 simple policies dnstap are applied to the group
         And a new agent is created with 2 orb tag(s)
-    When an agent(input_type:dnstap, settings: {"tcp":"0.0.0.0:available_port", "only_hosts":"0.0.0.0/32"}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: False]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"dnstap","tcp":"0.0.0.0:available_port", "only_hosts":"0.0.0.0/32"}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: False]
         And pktvisor state is running
     Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
@@ -649,7 +649,7 @@ Scenario: agent dnstap with only agent tags subscription to a group with policie
         And the Orb user logs in
         And that a sink with default configuration type already exists
         And a new agent is created with 0 orb tag(s)
-    When an agent(input_type:dnstap, settings: {"tcp":"0.0.0.0:available_port", "only_hosts":"0.0.0.0/32"}) is provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: False]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"dnstap","tcp":"0.0.0.0:available_port", "only_hosts":"0.0.0.0/32"}) is provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: False]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And 3 simple policies same input_type as created via config file are applied to the group
@@ -671,7 +671,7 @@ Scenario: agent dnstap with only agent tags subscription to a group with policie
         And 1 Agent Group(s) is created with 1 orb tag(s) (lower case)
         And 3 simple policies dnstap are applied to the group
         And a new agent is created with 0 orb tag(s)
-    When an agent(input_type:dnstap, settings: {{"tcp":"0.0.0.0:available_port", "only_hosts":"0.0.0.0/32"}) is provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: False]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"dnstap","tcp":"0.0.0.0:available_port", "only_hosts":"0.0.0.0/32"}) is provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: False]
         And pktvisor state is running
     Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
@@ -688,7 +688,7 @@ Scenario: agent dnstap with mixed tags subscription to a group with policies cre
         And the Orb user logs in
         And that a sink with default configuration type already exists
         And a new agent is created with 2 orb tag(s)
-    When an agent(input_type:dnstap, settings: {"tcp":"0.0.0.0:available_port", "only_hosts":"0.0.0.0/32"}) is provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: False]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"dnstap","tcp":"0.0.0.0:available_port", "only_hosts":"0.0.0.0/32"}) is provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: False]
         And pktvisor state is running
         And edit the orb tags on agent and use 2 orb tag(s)
         And 1 Agent Group(s) is created with all tags contained in the agent
@@ -711,7 +711,7 @@ Scenario: agent dnstap with mixed tags subscription to a group with policies cre
         And 1 Agent Group(s) is created with 2 orb tag(s) (lower case)
         And 3 simple policies dnstap are applied to the group
         And a new agent is created with 2 orb tag(s)
-    When an agent(input_type:dnstap, settings: {"tcp":"0.0.0.0:available_port", "only_hosts":"0.0.0.0/32"}) is provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: False]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"dnstap","tcp":"0.0.0.0:available_port", "only_hosts":"0.0.0.0/32"}) is provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: False]
         And pktvisor state is running
     Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
@@ -731,7 +731,7 @@ Scenario: agent netprobe with only agent tags subscription to a group with polic
     Given the Orb user has a registered account
         And the Orb user logs in
         And that a sink with default configuration type already exists
-    When an agent(input_type:netprobe, settings: {"test_type":"ping", "packets_per_test":3, "interval_msec":3000, "timeout_msec":1500, "packets_interval_msec":50, "packet_payload_size":56, "targets": {"www.google.com": {"target": "www.google.com"}, "orb_community": {"target": "orb.community"}}}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: True]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"netprobe","test_type":"ping", "packets_per_test":3, "interval_msec":3000, "timeout_msec":1500, "packets_interval_msec":50, "packet_payload_size":56, "targets": {"www.google.com": {"target": "www.google.com"}, "orb_community": {"target": "orb.community"}}}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And 3 simple policies same input_type as created via config file are applied to the group
@@ -753,7 +753,7 @@ Scenario: agent netprobe with only agent tags subscription to a group with polic
         And 1 Agent Group(s) is created with 1 orb tag(s) (lower case)
         And 3 advanced policies netprobe are applied to the group
         And a new agent is created with 0 orb tag(s)
-    When an agent(input_type:netprobe, settings: {"test_type":"ping", "packets_per_test":3, "interval_msec":3000, "timeout_msec":1500, "packets_interval_msec":50, "packet_payload_size":56, "targets": {"www.google.com": {"target": "www.google.com"}, "orb_community": {"target": "orb.community"}}}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: False]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"netprobe","test_type":"ping", "packets_per_test":3, "interval_msec":3000, "timeout_msec":1500, "packets_interval_msec":50, "packet_payload_size":56, "targets": {"www.google.com": {"target": "www.google.com"}, "orb_community": {"target": "orb.community"}}}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: False]
         And pktvisor state is running
     Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
@@ -770,7 +770,7 @@ Scenario: agent netprobe with mixed tags subscription to a group with policies c
     Given the Orb user has a registered account
         And the Orb user logs in
         And that a sink with default configuration type already exists
-    When an agent(input_type:netprobe, settings: {"test_type":"ping", "packets_per_test":3, "interval_msec":3000, "timeout_msec":1500, "packets_interval_msec":50, "packet_payload_size":56, "targets": {"www.google.com": {"target": "www.google.com"}, "orb_community": {"target": "orb.community"}}}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: False]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"netprobe","test_type":"ping", "packets_per_test":3, "interval_msec":3000, "timeout_msec":1500, "packets_interval_msec":50, "packet_payload_size":56, "targets": {"www.google.com": {"target": "www.google.com"}, "orb_community": {"target": "orb.community"}}}) is self-provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: False]
         And pktvisor state is running
         And edit the orb tags on agent and use 2 orb tag(s)
         And 1 Agent Group(s) is created with all tags contained in the agent
@@ -793,7 +793,7 @@ Scenario: agent netprobe with mixed tags subscription to a group with policies c
         And 1 Agent Group(s) is created with 2 orb tag(s) (lower case)
         And 3 simple policies netprobe are applied to the group
         And a new agent is created with 2 orb tag(s)
-    When an agent(input_type:netprobe, settings: {"test_type":"ping", "packets_per_test":3, "interval_msec":3000, "timeout_msec":1500, "packets_interval_msec":50, "packet_payload_size":56, "targets": {"www.google.com": {"target": "www.google.com"}, "orb_community": {"target": "orb.community"}}}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: False]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"netprobe","test_type":"ping", "packets_per_test":3, "interval_msec":3000, "timeout_msec":1500, "packets_interval_msec":50, "packet_payload_size":56, "targets": {"www.google.com": {"target": "www.google.com"}, "orb_community": {"target": "orb.community"}}}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: False]
         And pktvisor state is running
     Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
@@ -811,7 +811,7 @@ Scenario: agent netprobe with only agent tags subscription to a group with polic
         And the Orb user logs in
         And that a sink with default configuration type already exists
         And a new agent is created with 0 orb tag(s)
-    When an agent(input_type:netprobe, settings: {"test_type":"ping", "packets_per_test":3, "interval_msec":3000, "timeout_msec":1500, "packets_interval_msec":50, "packet_payload_size":56, "targets": {"www.google.com": {"target": "www.google.com"}, "orb_community": {"target": "orb.community"}}}) is provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: True. Paste only file: True]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"netprobe","test_type":"ping", "packets_per_test":3, "interval_msec":3000, "timeout_msec":1500, "packets_interval_msec":50, "packet_payload_size":56, "targets": {"www.google.com": {"target": "www.google.com"}, "orb_community": {"target": "orb.community"}}}) is provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: True. Paste only file: True]
         And pktvisor state is running
         And 1 Agent Group(s) is created with all tags contained in the agent
         And 3 simple policies same input_type as created via config file are applied to the group
@@ -834,7 +834,7 @@ Scenario: agent netprobe with only agent tags subscription to a group with polic
         And 1 Agent Group(s) is created with 1 orb tag(s) (lower case)
         And 3 simple policies netprobe are applied to the group
         And a new agent is created with 0 orb tag(s)
-    When an agent(input_type:netprobe, settings: {"test_type":"ping", "packets_per_test":3, "interval_msec":3000, "timeout_msec":1500, "packets_interval_msec":50, "packet_payload_size":56, "targets": {"www.google.com": {"target": "www.google.com"}, "orb_community": {"target": "orb.community"}}}) is provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: False]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"netprobe","test_type":"ping", "packets_per_test":3, "interval_msec":3000, "timeout_msec":1500, "packets_interval_msec":50, "packet_payload_size":56, "targets": {"www.google.com": {"target": "www.google.com"}, "orb_community": {"target": "orb.community"}}}) is provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: False]
         And pktvisor state is running
     Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
@@ -852,7 +852,7 @@ Scenario: agent netprobe with mixed tags subscription to a group with policies c
         And the Orb user logs in
         And that a sink with default configuration type already exists
         And a new agent is created with 2 orb tag(s)
-    When an agent(input_type:netprobe, settings: {"test_type":"ping", "packets_per_test":3, "interval_msec":3000, "timeout_msec":1500, "packets_interval_msec":50, "packet_payload_size":56, "targets": {"www.google.com": {"target": "www.google.com"}, "orb_community": {"target": "orb.community"}}}) is provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: False]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"netprobe","test_type":"ping", "packets_per_test":3, "interval_msec":3000, "timeout_msec":1500, "packets_interval_msec":50, "packet_payload_size":56, "targets": {"www.google.com": {"target": "www.google.com"}, "orb_community": {"target": "orb.community"}}}) is provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: False. Paste only file: False]
         And pktvisor state is running
         And edit the orb tags on agent and use 2 orb tag(s)
         And 1 Agent Group(s) is created with all tags contained in the agent
@@ -876,7 +876,7 @@ Scenario: agent netprobe with mixed tags subscription to a group with policies c
         And 1 Agent Group(s) is created with 2 orb tag(s) (lower case)
         And 3 simple policies netprobe are applied to the group
         And a new agent is created with 2 orb tag(s)
-    When an agent(input_type:netprobe, settings: {"test_type":"ping", "packets_per_test":3, "interval_msec":3000, "timeout_msec":1500, "packets_interval_msec":50, "packet_payload_size":56, "targets": {"www.google.com": {"target": "www.google.com"}, "orb_community": {"target": "orb.community"}}}) is provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: False]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"netprobe","test_type":"ping", "packets_per_test":3, "interval_msec":3000, "timeout_msec":1500, "packets_interval_msec":50, "packet_payload_size":56, "targets": {"www.google.com": {"target": "www.google.com"}, "orb_community": {"target": "orb.community"}}}) is provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: False]
         And pktvisor state is running
     Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
