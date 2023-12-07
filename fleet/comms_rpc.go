@@ -49,6 +49,7 @@ type AgentPolicyRPCPayload struct {
 	AgentGroupID string      `json:"agent_group_id"`
 	Name         string      `json:"name"`
 	Backend      string      `json:"backend"`
+	Format       string      `json:"format"`
 	Version      int32       `json:"version"`
 	Data         interface{} `json:"data"`
 }

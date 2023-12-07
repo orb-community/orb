@@ -1,7 +1,7 @@
 from utils import safe_load_json, random_string, threading_wait_until, return_port_by_availability
 from behave import then, step
 from hamcrest import *
-from test_config import TestConfig, LOCAL_AGENT_CONTAINER_NAME
+from configs import TestConfig, LOCAL_AGENT_CONTAINER_NAME
 import docker
 import subprocess
 import shlex
@@ -44,17 +44,8 @@ def check_metrics_by_handler(context, handler_type):
 def run_local_agent_container(context, status_port, **kwargs):
     use_orb_live_address_pattern = configs.get("use_orb_live_address_pattern")
     verify_ssl = configs.get('verify_ssl')
-    if "include_otel_env_var" in kwargs: # this if/else logic can be removed after otel migration (only else is needed)
-        include_otel_env_var = kwargs["include_otel_env_var"]
-    else:
-        include_otel_env_var = configs.get("include_otel_env_var")
-    if "enable_otel" in kwargs: # this if/else logic can be removed after otel migration (only else is needed)
-        enable_otel = kwargs["enable_otel"]
-    else:
-        enable_otel = configs.get("enable_otel")
-
     env_vars = create_agent_env_vars_set(context.agent['id'], context.agent['channel_id'], context.agent_key,
-                                         verify_ssl, use_orb_live_address_pattern, include_otel_env_var, enable_otel)
+                                         verify_ssl, use_orb_live_address_pattern)
     env_vars.update(kwargs)
     assert_that(status_port, any_of(equal_to("available"), equal_to("unavailable")), "Unexpected value for port")
     availability = {"available": True, "unavailable": False}
@@ -89,9 +80,7 @@ def run_local_agents_with_extra_env_vars(context, status_port, group):
         "PCAP": {"PKTVISOR_PCAP_IFACE_DEFAULT": configs.get("orb_agent_interface", "auto")},
         "NETFLOW": {"PKTVISOR_NETFLOW": "true", "PKTVISOR_NETFLOW_PORT_DEFAULT": 9995},
         "SFLOW": {"PKTVISOR_SFLOW": "true", "PKTVISOR_SFLOW_PORT_DEFAULT": 9994},
-        "DNSTAP": {"PKTVISOR_DNSTAP": "true", "PKTVISOR_DNSTAP_PORT_DEFAULT": 9990},
-        # this line below is only necessary for OTEL migration tests, so we can exclude it after the migration
-        "OTEL:ENABLED": {"ORB_OTEL_ENABLE": "true"}
+        "DNSTAP": {"PKTVISOR_DNSTAP": "true", "PKTVISOR_DNSTAP_PORT_DEFAULT": 9990}
     }
     if group == "ALL":
         vars_by_input["ALL"] = dict()
@@ -165,12 +154,9 @@ def run_container_using_ui_command(context, status_port):
     assert_that(status_port, any_of(equal_to("available"), equal_to("unavailable")), "Unexpected value for port")
     availability = {"available": True, "unavailable": False}
     context.port = return_port_by_availability(context, availability[status_port])
-    include_otel_env_var = configs.get("include_otel_env_var")
-    enable_otel = configs.get("enable_otel")
     verify_ssl = configs.get("verify_ssl")
     context.container_id = run_local_agent_from_terminal(context.agent_provisioning_command,
-                                                         verify_ssl, str(context.port),
-                                                         include_otel_env_var, enable_otel)
+                                                         verify_ssl, str(context.port))
     assert_that(context.container_id, is_not((none())), f"Agent container was not run")
     rename_container(context.container_id, LOCAL_AGENT_CONTAINER_NAME + context.agent['name'][-5:])
     if context.container_id not in context.containers_id.keys():
@@ -216,7 +202,7 @@ def remove_all_orb_agent_test_containers(context):
 
 
 def create_agent_env_vars_set(agent_id, agent_channel_id, agent_mqtt_key, verify_ssl,
-                              use_orb_live_address_pattern, include_otel_env_var, enable_otel):
+                              use_orb_live_address_pattern):
     """
     Create the set of environmental variables to be passed to the agent
     :param agent_id: id of the agent
@@ -225,8 +211,6 @@ def create_agent_env_vars_set(agent_id, agent_channel_id, agent_mqtt_key, verify
     :param verify_ssl: ignore process to verify tls if false
     :param use_orb_live_address_pattern: if true, uses the shortcut orb_cloud_address.
                                               if false sets api and mqtt address.
-    :param include_otel_env_var: If true, use the environmental variable "ORB_OTEL_ENABLE" on agent provisioning command
-    :param enable_otel: Value to be used in variable "ORB_OTEL_ENABLE"
     :return: set of environmental variables
     """
     orb_address = configs.get('orb_address')
@@ -245,8 +229,6 @@ def create_agent_env_vars_set(agent_id, agent_channel_id, agent_mqtt_key, verify
 
     if verify_ssl == 'false':
         env_vars["ORB_TLS_VERIFY"] = "false"
-    if include_otel_env_var == "true":
-        env_vars["ORB_OTEL_ENABLE"] = enable_otel
     return env_vars
 
 
@@ -333,13 +315,11 @@ def check_logs_contain_log(logs, expected_log, event, start_time=0):
     return event.is_set()
 
 
-def run_local_agent_from_terminal(command, verify_ssl, pktvisor_port,
-                                  include_otel_env_var="false", enable_otel="true"):
+def run_local_agent_from_terminal(command, verify_ssl, pktvisor_port):
     """
     :param (str) command: docker command to provision an agent
     :param (bool) verify_ssl: False if orb address doesn't have a valid certificate.
     :param (str or int) pktvisor_port: Port on which pktvisor should run
-    :param (str): if 'true', ORB_OTEL_ENABLE env ver is included on command provisioning of the agent
     :return: agent container ID
     """
     command = command.replace("\\\n", " ")
@@ -347,8 +327,6 @@ def run_local_agent_from_terminal(command, verify_ssl, pktvisor_port,
     if verify_ssl == 'false':
         args.insert(-1, "-e")
         args.insert(-1, "ORB_TLS_VERIFY=false")
-    if include_otel_env_var == "true":
-        args.insert(-1, f"ORB_OTEL_ENABLE={enable_otel}")
     if pktvisor_port != 'default':
         args.insert(-1, "-e")
         args.insert(-1, f"ORB_BACKENDS_PKTVISOR_API_PORT={pktvisor_port}")

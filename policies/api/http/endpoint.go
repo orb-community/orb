@@ -125,6 +125,7 @@ func listPoliciesEndpoint(svc policies.Service) endpoint.Endpoint {
 				Description:   *ag.Description,
 				Version:       ag.Version,
 				Backend:       ag.Backend,
+				Format:        ag.Format,
 				SchemaVersion: ag.SchemaVersion,
 				LastModified:  ag.LastModified,
 				Created:       ag.Created,

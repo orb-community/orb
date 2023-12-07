@@ -16,6 +16,7 @@ import (
 
 func (a *orbAgent) handleGroupMembership(rpc fleet.GroupMembershipRPCPayload) {
 	// if this is the full list, reset all group subscriptions and subscribed to this list
+	_, _ = a.extendContext("handleGroupMembership")
 	if rpc.FullList {
 		a.unsubscribeGroupChannels()
 		a.subscribeGroupChannels(rpc.Groups)
@@ -30,6 +31,7 @@ func (a *orbAgent) handleGroupMembership(rpc fleet.GroupMembershipRPCPayload) {
 }
 
 func (a *orbAgent) handleAgentPolicies(ctx context.Context, rpc []fleet.AgentPolicyRPCPayload, fullList bool) {
+	ctx, _ = a.extendContext("handleAgentPolicies")
 	if fullList {
 		policies, err := a.policyManager.GetRepo().GetAll()
 		if err != nil {
@@ -177,7 +179,7 @@ func (a *orbAgent) handleAgentReset(ctx context.Context, payload fleet.AgentRese
 }
 
 func (a *orbAgent) handleRPCFromCore(client mqtt.Client, message mqtt.Message) {
-	handleMsgCtx, handleMsgCtxCancelFunc := context.WithCancel(context.WithValue(context.Background(), "routine", "fromCore_rpc_handler"))
+	handleMsgCtx, handleMsgCtxCancelFunc := a.extendContext("handleRPCFromCore")
 	go func(ctx context.Context, cancelFunc context.CancelFunc) {
 		a.logger.Debug("RPC message from core", zap.String("topic", message.Topic()), zap.ByteString("payload", message.Payload()))
 

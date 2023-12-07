@@ -19,6 +19,7 @@ import (
 	"github.com/orb-community/orb/buildinfo"
 	"github.com/orb-community/orb/policies/pb"
 	"go.uber.org/zap"
+	"gopkg.in/yaml.v3"
 	"time"
 )
 
@@ -133,10 +134,16 @@ func (svc fleetCommsService) NotifyGroupNewDataset(ctx context.Context, ag Agent
 	if err != nil {
 		return err
 	}
-
 	var pdata interface{}
-	if err := json.Unmarshal(p.Data, &pdata); err != nil {
-		return err
+	if p.Format == "yaml" {
+		if err := yaml.Unmarshal(p.Data, &pdata); err != nil {
+			return err
+		}
+	} else { // today we only have json and yaml as formats,
+		// once we add more, it would be best to add an enumerator to validate this in a switch
+		if err := json.Unmarshal(p.Data, &pdata); err != nil {
+			return err
+		}
 	}
 
 	payload := []AgentPolicyRPCPayload{{
@@ -239,8 +246,15 @@ func (svc fleetCommsService) NotifyAgentAllDatasets(ctx context.Context, a Agent
 		for i, policy := range p.Policies {
 
 			var pdata interface{}
-			if err := json.Unmarshal(policy.Data, &pdata); err != nil {
-				return err
+			svc.logger.Info("policy format", zap.Any("policy_format", policy.Format))
+			if policy.Format == "yaml" {
+				if err := yaml.Unmarshal(policy.Data, &pdata); err != nil {
+					return err
+				}
+			} else {
+				if err := json.Unmarshal(policy.Data, &pdata); err != nil {
+					return err
+				}
 			}
 
 			payload[i] = AgentPolicyRPCPayload{
@@ -249,6 +263,7 @@ func (svc fleetCommsService) NotifyAgentAllDatasets(ctx context.Context, a Agent
 				Name:         policy.Name,
 				Backend:      policy.Backend,
 				Version:      policy.Version,
+				Format:       policy.Format,
 				Data:         pdata,
 				DatasetID:    policy.DatasetId,
 				AgentGroupID: policy.AgentGroupId,
