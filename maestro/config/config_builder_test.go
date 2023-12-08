@@ -97,6 +97,28 @@ func TestReturnConfigYamlFromSink(t *testing.T) {
 			want:    `---\nreceivers:\n  kafka:\n    brokers:\n    - kafka:9092\n    topic: otlp_metrics-sink-id-22\n    protocol_version: 2.0.0\nextensions:\n  pprof:\n    endpoint: 0.0.0.0:1888\n  basicauth/exporter:\n    client_auth:\n      username: otlp-user\n      password: dbpass\nexporters:\n  otlphttp:\n    endpoint: https://acme.com/otlphttp/push\n    auth:\n      authenticator: basicauth/exporter\nservice:\n  extensions:\n  - pprof\n  - basicauth/exporter\n  pipelines:\n    metrics:\n      receivers:\n      - kafka\n      exporters:\n      - otlphttp\n`,
 			wantErr: false,
 		},
+		{
+			name: "otlp, noauth",
+			args: args{
+				in0:            context.Background(),
+				kafkaUrlConfig: "kafka:9092",
+				sink: &DeploymentRequest{
+					SinkID:  "sink-id-22",
+					OwnerID: "22",
+					Backend: "otlphttp",
+					Config: types.Metadata{
+						"exporter": types.Metadata{
+							"endpoint": "https://acme.com/otlphttp/push",
+						},
+						"authentication": types.Metadata{
+							"type": "noauth",
+						},
+					},
+				},
+			},
+			want:    `---\nreceivers:\n  kafka:\n    brokers:\n    - kafka:9092\n    topic: otlp_metrics-sink-id-22\n    protocol_version: 2.0.0\nextensions:\n  pprof:\n    endpoint: 0.0.0.0:1888\n  basicauth/exporter:\n    client_auth:\n      username: otlp-user\n      password: dbpass\nexporters:\n  otlphttp:\n    endpoint: https://acme.com/otlphttp/push\n    auth:\n      authenticator: basicauth/exporter\nservice:\n  extensions:\n  - pprof\n  - basicauth/exporter\n  pipelines:\n    metrics:\n      receivers:\n      - kafka\n      exporters:\n      - otlphttp\n`,
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		logger := zap.NewNop()
