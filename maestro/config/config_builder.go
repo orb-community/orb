@@ -393,8 +393,12 @@ func (c *configBuilder) ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConf
 	extensions.PProf = &output.PProfExtension{
 		Endpoint: "0.0.0.0:1888",
 	}
+	extensionsNames := []string{"pprof"}
+	if extensionName != "" {
+		extensionsNames = append(extensionsNames, extensionName)
+	}
 	serviceConfig := output.ServiceConfig{
-		Extensions: []string{"pprof", extensionName},
+		Extensions: extensionsNames,
 		Pipelines: struct {
 			Metrics struct {
 				Receivers  []string `json:"receivers" yaml:"receivers"`

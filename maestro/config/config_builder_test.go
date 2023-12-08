@@ -116,7 +116,7 @@ func TestReturnConfigYamlFromSink(t *testing.T) {
 					},
 				},
 			},
-			want:    `---\nreceivers:\n  kafka:\n    brokers:\n    - kafka:9092\n    topic: otlp_metrics-sink-id-22\n    protocol_version: 2.0.0\nextensions:\n  pprof:\n    endpoint: 0.0.0.0:1888\nexporters:\n  otlphttp:\n    endpoint: https://acme.com/otlphttp/push\n    service:\n  extensions:\n  - pprof\n  - \n  pipelines:\n    metrics:\n      receivers:\n      - kafka\n      exporters:\n      - otlphttp\n`,
+			want:    `---\nreceivers:\n  kafka:\n    brokers:\n    - kafka:9092\n    topic: otlp_metrics-sink-id-22\n    protocol_version: 2.0.0\nextensions:\n  pprof:\n    endpoint: 0.0.0.0:1888\nexporters:\n  otlphttp:\n    endpoint: https://acme.com/otlphttp/push\nservice:\n  extensions:\n  - pprof\n  pipelines:\n    metrics:\n      receivers:\n      - kafka\n      exporters:\n      - otlphttp\n`,
 			wantErr: false,
 		},
 	}
