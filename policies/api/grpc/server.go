@@ -12,6 +12,7 @@ import (
 	"context"
 	"github.com/orb-community/orb/policies"
 	"github.com/orb-community/orb/policies/pb"
+	"go.uber.org/zap"
 
 	kitot "github.com/go-kit/kit/tracing/opentracing"
 	kitgrpc "github.com/go-kit/kit/transport/grpc"
@@ -129,9 +130,10 @@ func encodePolicyResponse(_ context.Context, grpcRes interface{}) (interface{}, 
 
 func encodePolicyInDSListResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
 	res := grpcRes.(policyInDSListRes)
-
 	plist := make([]*pb.PolicyInDSRes, len(res.policies))
+	l, _ := zap.NewDevelopment()
 	for i, p := range res.policies {
+		l.Debug("policy format", zap.String("format", p.format), zap.String("policy_id", p.id))
 		plist[i] = &pb.PolicyInDSRes{Id: p.id,
 			Name:         p.name,
 			Data:         p.data,
