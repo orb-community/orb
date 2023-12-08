@@ -246,7 +246,7 @@ func (svc fleetCommsService) NotifyAgentAllDatasets(ctx context.Context, a Agent
 		for i, policy := range p.Policies {
 
 			var pdata interface{}
-			svc.logger.Info("policy format", zap.Any("policy_format", policy.Format))
+			svc.logger.Debug("policy format", zap.String("policy_id", policy.Id), zap.String("policy_format", policy.Format))
 			if policy.Format == "yaml" {
 				if err := yaml.Unmarshal(policy.Data, &pdata); err != nil {
 					return err
