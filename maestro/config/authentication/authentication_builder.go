@@ -1,8 +1,9 @@
-package config
+package authentication
 
 import (
-	maestrobasicauth "github.com/orb-community/orb/maestro/config/basicauth"
-	maestronoauth "github.com/orb-community/orb/maestro/config/noauth"
+	maestrobasicauth "github.com/orb-community/orb/maestro/config/authentication/basicauth"
+	maestronoauth "github.com/orb-community/orb/maestro/config/authentication/noauth"
+	"github.com/orb-community/orb/maestro/config/output"
 	"github.com/orb-community/orb/maestro/password"
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks/authentication_type/basicauth"
@@ -10,7 +11,7 @@ import (
 )
 
 type AuthBuilderService interface {
-	GetExtensionsFromMetadata(config types.Metadata) (Extensions, string)
+	GetExtensionsFromMetadata(config types.Metadata) (output.Extensions, string)
 	DecodeAuth(config types.Metadata) (types.Metadata, error)
 	EncodeAuth(config types.Metadata) (types.Metadata, error)
 }

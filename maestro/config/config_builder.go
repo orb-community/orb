@@ -3,6 +3,8 @@ package config
 import (
 	"context"
 	"fmt"
+	"github.com/orb-community/orb/maestro/config/authentication"
+	"github.com/orb-community/orb/maestro/config/output"
 	"strings"
 
 	"github.com/orb-community/orb/pkg/errors"
@@ -367,17 +369,17 @@ func (c *configBuilder) BuildDeploymentConfig(deployment *DeploymentRequest) (st
 
 // ReturnConfigYamlFromSink this is the main method, which will generate the YAML file from the
 func (c *configBuilder) ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig string, deployment *DeploymentRequest) (string, error) {
-	authType := deployment.Config.GetSubMetadata(AuthenticationKey)["type"]
+	authType := deployment.Config.GetSubMetadata("authentication")["type"]
 	authTypeStr, ok := authType.(string)
 	if !ok {
 		return "", errors.New("failed to create config invalid authentication type")
 	}
 	// TODO move this into somewhere else
-	authBuilder := GetAuthService(authTypeStr, c.encryptionService)
+	authBuilder := authentication.GetAuthService(authTypeStr, c.encryptionService)
 	if authBuilder == nil {
 		return "", errors.New("invalid authentication type")
 	}
-	exporterBuilder := FromStrategy(deployment.Backend)
+	exporterBuilder := output.FromStrategy(deployment.Backend)
 	if exporterBuilder == nil {
 		return "", errors.New("invalid backend")
 	}
@@ -388,10 +390,10 @@ func (c *configBuilder) ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConf
 	}
 
 	// Add prometheus extension for metrics
-	extensions.PProf = &PProfExtension{
+	extensions.PProf = &output.PProfExtension{
 		Endpoint: "0.0.0.0:1888",
 	}
-	serviceConfig := ServiceConfig{
+	serviceConfig := output.ServiceConfig{
 		Extensions: []string{"pprof", extensionName},
 		Pipelines: struct {
 			Metrics struct {
@@ -410,9 +412,9 @@ func (c *configBuilder) ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConf
 			},
 		},
 	}
-	config := OtelConfigFile{
-		Receivers: Receivers{
-			Kafka: KafkaReceiver{
+	config := output.OtelConfigFile{
+		Receivers: output.Receivers{
+			Kafka: output.KafkaReceiver{
 				Brokers:         []string{kafkaUrlConfig},
 				Topic:           fmt.Sprintf("otlp_metrics-%s", deployment.SinkID),
 				ProtocolVersion: "2.0.0",

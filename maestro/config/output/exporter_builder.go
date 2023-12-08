@@ -1,6 +1,8 @@
-package config
+package output
 
-import "github.com/orb-community/orb/pkg/types"
+import (
+	"github.com/orb-community/orb/pkg/types"
+)
 
 type ExporterConfigService interface {
 	GetExportersFromMetadata(config types.Metadata, authenticationExtensionName string) (Exporters, string)

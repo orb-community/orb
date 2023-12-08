@@ -1,7 +1,7 @@
 package basicauth
 
 import (
-	"github.com/orb-community/orb/maestro/config"
+	"github.com/orb-community/orb/maestro/config/output"
 	"github.com/orb-community/orb/maestro/password"
 	"github.com/orb-community/orb/pkg/types"
 )
@@ -12,13 +12,13 @@ type BasicAuthBuilder struct {
 	EncryptionService password.EncryptionService
 }
 
-func (b *BasicAuthBuilder) GetExtensionsFromMetadata(c types.Metadata) (config.Extensions, string) {
+func (b *BasicAuthBuilder) GetExtensionsFromMetadata(c types.Metadata) (output.Extensions, string) {
 	authcfg := c.GetSubMetadata(AuthenticationKey)
 	username := authcfg["username"].(string)
 	password := authcfg["password"].(string)
-	return config.Extensions{
-		BasicAuth: &config.BasicAuthenticationExtension{
-			ClientAuth: &config.ClientAuth{
+	return output.Extensions{
+		BasicAuth: &output.BasicAuthenticationExtension{
+			ClientAuth: &output.ClientAuth{
 				Username: username,
 				Password: password,
 			},
