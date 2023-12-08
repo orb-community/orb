@@ -13,7 +13,6 @@ import (
 	"fmt"
 	"github.com/orb-community/orb/fleet/backend/otel"
 	"io"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -211,7 +210,7 @@ func connectToRedis(redisURL, redisPass, redisDB string, logger *zap.Logger) *r.
 
 func initJaeger(svcName, url string, logger *zap.Logger) (opentracing.Tracer, io.Closer) {
 	if url == "" {
-		return opentracing.NoopTracer{}, ioutil.NopCloser(nil)
+		return opentracing.NoopTracer{}, io.NopCloser(nil)
 	}
 
 	tracer, closer, err := jconfig.Configuration{

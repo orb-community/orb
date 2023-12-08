@@ -9,7 +9,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -47,7 +46,7 @@ func (d *diodeBackend) request(url string, payload interface{}, method string, b
 	}
 
 	if (res.StatusCode < 200) || (res.StatusCode > 299) {
-		body, err := ioutil.ReadAll(res.Body)
+		body, err := io.ReadAll(res.Body)
 		if err != nil {
 			return errors.New(fmt.Sprintf("non 2xx HTTP error code from diode, no or invalid body: %d", res.StatusCode))
 		}
