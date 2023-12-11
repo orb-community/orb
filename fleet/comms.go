@@ -82,8 +82,14 @@ func (svc fleetCommsService) NotifyGroupDatasetEdit(ctx context.Context, ag Agen
 	}
 
 	var pdata interface{}
-	if err := json.Unmarshal(p.Data, &pdata); err != nil {
-		return err
+	if p.GetFormat() == "yaml" {
+		if err := yaml.Unmarshal(p.Data, &pdata); err != nil {
+			return err
+		}
+	} else {
+		if err := json.Unmarshal(p.Data, &pdata); err != nil {
+			return err
+		}
 	}
 
 	var action string
@@ -101,6 +107,7 @@ func (svc fleetCommsService) NotifyGroupDatasetEdit(ctx context.Context, ag Agen
 		Version:   p.Version,
 		Data:      pdata,
 		DatasetID: datasetID,
+		Format:    p.Format,
 	}}
 
 	data := AgentPolicyRPC{
@@ -246,7 +253,7 @@ func (svc fleetCommsService) NotifyAgentAllDatasets(ctx context.Context, a Agent
 		for i, policy := range p.Policies {
 
 			var pdata interface{}
-			svc.logger.Info("policy format", zap.Any("policy_format", policy.Format))
+			svc.logger.Debug("policy format", zap.String("policy_id", policy.Id), zap.String("policy_format", policy.Format))
 			if policy.Format == "yaml" {
 				if err := yaml.Unmarshal(policy.Data, &pdata); err != nil {
 					return err
@@ -398,8 +405,14 @@ func (svc fleetCommsService) NotifyGroupPolicyUpdate(ctx context.Context, ag Age
 	}
 
 	var pdata interface{}
-	if err := json.Unmarshal(p.Data, &pdata); err != nil {
-		return err
+	if p.GetFormat() == "yaml" {
+		if err := yaml.Unmarshal(p.Data, &pdata); err != nil {
+			return err
+		}
+	} else {
+		if err := json.Unmarshal(p.Data, &pdata); err != nil {
+			return err
+		}
 	}
 
 	payload := []AgentPolicyRPCPayload{{
@@ -410,6 +423,7 @@ func (svc fleetCommsService) NotifyGroupPolicyUpdate(ctx context.Context, ag Age
 		Backend:      p.Backend,
 		Version:      p.Version,
 		Data:         pdata,
+		Format:       p.Format,
 	}}
 
 	data := AgentPolicyRPC{
