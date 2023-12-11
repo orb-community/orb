@@ -8,11 +8,12 @@ from utils import (random_string, filter_list_by_parameter_start_with, generate_
                    return_api_put_response)
 from behave import given, then, step
 from hamcrest import *
-import requests
 from random import sample
 import json
 import random
+from logger import Logger
 
+log = Logger().logger_instance()
 configs = TestConfig.configs()
 agent_group_name_prefix = 'test_group_name_'
 agent_group_description = "This is an agent group"
@@ -46,8 +47,8 @@ def create_agent_group_matching_agent(context, amount_of_agent_groups, amount_of
                                                      f"Agent:{context.agent}")
     for group in range(int(amount_of_agent_groups)):
         agent_group_name = agent_group_name_prefix + random_string()
-        agent_group_data = generate_group_with_valid_json(context.token, agent_group_name, group_description,
-                                                          tags_to_group, context.agent_groups)
+        generate_group_with_valid_json(context.token, agent_group_name, group_description,
+                                       tags_to_group, context.agent_groups)
 
 
 @step("{amount_of_agent_groups} Agent Group(s) is created with {orb_tags} orb tag(s) (lower case)")
@@ -535,6 +536,7 @@ def generate_group_with_valid_json(token, agent_group_name, group_description, t
     """
     agent_group_data = create_agent_group(token, agent_group_name, group_description,
                                           tags_to_group)
+    log.debug(f"Created agent group data: {agent_group_data}")
     group_id = agent_group_data['id']
     agent_groups[group_id] = agent_group_name
 

@@ -1,5 +1,4 @@
 from hamcrest import *
-import requests
 from behave import given, then, step
 from utils import (random_string, filter_list_by_parameter_start_with, safe_load_json, remove_empty_from_json, \
                    threading_wait_until, UtilsManager, create_tags_set, is_json, values_to_boolean,
@@ -14,7 +13,9 @@ from deepdiff import DeepDiff
 import json
 import ciso8601
 import yaml
+from logger import Logger
 
+log = Logger().logger_instance()
 policy_name_prefix = "test_policy_name_"
 configs = TestConfig.configs()
 orb_url = configs.get('orb_url')
@@ -363,7 +364,7 @@ def check_agent_logs_for_policies_considering_timestamp(context, condition, text
         policies_without_message = set(context.list_agent_policies_id).difference(policies_have_expected_message)
         for policy in policies_without_message:
             policies_data.append(get_policy(context.token, policy))
-
+    log.debug(f"Agent logs: {logs}")
     assert_that(policies_have_expected_message, equal_to(set(context.list_agent_policies_id)),
                 f"Message '{text_to_match}' for policy "
                 f"'{policies_data}'"

@@ -1,5 +1,5 @@
 @integration_config_files @AUTORETRY
-Feature: Integration tests using agent provided via config file
+Feature: Integration tests using agent with pktvisor as backend provided via config file
 
 
 @private @auto_provision
@@ -79,7 +79,7 @@ Scenario: provisioning agent without specify pktvisor path to config file (confi
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And remove the agent .yaml generated on each scenario
 
-@smoke @config_file @pktvisor_configs @bla
+@smoke @config_file @pktvisor_configs
 Scenario: provisioning agent without specify pktvisor binary path and path to config file (config file - auto_provision=false)
     Given the Orb user has a registered account
         And the Orb user logs in

@@ -385,72 +385,20 @@ def provision_agent_using_config_file(context, backend_type, settings, provision
     context.container_id = run_agent_config_file(context.agent_file_name, overwrite_default, paste_only_file)
     if context.container_id not in context.containers_id.keys():
         context.containers_id[context.container_id] = str(context.port)
-    log = f"web server listening on localhost:{context.port}"
-    agent_started, logs = get_logs_and_check(context.container_id, log, element_to_check="log")
-    assert_that(agent_started, equal_to(True), f"Log {log} not found on agent logs. Agent Name: {agent_name}.\n"
-                                               f"Logs:{logs}")
-    context.agent, is_agent_created = check_agent_exists_on_backend(context.token, agent_name, timeout=60)
-    logs = get_orb_agent_logs(context.container_id)
-    assert_that(is_agent_created, equal_to(True), f"Agent {agent_name} not found in /agents route."
-                                                  f"\n Config File (json converted): {safe_config_file}."
-                                                  f"\nLogs: {logs}.")
-    context.agent, are_tags_correct = get_agent_tags(context.token, context.agent['id'], tags_on_agent)
-    assert_that(are_tags_correct, equal_to(True), f"Agent tags created does not match with the required ones. Agent:"
-                                                  f"{context.agent}. Tags that would be present: {tags_on_agent}.\n"
-                                                  f"Agent Logs: {logs}")
-    assert_that(context.agent, is_not(None), f"Agent {agent_name} not correctly created. Logs: {logs}")
-    agent_id = context.agent['id']
-    existing_agents = get_agent(context.token, agent_id)
-    assert_that(len(existing_agents), greater_than(0), f"Agent not created. Logs: {logs}")
-    agent_status, context.agent = wait_until_expected_agent_status(context.token, agent_id, status)
-    assert_that(agent_status, is_(equal_to(status)),
-                f"Agent did not get '{status}' after 30 seconds, but was '{agent_status}'. \n"
-                f"Agent: {json.dumps(context.agent, indent=4)}. \n Logs: {logs}")
-
-
-@step("an agent with otel backend is {provision} via a configuration file on port {port} "
-      "with {agent_tags} agent tags and has status {status}. [Overwrite default: {overwrite_default}. Paste only "
-      "file: {paste_only_file}]")
-def provision_otel_backend_agent_using_config_file(context, provision, port, agent_tags, status, overwrite_default,
-                                                   paste_only_file, **kwargs):
-    assert_that(provision, any_of(equal_to("self-provisioned"), equal_to("provisioned")), "Unexpected provision "
-                                                                                          "attribute")
-    overwrite_default = overwrite_default.title()
-    paste_only_file = paste_only_file.title()
-    assert_that(overwrite_default, any_of("True", "False"), "Unexpected value for overwrite_default parameter.")
-    assert_that(paste_only_file, any_of("True", "False"), "Unexpected value for overwrite_default parameter.")
-    overwrite_default = eval(overwrite_default)
-    paste_only_file = eval(paste_only_file)
-    if provision == "provisioned":
-        auto_provision = "false"
-        orb_cloud_mqtt_id = context.agent['id']
-        orb_cloud_mqtt_key = context.agent['key']
-        orb_cloud_mqtt_channel_id = context.agent['channel_id']
-        agent_name = context.agent['name']
+    if backend_type == "pktvisor":
+        log_message = f"web server listening on localhost:{context.port}"
+        agent_started, logs, log_line = get_logs_and_check(context.container_id, log_message, element_to_check="log")
+        assert_that(agent_started, equal_to(True), f"Log {log_message} not found on agent logs."
+                                                   f" Agent Name: {agent_name}. Logs:{logs}")
     else:
-        auto_provision = "true"
-        orb_cloud_mqtt_id = None
-        orb_cloud_mqtt_key = None
-        orb_cloud_mqtt_channel_id = None
-        agent_name = f"{agent_name_prefix}{random_string(10)}"
-    orb_url = configs.get('orb_url')
-    context.port = return_port_by_availability(context, True)
-    otel_configs = {"config_file": "default"}
-    if 'otel_config' in kwargs.keys():
-        if "config_file" in kwargs['pkt_config'].keys():
-            otel_configs["config_file"] = kwargs['pkt_config']["config_file"]
-    context.agent_file_name, tags_on_agent, safe_config_file = \
-        create_agent_with_otel_backend_config_file(context.token, agent_name, agent_tags, orb_url, context.port,
-                                                   context.agent_groups, auto_provision,
-                                                   orb_cloud_mqtt_id, orb_cloud_mqtt_key, orb_cloud_mqtt_channel_id,
-                                                   overwrite_default, paste_only_file, otel_configs['config_file'])
-    context.container_id = run_agent_config_file(context.agent_file_name, overwrite_default, paste_only_file)
-    if context.container_id not in context.containers_id.keys():
-        context.containers_id[context.container_id] = str(context.port)
-    msg = f"Starting GRPC server"
-    agent_started, logs = get_logs_and_check(context.container_id, msg, element_to_check="msg")
-    assert_that(agent_started, equal_to(True), f"Log {msg} not found on agent logs. Agent Name: {agent_name}.\n"
-                                               f"Logs:{logs}")
+        log_message = f"Started receiver for OTLP in orb-agent"
+        agent_started, logs, log_line = get_logs_and_check(context.container_id, log_message, element_to_check="msg")
+        assert_that(agent_started, equal_to(True), f"Log {log_message} not found on agent logs."
+                                                   f" Agent Name: {agent_name}. Logs:{logs}")
+        assert_that(str(log_line.get("port", "")), equal_to(str(context.port)), f"Log {log_message} related to port "
+                                                                                f"{context.port} not found on agent "
+                                                                                f"logs. Logs: {logs}")
+
     context.agent, is_agent_created = check_agent_exists_on_backend(context.token, agent_name, timeout=60)
     logs = get_orb_agent_logs(context.container_id)
     assert_that(is_agent_created, equal_to(True), f"Agent {agent_name} not found in /agents route."
@@ -626,8 +574,7 @@ def wait_until_expected_backend_state(token, agent_id, backend, state, event=Non
     :param (obj) event: threading.event
     """
 
-    agent = get_agent(token, agent_id)
-    backend_state = agent["last_hb_data"]["backend_state"][backend]['state']
+    backend_state, agent = get_backend_info(token, agent_id, backend, "state")
     if backend_state == state:
         event.set()
         return backend_state, agent
@@ -647,14 +594,32 @@ def wait_until_expected_backend_error(token, agent_id, backend, error, event=Non
     :param (obj) event: threading.event
     """
 
-    agent = get_agent(token, agent_id)
-    if 'error' in agent["last_hb_data"]["backend_state"][backend].keys():
-        backend_error = agent["last_hb_data"]["backend_state"][backend]['error']
-        if backend_error == error:
-            event.set()
-            return backend_error, agent
+    backend_error, agent = get_backend_info(token, agent_id, backend, "error")
+    if backend_error == error:
+        event.set()
         return backend_error, agent
     else:
+        return None, agent
+
+
+def get_backend_info(token, agent_id, backend, info):
+    """
+    Get the backend state for a specific agent.
+
+    :param str token: Access token for authentication
+    :param str agent_id: ID of the agent
+    :param str backend: Name of the agent backend
+    :param str info: Info requested
+    :return: The agent backend required info
+    :rtype: str or None
+    """
+    agent = get_agent(token, agent_id)
+    try:
+        last_hb_data = agent.get("last_hb_data", {})
+        backend_info = last_hb_data.get("backend_state", {}).get(backend, {}).get(info)
+        return backend_info, agent
+    except Exception as e:
+        log.error(f"Error getting backend {info}: {e}. Agent: {agent}")
         return None, agent
 
 
@@ -783,7 +748,7 @@ def edit_agent(token, agent_id, name, tags, expected_status_code=200):
 
     json_request = {"name": name, "orb_tags": tags, "validate_only": False}
     status_code, response = return_api_put_response(orb_url + '/api/v1/agents/' + agent_id, request_body=json_request,
-                                       token=token, verify=verify_ssl_bool)
+                                                    token=token, verify=verify_ssl_bool)
 
     assert_that(status_code, equal_to(expected_status_code),
                 'Request to edit agent failed with status=' + str(status_code) + ":" + str(response))
