@@ -213,8 +213,8 @@ Scenario: agent otel with only agent tags subscription to a group with policies 
         And referred sink must have active state on response within 120 seconds
         And remove the agent .yaml generated on each scenario
 
-#@smoke_otel_backend @config_file
-@MUTE
+
+@smoke_otel_backend @config_file
 Scenario: agent otel with only agent tags subscription to a group with policies created before provision the agent (config file - auto_provision=false)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -256,8 +256,7 @@ Scenario: agent otel with mixed tags subscription to a group with policies creat
         And referred sink must have active state on response within 120 seconds
         And remove the agent .yaml generated on each scenario
 
-#@smoke_otel_backend @config_file
-@MUTE
+@smoke_otel_backend @config_file
 Scenario: agent otel with mixed tags subscription to a group with policies created before provision the agent (config file - auto_provision=false)
     Given the Orb user has a registered account
         And the Orb user logs in
