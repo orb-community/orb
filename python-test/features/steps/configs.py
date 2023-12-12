@@ -46,8 +46,8 @@ def _read_configs():
     assert_that(configs.get('password'), has_length(greater_than_or_equal_to(8)),
                 'Orb password must be at least 8 digits')
 
-    configs['backend_type'] = configs.get("backend_type", "prometheus")
-    if configs['backend_type'] == "otlphttp":
+    configs['sink_backend_type'] = configs.get("sink_backend_type", "prometheus")
+    if configs['sink_backend_type'] == "otlphttp":
         assert_that(configs.get('otlp_publisher_username'), not_none(), 'No otlp_publisher username was provided!')
         assert_that(configs.get('otlp_publisher_username'), not_(""), 'No otlp_publisher username was provided!')
 
