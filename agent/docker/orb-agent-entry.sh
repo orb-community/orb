@@ -60,7 +60,7 @@ elif [[ "$2" == '-c' || "$3" == '-c' ]]; then
   echo "Contains configuration argument parameter"
   CONFIG_FILE_EXISTS=true
 else
-  echo "Configuration file not provided, default configuration file usually is located in /opt/orb/agent.yaml"
+  echo "Configuration file not provided, default configuration file location is /opt/orb/agent.yaml"
 fi
 
 # Check NetFlow TAP parameters
