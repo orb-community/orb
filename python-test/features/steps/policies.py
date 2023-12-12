@@ -264,6 +264,43 @@ def check_policy_attribute(context, attribute, value):
         raise Exception(f"Attribute {attribute} not found on policy")
 
 
+@step("otel policy version must be {policy_version}")
+def check_otel_policy_version(context, policy_version):
+    assert_that(policy_version.isdigit(), equal_to(True), "Policy version must be a number")
+    policy_version = int(policy_version)
+    policy_id = context.policy["id"]
+    assert_that(context.policy.get("version"), equal_to(policy_version), f"Unexpected policy version in policy "
+                                                                         f"{policy_id}")
+
+
+@step("update otel policy using endpoint(s)={target_endpoint} and collection_interval={seconds}")
+def update_otel_policy(context, target_endpoint, seconds):
+    target_endpoints = target_endpoint.split(",")
+    context.updated_policy_data = context.policy.get("policy")
+    context.updated_policy_data["receivers"]["httpcheck"]["collection_interval"] = seconds
+    targets = list()
+    for endpoint in target_endpoints:
+        targets.append(
+            {'endpoint': endpoint, 'method': 'GET'}
+        )
+    context.updated_policy_data["receivers"]["httpcheck"]["targets"] = targets
+    policy_yaml = yaml.dump(context.updated_policy_data)
+    policy_json = make_otel_policy_json(context.policy['name'], context.policy.get("description"), policy_yaml)
+    context.considered_timestamp = datetime.now().timestamp()
+    context.policy = edit_policy(context.token, context.policy['id'], policy_json)
+
+
+@step("updated fields were correctly present in updated otel policy")
+def check_otel_policy_updated(context):
+    context.policy = get_policy(context.token, context.policy['id'])
+    assert_that(context.updated_policy_data["receivers"]["httpcheck"]["collection_interval"],
+                equal_to(context.policy.get("policy")["receivers"]["httpcheck"]["collection_interval"]),
+                f"Collection interval not updated. {context.policy}")
+    assert_that(context.updated_policy_data["receivers"]["httpcheck"]["targets"],
+                equal_to(context.policy.get("policy")["receivers"]["httpcheck"]["targets"]),
+                f"Targets not updated. {context.policy}")
+
+
 @then("referred policy {condition} be listed on the orb policies list")
 def check_policies(context, **condition):
     if len(condition) > 0:

@@ -199,6 +199,17 @@ def list_policies_applied_to_an_agent_and_referred_status(context, amount_of_pol
                 f"Agent: {context.agent}. \n Logs: {logs}")
 
 
+@step("the version of policy in agent must be {policy_version}")
+def check_agent_version_policy(context, policy_version):
+    assert_that(policy_version.isdigit(), equal_to(True), "Policy version must be a number")
+    policy_version = int(policy_version)
+    policy_id = context.policy.get("id")
+    agent, correct_version = wait_policy_version_in_agent(context.token, context.agent.get("id"),
+                                                          policy_id, policy_version)
+    assert_that(correct_version, equal_to(True), f"Policy {policy_id} version "
+                                                 f"{policy_version} was not applied. Agent: {agent}")
+
+
 @step("this agent's heartbeat shows that {amount_of_policies} policies are applied to the agent")
 def list_policies_applied_to_an_agent(context, amount_of_policies):
     context.agent, context.list_agent_policies_id = get_policies_applied_to_an_agent(context.token, context.agent['id'],
@@ -1022,4 +1033,21 @@ def get_agent_tags(token, agent_id, expected_tags, event=None):
         event.set()
     else:
         event.wait(1)
+    return agent, event.is_set()
+
+
+@threading_wait_until
+def wait_policy_version_in_agent(token, agent_id, policy_id, policy_version, event=None):
+    """
+
+    :param (str) token: used for API authentication
+    :param (str) agent_id: that identifies the agent to be checked
+    :param (str) policy_id: that identifies the policy to be checked
+    :param (int) policy_version: that identifies the version to be checked
+    :param (obj) event: threading.event
+    :return: agent data, if the version was found
+    """
+    agent = get_agent(token, agent_id)
+    if agent.get("last_hb_data", '').get("policy_state", '').get(policy_id, '').get("version", '') == policy_version:
+        event.set()
     return agent, event.is_set()
