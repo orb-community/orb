@@ -58,7 +58,7 @@ then
   echo "Contains default config file"
   CONFIG_FILE_EXISTS=true
 else
-  echo "Not contains default config file"
+  echo "Default config file missing"
   CONFIG_FILE_EXISTS=false
 fi
 
