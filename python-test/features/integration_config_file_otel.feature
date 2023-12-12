@@ -319,3 +319,21 @@ Scenario: provisioning agent without specify path to otel config file (config fi
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
         And the container logs that were output after all policies have been applied contain the message "scraped and published telemetry" referred to each applied policy within 180 seconds
         And remove the agent .yaml generated on each scenario
+
+@smoke_otel_backend
+Scenario: Update an otel backend policy applied to an agent
+    Given the Orb user has a registered account
+        And the Orb user logs in
+        And that a sink with default configuration type already exists
+        And a new agent is created with 1 orb tag(s)
+        And an agent(backend_type:otel, settings: {}) is provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: True. Paste only file: True]
+        And 1 Agent Group(s) is created with all tags contained in the agent
+        And 1 policies with otel backend and yaml format are applied to the group
+        And 1 new dataset is created using the policy, last group and 1 sink
+        And otel state is running
+    When update otel policy using endpoint(s)=https://api.netboxlabs.com/v2/swagger/index.html#/ and collection_interval=25s
+    Then otel policy version must be 1
+        And updated fields were correctly present in updated otel policy
+        And the version of policy in agent must be 1
+        And this agent's heartbeat shows that 1 policies are applied and all has status running
+        And the container logs that were output after editing policies contain the message "policy applied successfully" referred to each applied policy within 10 seconds
