@@ -62,6 +62,12 @@ else
   CONFIG_FILE_EXISTS=false
 fi
 
+# check if any of the arguments passed to the container is -c
+if [[ "$2" == '-c' || "$3" == '-c' ]]; then
+  echo "Contains -c parameter"
+  CONFIG_FILE_EXISTS=true
+fi
+
 # Check NetFlow TAP parameters
 if [ "${PKTVISOR_NETFLOW_BIND_ADDRESS}" = '' ]; then
   PKTVISOR_NETFLOW_BIND_ADDRESS='0.0.0.0'
