@@ -82,6 +82,7 @@ def create_yaml_sink(context, configuration_type):
 
 @step("a new sink is is requested to be created with the same name as an existent one")
 def create_sink_with_conflict_name(context):
+    backend_type = configs.get("sink_backend_type")
     token = context.token
     endpoint = context.remote_prometheus_endpoint
     username = context.prometheus_username
@@ -138,6 +139,7 @@ def remove_sink_from_orb(context, amount_of_sinks):
 
 @step("that a sink with invalid {credential} already exists")
 def create_invalid_sink(context, credential):
+    backend_type = configs.get("sink_backend_type")
     assert_that(credential, any_of(equal_to('endpoint'), equal_to('username'), equal_to('password')),
                 "Invalid prometheus field")
     check_prometheus_grafana_credentials(context)
