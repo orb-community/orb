@@ -748,6 +748,7 @@ Scenario: Edit an advanced policy with handler dns changing the handler to net
         And policy handler must be net
         And policy only_qname_suffix must be None
         And policy only_rcode must be None
+        And the version of policy in agent must be 1
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And the container logs that were output after editing policies contain the message "policy applied successfully" referred to each applied policy within 10 seconds
 
@@ -768,6 +769,7 @@ Scenario: Edit an advanced policy with handler dns changing the handler to dhcp
     Then policy version must be 1
         And policy name must be second_policy
         And policy handler must be dhcp
+        And the version of policy in agent must be 1
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And the container logs that were output after editing policies contain the message "policy applied successfully" referred to each applied policy within 10 seconds
 
@@ -786,6 +788,7 @@ Scenario: Edit a simple policy with handler dhcp changing the handler to net
     When editing a policy using handler=net, description="policy_net"
     Then policy version must be 1
         And policy handler must be net
+        And the version of policy in agent must be 1
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And the container logs that were output after editing policies contain the message "policy applied successfully" referred to each applied policy within 10 seconds
 
@@ -807,6 +810,7 @@ Scenario: Edit a simple policy with handler net changing the handler to dns and 
         And policy bpf_filter_expression must be udp port 53
         And policy only_qname_suffix must be ['.foo.com', '.example.com']
         And policy only_rcode must be 2
+        And the version of policy in agent must be 1
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And the container logs that were output after editing policies contain the message "policy applied successfully" referred to each applied policy within 10 seconds
 
