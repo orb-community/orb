@@ -55,16 +55,16 @@ END
 CONFIG_FILE_EXISTS=false
 if [ -f "/opt/orb/agent.yaml" ]
 then
-  echo "Contains agent.yaml config file"
+  echo "Contains default config file"
   CONFIG_FILE_EXISTS=true
 else
-  echo "Not contains agent.yaml config file, setting default config file"
+  echo "Not contains default config file"
   CONFIG_FILE_EXISTS=false
 fi
 
 # check if any of the arguments passed to the container is -c
 if [[ "$2" == '-c' || "$3" == '-c' ]]; then
-  echo "Contains -c parameter"
+  echo "Contains configuration argument parameter"
   CONFIG_FILE_EXISTS=true
 fi
 
