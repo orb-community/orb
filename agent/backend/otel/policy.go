@@ -109,8 +109,8 @@ func (o *openTelemetryBackend) addRunner(policyData policies.PolicyData, policyF
 				if err != nil && !slices.Contains([]string{"command not running", "no such process"}, err.Error()) {
 					logger.Error("failed to stop otel", zap.String("policy_id", policyData.ID),
 						zap.Any("value", v), zap.Error(err))
-					return
 				}
+				return
 			case line := <-command.Stdout:
 				if line != "" {
 					logger.Info("otel stdout", zap.String("policy_id", policyData.ID), zap.String("line", line))
