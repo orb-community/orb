@@ -62,7 +62,7 @@ require (
 	github.com/google/uuid v1.4.0
 	github.com/prometheus/common v0.44.0 // indirect
 	go.opentelemetry.io/collector v0.87.0 // indirect
-	go.opentelemetry.io/collector/pdata v1.0.0-rcv0016
+	go.opentelemetry.io/collector/pdata v1.0.0
 	go.opentelemetry.io/otel/metric v1.19.0 // indirect
 	go.opentelemetry.io/otel/trace v1.19.0
 	google.golang.org/genproto v0.0.0-20231106174013-bbf56f31fb17 // indirect
