@@ -59,7 +59,7 @@ func (cc *cloudConfigManager) migrateDB() error {
 		},
 	}
 
-	_, err := migrate.Exec(cc.db.DB, "sqlite", migrations, migrate.Up)
+	_, err := migrate.Exec(cc.db.DB, "sqlite3", migrations, migrate.Up)
 
 	return err
 }
