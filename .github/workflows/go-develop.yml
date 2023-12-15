@@ -116,7 +116,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: 1.20.x
+          go-version: 1.21.x
 
       - name: Go unit tests
         if: ${{ needs.prebuild.outputs.agent == 'true' || github.event_name != 'pull_request' }}
@@ -155,7 +155,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: 1.20.x
+          go-version: 1.21.x
 
       - name: Go unit tests
         if: ${{ needs.prebuild.outputs.orb == 'true' || github.event_name != 'pull_request' }}
@@ -194,7 +194,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: 1.20.x
+          go-version: 1.21.x
 
       - name: Go unit tests
         if: ${{ needs.prebuild.outputs.orb == 'true' || github.event_name != 'pull_request' }}
@@ -233,7 +233,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: 1.20.x
+          go-version: 1.21.x
 
       - name: Go unit tests
         if: ${{ needs.prebuild.outputs.orb == 'true' || github.event_name != 'pull_request' }}
@@ -272,7 +272,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: 1.20.x
+          go-version: 1.21.x
 
       - name: Go unit tests
         if: ${{ needs.prebuild.outputs.orb == 'true' || github.event_name != 'pull_request' }}
@@ -311,7 +311,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: 1.20.x
+          go-version: 1.21.x
 
       - name: Go unit tests
         if: ${{ needs.prebuild.outputs.orb == 'true' || github.event_name != 'pull_request' }}

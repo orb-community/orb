@@ -149,6 +149,9 @@ END
   export ORB_BACKENDS_PKTVISOR_CONFIG_FILE="$tmpfile"
 fi
 
+
+ls -la /usr/local/bin/
+
 # or specify pair of TAPNAME:IFACE
 # TODO allow multiple, split on comma
 # PKTVISOR_PCAP_IFACE_TAPS=default_pcap:en0
