@@ -55,8 +55,9 @@ class AgentConfigs:
     def __init__(self, tls_verify=True):
         assert_that(tls_verify, any_of(equal_to(True), equal_to(False)), "Unexpected value for tls_verify on "
                                                                          "agent config file creation")
-        self.config = {"orb":
-            {
+        self.config = {
+            "version": "1.0",
+            "orb": {
                 "backends": {},
                 "cloud": {},
                 "tls": {"verify": tls_verify}

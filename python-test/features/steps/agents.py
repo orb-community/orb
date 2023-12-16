@@ -319,7 +319,7 @@ def check_agent_exists_on_backend(token, agent_name, event=None):
 
 @step("an agent(backend_type:{backend_type}, settings: {settings}) is {provision} via a configuration file on "
       "port {port} with {agent_tags} agent tags and has status {status}. [Overwrite default: {overwrite_default}. "
-      "Paste only file: {paste_only_file}. Use specif backend config {specific_backend_config}]")
+      "Paste only file: {paste_only_file}. Use specific backend config {specific_backend_config}]")
 def provision_agent_using_config_file_drop_pkt_config(context, backend_type, settings, provision, port, agent_tags,
                                                       status, overwrite_default, paste_only_file,
                                                       specific_backend_config):

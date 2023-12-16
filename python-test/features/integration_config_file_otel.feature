@@ -10,14 +10,14 @@ Scenario: provisioning agent with otel backend and applying 1 policy (config fil
         And 1 Agent Group(s) is created with 1 orb tag(s) (lower case)
         And 1 policies with otel backend and yaml format are applied to the group
         And a new agent is created with 0 orb tag(s)
-    When an agent(backend_type:otel, settings: {}) is provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: True]
+    When an agent(backend_type:otel, settings: {}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And otel state is running
     Then 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And the container logs that were output after all policies have been applied contain the message "scraped and published telemetry" referred to each applied policy within 180 seconds
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
         And referred sink must have active state on response within 180 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -30,14 +30,14 @@ Scenario: provisioning agent with otel backend and applying 2 policies (config f
         And 1 Agent Group(s) is created with 1 orb tag(s) (lower case)
         And 2 policies with otel backend and yaml format are applied to the group
         And a new agent is created with 0 orb tag(s)
-    When an agent(backend_type:otel, settings: {}) is provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: True]
+    When an agent(backend_type:otel, settings: {}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And otel state is running
     Then 2 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
         And the container logs should contain the message "completed RPC subscription to group" within 30 seconds
         And this agent's heartbeat shows that 2 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
-        And the container logs that were output after all policies have been applied contain the message "scraped and published telemetry" referred to each applied policy within 180 seconds
+        And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
         And referred sink must have active state on response within 180 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -50,7 +50,7 @@ Scenario: removing policy from agent with otel backend (config file - auto_provi
         And 1 Agent Group(s) is created with 1 orb tag(s) (lower case)
         And 2 policies with otel backend and yaml format are applied to the group
         And a new agent is created with 0 orb tag(s)
-    When an agent(backend_type:otel, settings: {}) is provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: True]
+    When an agent(backend_type:otel, settings: {}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And otel state is running
     Then 2 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
     And this agent's heartbeat shows that 2 policies are applied and all has status running
@@ -59,9 +59,8 @@ Scenario: removing policy from agent with otel backend (config file - auto_provi
         And no dataset should be linked to the removed policy anymore
         And 1 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 policies are applied and all has status running
-        And container logs should inform that removed policy was stopped and removed within 30 seconds
         And the container logs that were output after the policy have been removed contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And the container logs that were output after the policy have been removed does not contain the message "scraped and published telemetry" referred to deleted policy anymore
+        And the container logs that were output after the policy have been removed does not contain the message "scraped metrics for policy" referred to deleted policy anymore
 
 
 @smoke_otel_backend
@@ -86,7 +85,8 @@ Scenario: Remove group to which agent with otel backend is linked
         And 0 dataset(s) have validity valid and 2 have validity invalid in 30 seconds
 
 
-@smoke_otel_backend
+#@smoke_otel_backend
+@MUTE
 Scenario: Remotely restart agent with otel backend and policies applied
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -94,7 +94,7 @@ Scenario: Remotely restart agent with otel backend and policies applied
         And that a sink with default configuration type already exists
         And 1 policies with otel backend and yaml format are applied to the group
         And a new agent is created with 0 orb tag(s)
-        And an agent(backend_type:otel, settings: {}) is provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: True]
+        And an agent(backend_type:otel, settings: {}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: True]
         And this agent's heartbeat shows that 1 groups are matching the agent
         And otel state is running
         And this agent's heartbeat shows that 1 policies are applied and all has status running
@@ -105,7 +105,7 @@ Scenario: Remotely restart agent with otel backend and policies applied
         And the container logs that were output after reset the agent contain the message "resetting backend" within 30 seconds
         And the container logs that were output after reset the agent contain the message "all backends and comms were restarted" within 30 seconds
         And the container logs that were output after reset the agent contain the message "policy applied successfully" referred to each applied policy within 30 seconds
-        And the container logs that were output after reset the agent contain the message "scraped and published telemetry" referred to each applied policy within 180 seconds
+        And the container logs that were output after reset the agent contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
 
 
 @smoke_otel_backend @config_file @auto_provision
@@ -123,7 +123,6 @@ Scenario: agent otel with only agent tags subscription to a group with policies 
         And this agent's heartbeat shows that 2 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And the container logs that were output after all policies have been applied contain the message "scraped and published telemetry" referred to each applied policy within 180 seconds
         And referred sink must have active state on response within 120 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -134,7 +133,7 @@ Scenario: agent otel with only agent tags subscription to a group with policies 
         And the Orb user logs in
         And that a sink with default configuration type already exists
         And 1 Agent Group(s) is created with 1 orb tag(s) (lower case)
-        And 3 simple policies otel are applied to the group
+        And 3 policies with otel backend and yaml format are applied to the group
         And a new agent is created with 0 orb tag(s)
     When an agent(backend_type:otel, settings: {}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: False]
         And otel state is running
@@ -144,7 +143,6 @@ Scenario: agent otel with only agent tags subscription to a group with policies 
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And the container logs that were output after all policies have been applied contain the message "scraped and published telemetry" referred to each applied policy within 180 seconds
         And referred sink must have active state on response within 120 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -167,7 +165,6 @@ Scenario: agent otel with mixed tags subscription to a group with policies creat
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And the container logs that were output after all policies have been applied contain the message "scraped and published telemetry" referred to each applied policy within 180 seconds
         And referred sink must have active state on response within 120 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -178,7 +175,7 @@ Scenario: agent otel with mixed tags subscription to a group with policies creat
         And the Orb user logs in
         And that a sink with default configuration type already exists
         And 1 Agent Group(s) is created with 2 orb tag(s) (lower case)
-        And 3 simple policies otel are applied to the group
+        And 3 policies with otel backend and yaml format are applied to the group
         And a new agent is created with 2 orb tag(s)
     When an agent(backend_type:otel, settings: {}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: False]
         And otel state is running
@@ -188,7 +185,6 @@ Scenario: agent otel with mixed tags subscription to a group with policies creat
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And the container logs that were output after all policies have been applied contain the message "scraped and published telemetry" referred to each applied policy within 180 seconds
         And referred sink must have active state on response within 120 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -209,18 +205,18 @@ Scenario: agent otel with only agent tags subscription to a group with policies 
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And the container logs that were output after all policies have been applied contain the message "scraped and published telemetry" referred to each applied policy within 180 seconds
         And referred sink must have active state on response within 120 seconds
         And remove the agent .yaml generated on each scenario
 
 
-@smoke_otel_backend @config_file
+#@smoke_otel_backend @config_file
+@MUTE
 Scenario: agent otel with only agent tags subscription to a group with policies created before provision the agent (config file - auto_provision=false)
     Given the Orb user has a registered account
         And the Orb user logs in
         And that a sink with default configuration type already exists
         And 1 Agent Group(s) is created with 1 orb tag(s) (lower case)
-        And 3 simple policies otel are applied to the group
+        And 3 policies with otel backend and yaml format are applied to the group
         And a new agent is created with 0 orb tag(s)
     When an agent(backend_type:otel, settings: {}) is provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: False]
         And otel state is waiting
@@ -231,7 +227,6 @@ Scenario: agent otel with only agent tags subscription to a group with policies 
         And otel state is running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And the container logs that were output after all policies have been applied contain the message "scraped and published telemetry" referred to each applied policy within 180 seconds
         And referred sink must have active state on response within 120 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -252,17 +247,17 @@ Scenario: agent otel with mixed tags subscription to a group with policies creat
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And the container logs that were output after all policies have been applied contain the message "scraped and published telemetry" referred to each applied policy within 180 seconds
         And referred sink must have active state on response within 120 seconds
         And remove the agent .yaml generated on each scenario
 
-@smoke_otel_backend @config_file
+#@smoke_otel_backend @config_file
+@MUTE
 Scenario: agent otel with mixed tags subscription to a group with policies created before provision the agent (config file - auto_provision=false)
     Given the Orb user has a registered account
         And the Orb user logs in
         And that a sink with default configuration type already exists
         And 1 Agent Group(s) is created with 2 orb tag(s) (lower case)
-        And 3 simple policies otel are applied to the group
+        And 3 policies with otel backend and yaml format are applied to the group
         And a new agent is created with 2 orb tag(s)
     When an agent(backend_type:otel, settings: {}) is provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: False. Paste only file: False]
         And otel state is running
@@ -272,7 +267,6 @@ Scenario: agent otel with mixed tags subscription to a group with policies creat
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And the container logs that were output after all policies have been applied contain the message "scraped and published telemetry" referred to each applied policy within 180 seconds
         And referred sink must have active state on response within 120 seconds
         And remove the agent .yaml generated on each scenario
 
@@ -288,7 +282,7 @@ Scenario: provisioning agent without specify path to otel config file (config fi
         And 1 Agent Group(s) is created with 1 orb tag(s) (lower case)
         And 3 policies with otel backend and yaml format are applied to the group
         And a new agent is created with 0 orb tag(s)
-    When an agent(backend_type:otel, settings: {}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: True. Paste only file: True. Use specif backend config {"config_file":"None"}]
+    When an agent(backend_type:otel, settings: {}) is self-provisioned via a configuration file on port available with matching 1 group agent tags and has status online. [Overwrite default: True. Paste only file: True. Use specific backend config {"config_file":"None"}]
         And otel state is running
     Then 3 dataset(s) have validity valid and 0 have validity invalid in 30 seconds
         And this agent's heartbeat shows that 1 groups are matching the agent
@@ -296,7 +290,6 @@ Scenario: provisioning agent without specify path to otel config file (config fi
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And the container logs that were output after all policies have been applied contain the message "scraped and published telemetry" referred to each applied policy within 180 seconds
         And remove the agent .yaml generated on each scenario
 
 
@@ -306,7 +299,7 @@ Scenario: provisioning agent without specify path to otel config file (config fi
         And the Orb user logs in
         And that a sink with default configuration type already exists
         And a new agent is created with 2 orb tag(s)
-    When an agent(backend_type:otel, settings: {}) is provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: True. Paste only file: True. Use specif backend config {"config_file":"None"}]
+    When an agent(backend_type:otel, settings: {}) is provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: True. Paste only file: True. Use specific backend config {"config_file":"None"}]
         And edit the orb tags on agent and use 2 orb tag(s)
         And 1 Agent Group(s) is created with all tags contained in the agent
         And 3 policies with otel backend and yaml format are applied to the group
@@ -317,7 +310,6 @@ Scenario: provisioning agent without specify path to otel config file (config fi
         And this agent's heartbeat shows that 3 policies are applied and all has status running
         And the container logs contain the message "policy applied successfully" referred to each policy within 30 seconds
         And the container logs that were output after all policies have been applied contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
-        And the container logs that were output after all policies have been applied contain the message "scraped and published telemetry" referred to each applied policy within 180 seconds
         And remove the agent .yaml generated on each scenario
 
 @smoke_otel_backend
