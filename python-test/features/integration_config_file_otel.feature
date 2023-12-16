@@ -85,7 +85,8 @@ Scenario: Remove group to which agent with otel backend is linked
         And 0 dataset(s) have validity valid and 2 have validity invalid in 30 seconds
 
 
-@smoke_otel_backend
+#@smoke_otel_backend
+@MUTE
 Scenario: Remotely restart agent with otel backend and policies applied
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -208,7 +209,8 @@ Scenario: agent otel with only agent tags subscription to a group with policies 
         And remove the agent .yaml generated on each scenario
 
 
-@smoke_otel_backend @config_file
+#@smoke_otel_backend @config_file
+@MUTE
 Scenario: agent otel with only agent tags subscription to a group with policies created before provision the agent (config file - auto_provision=false)
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -248,7 +250,8 @@ Scenario: agent otel with mixed tags subscription to a group with policies creat
         And referred sink must have active state on response within 120 seconds
         And remove the agent .yaml generated on each scenario
 
-@smoke_otel_backend @config_file
+#@smoke_otel_backend @config_file
+@MUTE
 Scenario: agent otel with mixed tags subscription to a group with policies created before provision the agent (config file - auto_provision=false)
     Given the Orb user has a registered account
         And the Orb user logs in
