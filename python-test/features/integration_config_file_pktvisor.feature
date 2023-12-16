@@ -85,7 +85,7 @@ Scenario: provisioning agent without specify pktvisor binary path and path to co
         And the Orb user logs in
         And that a sink with default configuration type already exists
         And a new agent is created with 2 orb tag(s)
-    When an agent(backend_type:pktvisor, settings: {"input_type":"flow","bind":"0.0.0.0", "port":"available_port"}) is provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: True. Paste only file: True. Use specif backend config {"binary":"None", "config_file":"None"}]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"flow","bind":"0.0.0.0", "port":"available_port"}) is provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: True. Paste only file: True. Use specific backend config {"binary":"None", "config_file":"None"}]
         And pktvisor state is running
         And edit the orb tags on agent and use 2 orb tag(s)
         And 1 Agent Group(s) is created with all tags contained in the agent
@@ -106,7 +106,7 @@ Scenario: provisioning agent without specify pktvisor binary path (config file -
         And the Orb user logs in
         And that a sink with default configuration type already exists
         And a new agent is created with 2 orb tag(s)
-    When an agent(backend_type:pktvisor, settings: {"input_type":"flow","bind":"0.0.0.0", "port":"available_port"}) is provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: True. Paste only file: True. Use specif backend config {"config_file":"None"}]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"flow","bind":"0.0.0.0", "port":"available_port"}) is provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: True. Paste only file: True. Use specific backend config {"config_file":"None"}]
         And pktvisor state is running
         And edit the orb tags on agent and use 2 orb tag(s)
         And 1 Agent Group(s) is created with all tags contained in the agent
@@ -127,7 +127,7 @@ Scenario: provisioning agent without specify pktvisor path to config file (confi
         And the Orb user logs in
         And that a sink with default configuration type already exists
         And a new agent is created with 2 orb tag(s)
-    When an agent(backend_type:pktvisor, settings: {"input_type":"flow","bind":"0.0.0.0", "port":"available_port"}) is provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: True. Paste only file: True. Use specif backend config {"binary":"None"}]
+    When an agent(backend_type:pktvisor, settings: {"input_type":"flow","bind":"0.0.0.0", "port":"available_port"}) is provisioned via a configuration file on port available with 3 agent tags and has status online. [Overwrite default: True. Paste only file: True. Use specific backend config {"binary":"None"}]
         And pktvisor state is running
         And edit the orb tags on agent and use 2 orb tag(s)
         And 1 Agent Group(s) is created with all tags contained in the agent
