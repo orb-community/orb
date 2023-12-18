@@ -9,6 +9,7 @@ import (
 
 type AgentBridgeService interface {
 	RetrieveAgentInfoByPolicyName(policyName string) (*AgentDataPerPolicy, error)
+	RetrievePolicyByName(name string) (policies.PolicyData, error)
 	NotifyAgentDisconnection(ctx context.Context, err error)
 }
 
@@ -46,6 +47,10 @@ func (b *BridgeService) RetrieveAgentInfoByPolicyName(policyName string) (*Agent
 		Datasets:  strings.Join(pData.GetDatasetIDs(), ","),
 		AgentTags: b.AgentTags,
 	}, nil
+}
+
+func (b *BridgeService) RetrievePolicyByName(name string) (policies.PolicyData, error) {
+	return b.policyRepo.GetByName(name)
 }
 
 func (b *BridgeService) NotifyAgentDisconnection(ctx context.Context, err error) {
