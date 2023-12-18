@@ -15,9 +15,11 @@ import (
 
 	"github.com/andybalholm/brotli"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
-	"go.opentelemetry.io/collector/consumer/consumererror"
-
+	"github.com/mitchellh/mapstructure"
+	"github.com/orb-community/orb/agent/policies"
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/confmap"
+	"go.opentelemetry.io/collector/consumer/consumererror"
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
@@ -140,6 +142,52 @@ func (e *baseExporter) injectScopeMetricsAttribute(metricsScope pmetric.ScopeMet
 	return metricsScope
 }
 
+func (e *baseExporter) injectHTTPCheckLabels(metricsScope pmetric.ScopeMetrics, endpoint string, attribute string, value string) {
+	metrics := metricsScope.Metrics()
+	for i := 0; i < metrics.Len(); i++ {
+		metricItem := metrics.At(i)
+
+		switch metricItem.Type() {
+		case pmetric.MetricTypeExponentialHistogram:
+			for j := 0; j < metricItem.ExponentialHistogram().DataPoints().Len(); j++ {
+				if v, ok := metricItem.ExponentialHistogram().DataPoints().At(j).Attributes().Get("http.url"); ok && v.AsString() == endpoint {
+					metricItem.ExponentialHistogram().DataPoints().At(j).Attributes().PutStr(attribute, value)
+				}
+			}
+		case pmetric.MetricTypeGauge:
+			for j := 0; j < metricItem.Gauge().DataPoints().Len(); j++ {
+				if v, ok := metricItem.Gauge().DataPoints().At(j).Attributes().Get("http.url"); ok && v.AsString() == endpoint {
+					metricItem.Gauge().DataPoints().At(j).Attributes().PutStr(attribute, value)
+				}
+			}
+		case pmetric.MetricTypeHistogram:
+			for j := 0; j < metricItem.Histogram().DataPoints().Len(); j++ {
+				if v, ok := metricItem.Histogram().DataPoints().At(j).Attributes().Get("http.url"); ok && v.AsString() == endpoint {
+					metricItem.Histogram().DataPoints().At(j).Attributes().PutStr(attribute, value)
+				}
+			}
+		case pmetric.MetricTypeSum:
+			for j := 0; j < metricItem.Sum().DataPoints().Len(); j++ {
+				if v, ok := metricItem.Sum().DataPoints().At(j).Attributes().Get("http.url"); ok && v.AsString() == endpoint {
+					metricItem.Sum().DataPoints().At(j).Attributes().PutStr(attribute, value)
+				}
+			}
+		case pmetric.MetricTypeSummary:
+			for j := 0; j < metricItem.Summary().DataPoints().Len(); j++ {
+				if v, ok := metricItem.Summary().DataPoints().At(j).Attributes().Get("http.url"); ok && v.AsString() == endpoint {
+					metricItem.Summary().DataPoints().At(j).Attributes().PutStr(attribute, value)
+				}
+			}
+		default:
+			e.logger.Warn("not supported metric type", zap.String("name", metricItem.Name()),
+				zap.String("type", metricItem.Type().String()))
+			metrics.RemoveIf(func(m pmetric.Metric) bool {
+				return m.Name() == metricItem.Name()
+			})
+		}
+	}
+}
+
 // pushMetrics Exports metrics
 func (e *baseExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) error {
 	tr := pmetricotlp.NewExportRequest()
@@ -147,12 +195,20 @@ func (e *baseExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) erro
 	scopes := pmetricotlp.NewExportRequestFromMetrics(md).Metrics().ResourceMetrics().At(0).ScopeMetrics()
 	for i := 0; i < scopes.Len(); i++ {
 		scope := scopes.At(i)
+
 		policyName, _ := scope.Scope().Attributes().Get("policy_name")
 		policyNameStr := policyName.AsString()
 		agentData, err := e.config.OrbAgentService.RetrieveAgentInfoByPolicyName(policyNameStr)
 		if err != nil {
 			e.logger.Warn("Policy is not managed by orb", zap.String("policyName", policyNameStr))
 			continue
+		}
+
+		if scope.Scope().Name() == "otelcol/httpcheckreceiver" {
+			if err := e.enrichHTTPCheckMetrics(scope, policyNameStr); err != nil {
+				e.logger.Warn("failed to enrich httpcheck metrics", zap.Error(err))
+				continue
+			}
 		}
 
 		// sort datasetIDs to send always on same order
@@ -307,4 +363,50 @@ func (e *baseExporter) export(ctx context.Context, topic string, request []byte)
 		zap.Int("compressed_payload_size_b", len(compressedPayload)))
 
 	return nil
+}
+
+func (e *baseExporter) enrichHTTPCheckMetrics(scope pmetric.ScopeMetrics, policyName string) error {
+	policy, err := e.config.OrbAgentService.RetrievePolicyByName(policyName)
+	if err != nil {
+		e.logger.Warn("policy retrieval failed", zap.String("policyName", policyName), zap.Error(err))
+		return err
+	}
+
+	if policy.Backend == "otel" {
+		collectorConfig, err := ExtractCollectorConfig(policy)
+		if err != nil {
+			return err
+		}
+
+		for key, receiver := range collectorConfig.Receivers {
+			switch key.Type() {
+			case "httpcheck":
+				var httpcheck HTTPCheckReceiver
+				if err := mapstructure.Decode(receiver, &httpcheck); err != nil {
+					return err
+				}
+				for _, target := range httpcheck.Targets {
+					for k, v := range target.Tags {
+						e.injectHTTPCheckLabels(scope, target.Endpoint, k, v)
+					}
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+func ExtractCollectorConfig(policyData policies.PolicyData) (*CollectorConfig, error) {
+	var config CollectorConfig
+	if policyData.Backend == "otel" {
+		configMap := confmap.NewFromStringMap(policyData.Data.(map[string]interface{}))
+		if err := configMap.Unmarshal(&config); err != nil {
+			return nil, err
+		}
+
+		return &config, nil
+	}
+
+	return &config, nil
 }
