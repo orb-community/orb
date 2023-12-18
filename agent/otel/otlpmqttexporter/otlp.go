@@ -358,7 +358,7 @@ func (e *baseExporter) export(ctx context.Context, topic string, request []byte)
 		e.config.OrbAgentService.NotifyAgentDisconnection(ctx, token.Error())
 		return token.Error()
 	}
-	e.logger.Debug("scraped and published telemetry", zap.String("topic", topic),
+	e.logger.Info("scraped and published telemetry", zap.String("topic", topic),
 		zap.Int("payload_size_b", len(request)),
 		zap.Int("compressed_payload_size_b", len(compressedPayload)))
 
