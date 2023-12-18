@@ -30,7 +30,7 @@ func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, up
 
 	sanitizedPolicyData, err := SanitizePolicyData(newPolicyData)
 	if err != nil {
-		o.logger.Warn("deleting tags from httpcheck targets failed", zap.String("policy_id", newPolicyData.ID), zap.Error(err))
+		o.logger.Error("deleting tags from httpcheck targets failed", zap.String("policy_id", newPolicyData.ID), zap.Error(err))
 		return err
 	}
 
