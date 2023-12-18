@@ -190,7 +190,7 @@ func SanitizePolicyData(policyData policies.PolicyData) (*policies.PolicyData, e
 	if err != nil {
 		return nil, err
 	}
-	policyDataClone := policies.PolicyData{}
+	var policyDataClone policies.PolicyData
 	if err = json.Unmarshal(originalJSON, &policyDataClone); err != nil {
 		return nil, err
 	}
