@@ -17,6 +17,7 @@ type PolicyData struct {
 	Name               string
 	Backend            string
 	Version            int32
+	Format             string
 	Data               interface{}
 	State              PolicyState
 	BackendErr         string
