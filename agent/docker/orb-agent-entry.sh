@@ -21,10 +21,6 @@ if [ -f "asn.mmdb.gz" ]; then
   gzip -d asn.mmdb.gz
   gzip -d city.mmdb.gz
 fi
-#
-
-# orb agent binary location. by default, matches orb-agent container (see Dockerfile)
-orb_agent_bin="${ORB_AGENT_BIN:-/usr/local/bin/orb-agent}"
 
 ## Cloud API Configuration ##
 # support generating API and MQTT addresses with one host name in ORB_CLOUD_ADDRESS
@@ -149,9 +145,6 @@ END
   export ORB_BACKENDS_PKTVISOR_CONFIG_FILE="$tmpfile"
 fi
 
-
-ls -la /usr/local/bin/
-
 # or specify pair of TAPNAME:IFACE
 # TODO allow multiple, split on comma
 # PKTVISOR_PCAP_IFACE_TAPS=default_pcap:en0
@@ -174,7 +167,7 @@ do
         nohup /run-agent.sh "$@" &
       else
         # if none config file is set, use the built-in pktvisor configuration file and agent_default.yaml
-        echo "Running with default config file and pktvisor built-in configuration"      
+        echo "Running with default config file and pktvisor built-in configuration"
         # checking if debug mode is enabled
         DEBUG=''
         if [[ "$2" == '-d' ]]; then
