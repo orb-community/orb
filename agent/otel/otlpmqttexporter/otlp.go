@@ -55,7 +55,7 @@ func (e *baseExporter) compressBrotli(data []byte) []byte {
 }
 
 // Crete new exporter.
-func newExporter(cfg component.Config, set exporter.CreateSettings, ctx context.Context) (*baseExporter, error) {
+func newExporter(cfg component.Config, set exporter.CreateSettings) (*baseExporter, error) {
 	oCfg := cfg.(*Config)
 	if oCfg.Address != "" {
 		_, err := url.Parse(oCfg.Address)

@@ -95,7 +95,7 @@ func CreateTracesExporter(
 	set exporter.CreateSettings,
 	cfg component.Config,
 ) (exporter.Traces, error) {
-	oce, err := newExporter(cfg, set, ctx)
+	oce, err := newExporter(cfg, set)
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +119,7 @@ func CreateMetricsExporter(
 	set exporter.CreateSettings,
 	cfg component.Config,
 ) (exporter.Metrics, error) {
-	oce, err := newExporter(cfg, set, ctx)
+	oce, err := newExporter(cfg, set)
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +142,7 @@ func CreateLogsExporter(
 	set exporter.CreateSettings,
 	cfg component.Config,
 ) (exporter.Logs, error) {
-	oce, err := newExporter(cfg, set, ctx)
+	oce, err := newExporter(cfg, set)
 	if err != nil {
 		return nil, err
 	}
