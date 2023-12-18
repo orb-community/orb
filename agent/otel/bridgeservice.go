@@ -53,7 +53,7 @@ func (b *BridgeService) RetrievePolicyByName(name string) (policies.PolicyData, 
 	return b.policyRepo.GetByName(name)
 }
 
-func (b *BridgeService) NotifyAgentDisconnection(ctx context.Context, err error) {
+func (b *BridgeService) NotifyAgentDisconnection(ctx context.Context, _ error) {
 	ctx.Done()
 	b.cancelFunc()
 }

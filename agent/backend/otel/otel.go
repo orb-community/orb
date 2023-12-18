@@ -239,50 +239,30 @@ func (o *openTelemetryBackend) createOtlpMetricMqttExporter(ctx context.Context,
 
 func (o *openTelemetryBackend) createOtlpTraceMqttExporter(ctx context.Context, cancelFunc context.CancelFunc) (exporter.Traces, error) {
 	bridgeService := otel.NewBridgeService(ctx, cancelFunc, &o.policyRepo, o.agentTags)
+	var cfg component.Config
 	if o.mqttClient != nil {
-		cfg := otlpmqttexporter.CreateConfigClient(o.mqttClient, o.otlpTracesTopic, "", bridgeService)
-		set := otlpmqttexporter.CreateDefaultSettings(o.logger)
-		// Create the OTLP metrics metricsExporter that'll receive and verify the metrics produced.
-		tracerExporter, err := otlpmqttexporter.CreateTracesExporter(ctx, set, cfg)
-		if err != nil {
-			return nil, err
-		}
-		return tracerExporter, nil
+		cfg = otlpmqttexporter.CreateConfigClient(o.mqttClient, o.otlpTracesTopic, "", bridgeService)
 	} else {
-		cfg := otlpmqttexporter.CreateConfig(o.mqttConfig.Address, o.mqttConfig.Id, o.mqttConfig.Key,
+		cfg = otlpmqttexporter.CreateConfig(o.mqttConfig.Address, o.mqttConfig.Id, o.mqttConfig.Key,
 			o.mqttConfig.ChannelID, "", o.otlpTracesTopic, bridgeService)
-		set := otlpmqttexporter.CreateDefaultSettings(o.logger)
-		// Create the OTLP metrics exporter that'll receive and verify the metrics produced.
-		tracerExporter, err := otlpmqttexporter.CreateTracesExporter(ctx, set, cfg)
-		if err != nil {
-			return nil, err
-		}
-		return tracerExporter, nil
 	}
 
+	set := otlpmqttexporter.CreateDefaultSettings(o.logger)
+	// Create the OTLP traces that'll receive and verify the metrics produced.
+	return otlpmqttexporter.CreateTracesExporter(ctx, set, cfg)
 }
 
 func (o *openTelemetryBackend) createOtlpLogsMqttExporter(ctx context.Context, cancelFunc context.CancelFunc) (exporter.Logs, error) {
 	bridgeService := otel.NewBridgeService(ctx, cancelFunc, &o.policyRepo, o.agentTags)
+	var cfg component.Config
 	if o.mqttClient != nil {
-		cfg := otlpmqttexporter.CreateConfigClient(o.mqttClient, o.otlpLogsTopic, "", bridgeService)
-		set := otlpmqttexporter.CreateDefaultSettings(o.logger)
-		// Create the OTLP metrics metricsExporter that'll receive and verify the metrics produced.
-		exporter, err := otlpmqttexporter.CreateLogsExporter(ctx, set, cfg)
-		if err != nil {
-			return nil, err
-		}
-		return exporter, nil
+		cfg = otlpmqttexporter.CreateConfigClient(o.mqttClient, o.otlpLogsTopic, "", bridgeService)
 	} else {
-		cfg := otlpmqttexporter.CreateConfig(o.mqttConfig.Address, o.mqttConfig.Id, o.mqttConfig.Key,
+		cfg = otlpmqttexporter.CreateConfig(o.mqttConfig.Address, o.mqttConfig.Id, o.mqttConfig.Key,
 			o.mqttConfig.ChannelID, "", o.otlpLogsTopic, bridgeService)
-		set := otlpmqttexporter.CreateDefaultSettings(o.logger)
-		// Create the OTLP metrics exporter that'll receive and verify the metrics produced.
-		exporter, err := otlpmqttexporter.CreateLogsExporter(ctx, set, cfg)
-		if err != nil {
-			return nil, err
-		}
-		return exporter, nil
 	}
 
+	set := otlpmqttexporter.CreateDefaultSettings(o.logger)
+	// Create the OTLP logs exporter that'll receive and verify the metrics produced.
+	return otlpmqttexporter.CreateLogsExporter(ctx, set, cfg)
 }
