@@ -110,6 +110,7 @@ func (o *openTelemetryBackend) Version() (string, error) {
 		return o.otelCurrVersion, nil
 	}
 	ctx, cancel := context.WithTimeout(o.mainContext, 60*time.Second)
+	defer cancel()
 	var versionOutput string
 	command := cmd.NewCmd(o.otelExecutablePath, "--version")
 	status := command.Start()
@@ -127,7 +128,6 @@ func (o *openTelemetryBackend) Version() (string, error) {
 		o.logger.Error("timeout during getting version", zap.Error(ctx.Err()))
 	}
 
-	cancel()
 	o.logger.Info("running opentelemetry-contrib version", zap.String("version", versionOutput))
 
 	return versionOutput, nil
