@@ -112,24 +112,24 @@ func (e *baseExporter) injectScopeMetricsAttribute(metricsScope pmetric.ScopeMet
 
 		switch metricItem.Type() {
 		case pmetric.MetricTypeExponentialHistogram:
-			for i := 0; i < metricItem.ExponentialHistogram().DataPoints().Len(); i++ {
-				metricItem.ExponentialHistogram().DataPoints().At(i).Attributes().PutStr(attribute, value)
+			for j := 0; j < metricItem.ExponentialHistogram().DataPoints().Len(); j++ {
+				metricItem.ExponentialHistogram().DataPoints().At(j).Attributes().PutStr(attribute, value)
 			}
 		case pmetric.MetricTypeGauge:
-			for i := 0; i < metricItem.Gauge().DataPoints().Len(); i++ {
-				metricItem.Gauge().DataPoints().At(i).Attributes().PutStr(attribute, value)
+			for j := 0; j < metricItem.Gauge().DataPoints().Len(); j++ {
+				metricItem.Gauge().DataPoints().At(j).Attributes().PutStr(attribute, value)
 			}
 		case pmetric.MetricTypeHistogram:
-			for i := 0; i < metricItem.Histogram().DataPoints().Len(); i++ {
-				metricItem.Histogram().DataPoints().At(i).Attributes().PutStr(attribute, value)
+			for j := 0; j < metricItem.Histogram().DataPoints().Len(); j++ {
+				metricItem.Histogram().DataPoints().At(j).Attributes().PutStr(attribute, value)
 			}
 		case pmetric.MetricTypeSum:
-			for i := 0; i < metricItem.Sum().DataPoints().Len(); i++ {
-				metricItem.Sum().DataPoints().At(i).Attributes().PutStr(attribute, value)
+			for j := 0; j < metricItem.Sum().DataPoints().Len(); j++ {
+				metricItem.Sum().DataPoints().At(j).Attributes().PutStr(attribute, value)
 			}
 		case pmetric.MetricTypeSummary:
-			for i := 0; i < metricItem.Summary().DataPoints().Len(); i++ {
-				metricItem.Summary().DataPoints().At(i).Attributes().PutStr(attribute, value)
+			for j := 0; j < metricItem.Summary().DataPoints().Len(); j++ {
+				metricItem.Summary().DataPoints().At(j).Attributes().PutStr(attribute, value)
 			}
 		default:
 			e.logger.Warn("not supported metric type", zap.String("name", metricItem.Name()),
