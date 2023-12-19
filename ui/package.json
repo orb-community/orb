@@ -20,7 +20,7 @@
     "build:prod:beta": "npm run config:env && npm run build -- --configuration beta --aot",
     "test": "ng test",
     "test:coverage": "rimraf coverage && npm run test -- --code-coverage",
-    "lint": "ng lint",
+    "lint": "tslint -c ./tslint.json 'src/**/*{.ts,.tsx}'",
     "lint:fix": "tslint --fix -c ./tslint.json 'src/**/*{.ts,.tsx}'",
     "lint:styles": "npx stylelint './src/**/*.{css,scss}'",
     "lint:styles:fix": "npx stylelint './src/**/*.{css,scss}' --fix",
