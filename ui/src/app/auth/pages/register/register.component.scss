@@ -1,1 +1,10 @@
 @import '../login/login.component';
+
+.accept-group{
+  display: inline-flex;
+  margin-top: 0.5rem;
+  align-items: stretch;
+  .label {
+    margin-top: 0.5rem;
+  }
+}
