@@ -15,6 +15,7 @@ import (
 	"github.com/fatih/structs"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/orb-community/orb/agent/backend"
 	"github.com/orb-community/orb/agent/cloud_config"
 	"github.com/orb-community/orb/agent/config"
@@ -22,7 +23,6 @@ import (
 	"github.com/orb-community/orb/buildinfo"
 	"github.com/orb-community/orb/fleet"
 	"go.uber.org/zap"
-	_ "modernc.org/sqlite"
 )
 
 var (
@@ -86,7 +86,7 @@ var _ Agent = (*orbAgent)(nil)
 
 func New(logger *zap.Logger, c config.Config) (Agent, error) {
 	logger.Info("using local config db", zap.String("filename", c.OrbAgent.DB.File))
-	db, err := sqlx.Connect("sqlite", c.OrbAgent.DB.File)
+	db, err := sqlx.Connect("sqlite3", c.OrbAgent.DB.File)
 	if err != nil {
 		return nil, err
 	}
