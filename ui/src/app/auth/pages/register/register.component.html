@@ -193,7 +193,11 @@
           <input type="checkbox" name="terms" id="input-terms" #terms="ngModel" [(ngModel)]="user.terms"
             [required]="getConfigValue('forms.register.terms')" />
           <label class="label" for="input-terms">
-            I agree to the NetBox Labs 
+            I agree to the NetBox Labs
+            <a href="https://netboxlabs.com/privacy" target="_blank">
+              <strong>Privacy Policy</strong>
+            </a>
+            and
             <a href="https://netboxlabs.com/terms-of-service" target="_blank">
               <strong>Terms & Conditions</strong>
             </a>
