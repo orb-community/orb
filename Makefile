@@ -27,7 +27,7 @@ GOOS ?= $(shell dpkg-architecture -q DEB_TARGET_ARCH_OS)
 DIODE_TAG ?= develop
 ORB_VERSION = $(shell cat VERSION)
 COMMIT_HASH = $(shell git rev-parse --short HEAD)
-OTEL_COLLECTOR_CONTRIB_VERSION ?= 0.87.0
+OTEL_COLLECTOR_CONTRIB_VERSION ?= 0.91.0
 OTEL_CONTRIB_URL ?= "https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v$(OTEL_COLLECTOR_CONTRIB_VERSION)/otelcol-contrib_$(OTEL_COLLECTOR_CONTRIB_VERSION)_$(GOOS)_$(GOARCH).tar.gz"
 
 define compile_service

@@ -15,6 +15,7 @@ import (
 	"github.com/fatih/structs"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/orb-community/orb/agent/backend"
 	"github.com/orb-community/orb/agent/cloud_config"
 	"github.com/orb-community/orb/agent/config"

@@ -1,7 +1,7 @@
 ARG ORB_TAG=develop
 ARG PKTVISOR_TAG=develop
 ARG DIODE_TAG=develop
-ARG OTEL_TAG=0.87.0
+ARG OTEL_TAG=0.91.0
 
 FROM orbcommunity/orb-agent:${ORB_TAG} AS orb
 
