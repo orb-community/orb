@@ -14,7 +14,7 @@ nb-card {
   
   nb-card-body {
     overflow: hidden !important;
-    margin: 2rem 3rem 0 3rem !important;
+    margin: 2rem 3rem 0 !important;
     padding: 0 !important;
   }
 }
@@ -113,7 +113,7 @@ p {
   font-size: 14px;
 }
 .sink-edit-button {
-  padding: 8px 24px 8px 24px;
+  padding: 8px 24px;
   border-radius: 16px;
   border: none;
   background-color: #3089fc;

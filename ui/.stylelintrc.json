@@ -1,4 +1,5 @@
 {
+  "defaultSeverity": "warning",
   "rules": {
     "color-hex-case": "lower",
     "color-no-invalid-hex": true,
