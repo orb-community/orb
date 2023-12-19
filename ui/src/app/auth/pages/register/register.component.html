@@ -190,6 +190,7 @@
         </div>
 
         <div class="form-control-group accept-group" *ngIf="getConfigValue('forms.register.terms')">
+          <div class="accept-group-display">
           <input type="checkbox" name="terms" id="input-terms" #terms="ngModel" [(ngModel)]="user.terms"
             [required]="getConfigValue('forms.register.terms')" />
           <label class="label " for="input-terms">
@@ -202,6 +203,7 @@
               <strong>Terms & Conditions</strong>
             </a>
           </label>
+          </div>
           <ng-container *ngIf="terms.invalid && terms.touched">
             <p *ngIf="terms.errors?.required" class="caption status-danger mb-1">
               You must agree to the terms of service!
