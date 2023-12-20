@@ -1,5 +1,5 @@
 ## How to Contribute
-At NS1, it makes us very happy to get pull requests, and we appreciate the time
+At NetboxLabs, it makes us very happy to get pull requests, and we appreciate the time
 and effort it takes to put one together. Below are a few guidelines that can
 help get your pull request approved and merged quickly and easily.
 
@@ -19,7 +19,7 @@ guidelines, but ideation and development may take longer or be more involved.
   require cross-code base coordination. It can be challenging to identify if a
   small change will have large ramifications, so we mainly ask that you keep
   this in mind when writing or modifying code. Do your best to preserve
-  interfaces, and understand that NS1 may need to reject pull requests if they
+  interfaces, and understand that NetboxLabs may need to reject pull requests if they
   would jeopardize platform stability or place an undue burden on other users.
 
 * If there are unit and/or integration tests, keeping the test suites passing
@@ -35,7 +35,7 @@ guidelines, but ideation and development may take longer or be more involved.
 
 ## Opening an issue
 
-Below are a few guidelines for opening an issue on one of NS1's open-source
+Below are a few guidelines for opening an issue on one of NetboxLabs's open-source
 repositories. Adhering to these guidelines to the best of your ability will
 help ensure that requests are resolved quickly and efficiently.
 
@@ -47,7 +47,7 @@ help ensure that requests are resolved quickly and efficiently.
   the particular problem you are trying to solve. In other words, help us
   avoid the "[XY Problem](http://xyproblem.info)".
 * **Indicate which products, software versions, and programming languages you
-  are using.** In your request, indicate which NS1 product(s) you're using and,
+  are using.** In your request, indicate which NetboxLabs product(s) you're using and,
   if relevant, which versions you are running. Also include any third-party
   software and versions that are relevant to the issue. If not obvious, include
   which programming language(s) you are using.
@@ -60,7 +60,7 @@ help ensure that requests are resolved quickly and efficiently.
 
 * If an issue is closed by a commit, reference the relevant PR or commit when
   closing.
-* If an issue is closed by NS1 for any reason, you should expect us to include
+* If an issue is closed by NetboxLabs for any reason, you should expect us to include
   a reason for it.
 * If the fix does not work or is incomplete, you are welcome to re-open or
   recreate the issue. When doing so, it's important to be clear about why the
@@ -68,11 +68,11 @@ help ensure that requests are resolved quickly and efficiently.
   and/or to modify the scope of the request. Please keep in mind that project
   status consideration or conflicting priorities may require us to close or
   defer work on the new or reopened issue. If that happens, feel free to reach
-  out of support@ns1.com for more information.
+  out of support@NetboxLabs.com for more information.
 
 ## Tags on issues
 
-In some projects we (NS1) may apply basic tags on some issues, for
+In some projects we (NetboxLabs) may apply basic tags on some issues, for
 organizational purposes. Note: we do not use tags to indicate timelines or
 priorities.
 
