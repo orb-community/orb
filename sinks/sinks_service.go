@@ -279,12 +279,9 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 	var cfg Configuration
 	if sink.Config == nil && sink.ConfigData == "" {
 		// No config sent, keep the previous
-		if currentSink.Config == nil {
-			sink.Config = currentSink.Config
-		}
-		if currentSink.ConfigData == "" {
-			sink.ConfigData = currentSink.ConfigData
-		}
+		sink.Config = currentSink.Config
+		sink.ConfigData = currentSink.ConfigData
+
 		authType, _ := authentication_type.GetAuthType(sink.GetAuthenticationTypeName())
 		be := backend.GetBackend(currentSink.Backend)
 		cfg = Configuration{
@@ -293,7 +290,7 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 		}
 
 		// get the decrypted config, otherwise the password would be encrypted again
-		sink, err = svc.decryptMetadata(cfg, currentSink)
+		sink, err = svc.decryptMetadata(cfg, sink)
 		if err != nil {
 			return Sink{}, errors.Wrap(ErrUpdateEntity, err)
 		}
