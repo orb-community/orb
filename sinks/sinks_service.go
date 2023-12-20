@@ -279,8 +279,10 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 	var cfg Configuration
 	if sink.Config == nil && sink.ConfigData == "" {
 		// No config sent, keep the previous
-		sink.Config = currentSink.Config
-		if currentSink.ConfigData != "" {
+		if currentSink.Config == nil {
+			sink.Config = currentSink.Config
+		}
+		if currentSink.ConfigData == "" {
 			sink.ConfigData = currentSink.ConfigData
 		}
 		authType, _ := authentication_type.GetAuthType(sink.GetAuthenticationTypeName())
