@@ -129,11 +129,19 @@ func updateSinkEndpoint(svc sinks.SinkService) endpoint.Endpoint {
 		if req.token == "" {
 			return nil, errors.ErrUnauthorizedAccess
 		}
+		// TODO this needs to be refactored the logics are duplicated in both endpoint and service
 		currentSink, err := svc.ViewSink(ctx, req.token, req.id)
 		if err != nil {
 			svc.GetLogger().Error("could not find sink with id", zap.String("sinkID", req.id), zap.Error(err))
 			return nil, err
 		}
+		// TODO not the best solution for now, but it works
+		currentSink, err = svc.ViewSinkInternal(ctx, currentSink.MFOwnerID, req.id)
+		if err != nil {
+			svc.GetLogger().Error("could not find sink with id", zap.String("sinkID", req.id), zap.Error(err))
+			return nil, err
+		}
+
 		if err := req.validate(); err != nil {
 			svc.GetLogger().Error("error validating request", zap.Error(err))
 			return nil, err

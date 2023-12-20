@@ -277,11 +277,14 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 		return Sink{}, err
 	}
 	var cfg Configuration
+	svc.logger.Info("DEBUG config", zap.Any("config", sink.Config),
+		zap.Any("configData", sink.ConfigData))
 	if sink.Config == nil && sink.ConfigData == "" {
 		// No config sent, keep the previous
 		sink.Config = currentSink.Config
 		sink.ConfigData = currentSink.ConfigData
-
+		svc.logger.Info("DEBUG config", zap.Any("config", sink.Config),
+			zap.Any("configData", sink.ConfigData))
 		authType, _ := authentication_type.GetAuthType(sink.GetAuthenticationTypeName())
 		be := backend.GetBackend(currentSink.Backend)
 		cfg = Configuration{
