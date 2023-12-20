@@ -165,9 +165,7 @@ func (s *sinkRepositoryMock) RetrieveById(ctx context.Context, key string) (sink
 	if c, ok := s.sinksMock.Get(key); ok {
 		// Pass test schema
 		v := c.Config.GetSubMetadata(authentication_type.AuthenticationKey)
-		if v["password"] == "dbpass" {
-			v["password"], _ = s.passSvc.EncodePassword(v["password"].(string))
-		}
+		v["password"], _ = s.passSvc.EncodePassword(v["password"].(string))
 		return c, nil
 	}
 

@@ -209,6 +209,7 @@ func TestPartialUpdateSink(t *testing.T) {
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 	//aNewDescription := "A new description worthy reading"
 	aInitialDescription := "A initial description worthy reading"
+	aNewDescription := "new description"
 	initialJsonSink := sinks.Sink{
 		Name:        jsonSinkName,
 		Description: &aInitialDescription,
@@ -267,6 +268,15 @@ func TestPartialUpdateSink(t *testing.T) {
 			expected: func(t *testing.T, value sinks.Sink, err error) {
 				require.NoError(t, err, "no error expected")
 				require.Equalf(t, "https://orb.community/", value.Config.GetSubMetadata("exporter")["remote_host"], "want %s, got %s", "https://orb.community/", value.Config.GetSubMetadata("exporter")["remote_host"])
+			},
+			token: token,
+		}, "update description": {
+			requestSink: sinks.Sink{
+				ID:          yamlCreatedSink.ID,
+				Description: &aNewDescription,
+			},
+			expected: func(t *testing.T, value sinks.Sink, err error) {
+				require.NoError(t, err, "no error expected")
 			},
 			token: token,
 		},
