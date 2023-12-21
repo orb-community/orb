@@ -277,7 +277,7 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 		return Sink{}, err
 	}
 
-	authType, _ := authentication_type.GetAuthType(sink.GetAuthenticationTypeName())
+	authType, _ := authentication_type.GetAuthType(currentSink.GetAuthenticationTypeName())
 	be := backend.GetBackend(currentSink.Backend)
 	cfg := Configuration{
 		Authentication: authType,
