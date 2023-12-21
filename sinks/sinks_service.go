@@ -10,6 +10,7 @@ package sinks
 
 import (
 	"context"
+	"encoding/hex"
 
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
@@ -307,7 +308,20 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 			Authentication: at,
 			Exporter:       be,
 		}
-		//// add default values
+
+		// check if the password is encrypted and decrypt it if it is
+		if existingAuth := sink.Config.GetSubMetadata(authentication_type.AuthenticationKey); existingAuth != nil {
+			if password, ok := existingAuth["password"]; ok {
+				// if the password is encrypted, it will be a hex string
+				if _, err := hex.DecodeString(password.(string)); err == nil {
+					if sink, err = svc.decryptMetadata(cfg, sink); err != nil {
+						return Sink{}, errors.Wrap(ErrUpdateEntity, err)
+					}
+				}
+			}
+		}
+
+		// add default values
 		defaultMetadata := make(types.Metadata, 1)
 		defaultMetadata["opentelemetry"] = "enabled"
 		sink.Config.Merge(defaultMetadata)
