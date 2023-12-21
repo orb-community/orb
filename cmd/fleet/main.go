@@ -11,8 +11,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/orb-community/orb/fleet/backend/otel"
 	"io"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -210,7 +210,7 @@ func connectToRedis(redisURL, redisPass, redisDB string, logger *zap.Logger) *r.
 
 func initJaeger(svcName, url string, logger *zap.Logger) (opentracing.Tracer, io.Closer) {
 	if url == "" {
-		return opentracing.NoopTracer{}, ioutil.NopCloser(nil)
+		return opentracing.NoopTracer{}, io.NopCloser(nil)
 	}
 
 	tracer, closer, err := jconfig.Configuration{
@@ -242,9 +242,10 @@ func newFleetService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.L
 
 	pktvisor.Register(auth, agentRepo)
 	diode.Register(auth, agentRepo)
+	otel.Register(auth, agentRepo)
 
 	svc := fleet.NewFleetService(logger, auth, agentRepo, agentGroupRepo, agentComms, mfsdk, aDone)
-	svc = redisprod.NewEventStoreMiddleware(svc, esClient)
+	svc = redisprod.NewEventStoreMiddleware(svc, esClient, logger)
 	svc = fleethttp.NewLoggingMiddleware(svc, logger)
 	svc = fleethttp.MetricsMiddleware(
 		auth,

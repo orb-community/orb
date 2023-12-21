@@ -27,7 +27,6 @@ import (
 )
 
 const (
-	contentType  = "application/json"
 	token        = "token"
 	invalidToken = "invalid"
 	email        = "user@example.com"
@@ -199,17 +198,14 @@ func TestIdempotencyUpdateSink(t *testing.T) {
 }
 
 func TestPartialUpdateSink(t *testing.T) {
-	ctx := context.Background()
 	service := newService(map[string]string{token: email})
 	jsonSinkName, err := types.NewIdentifier("initial-json-Sink")
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 	yamlSinkName, err := types.NewIdentifier("initial-yaml-Sink")
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
-	//newSinkName, err := types.NewIdentifier("updated-Sink")
-	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
-	//aNewDescription := "A new description worthy reading"
 	aInitialDescription := "A initial description worthy reading"
-	initialJsonSink := sinks.Sink{
+	updatedDescription := "An updated description worthy reading"
+	initialJSONSink := sinks.Sink{
 		Name:        jsonSinkName,
 		Description: &aInitialDescription,
 		Backend:     "prometheus",
@@ -225,27 +221,22 @@ func TestPartialUpdateSink(t *testing.T) {
 		Backend:     "prometheus",
 		State:       sinks.Unknown,
 		Error:       "",
-		ConfigData:  "exporter:\n    remote_host: https://orb.community/\nauthentication:\n    type: basicauth\n    username: netops\n    password: w0w-orb-Rocks!",
+		ConfigData:  "exporter:\n    remote_host: https://orb.community/\nauthentication:\n    type: basicauth\n    username: netops\n    password: dbpass",
 		Format:      "yaml",
 		MFOwnerID:   "OrbCommunity",
 		Tags:        map[string]string{"cloud": "aws"},
 	}
-	jsonCreatedSink, err := service.CreateSink(ctx, token, initialJsonSink)
-	require.NoError(t, err, "failed to create entity")
-	require.NotEmptyf(t, jsonCreatedSink.ID, "id must not be empty")
-	yamlCreatedSink, err := service.CreateSink(ctx, token, initialYamlSink)
-	require.NoError(t, err, "failed to create entity")
-	initialJsonSink.ID = jsonCreatedSink.ID
-	initialYamlSink.ID = yamlCreatedSink.ID
+
 	var cases = map[string]struct {
 		name        string
+		format      string
 		requestSink sinks.Sink
 		expected    func(t *testing.T, value sinks.Sink, err error)
 		token       string
 	}{
 		"update config json": {
+			format: "json",
 			requestSink: sinks.Sink{
-				ID: jsonCreatedSink.ID,
 				Config: map[string]interface{}{
 					"exporter":       map[string]interface{}{"remote_host": "https://orb.community/prom/push"},
 					"authentication": map[string]interface{}{"type": "basicauth", "username": "netops_admin", "password": "newpass"},
@@ -258,23 +249,70 @@ func TestPartialUpdateSink(t *testing.T) {
 				require.Equalf(t, "newpass", value.Config.GetSubMetadata("authentication")["password"], "want %s, got %s", "newpass", value.Config.GetSubMetadata("authentication")["password"])
 			},
 			token: token,
-		}, "update config yaml": {
+		},
+		"update config yaml": {
+			format: "yaml",
 			requestSink: sinks.Sink{
-				ID:         yamlCreatedSink.ID,
 				Format:     "yaml",
-				ConfigData: "exporter:\n    remote_host: https://orb.community/\nauthentication:\n    type: basicauth\n    username: netops\n    password: w0w-orb-Rocks!",
+				ConfigData: "exporter:\n    remote_host: https://orb.community/\nauthentication:\n    type: basicauth\n    username: netops\n    password: dbpass",
 			},
 			expected: func(t *testing.T, value sinks.Sink, err error) {
 				require.NoError(t, err, "no error expected")
 				require.Equalf(t, "https://orb.community/", value.Config.GetSubMetadata("exporter")["remote_host"], "want %s, got %s", "https://orb.community/", value.Config.GetSubMetadata("exporter")["remote_host"])
+				require.Equalf(t, "netops", value.Config.GetSubMetadata("authentication")["username"], "want %s, got %s", "netops", value.Config.GetSubMetadata("authentication")["username"])
+				require.Equalf(t, "dbpass", value.Config.GetSubMetadata("authentication")["password"], "want %s, got %s", "dbpass", value.Config.GetSubMetadata("authentication")["password"])
+			},
+			token: token,
+		},
+		"update description json": {
+			format: "json",
+			requestSink: sinks.Sink{
+				Description: &updatedDescription,
+			},
+			expected: func(t *testing.T, value sinks.Sink, err error) {
+				require.NoError(t, err, "no error expected")
+				require.Equalf(t, "https://orb.community/", value.Config.GetSubMetadata("exporter")["remote_host"], "want %s, got %s", "https://orb.community/", value.Config.GetSubMetadata("exporter")["remote_host"])
+				require.Equalf(t, "dbuser", value.Config.GetSubMetadata("authentication")["username"], "want %s, got %s", "dbuser", value.Config.GetSubMetadata("authentication")["username"])
+				require.Equalf(t, "dbpass", value.Config.GetSubMetadata("authentication")["password"], "want %s, got %s", "dbpass", value.Config.GetSubMetadata("authentication")["password"])
+			},
+			token: token,
+		},
+		"update description yaml": {
+			format: "yaml",
+			requestSink: sinks.Sink{
+				Description: &updatedDescription,
+			},
+			expected: func(t *testing.T, value sinks.Sink, err error) {
+				require.NoError(t, err, "no error expected")
+				require.Equalf(t, "https://orb.community/", value.Config.GetSubMetadata("exporter")["remote_host"], "want %s, got %s", "https://orb.community/", value.Config.GetSubMetadata("exporter")["remote_host"])
+				require.Equalf(t, "netops", value.Config.GetSubMetadata("authentication")["username"], "want %s, got %s", "netops", value.Config.GetSubMetadata("authentication")["username"])
+				require.Equalf(t, "dbpass", value.Config.GetSubMetadata("authentication")["password"], "want %s, got %s", "dbpass", value.Config.GetSubMetadata("authentication")["password"])
 			},
 			token: token,
 		},
 	}
 	for desc, tc := range cases {
 		t.Run(desc, func(t *testing.T) {
+			ctx := context.Background()
+			var sinkToCreate sinks.Sink
+			switch tc.format {
+			case "json":
+				sinkToCreate = initialJSONSink
+			case "yaml":
+				sinkToCreate = initialYamlSink
+			default:
+				t.Errorf("unsupported format %s", tc.format)
+			}
+
+			sink, err := service.CreateSink(ctx, token, sinkToCreate)
+			require.NoError(t, err, "failed to create entity")
+			require.NotEmptyf(t, sink.ID, "id must not be empty")
+
+			tc.requestSink.ID = sink.ID
 			res, err := service.UpdateSink(ctx, tc.token, tc.requestSink)
 			tc.expected(t, res, err)
+			err = service.DeleteSink(ctx, tc.token, sink.ID)
+			assert.NoError(t, err)
 		})
 	}
 }
@@ -506,8 +544,8 @@ func TestUpdateSink(t *testing.T) {
 	}
 
 	for desc, tc := range cases {
-		ctx := context.WithValue(context.Background(), "tc", desc)
 		t.Run(desc, func(t *testing.T) {
+			ctx := context.WithValue(context.Background(), "tc", desc)
 			res, err := service.UpdateSink(ctx, tc.token, tc.incomingSink)
 			if err == nil {
 				assert.Equal(t, tc.expectedSink.Name.String(), res.Name.String(), "sink name not as expected")

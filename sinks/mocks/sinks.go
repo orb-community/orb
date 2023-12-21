@@ -30,23 +30,23 @@ type sinkRepositoryMock struct {
 	sinksMock immutable.Map[string, sinks.Sink]
 }
 
-func (s *sinkRepositoryMock) GetVersion(ctx context.Context) (string, error) {
+func (s *sinkRepositoryMock) GetVersion(_ context.Context) (string, error) {
 	return "", nil
 }
 
-func (s *sinkRepositoryMock) UpdateVersion(ctx context.Context, version string) error {
+func (s *sinkRepositoryMock) UpdateVersion(_ context.Context, _ string) error {
 	return nil
 }
 
-func (s *sinkRepositoryMock) SearchAllSinks(ctx context.Context, filter sinks.Filter) ([]sinks.Sink, error) {
+func (s *sinkRepositoryMock) SearchAllSinks(_ context.Context, _ sinks.Filter) ([]sinks.Sink, error) {
 	return nil, nil
 }
 
-func (s *sinkRepositoryMock) UpdateSinkState(ctx context.Context, sinkID string, msg string, ownerID string, state sinks.State) error {
+func (s *sinkRepositoryMock) UpdateSinkState(_ context.Context, _ string, _ string, _ string, _ sinks.State) error {
 	return nil
 }
 
-func (s *sinkRepositoryMock) RetrieveByOwnerAndId(ctx context.Context, ownerID string, key string) (sinks.Sink, error) {
+func (s *sinkRepositoryMock) RetrieveByOwnerAndId(_ context.Context, ownerID string, key string) (sinks.Sink, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -54,7 +54,7 @@ func (s *sinkRepositoryMock) RetrieveByOwnerAndId(ctx context.Context, ownerID s
 		if sink.MFOwnerID == ownerID {
 			// pass test code
 			v := sink.Config.GetSubMetadata(authentication_type.AuthenticationKey)
-			if v["password"] == "dbpass" {
+			if v["password"] == "dbpass" || v["password"] == "newpass" {
 				v["password"], _ = s.passSvc.EncodePassword(v["password"].(string))
 			}
 			return sink, nil
@@ -74,7 +74,7 @@ func NewSinkRepository(passSvc authentication_type.PasswordService) sinks.SinkRe
 	}
 }
 
-func (s *sinkRepositoryMock) Save(ctx context.Context, sink sinks.Sink) (string, error) {
+func (s *sinkRepositoryMock) Save(_ context.Context, sink sinks.Sink) (string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -98,7 +98,7 @@ func (s *sinkRepositoryMock) Save(ctx context.Context, sink sinks.Sink) (string,
 	return sink.ID, nil
 }
 
-func (s *sinkRepositoryMock) Update(ctx context.Context, sink sinks.Sink) (err error) {
+func (s *sinkRepositoryMock) Update(_ context.Context, sink sinks.Sink) (err error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if c, ok := s.sinksMock.Get(sink.ID); ok {
@@ -124,7 +124,7 @@ func copyMetadata(dst, src types.Metadata) {
 	}
 }
 
-func (s *sinkRepositoryMock) RetrieveAllByOwnerID(ctx context.Context, owner string, pm sinks.PageMetadata) (sinks.Page, error) {
+func (s *sinkRepositoryMock) RetrieveAllByOwnerID(_ context.Context, owner string, pm sinks.PageMetadata) (sinks.Page, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -158,14 +158,14 @@ func (s *sinkRepositoryMock) RetrieveAllByOwnerID(ctx context.Context, owner str
 	return page, nil
 }
 
-func (s *sinkRepositoryMock) RetrieveById(ctx context.Context, key string) (sinks.Sink, error) {
+func (s *sinkRepositoryMock) RetrieveById(_ context.Context, key string) (sinks.Sink, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	if c, ok := s.sinksMock.Get(key); ok {
 		// Pass test schema
 		v := c.Config.GetSubMetadata(authentication_type.AuthenticationKey)
-		if v["password"] == "dbpass" {
+		if v["password"] == "dbpass" || v["password"] == "newpass" {
 			v["password"], _ = s.passSvc.EncodePassword(v["password"].(string))
 		}
 		return c, nil
@@ -174,7 +174,7 @@ func (s *sinkRepositoryMock) RetrieveById(ctx context.Context, key string) (sink
 	return sinks.Sink{}, sinks.ErrNotFound
 }
 
-func (s *sinkRepositoryMock) Remove(ctx context.Context, owner string, key string) error {
+func (s *sinkRepositoryMock) Remove(_ context.Context, owner string, key string) error {
 	if c, ok := s.sinksMock.Get(key); ok {
 		if c.MFOwnerID == owner {
 			s.sinksMock = *s.sinksMock.Delete(key)

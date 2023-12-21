@@ -38,7 +38,7 @@ import { OrbService } from 'app/common/services/orb.service';
   styleUrls: ['./policy-datasets.component.scss'],
 })
 export class PolicyDatasetsComponent
-  implements OnInit, OnDestroy, AfterViewInit, AfterViewChecked, OnChanges {
+  implements OnInit, OnDestroy, AfterViewInit, OnChanges {
   @Input()
   datasets: Dataset[];
 
@@ -71,8 +71,6 @@ export class PolicyDatasetsComponent
 
   @ViewChild('sinksTemplateCell') sinksTemplateCell: TemplateRef<any>;
 
-  @ViewChild('tableWrapper') tableWrapper;
-
   @ViewChild(DatatableComponent) table: DatatableComponent;
 
   private currentComponentWidth;
@@ -99,23 +97,24 @@ export class PolicyDatasetsComponent
       {
         prop: 'agent_group',
         name: 'Agent Group',
-        resizeable: true,
+        resizeable: false,
         canAutoResize: true,
-        flexGrow: 3,
+        flexGrow: 2,
         cellTemplate: this.groupTemplateCell,
       },
       {
         prop: 'valid',
         name: 'Valid',
-        resizeable: true,
+        resizeable: false,
         canAutoResize: true,
-        flexGrow: 1,
+        flexGrow: 0.5,
+        minWidth: 70,
         cellTemplate: this.validTemplateCell,
       },
       {
         prop: 'sinks',
         name: 'Sinks',
-        resizeable: true,
+        resizeable: false,
         canAutoResize: true,
         flexGrow: 3,
         cellTemplate: this.sinksTemplateCell,
@@ -123,10 +122,12 @@ export class PolicyDatasetsComponent
       {
         name: '',
         prop: 'actions',
-        resizeable: true,
+        resizeable: false,
         sortable: false,
         canAutoResize: true,
-        flexGrow: 3,
+        flexGrow: 1,
+        maxWidth: 130,
+        minWidth: 130,
         cellTemplate: this.actionsTemplateCell,
       },
     ];
@@ -134,22 +135,10 @@ export class PolicyDatasetsComponent
     this.cdr.detectChanges();
   }
 
-  ngAfterViewChecked() {
-    if (
-      this.table &&
-      this.table.recalculate &&
-      this.tableWrapper.nativeElement.clientWidth !== this.currentComponentWidth
-    ) {
-      this.currentComponentWidth = this.tableWrapper.nativeElement.clientWidth;
-      this.table.recalculate();
-      this.cdr.detectChanges();
-      window.dispatchEvent(new Event('resize'));
-    }
-  }
   getTableHeight() {
     const rowHeight = 50;
     const headerHeight = 50;
-    return (this.datasets.length * rowHeight) + headerHeight + 'px';
+    return (this.datasets.length * rowHeight + 15) + headerHeight + 'px';
   }
   onCreateDataset() {
     this.dialogService

@@ -37,6 +37,9 @@ const (
 	VersionTimeout      = 2
 	ScrapeTimeout       = 5
 	TapsTimeout         = 5
+	DefaultConfigPath   = "/opt/orb/agent.yaml"
+	DefaultAPIHost      = "localhost"
+	DefaultAPIPort      = "10853"
 )
 
 // AppInfo represents server application information
@@ -97,6 +100,10 @@ func (p *pktvisorBackend) getFreePort() (int, error) {
 
 func (p *pktvisorBackend) GetStartTime() time.Time {
 	return p.startTime
+}
+
+func (p *pktvisorBackend) GetInitialState() backend.RunningStatus {
+	return backend.Unknown
 }
 
 func (p *pktvisorBackend) SetCommsClient(agentID string, client *mqtt.Client, baseTopic string) {
@@ -282,22 +289,23 @@ func (p *pktvisorBackend) Stop(ctx context.Context) error {
 	return nil
 }
 
+// Configure this will set configurations, but if not set, will use the following defaults
 func (p *pktvisorBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo, config map[string]string, otelConfig map[string]interface{}) error {
 	p.logger = logger
 	p.policyRepo = repo
 
 	var prs bool
 	if p.binary, prs = config["binary"]; !prs {
-		return errors.New("you must specify pktvisor binary")
+		p.binary = DefaultBinary
 	}
 	if p.configFile, prs = config["config_file"]; !prs {
-		p.configFile = ""
+		p.configFile = DefaultConfigPath
 	}
 	if p.adminAPIHost, prs = config["api_host"]; !prs {
-		return errors.New("you must specify pktvisor admin API host")
+		p.adminAPIHost = DefaultAPIHost
 	}
 	if p.adminAPIPort, prs = config["api_port"]; !prs {
-		return errors.New("you must specify pktvisor admin API port")
+		p.adminAPIPort = DefaultAPIPort
 	}
 	if agentTags, ok := otelConfig["agent_tags"]; ok {
 		p.agentTags = agentTags.(map[string]string)
@@ -313,9 +321,19 @@ func (p *pktvisorBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo
 		case "Host":
 			p.otelReceiverHost = v.(string)
 		case "Port":
-			p.otelReceiverPort = v.(int)
+			if v.(int) == 0 {
+				var err error
+				p.otelReceiverPort, err = p.getFreePort()
+				if err != nil {
+					p.logger.Error("pktvisor otlp startup error", zap.Error(err))
+					return err
+				}
+			} else {
+				p.otelReceiverPort = v.(int)
+			}
 		}
 	}
+	p.logger.Info("configured otel receiver host", zap.String("host", p.otelReceiverHost), zap.Int("port", p.otelReceiverPort))
 
 	return nil
 }

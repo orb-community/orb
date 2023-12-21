@@ -27,7 +27,7 @@
         <span>{{ agent.name }} &nbsp;&nbsp;</span>
         <span class="orb-service-{{ agent.state }}" style="font-weight: 600;"> {{ agent.state | titlecase }} </span>
       </div>
-      <p *ngIf="!agent" class="ns1-red" style="margin-top: 1rem;">*To confirm, type the amount of agents to be reset.</p>
+      <p *ngIf="!agent" class="ns1-red" style="margin-top: 1rem;">*To confirm, type the amount of Agents to be reset.</p>
       <input type="text"
              #autoInput
              *ngIf="!agent"

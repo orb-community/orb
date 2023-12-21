@@ -2,9 +2,10 @@ import { Observable } from 'rxjs';
 
 export enum FilterTypes {
   Input, // string input
-  AutoComplete,
+  Tags,
   Select, // allows select one option
   MultiSelect, // allows select multi options
+  MultiSelectAsync, // allows select multi options | async
   Checkbox, // on|off option
   Number, // number input
 }
@@ -46,20 +47,39 @@ export function filterTags(item: any, prop: any, value: any, exact?: any) {
   if (!item || typeof item[prop] !== 'object') {
     return false;
   }
-  // tag values
   const values = Object.entries(item[prop]).map(
     (entry) => `${entry[0]}:${entry[1]}`,
   );
   const filterFn = exact ? filterExact : filterSubstr;
   const filterValue = value.replace(' ', '');
+
   return values.reduce((acc, val) => {
     acc = acc || filterFn(val, filterValue);
     return acc;
   }, false);
+
+}
+
+export function filterMultiTags(item: any, prop: any, values: any[], exact?: any) {
+  if (!item || typeof item[prop] !== 'object') {
+    return false;
+  }
+  const filterFn = exact ? filterExact : filterSubstr;
+  const itemValues = Object.entries(item[prop]).map(
+    (entry) => `${entry[0]}:${entry[1]}`,
+  );
+  return values.some(filterValue => {
+    const normalizedFilterValue = filterValue.replace(' ', '');
+    return itemValues.some(val => filterFn(val, normalizedFilterValue));
+  });
 }
 
 export function filterMultiSelect(item: any, prop: any, values: any, exact?: any) {
   return values.reduce((prev, cur) => {
-    return item[prop] === cur || prev;
+    if (exact) {
+      return item[prop] ? item[prop].toString() === cur || prev : false;
+    } else {
+      return item[prop] ? item[prop].toString().includes(cur) || prev : false;
+    }
   }, false);
 }

@@ -43,6 +43,8 @@ export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
 
   errorConfigMessage: string;
 
+  sinkTags: any;
+
   @ViewChild(SinkDetailsComponent) detailsComponent: SinkDetailsComponent;
 
   @ViewChild(SinkConfigComponent)
@@ -102,7 +104,7 @@ export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
       config = YAML.parse(configSink);
       this.errorConfigMessage = '';
     } else {
-        this.errorConfigMessage = 'Invalid YAML configuration, check syntax errors';
+        this.errorConfigMessage = 'Invalid YAML configuration, check syntax errors.';
         return false;
     }
 
@@ -167,6 +169,7 @@ export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
   retrieveSink() {
     this.sinkSubscription = this.orb.getSinkView(this.sinkId).subscribe(sink => {
       this.sink = sink;
+      this.sinkTags = sink?.tags ? Object.assign({}, sink.tags) : {};
       this.isLoading = false;
       this.cdr.markForCheck();
       this.lastUpdate = new Date();
@@ -202,7 +205,7 @@ export class SinkViewComponent implements OnInit, OnChanges, OnDestroy {
     const sinkDetails = this.detailsComponent.formGroup?.value;
     const tags = this.detailsComponent.selectedTags;
     const selectedTags = JSON.stringify(tags);
-    const orb_tags = this.sink.tags ? JSON.stringify(this.sink.tags) : '{}';
+    const orb_tags = JSON.stringify(this.sinkTags);
 
     if (sinkDetails.name !== this.sink.name || sinkDetails?.description !== this.sink?.description || selectedTags !== orb_tags) {
       return true;

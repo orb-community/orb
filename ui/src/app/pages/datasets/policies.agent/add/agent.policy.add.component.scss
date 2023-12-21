@@ -48,13 +48,15 @@ ngx-tag-control, ngx-tag-display {
   transition: background-color 0.2s ease;
   margin: 8px 4px;
   width: 90px;
+  max-height: 32px !important;
+  line-height: 1.15 !important;
 }
 .div-language-button {
   background-color: #24293e;
   width: fit-content;
   padding: 0 4px;
   border-radius: 25px;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 .true {
   background: #3089fc;
@@ -231,7 +233,7 @@ ngx-tag-control, ngx-tag-display {
   min-height: 300px;
   min-width: 200px;
   height: calc(50vh);
-  width: calc(100%);
+  width: calc(105%);
 }
 .stepper {
   margin: 0 !important;

@@ -19,6 +19,7 @@ import (
 	"github.com/orb-community/orb/policies/mocks"
 	"github.com/orb-community/orb/policies/pb"
 	sinkmocks "github.com/orb-community/orb/sinks/mocks"
+	"go.uber.org/zap"
 	"net"
 	"os"
 	"testing"
@@ -84,6 +85,7 @@ func newService(tokens map[string]string) policies.Service {
 
 	fleetGrpcClient := flmocks.NewClient()
 	SinkServiceClient := sinkmocks.NewClient()
+	logger := zap.NewNop()
 
-	return policies.New(nil, auth, repo, fleetGrpcClient, SinkServiceClient)
+	return policies.New(logger, auth, repo, fleetGrpcClient, SinkServiceClient)
 }

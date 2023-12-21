@@ -1,8 +1,7 @@
 from hamcrest import *
 from behave import given, step, then
-from test_config import TestConfig
-import requests
-from utils import random_string
+from configs import TestConfig
+from utils import random_string, return_api_post_response, return_api_get_response
 
 configs = TestConfig.configs()
 orb_url = configs.get('orb_url')
@@ -62,7 +61,7 @@ def check_account_information(context, company_status, fullname_status):
     for metadata in expected_metadata.keys():
         assert_that(account_details["metadata"], has_key(metadata), f"Missing {metadata} in account metadata")
         assert_that(account_details["metadata"][metadata], equal_to(expected_metadata[metadata]),
-                f"Unexpected value for {metadata}")
+                    f"Unexpected value for {metadata}")
 
 
 @given("the Orb user has a registered account")
@@ -94,21 +93,13 @@ def authenticate(user_email, user_password, expected_status_code=201):
     :returns: (dict) response of auth request
     """
 
-    headers = {'Content-type': 'application/json', 'Accept': '*/*'}
     json_request = {'email': user_email, 'password': user_password}
     json_request = {parameter: value for parameter, value in json_request.items() if value}
-    response = requests.post(orb_url + '/api/v1/tokens',
-                             json=json_request,
-                             headers=headers,
-                             verify=verify_ssl_bool)
-    try:
-        response_json = response.json()
-    except ValueError:
-        response_json = response.text
-    assert_that(response.status_code, equal_to(expected_status_code),
-                f"Authentication failed with status= {str(response.status_code)}. Response: {str(response_json)}"
+    status_code, response = return_api_post_response(f"{orb_url}/api/v1/tokens", request_body=json_request)
+    assert_that(status_code, equal_to(expected_status_code),
+                f"Authentication failed with status= {str(status_code)}. Response: {str(response)}"
                 )
-    return response_json
+    return response
 
 
 def register_account(user_email, user_password, company_name=None, user_full_name=None, expected_status_code=201):
@@ -127,15 +118,13 @@ def register_account(user_email, user_password, company_name=None, user_full_nam
                                                                                  "fullName": user_full_name}}
     json_request['metadata'] = {parameter: value for parameter, value in json_request['metadata'].items() if value}
     json_request = {parameter: value for parameter, value in json_request.items() if value}
-    headers = {'Content-type': 'application/json', 'Accept': '*/*'}
-    response = requests.post(orb_url + '/api/v1/users',
-                             json=json_request,
-                             headers=headers,
-                             verify=verify_ssl_bool)
-    assert_that(response.status_code, equal_to(expected_status_code),
+
+    status_code, response = return_api_post_response(f"{orb_url}/api/v1/users",
+                                                     request_body=json_request, verify=verify_ssl_bool)
+    assert_that(status_code, equal_to(expected_status_code),
                 f"Current value of is_credentials_registered parameter = {configs.get('is_credentials_registered')}."
-                f"\nExpected status code for registering an account failed with status= {str(response.status_code)}.")
-    return response, response.status_code,
+                f"\nExpected status code for registering an account failed with status= {str(status_code)}.")
+    return response, status_code
 
 
 def get_account_information(token, expected_status_code=200):
@@ -145,14 +134,10 @@ def get_account_information(token, expected_status_code=200):
     :param (int) expected_status_code: expected request's status code. Default:200 (happy path).
     :return: (dict) account_response
     """
-    response = requests.get(orb_url + '/api/v1/users/profile',
-                            headers={'Authorization': f'Bearer {token}'}, verify=verify_ssl_bool)
+    status_code, response = return_api_get_response(f"{orb_url}/api/v1/users/profile",
+                                                    token=token, verify=verify_ssl_bool)
 
-    try:
-        response_json = response.json()
-    except ValueError:
-        response_json = response.text
-    assert_that(response.status_code, equal_to(expected_status_code), f"Unexpected status code for get account data."
-                                                                      f"Status Code = {response.status_code}."
-                                                                      f"Response = {str(response_json)}")
-    return response_json
+    assert_that(status_code, equal_to(expected_status_code), f"Unexpected status code for get account data."
+                                                             f"Status Code = {status_code}."
+                                                             f"Response = {str(response)}")
+    return response

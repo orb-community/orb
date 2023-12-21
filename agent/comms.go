@@ -35,7 +35,7 @@ func (a *orbAgent) connect(ctx context.Context, config config.MQTTConfig) (mqtt.
 	opts.SetCleanSession(true)
 	opts.SetConnectTimeout(5 * time.Minute)
 	opts.SetResumeSubs(true)
-	opts.SetOnConnectHandler(func(client mqtt.Client) {
+	opts.SetReconnectingHandler(func(client mqtt.Client, options *mqtt.ClientOptions) {
 		go func() {
 			ok := false
 			for i := 1; i < 10; i++ {
@@ -43,18 +43,27 @@ func (a *orbAgent) connect(ctx context.Context, config config.MQTTConfig) (mqtt.
 				case <-ctx.Done():
 					return
 				default:
+					if len(a.backends) == 0 {
+						time.Sleep(time.Duration(i) * time.Second)
+						continue
+					}
 					for name, be := range a.backends {
 						backendStatus, s, _ := be.GetRunningStatus()
-						if backend.Running != backendStatus {
+						a.logger.Debug("backend in status", zap.String("backend", name), zap.String("status", s))
+						switch backendStatus {
+						case backend.Running:
+							ok = true
+							a.requestReconnection(ctx, client, config)
+							return
+						case backend.Waiting:
+							ok = true
+							a.requestReconnection(ctx, client, config)
+							return
+						default:
 							a.logger.Info("waiting until a backend is in running state", zap.String("backend", name),
 								zap.String("current state", s), zap.String("wait time", (time.Duration(i)*time.Second).String()))
 							time.Sleep(time.Duration(i) * time.Second)
 							continue
-						} else {
-							// connection problem, should request from control place
-							ok = true
-							a.requestReconnection(ctx, client, config)
-							return
 						}
 					}
 				}
@@ -64,7 +73,45 @@ func (a *orbAgent) connect(ctx context.Context, config config.MQTTConfig) (mqtt.
 				ctx.Done()
 			}
 		}()
-
+	})
+	opts.SetOnConnectHandler(func(client mqtt.Client) {
+		go func() {
+			ok := false
+			for i := 1; i < 10; i++ {
+				select {
+				case <-ctx.Done():
+					return
+				default:
+					if len(a.backends) == 0 {
+						time.Sleep(time.Duration(i) * time.Second)
+						continue
+					}
+					for name, be := range a.backends {
+						backendStatus, s, _ := be.GetRunningStatus()
+						a.logger.Debug("backend in status", zap.String("backend", name), zap.String("status", s))
+						switch backendStatus {
+						case backend.Running:
+							ok = true
+							a.requestReconnection(ctx, client, config)
+							return
+						case backend.Waiting:
+							ok = true
+							a.requestReconnection(ctx, client, config)
+							return
+						default:
+							a.logger.Info("waiting until a backend is in running state", zap.String("backend", name),
+								zap.String("current state", s), zap.String("wait time", (time.Duration(i)*time.Second).String()))
+							time.Sleep(time.Duration(i) * time.Second)
+							continue
+						}
+					}
+				}
+			}
+			if !ok {
+				a.logger.Error("backend wasn't able to change to running, stopping connection")
+				ctx.Done()
+			}
+		}()
 	})
 
 	if !a.config.OrbAgent.TLS.Verify {
@@ -84,6 +131,7 @@ func (a *orbAgent) requestReconnection(ctx context.Context, client mqtt.Client, 
 	for name, be := range a.backends {
 		be.SetCommsClient(config.Id, &client, fmt.Sprintf("%s/?/%s", a.baseTopic, name))
 	}
+	a.agent_id = config.Id
 
 	if token := client.Subscribe(a.rpcFromCoreTopic, 1, a.handleRPCFromCore); token.Wait() && token.Error() != nil {
 		a.logger.Error("failed to subscribe to agent control plane RPC topic", zap.String("topic", a.rpcFromCoreTopic), zap.Error(token.Error()))
@@ -148,12 +196,18 @@ func (a *orbAgent) removeDatasetFromPolicy(datasetID string, policyID string) {
 func (a *orbAgent) startComms(ctx context.Context, config config.MQTTConfig) error {
 
 	var err error
+	a.logger.Debug("starting mqtt connection")
 	if a.client == nil || !a.client.IsConnected() {
 		a.client, err = a.connect(ctx, config)
 		if err != nil {
 			a.logger.Error("connection failed", zap.String("channel", config.ChannelID), zap.String("agent_id", config.Id), zap.Error(err))
 			return ErrMqttConnection
 		}
+		// Store the data from connection to cloud config within agent.
+		a.config.OrbAgent.Cloud.MQTT.Id = config.Id
+		a.config.OrbAgent.Cloud.MQTT.Key = config.Key
+		a.config.OrbAgent.Cloud.MQTT.Address = config.Address
+		a.config.OrbAgent.Cloud.MQTT.ChannelID = config.ChannelID
 	}
 
 	return nil

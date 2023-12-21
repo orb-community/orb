@@ -93,6 +93,8 @@
                          fullWidth="true"
                          placeholder="Select backend type"
                          size="medium"
+                         [(ngModel)]="backendName"
+                         required
               >
                 <nb-option *ngFor="let type of availableBackends | keyvalue"
                            [value]="type.value.backend">{{ type.key | titlecase }}</nb-option>
@@ -118,11 +120,10 @@
                 {{ strings.stepper.cancel }}
               </button>
               <button
-                (click)="resizeComponents()"
+                (click)="resizeComponents(); defineDefaultConfig();"
                 [disabled]="!detailsFG?.valid"
                 class="next-button"
                 data-orb-qa-id="button#next"
-                class="next-button"
                 nbStepperNext
                 shape="round"
                 type="button"
@@ -144,17 +145,17 @@
           </ng-template>
           <div class="div-language-button">
             <button 
-            class="language-button {{isJsonMode}}"
-            (click)="isJsonMode = true">
-              JSON
-            </button>
-            <button 
             class="language-button {{!isJsonMode}}"
             (click)="isJsonMode = false">
               YAML
             </button>
+            <button 
+            class="language-button {{isJsonMode}}"
+            (click)="isJsonMode = true">
+              JSON
+            </button>
           </div>
-          <div style="display: flex; margin-top: 10px; margin-bottom: 10px; gap: 60px;">
+          <div style="display: flex; margin-top: 10px; width: calc(105%); margin-bottom: 10px; gap: 85px;">
             <span class="summary-accent align">Paste or Upload your {{isJsonMode ? 'Json' : 'Yaml'}} configuration</span>
             <button class="upload-button align" (click)="fileInput.click()">
               <nb-icon [icon]="uploadIconKey" pack="eva">
@@ -208,7 +209,6 @@
               [disabled]="!canCreate()"
               class="next-button"
               data-orb-qa-id="button#next"
-              class="next-button"
               nbStepperNext
               shape="round"
               type="button"
@@ -281,7 +281,6 @@
               (click)="onSubmit()"
               class="next-button"
               data-orb-qa-id="button#save"
-              class="next-button"
               nbStepperNext
               shape="round"
               status="primary"

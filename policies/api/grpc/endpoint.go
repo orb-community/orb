@@ -11,9 +11,9 @@ package grpc
 import (
 	"context"
 	"encoding/json"
-	"github.com/orb-community/orb/policies"
-
 	"github.com/go-kit/kit/endpoint"
+	"github.com/orb-community/orb/policies"
+	"gopkg.in/yaml.v3"
 )
 
 func retrievePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
@@ -27,18 +27,34 @@ func retrievePolicyEndpoint(svc policies.Service) endpoint.Endpoint {
 		if err != nil {
 			return policyRes{}, err
 		}
-		data, err := json.Marshal(policy.Policy)
+		data, format, err := extractData(policy)
 		if err != nil {
 			return policyRes{}, err
 		}
+
 		return policyRes{
 			id:      policy.ID,
 			name:    policy.Name.String(),
+			format:  format,
 			backend: policy.Backend,
 			version: policy.Version,
 			data:    data,
 		}, nil
 	}
+}
+
+func extractData(policy policies.Policy) (data []byte, format string, err error) {
+	if policy.Format == "yaml" {
+		data, err = yaml.Marshal(policy.Policy)
+		format = "yaml"
+	} else {
+		data, err = json.Marshal(policy.Policy)
+		format = "json"
+	}
+	if err != nil {
+		return nil, "", err
+	}
+	return data, format, nil
 }
 
 func retrievePoliciesByGroupsEndpoint(svc policies.Service) endpoint.Endpoint {
@@ -54,7 +70,7 @@ func retrievePoliciesByGroupsEndpoint(svc policies.Service) endpoint.Endpoint {
 		}
 		policies := make([]policyInDSRes, len(plist))
 		for i, policy := range plist {
-			data, err := json.Marshal(policy.Policy.Policy)
+			data, format, err := extractData(policy.Policy)
 			if err != nil {
 				return policyInDSListRes{}, err
 			}
@@ -63,6 +79,7 @@ func retrievePoliciesByGroupsEndpoint(svc policies.Service) endpoint.Endpoint {
 				name:         policy.Name.String(),
 				backend:      policy.Backend,
 				version:      policy.Version,
+				format:       format,
 				data:         data,
 				datasetID:    policy.DatasetID,
 				agentGroupID: policy.AgentGroupID,

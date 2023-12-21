@@ -6,12 +6,12 @@ package orbreceiver
 
 import (
 	"context"
+	"go.opentelemetry.io/collector/receiver/receiverhelper"
 	"strconv"
 	"strings"
 
 	"github.com/mainflux/mainflux/pkg/messaging"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/obsreport"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
 	"go.uber.org/zap"
@@ -20,7 +20,7 @@ import (
 type internalTracesReceiver struct {
 	ptraceotlp.UnimplementedGRPCServer
 	nextConsumer consumer.Traces
-	obsrecv      *obsreport.Receiver
+	obsrecv      *receiverhelper.ObsReport
 }
 
 func (r *OrbReceiver) MessageTracesInbound(msg messaging.Message) error {
@@ -148,7 +148,7 @@ func (r *OrbReceiver) exportTraces(ctx context.Context, req ptraceotlp.ExportReq
 
 	ctx = r.tracesReceiver.obsrecv.StartTracesOp(ctx)
 	err := r.tracesReceiver.nextConsumer.ConsumeTraces(ctx, ts)
-	r.logsReceiver.obsrecv.EndTracesOp(ctx, dataFormatProtobuf, spanCount, err)
+	r.tracesReceiver.obsrecv.EndTracesOp(ctx, dataFormatProtobuf, spanCount, err)
 
 	return ptraceotlp.NewExportResponse(), err
 }

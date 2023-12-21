@@ -1,16 +1,19 @@
 import re
-from test_config import TestConfig
+from configs import TestConfig
 from local_agent import get_orb_agent_logs
 from users import get_auth_token
-from utils import random_string, filter_list_by_parameter_start_with, generate_random_string_with_predefined_prefix, \
-    create_tags_set, check_logs_contain_message_and_name, threading_wait_until, validate_json
+from utils import (random_string, filter_list_by_parameter_start_with, generate_random_string_with_predefined_prefix, \
+                   create_tags_set, check_logs_contain_message_and_name, threading_wait_until, validate_json,
+                   return_api_post_response, return_api_get_response, return_api_delete_response,
+                   return_api_put_response)
 from behave import given, then, step
 from hamcrest import *
-import requests
 from random import sample
 import json
 import random
+from logger import Logger
 
+log = Logger().logger_instance()
 configs = TestConfig.configs()
 agent_group_name_prefix = 'test_group_name_'
 agent_group_description = "This is an agent group"
@@ -44,8 +47,8 @@ def create_agent_group_matching_agent(context, amount_of_agent_groups, amount_of
                                                      f"Agent:{context.agent}")
     for group in range(int(amount_of_agent_groups)):
         agent_group_name = agent_group_name_prefix + random_string()
-        agent_group_data = generate_group_with_valid_json(context.token, agent_group_name, group_description,
-                                                          tags_to_group, context.agent_groups)
+        generate_group_with_valid_json(context.token, agent_group_name, group_description,
+                                       tags_to_group, context.agent_groups)
 
 
 @step("{amount_of_agent_groups} Agent Group(s) is created with {orb_tags} orb tag(s) (lower case)")
@@ -317,20 +320,16 @@ def create_agent_group(token, name, description, tags, expected_status_code=201)
     """
 
     json_request = {"name": name, "description": description, "tags": tags}
-    headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
     if expected_status_code == 201:
         assert_that(len(tags), greater_than(0), f"Tags is required to created a group. Json used: {json_request}")
-    response = requests.post(orb_url + '/api/v1/agent_groups', json=json_request, headers=headers_request,
-                             verify=verify_ssl_bool)
-    try:
-        response_json = response.json()
-    except ValueError:
-        response_json = response.text
-    assert_that(response.status_code, equal_to(expected_status_code),
-                f"Request to create agent group failed with status= {str(response.status_code)}. Response="
-                f" {str(response_json)}. Json used: {json_request}")
+    status_code, response = return_api_post_response(f"{orb_url}/api/v1/agent_groups",
+                                                     request_body=json_request, token=token, verify=verify_ssl_bool)
 
-    return response_json
+    assert_that(status_code, equal_to(expected_status_code),
+                f"Request to create agent group failed with status= {str(status_code)}. Response="
+                f" {str(response)}. Json used: {json_request}")
+
+    return response
 
 
 def get_agent_group(token, agent_group_id):
@@ -341,15 +340,14 @@ def get_agent_group(token, agent_group_id):
     :param (str) agent_group_id: that identifies the agent group to be fetched
     :returns: (dict) the fetched agent group
     """
-
-    get_groups_response = requests.get(orb_url + '/api/v1/agent_groups/' + agent_group_id,
-                                       headers={'Authorization': f'Bearer {token}'}, verify=verify_ssl_bool)
-
-    assert_that(get_groups_response.status_code, equal_to(200),
+    status_code, response = return_api_get_response(f"{orb_url}/api/v1/agent_groups/{agent_group_id}",
+                                                    token=token,
+                                                    verify=verify_ssl_bool)
+    assert_that(status_code, equal_to(200),
                 'Request to get agent group id=' + agent_group_id + ' failed with status=' + str(
-                    get_groups_response.status_code))
+                    status_code))
 
-    return get_groups_response.json()
+    return response
 
 
 def list_agent_groups(token, limit=100, offset=0):
@@ -382,15 +380,18 @@ def list_up_to_limit_agent_groups(token, limit=100, offset=0):
     :param (int) offset: Number of items to skip during retrieval. Default = 0.
     :returns: (list) a list of agent groups, (int) total groups on orb, (int) offset
     """
+    status_code, response = return_api_get_response(f"{orb_url}/api/v1/agent_groups",
+                                                    token=token, verify=verify_ssl_bool,
+                                                    params={"limit": limit, "offset": offset})
 
-    response = requests.get(orb_url + '/api/v1/agent_groups', headers={'Authorization': f'Bearer {token}'},
-                            params={"limit": limit, "offset": offset}, verify=verify_ssl_bool)
+    assert_that(status_code, equal_to(200),
+                'Request to list agent groups failed with status=' + str(status_code))
 
-    assert_that(response.status_code, equal_to(200),
-                'Request to list agent groups failed with status=' + str(response.status_code))
+    assert_that(response, has_key('agentGroups'), f"Response does not contain agentGroups. Response: {str(response)}")
+    assert_that(response, has_key('total'), f"Response does not contain total. Response: {str(response)}")
+    assert_that(response, has_key('offset'), f"Response does not contain offset. Response: {str(response)}")
 
-    agent_groups_as_json = response.json()
-    return agent_groups_as_json['agentGroups'], agent_groups_as_json['total'], agent_groups_as_json['offset']
+    return response['agentGroups'], response['total'], response['offset']
 
 
 def delete_agent_groups(token, list_of_agent_groups):
@@ -412,12 +413,10 @@ def delete_agent_group(token, agent_group_id):
     :param (str) token: used for API authentication
     :param (str) agent_group_id: that identifies the agent group to be deleted
     """
-
-    response = requests.delete(orb_url + '/api/v1/agent_groups/' + agent_group_id,
-                               headers={'Authorization': f'Bearer {token}'}, verify=verify_ssl_bool)
-
-    assert_that(response.status_code, equal_to(204), 'Request to delete agent group id='
-                + agent_group_id + ' failed with status=' + str(response.status_code))
+    status_code, response = return_api_delete_response(f"{orb_url}/api/v1/agent_groups/{agent_group_id}",
+                                                       token=token, verify=verify_ssl_bool)
+    assert_that(status_code, equal_to(204), 'Request to delete agent group id='
+                + agent_group_id + ' failed with status=' + str(status_code))
 
 
 @threading_wait_until
@@ -462,24 +461,17 @@ def edit_agent_group(token, agent_group_id, name, description, tags, expected_st
                     "validate_only": False}
     json_request = {parameter: value for parameter, value in json_request.items() if value is not None}
 
-    headers_request = {'Content-type': 'application/json', 'Accept': '*/*', 'Authorization': f'Bearer {token}'}
-
-    group_edited_response = requests.put(orb_url + '/api/v1/agent_groups/' + agent_group_id, json=json_request,
-                                         headers=headers_request, verify=verify_ssl_bool)
-
+    status_code, response = return_api_put_response(f"{orb_url}/api/v1/agent_groups/{agent_group_id}",
+                                                    request_body=json_request, token=token, verify=verify_ssl_bool)
     if tags == {} or name == {}:
         expected_status_code = 400
-    try:
-        response_json = group_edited_response.json()
-    except ValueError:
-        response_json = group_edited_response.text
-        
-    assert_that(group_edited_response.status_code, equal_to(expected_status_code),
+
+    assert_that(status_code, equal_to(expected_status_code),
                 'Request to edit agent group failed with status=' + "status code =" +
-                str(group_edited_response.status_code) + "response =" + str(response_json) +
+                str(status_code) + "response =" + str(response) +
                 " json used: " + str(json_request))
 
-    return response_json, group_edited_response.status_code
+    return response, status_code
 
 
 def return_matching_groups(token, existing_agent_groups, agent_json):
@@ -544,6 +536,7 @@ def generate_group_with_valid_json(token, agent_group_name, group_description, t
     """
     agent_group_data = create_agent_group(token, agent_group_name, group_description,
                                           tags_to_group)
+    log.debug(f"Created agent group data: {agent_group_data}")
     group_id = agent_group_data['id']
     agent_groups[group_id] = agent_group_name
 

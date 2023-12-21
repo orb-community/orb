@@ -75,7 +75,6 @@ func (es eventStore) Subscribe(context context.Context) error {
 
 		for _, msg := range streams[0].Messages {
 			event := msg.Values
-
 			var err error
 			switch event["operation"] {
 			case datasetCreate:
@@ -127,6 +126,7 @@ func (es eventStore) handleDatasetCreate(ctx context.Context, e createDatasetEve
 
 	ag, err := es.fleetService.ViewAgentGroupByIDInternal(ctx, e.agentGroupID, e.ownerID)
 	if err != nil {
+		es.logger.Error("Failed to retrieve dataset", zap.String("group_id", e.agentGroupID), zap.String("owner_id", e.ownerID), zap.Error(err))
 		return err
 	}
 

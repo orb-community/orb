@@ -23,6 +23,17 @@ def _read_configs():
     parser.read('test_config.ini')
     configs = parser['test_config']
 
+    # log level
+    log_level = configs.get("log_level", "debug")
+    configs["log_level"] = log_level.lower()
+    assert_that(configs.get('log_level'), any_of("debug", "info", "warning", "error", "critical"),
+                'Invalid log level')
+
+    # stream logs
+    stream_logs = configs.get("stream_logs", "true")
+    assert_that(stream_logs.lower(), any_of("true", "false"), 'Invalid log stream option')
+    configs["stream_logs"] = stream_logs.lower()
+
     # Make sure mandatory parameters are set!
     assert_that(configs.get('orb_address'), not_none(), 'No Orb URL was provided!')
     assert_that(configs.get('orb_address'), not_(""), 'No Orb URL was provided!')
@@ -35,14 +46,25 @@ def _read_configs():
     assert_that(configs.get('password'), has_length(greater_than_or_equal_to(8)),
                 'Orb password must be at least 8 digits')
 
-    assert_that(configs.get('prometheus_username'), not_none(), 'No prometheus username was provided!')
-    assert_that(configs.get('prometheus_username'), not_(""), 'No prometheus username was provided!')
+    configs['sink_backend_type'] = configs.get("sink_backend_type", "prometheus")
+    if configs['sink_backend_type'] == "otlphttp":
+        assert_that(configs.get('otlp_publisher_username'), not_none(), 'No otlp_publisher username was provided!')
+        assert_that(configs.get('otlp_publisher_username'), not_(""), 'No otlp_publisher username was provided!')
 
-    assert_that(configs.get('prometheus_key'), not_none(), 'No Orb prometheus key was provided!')
-    assert_that(configs.get('prometheus_key'), not_(""), 'No Orb prometheus key was provided!')
+        assert_that(configs.get('otlp_publisher_key'), not_none(), 'No Orb otlp_publisher key was provided!')
+        assert_that(configs.get('otlp_publisher_key'), not_(""), 'No Orb otlp_publisher key was provided!')
 
-    assert_that(configs.get('remote_prometheus_endpoint'), not_none(), 'No Orb prometheus endpoint was provided!')
-    assert_that(configs.get('remote_prometheus_endpoint'), not_(""), 'No Orb prometheus endpoint was provided!')
+        assert_that(configs.get('otlp_publisher_endpoint'), not_none(), 'No Orb otlp_publisher endpoint was provided!')
+        assert_that(configs.get('otlp_publisher_endpoint'), not_(""), 'No Orb otlp_publisher endpoint was provided!')
+    else:
+        assert_that(configs.get('prometheus_username'), not_none(), 'No prometheus username was provided!')
+        assert_that(configs.get('prometheus_username'), not_(""), 'No prometheus username was provided!')
+
+        assert_that(configs.get('prometheus_key'), not_none(), 'No Orb prometheus key was provided!')
+        assert_that(configs.get('prometheus_key'), not_(""), 'No Orb prometheus key was provided!')
+
+        assert_that(configs.get('remote_prometheus_endpoint'), not_none(), 'No Orb prometheus endpoint was provided!')
+        assert_that(configs.get('remote_prometheus_endpoint'), not_(""), 'No Orb prometheus endpoint was provided!')
 
     local_orb_path = configs.get("orb_path",
                                  os.path.dirname(os.getcwd()))  # orb_path is required if user will use docker to test,
@@ -79,15 +101,5 @@ def _read_configs():
     assert_that(is_credentials_registered, any_of(equal_to('true'), equal_to('false')),
                 'Invalid value to is_credentials_registered parameter. A boolean value is expected.')
     configs['is_credentials_registered'] = is_credentials_registered
-    include_otel_env_var = configs.get("include_otel_env_var", "false").lower()
-    configs["include_otel_env_var"] = include_otel_env_var
-    enable_otel = configs.get('enable_otel', 'true').lower()
-    assert_that(enable_otel, any_of(equal_to('true'), equal_to('false')),
-                'Invalid value to enable_otel parameter. A boolean value is expected.')
-    configs['enable_otel'] = enable_otel
-    if include_otel_env_var == "false" and enable_otel == "false":
-        raise ValueError("'enable_otel' is false, but the variable is not being included in the commands because of "
-                         "'include_otel_env_var' is false. Check your parameters.")
-    configs['backend_type'] = configs.get("backend_type", "prometheus")
 
     return configs
