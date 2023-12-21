@@ -834,7 +834,7 @@ func TestListSinks(t *testing.T) {
 	}
 }
 
-func TestAuthentitcationTypesEndpoints(t *testing.T) {
+func TestAuthenticationTypesEndpoints(t *testing.T) {
 	service := newService(map[string]string{token: email})
 	server := newServer(service)
 	defer server.Close()
