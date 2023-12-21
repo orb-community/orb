@@ -86,7 +86,7 @@ var k8sOtelCollector = `
             "containers": [
               {
                 "name": "otel-collector",
-                "image": "otel/opentelemetry-collector-contrib:0.75.0",
+                "image": "otel/opentelemetry-collector-contrib:0.91.0",
                 "ports": [
                   {
                     "containerPort": 13133,
@@ -296,7 +296,7 @@ var JsonDeployment = `
             "containers": [
               {
                 "name": "otel-collector",
-                "image": "otel/opentelemetry-collector-contrib:0.82.0",
+                "image": "otel/opentelemetry-collector-contrib:0.91.0",
                 "ports": [
                   {
                     "containerPort": 13133,
@@ -353,34 +353,36 @@ var JsonDeployment = `
     }
 `
 
-func GetDeploymentJson(kafkaUrl string, sink SinkData) (string, error) {
+func (c *configBuilder) BuildDeploymentConfig(deployment *DeploymentRequest) (string, error) {
 	// prepare manifest
-	manifest := strings.Replace(k8sOtelCollector, "SINK_ID", sink.SinkID, -1)
-	config, err := ReturnConfigYamlFromSink(context.Background(), kafkaUrl, sink)
+	manifest := strings.Replace(k8sOtelCollector, "SINK_ID", deployment.SinkID, -1)
+	ctx := context.WithValue(context.Background(), "sink_id", deployment.SinkID)
+	config, err := c.ReturnConfigYamlFromSink(ctx, c.kafkaUrl, deployment)
 	if err != nil {
-		return "", errors.Wrap(errors.New(fmt.Sprintf("failed to build YAML, sink: %s", sink.SinkID)), err)
+		return "", errors.Wrap(errors.New(fmt.Sprintf("failed to build YAML, sink: %s", deployment.SinkID)), err)
 	}
 	manifest = strings.Replace(manifest, "SINK_CONFIG", config, -1)
 	return manifest, nil
 }
 
 // ReturnConfigYamlFromSink this is the main method, which will generate the YAML file from the
-func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig string, sink SinkData) (string, error) {
-	authType := sink.Config.GetSubMetadata(AuthenticationKey)["type"]
+func (c *configBuilder) ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig string, deployment *DeploymentRequest) (string, error) {
+	authType := deployment.Config.GetSubMetadata(AuthenticationKey)["type"]
 	authTypeStr, ok := authType.(string)
 	if !ok {
 		return "", errors.New("failed to create config invalid authentication type")
 	}
-	authBuilder := GetAuthService(authTypeStr)
+	// TODO move this into somewhere else
+	authBuilder := GetAuthService(authTypeStr, c.encryptionService)
 	if authBuilder == nil {
 		return "", errors.New("invalid authentication type")
 	}
-	exporterBuilder := FromStrategy(sink.Backend)
+	exporterBuilder := FromStrategy(deployment.Backend)
 	if exporterBuilder == nil {
 		return "", errors.New("invalid backend")
 	}
-	extensions, extensionName := authBuilder.GetExtensionsFromMetadata(sink.Config)
-	exporters, exporterName := exporterBuilder.GetExportersFromMetadata(sink.Config, extensionName)
+	extensions, extensionName := authBuilder.GetExtensionsFromMetadata(deployment.Config)
+	exporters, exporterName := exporterBuilder.GetExportersFromMetadata(deployment.Config, extensionName)
 	if exporterName == "" {
 		return "", errors.New("failed to build exporter")
 	}
@@ -412,7 +414,7 @@ func ReturnConfigYamlFromSink(_ context.Context, kafkaUrlConfig string, sink Sin
 		Receivers: Receivers{
 			Kafka: KafkaReceiver{
 				Brokers:         []string{kafkaUrlConfig},
-				Topic:           fmt.Sprintf("otlp_metrics-%s", sink.SinkID),
+				Topic:           fmt.Sprintf("otlp_metrics-%s", deployment.SinkID),
 				ProtocolVersion: "2.0.0",
 			},
 		},

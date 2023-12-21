@@ -2,7 +2,9 @@ from hamcrest import *
 import requests
 from prometheus_client.parser import text_string_to_metric_families
 from utils import threading_wait_until
+from logger import Logger
 
+log = Logger().logger_instance()
 
 @threading_wait_until
 def wait_until_metrics_scraped(local_prometheus_endpoint, expected_metrics, event=None):
@@ -15,11 +17,16 @@ def wait_until_metrics_scraped(local_prometheus_endpoint, expected_metrics, even
     (set) metrics that exists
     """
     metrics_present = set()
-    metrics = requests.get(local_prometheus_endpoint)
-    for family in text_string_to_metric_families(metrics.text):
+    response = requests.get(local_prometheus_endpoint)
+    log.info(f"{response.request.method} {response.url} -> Status Code: {response.status_code}")
+    log.debug(f"Metrics: {response.text}")
+    for family in text_string_to_metric_families(response.text):
         for sample in family.samples:
             metrics_present.add(sample.name)
     metrics_dif = metrics_present.symmetric_difference(expected_metrics)
+    log.debug(f"Metrics present: {metrics_present}")
+    log.debug(f"Expected metrics: {expected_metrics}")
+    log.debug(f"Metrics difference: {metrics_dif}")
     if metrics_dif == set() or metrics_dif == {}:
         event.set()
     return event.is_set(), metrics_dif, metrics_present
@@ -537,6 +544,7 @@ def expected_metrics_by_handlers_and_groups(handler, groups_enabled, groups_disa
                 ("all" in groups_enabled and "counters" not in groups_disabled):
             metric_groups.add("netprobe_attempts")
             metric_groups.add("netprobe_dns_lookup_failures")
+            metric_groups.add("netprobe_connect_failures")
             metric_groups.add("netprobe_packets_timeout")
             metric_groups.add("netprobe_successes")
             if (("quantiles" in groups_enabled and "quantiles" not in groups_disabled) or

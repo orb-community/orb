@@ -17,6 +17,8 @@ import {
 
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import {
+  filterMultiSelect,
+  filterMultiTags,
   FilterOption, filterString,
   filterTags,
   FilterTypes,
@@ -90,6 +92,18 @@ export class AgentGroupListComponent
   filters$!: Observable<FilterOption[]>;
   filteredGroups$: Observable<AgentGroup[]>;
 
+  contextMenuRow: any;
+
+  showContextMenu = false;
+  menuPositionLeft: number;
+  menuPositionTop: number;
+
+  agentGroupContextMenu = [
+    {icon: 'search-outline', action: 'openview'},
+    {icon: 'edit-outline', action: 'openedit'},
+    {icon: 'trash-2-outline', action: 'opendelete'},
+  ];
+
   constructor(
     private cdr: ChangeDetectorRef,
     private dialogService: NbDialogService,
@@ -118,21 +132,21 @@ export class AgentGroupListComponent
         prop: 'tags',
         filter: filterTags,
         autoSuggestion: orb.getGroupsTags(),
-        type: FilterTypes.AutoComplete,
+        type: FilterTypes.Tags,
+      },
+      {
+        name: 'MultiTags',
+        prop: 'tags',
+        filter: filterMultiTags,
+        autoSuggestion: orb.getAgentsTags(),
+        type: FilterTypes.MultiSelect,
       },
       {
         name: 'Description',
         prop: 'description',
-        filter: filterString,
-        type: FilterTypes.Input,
+        filter: filterMultiSelect,
+        type: FilterTypes.MultiSelect,
       },
-      // {
-      //   name: 'Status',
-      //   prop: 'state',
-      //   filter: filterMultiSelect,
-      //   type: FilterTypes.MultiSelect,
-      //   options: Object.values(AgentStates).map((value) => value as string),
-      // },
     ];
 
     this.filteredGroups$ = this.filters.createFilteredList()(
@@ -140,6 +154,25 @@ export class AgentGroupListComponent
       this.filters$,
       this.filterOptions,
     );
+  }
+
+  onTableContextMenu(event) {
+    event.event.preventDefault();
+    event.event.stopPropagation();
+    if (event.type === 'body') {
+      this.contextMenuRow = {
+        objectType: 'group',
+        ...event.content,
+      };
+      this.menuPositionLeft = event.event.clientX;
+      this.menuPositionTop = event.event.clientY;
+      this.showContextMenu = true;
+    }
+  }
+  handleContextClick() {
+    if (this.showContextMenu) {
+      this.showContextMenu = false;
+    }
   }
 
   ngOnDestroy(): void {
@@ -167,9 +200,10 @@ export class AgentGroupListComponent
       {
         name: '',
         prop: 'checkbox',
-        width: 1,
+        width: 62,
         minWidth: 62,
-        canAutoResize: true,
+        canAutoResize: false,
+        resizeable: false,
         sortable: false,
         cellTemplate: this.checkboxTemplateCell,
         headerTemplate: this.checkboxTemplateHeader,
@@ -177,34 +211,36 @@ export class AgentGroupListComponent
       {
         prop: 'name',
         name: 'Name',
-        width: 230,
+        width: 240,
+        minWidth: 220,
         canAutoResize: true,
         resizeable: true,
-        minWidth: 150,
         cellTemplate: this.agentGroupNameTemplateCell,
       },
       {
         prop: 'matching_agents',
         name: 'Agents',
-        width: 150,
+        width: 100,
+        minWidth: 100,
+        maxWidth: 130,
         canAutoResize: true,
         resizeable: true,
-        minWidth: 80,
         comparator: (a, b) => a.total - b.total,
         cellTemplate: this.agentGroupsTemplateCell,
       },
       {
         prop: 'description',
         name: 'Description',
-        width: 350,
+        width: 190,
+        minWidth: 220,
         canAutoResize: true,
         resizeable: true,
-        minWidth: 180,
         cellTemplate: this.agentGroupNameTemplateCell,
       },
       {
         prop: 'tags',
-        width: 450,
+        width: 300,
+        minWidth: 280,
         canAutoResize: true,
         resizeable: true,
         cellTemplate: this.agentGroupTagsTemplateCell,
@@ -224,6 +260,7 @@ export class AgentGroupListComponent
         width: 150,
         resizeable: true,
         minWidth: 150,
+        maxWidth: 160,
         sortable: false,
         cellTemplate: this.actionsTemplateCell,
       },
@@ -265,7 +302,7 @@ export class AgentGroupListComponent
   }
   onOpenDeleteSelected() {
     const selected = this.selected;
-    const elementName = "Agent Groups"
+    const elementName = 'Agent Groups';
     this.dialogService
       .open(DeleteSelectedComponent, {
         context: { selected, elementName },
@@ -284,7 +321,7 @@ export class AgentGroupListComponent
   deleteSelectedAgentGroups() {
     this.selected.forEach((group) => {
       this.agentGroupsService.deleteAgentGroup(group.id).subscribe();
-    })
+    });
     this.notificationsService.success('All selected Groups delete requests succeeded', '');
   }
   openDetailsModal(row: any) {
@@ -308,11 +345,10 @@ export class AgentGroupListComponent
       closeOnEsc: true,
     });
   }
-  public onCheckboxChange(event: any, row: any): void { 
+  public onCheckboxChange(event: any, row: any): void {
     if (this.getChecked(row) === false) {
       this.selected.push(row);
-    } 
-    else {
+    } else {
       for (let i = 0; i < this.selected.length; i++) {
         if (this.selected[i].id === row.id) {
           this.selected.splice(i, 1);

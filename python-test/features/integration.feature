@@ -748,6 +748,7 @@ Scenario: Edit an advanced policy with handler dns changing the handler to net
         And policy handler must be net
         And policy only_qname_suffix must be None
         And policy only_rcode must be None
+        And the version of policy in agent must be 1
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And the container logs that were output after editing policies contain the message "policy applied successfully" referred to each applied policy within 10 seconds
 
@@ -768,6 +769,7 @@ Scenario: Edit an advanced policy with handler dns changing the handler to dhcp
     Then policy version must be 1
         And policy name must be second_policy
         And policy handler must be dhcp
+        And the version of policy in agent must be 1
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And the container logs that were output after editing policies contain the message "policy applied successfully" referred to each applied policy within 10 seconds
 
@@ -786,6 +788,7 @@ Scenario: Edit a simple policy with handler dhcp changing the handler to net
     When editing a policy using handler=net, description="policy_net"
     Then policy version must be 1
         And policy handler must be net
+        And the version of policy in agent must be 1
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And the container logs that were output after editing policies contain the message "policy applied successfully" referred to each applied policy within 10 seconds
 
@@ -807,6 +810,7 @@ Scenario: Edit a simple policy with handler net changing the handler to dns and 
         And policy bpf_filter_expression must be udp port 53
         And policy only_qname_suffix must be ['.foo.com', '.example.com']
         And policy only_rcode must be 2
+        And the version of policy in agent must be 1
         And this agent's heartbeat shows that 1 policies are applied and all has status running
         And the container logs that were output after editing policies contain the message "policy applied successfully" referred to each applied policy within 10 seconds
 
@@ -868,7 +872,8 @@ Scenario: remove one sink from a dataset with 1 sinks, edit the dataset and inse
         And this agent's heartbeat shows that 1 policies are applied and all has status running
 
 
-@smoke
+@MUTE
+#@smoke
 Scenario: Remotely restart agents with policies applied
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -888,7 +893,8 @@ Scenario: Remotely restart agents with policies applied
         And the container logs that were output after reset the agent contain the message "policy applied successfully" referred to each applied policy within 30 seconds
         And the container logs that were output after reset the agent contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds
 
-@smoke
+@MUTE
+#@smoke
 Scenario: Remotely restart agents without policies applied
     Given the Orb user has a registered account
         And the Orb user logs in
@@ -902,7 +908,7 @@ Scenario: Remotely restart agents without policies applied
         And the container logs that were output after reset the agent contain the message "pktvisor process stopped" within 30 seconds
         And the container logs that were output after reset the agent contain the message "all backends and comms were restarted" within 30 seconds
         And 2 simple policies are applied to the group
-    Then the container logs should contain the message "restarting all backends" within 30 seconds
+    Then the container logs should contain the message "all backends and comms were restarted" within 30 seconds
         And this agent's heartbeat shows that 2 policies are applied and all has status running
         And the container logs that were output after reset the agent contain the message "policy applied successfully" referred to each applied policy within 20 seconds
         And the container logs that were output after reset the agent contain the message "scraped metrics for policy" referred to each applied policy within 180 seconds

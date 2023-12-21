@@ -1,3 +1,7 @@
+@import '~bootstrap/scss/mixins/breakpoints';
+@import '~@nebular/theme/styles/global/breakpoints';
+@import '../../@theme/styles/themes';
+
 :host {
   $auth-layout-padding: 2.5rem;
 
@@ -29,7 +33,7 @@
     margin: auto;
   }
 
-media-breakpoint-down(sm) {
+@include media-breakpoint-down(sm) {
   nb-card {
     border-radius: 0;
     height: 100vh;
@@ -39,10 +43,12 @@ media-breakpoint-down(sm) {
   ::ng-deep {
     nb-layout .layout .layout-container .content .columns nb-layout-column {
       padding: $auth-layout-padding;
-
-    media-breakpoint-down(sm) {
+    }
+    @include media-breakpoint-down(sm) {
+      nb-layout .layout .layout-container .content .columns nb-layout-column {
       padding: 0;
+      }
     }
-    }
+    
   }
 }

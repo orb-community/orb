@@ -90,6 +90,19 @@ func migrateDB(db *sqlx.DB) error {
 					"DROP TABLE current_version",
 				},
 			},
+			{
+				Id: "sinks_4",
+				Up: []string{
+					`ALTER TYPE public.sinks_state ADD VALUE IF NOT EXISTS 'warning';`,
+					`ALTER TYPE public.sinks_state ADD VALUE IF NOT EXISTS 'provisioning';`,
+					`ALTER TYPE public.sinks_state ADD VALUE IF NOT EXISTS 'provisioning_error';`,
+				},
+				Down: []string{
+					`ALTER TYPE public.sinks_state DROP VALUE IF EXISTS 'warning';`,
+					`ALTER TYPE public.sinks_state DROP VALUE IF EXISTS 'provisioning';`,
+					`ALTER TYPE public.sinks_state DROP VALUE IF EXISTS 'provisioning_error';`,
+				},
+			},
 		},
 	}
 

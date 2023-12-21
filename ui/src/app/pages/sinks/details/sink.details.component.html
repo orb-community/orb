@@ -1,4 +1,4 @@
-<nb-card size="large" class="nb-card-large">
+<nb-card>
   <nb-card-header>
     {{strings.details.header}}
     <button nbButton
@@ -13,12 +13,12 @@
     <div class="row">
       <div class="col-6 d-flex flex-column align-items-start">
         <p class="detail-title">{{strings.propNames.name}}</p>
-        <p>{{ sink.name }}</p>
+        <p class="overflow-ellipsis" nbTooltip="{{sink.name}}">{{ sink.name }}</p>
       </div>
       <div class="col-6 d-flex flex-column align-items-start" *ngIf="!sink.description">
         <p class="detail-title">{{strings.propNames.description}}</p>
-        <p>{{ sink.description }}</p>
-        <p *ngIf="!sink.description">No Description Added</p>
+        <p *ngIf="sink.description">{{ sink.description }}</p>
+        <p *ngIf="!sink.description" style="font-style: italic; font-size: 14px;">No description Provided</p>
       </div>
     </div>
     <div class="row">
@@ -27,42 +27,49 @@
         <p>{{ sink.backend }}</p>
       </div>
       <div class="col-6 d-flex flex-column align-items-start">
+        <p class="detail-title">{{strings.propNames.config_username}}</p>
+        <p>{{ sink.config.authentication.username }}</p>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-12 d-flex flex-column align-items-start">
         <p class="detail-title">{{ exporterField }}</p>
         <p *ngIf="sink.config.exporter.remote_host">{{ sink.config.exporter.remote_host }} </p>
         <p *ngIf="sink.config.exporter.endpoint">{{ sink.config.exporter.endpoint }} </p>
       </div>
     </div>
     <div class="row">
-      <div class="col-6 d-flex flex-column align-items-start">
-        <p class="detail-title">{{strings.propNames.config_username}}</p>
-        <p>{{ sink.config.authentication.username }}</p>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-6 d-flex flex-column align-items-start">
+      <div class="col-12 d-flex flex-column align-items-start">
         <p class="detail-title">{{strings.propNames.tags}}</p>
-        <div>
-          <mat-chip-list style="min-width: 0.2pc; min-height: 0.2pc;">
+        <div class="background">
+          <mat-chip-list>
             <mat-chip
-                class="orb-tag-chip "
-                *ngFor="let tag of sink.tags | keyvalue"
-                [style.background-color]="tag | tagcolor">
-                {{tag | tagchip}}
+              *ngFor="let tag of sink.tags | keyvalue"
+              style="background-color: #2B3148;"
+              class="orb-tag-chip"
+            >
+              <span [style.color]="tag.key | tagcolor">{{ tag.key }}</span><span style="color: #969FB9;">:</span>&nbsp;
+              <span [style.color]="tag.value | tagcolor">{{ tag.value }}</span>
+            </mat-chip>
+            <mat-chip
+              *ngIf="!sink.tags"
+              style="background-color: #2B3148;"
+              class="orb-tag-chip"
+            >
+              <span style="color: #df316f;">No tag were added</span>
             </mat-chip>
           </mat-chip-list>
         </div>
-        <p *ngIf="!sink.tags">No tags Added</p>
       </div>
     </div>
-    <div class="row" *ngIf="sink?.state === _sinkStates.error">
+    <div class="row" *ngIf="sink?.state === _sinkStates.error || sink?.state === _sinkStates.warning">
       <div class="col-12 d-flex flex-column align-items-start">
-        <p class="ns1red">Error</p>
-        <p>{{sink.error}}</p>
+        <p class="orb-service-{{sink.state}}"> {{sink?.error | titlecase}}</p>
       </div>
     </div>
   </nb-card-body>
 
   <nb-card-footer>
-    <button nbButton status="primary" class="sink-edit-button" (click)="onOpenView(sink)">View Sink</button>
+    <button status="primary" class="sink-edit-button" (click)="onOpenView(sink)">Edit</button>
   </nb-card-footer>
 </nb-card>

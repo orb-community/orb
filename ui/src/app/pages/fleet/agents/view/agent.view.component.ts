@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AgentGroup } from 'app/common/interfaces/orb/agent.group.interface';
 import { Agent, AgentStates } from 'app/common/interfaces/orb/agent.interface';
@@ -6,8 +6,7 @@ import { Dataset } from 'app/common/interfaces/orb/dataset.policy.interface';
 import { AgentsService } from 'app/common/services/agents/agents.service';
 import { OrbService } from 'app/common/services/orb.service';
 import { STRINGS } from 'assets/text/strings';
-import { Observable, Subscription } from 'rxjs';
-import { shareReplay } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
 import { updateMenuItems } from 'app/pages/pages-menu';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { NbDialogService } from '@nebular/theme';
@@ -38,6 +37,29 @@ export class AgentViewComponent implements OnInit, OnDestroy {
 
   agentSubscription: Subscription;
 
+  configFile = 'configFile';
+  default = 'default';
+
+  tabs = [
+    {
+      title: 'Agent Information',
+      urlState: 'agent-information',
+      active: false,
+    },
+    {
+      title: 'Policies & Datasets',
+      urlState: 'policies-datasets',
+      active: false,
+    },
+    {
+      title: 'Provisioning Commands',
+      urlState: 'provisioning-commands',
+      active: false,
+    },
+  ];
+
+  private popstateListener: () => void;
+
   constructor(
     protected agentsService: AgentsService,
     protected route: ActivatedRoute,
@@ -51,12 +73,14 @@ export class AgentViewComponent implements OnInit, OnDestroy {
     this.datasets = {};
     this.groups = [];
     this.isLoading = true;
+    this.popstateListener = this.onPopState.bind(this);
   }
 
   ngOnInit() {
     this.agentID = this.route.snapshot.paramMap.get('id');
     this.retrieveAgent();
     updateMenuItems('Agents');
+    this.getUrlState();
   }
 
   retrieveAgent() {
@@ -91,6 +115,7 @@ export class AgentViewComponent implements OnInit, OnDestroy {
     this.agentSubscription?.unsubscribe();
     this.orb.isPollingPaused ? this.orb.startPolling() : null;
     this.orb.killPolling.next();
+    window.removeEventListener('popstate', this.popstateListener);
   }
 
   openDeleteModal() {
@@ -112,5 +137,49 @@ export class AgentViewComponent implements OnInit, OnDestroy {
   }
   goBack() {
     this.router.navigateByUrl('/pages/fleet/agents');
+  }
+
+  @HostListener('window:popstate', ['$event'])
+  onPopState(event) {
+    if (event.target.location.search) {
+      this.getUrlState();
+    } else if (event.target.location.pathname.includes('view')) {
+      window.history.back();
+    }
+  }
+
+  getUrlState() {
+    this.route.queryParams.subscribe(queryParams => {
+      this.tabs.forEach(tab => {
+        if (tab.urlState === queryParams.tab) {
+          tab.active = true;
+          this.pageState(tab.urlState);
+        } else {
+          tab.active = false;
+        }
+      });
+    });
+    if (this.tabs.filter(tab => tab.active === true).length === 0) {
+      this.pageState('agent-information');
+    }
+  }
+  onTabChange(selectedTab) {
+    this.tabs.forEach(tab => {
+      if (tab.urlState === selectedTab.urlState) {
+        tab.active = true;
+        this.pageState(tab.urlState);
+      } else {
+        tab.active = false;
+      }
+    });
+  }
+  pageState(option: string) {
+    this.router.navigate(
+      [],
+      {
+        queryParams: { tab: option },
+        queryParamsHandling: 'merge',
+      },
+    );
   }
 }

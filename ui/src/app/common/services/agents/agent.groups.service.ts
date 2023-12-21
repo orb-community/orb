@@ -8,6 +8,8 @@ import { OrbPagination } from 'app/common/interfaces/orb/pagination.interface';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { environment } from 'environments/environment';
 import { catchError, expand, map, scan, takeWhile } from 'rxjs/operators';
+import { getStatusCodeText } from '../http-codes';
+
 @Injectable()
 export class AgentGroupsService {
   constructor(
@@ -31,7 +33,7 @@ export class AgentGroupsService {
       .catch((err) => {
         this.notificationsService.error(
           'Failed to create Agent Group',
-          `Error: ${err.status} - ${err.statusText} - ${err.error.error}`,
+          `Error: ${err.status} - ${getStatusCodeText(err.status)} - ${err.error.error}`,
         );
         return Observable.throwError(err);
       });
@@ -53,7 +55,7 @@ export class AgentGroupsService {
       .catch((err) => {
         this.notificationsService.error(
           'Failed to Validate Agent Group',
-          `Error: ${err.status} - ${err.statusText} - ${err.error.error}`,
+          `Error: ${err.status} - ${getStatusCodeText(err.status)} - ${err.error.error}`,
         );
         return Observable.throwError(err);
       });
@@ -64,7 +66,7 @@ export class AgentGroupsService {
       catchError((err) => {
         this.notificationsService.error(
           'Failed to fetch Agent Group',
-          `Error: ${err.status} - ${err.statusText}`,
+          `Error: ${err.status} - ${getStatusCodeText(err.status)}`,
         );
         err['id'] = id;
         return of(err);
@@ -129,7 +131,7 @@ export class AgentGroupsService {
       .catch((err) => {
         this.notificationsService.error(
           'Failed to get Agent Groups',
-          `Error: ${err.status} - ${err.statusText}`,
+          `Error: ${err.status} - ${getStatusCodeText(err.status)}`,
         );
         return Observable.throwError(err);
       });
@@ -144,7 +146,7 @@ export class AgentGroupsService {
       .catch((err) => {
         this.notificationsService.error(
           'Failed to edit Agent Group',
-          `Error: ${err.status} - ${err.statusText}`,
+          `Error: ${err.status} - ${getStatusCodeText(err.status)}`,
         );
         return Observable.throwError(err);
       });
@@ -156,7 +158,7 @@ export class AgentGroupsService {
       .catch((err) => {
         this.notificationsService.error(
           'Failed to Delete Agent Group',
-          `Error: ${err.status} - ${err.statusText}`,
+          `Error: ${err.status} - ${getStatusCodeText(err.status)}`,
         );
         return Observable.throwError(err);
       });

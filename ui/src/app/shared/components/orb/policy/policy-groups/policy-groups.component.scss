@@ -24,6 +24,7 @@ nb-card {
   }
 
   nb-card-body {
+    margin: 0 !important;
     label {
       color: #969fb9;
     }
@@ -139,6 +140,8 @@ nb-card {
   font-size: 13px;
   font-weight: 600;
   line-height: 1.5rem;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 .agent-group-accent {
@@ -177,7 +180,7 @@ nb-card {
       border: none !important;
       border-radius: 8px !important;
       display: grid;
-      padding: 0 10px 0 10px;
+      padding: 0 10px;
       background-color: #1c2339;
 
       .item-body {

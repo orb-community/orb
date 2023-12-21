@@ -18,8 +18,7 @@ func (p *pktvisorBackend) ApplyPolicy(data policies.PolicyData, updatePolicy boo
 
 	if updatePolicy {
 		// To update a policy it's necessary first remove it and then apply a new version
-		err := p.RemovePolicy(data)
-		if err != nil {
+		if err := p.RemovePolicy(data); err != nil {
 			p.logger.Warn("policy failed to remove", zap.String("policy_id", data.ID), zap.String("policy_name", data.Name), zap.Error(err))
 		}
 	}

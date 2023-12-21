@@ -6,12 +6,13 @@ package orbreceiver
 
 import (
 	"context"
+	"go.opentelemetry.io/collector/receiver/receiverhelper"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/mainflux/mainflux/pkg/messaging"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/obsreport"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
@@ -21,7 +22,7 @@ import (
 type internalMetricsReceiver struct {
 	pmetricotlp.UnimplementedGRPCServer
 	nextConsumer consumer.Metrics
-	obsrecv      *obsreport.Receiver
+	obsrecv      *receiverhelper.ObsReport
 }
 
 func (r *OrbReceiver) MessageMetricsInbound(msg messaging.Message) error {
@@ -32,7 +33,8 @@ func (r *OrbReceiver) MessageMetricsInbound(msg messaging.Message) error {
 			zap.String("protocol", msg.Protocol),
 			zap.Int64("created", msg.Created),
 			zap.String("publisher", msg.Publisher))
-		r.cfg.Logger.Info("received metric message, pushing to kafka exporter")
+		r.cfg.Logger.Debug("received metric message, pushing to kafka exporter", zap.String("publisher", msg.Publisher))
+		size := len(msg.Payload)
 		decompressedPayload := r.DecompressBrotli(msg.Payload)
 		mr, err := r.encoder.unmarshalMetricsRequest(decompressedPayload)
 		if err != nil {
@@ -49,13 +51,13 @@ func (r *OrbReceiver) MessageMetricsInbound(msg messaging.Message) error {
 
 		scopes := mr.Metrics().ResourceMetrics().At(0).ScopeMetrics()
 		for i := 0; i < scopes.Len(); i++ {
-			r.ProccessMetricsContext(scopes.At(i), msg.Channel)
+			r.ProccessMetricsContext(scopes.At(i), msg.Channel, size)
 		}
 	}()
 	return nil
 }
 
-func (r *OrbReceiver) ProccessMetricsContext(scope pmetric.ScopeMetrics, channel string) {
+func (r *OrbReceiver) ProccessMetricsContext(scope pmetric.ScopeMetrics, channel string, size int) {
 	// Extract Datasets
 	attrDataset, ok := scope.Scope().Attributes().Get("dataset_ids")
 	if !ok {
@@ -110,8 +112,9 @@ func (r *OrbReceiver) ProccessMetricsContext(scope pmetric.ScopeMetrics, channel
 	attributeCtx = context.WithValue(attributeCtx, "orb_tags", agentPb.OrbTags)
 	attributeCtx = context.WithValue(attributeCtx, "agent_groups", agentPb.AgentGroupIDs)
 	attributeCtx = context.WithValue(attributeCtx, "agent_ownerID", agentPb.OwnerID)
+
 	for sinkId := range sinkIds {
-		err := r.cfg.SinkerService.NotifyActiveSink(r.ctx, agentPb.OwnerID, sinkId, "active", "")
+		err := r.cfg.SinkerService.NotifyActiveSink(r.ctx, agentPb.OwnerID, sinkId, strconv.Itoa(size))
 		if err != nil {
 			r.cfg.Logger.Error("error notifying metrics sink active, changing state, skipping sink", zap.String("sink-id", sinkId), zap.Error(err))
 		}
@@ -124,7 +127,6 @@ func (r *OrbReceiver) ProccessMetricsContext(scope pmetric.ScopeMetrics, channel
 		_, err = r.exportMetrics(attributeCtx, request)
 		if err != nil {
 			r.cfg.Logger.Error("error during metrics export, skipping sink", zap.Error(err))
-			_ = r.cfg.SinkerService.NotifyActiveSink(r.ctx, agentPb.OwnerID, sinkId, "error", err.Error())
 			continue
 		}
 	}

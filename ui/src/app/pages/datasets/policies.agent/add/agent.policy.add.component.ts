@@ -1,13 +1,14 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { AgentPolicy } from 'app/common/interfaces/orb/agent.policy.interface';
+import { AgentPolicy, AgentPolicyBackend } from 'app/common/interfaces/orb/agent.policy.interface';
 import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
 import { STRINGS } from '../../../../../assets/text/strings';
 import { Tags } from 'app/common/interfaces/orb/tag';
 import { CodeEditorService } from 'app/common/services/code.editor.service';
+import { POLICY_DIODE_CONFIG_JSON, POLICY_DIODE_CONFIG_YAML, POLICY_OTEL_CONFIG_JSON, POLICY_OTEL_CONFIG_YAML, POLICY_PKTVISOR_CONFIG_JSON, POLICY_PKTVISOR_CONFIG_YAML } from 'app/shared/configurations/configurations_schemas';
 const CONFIG = {
   TAPS: 'TAPS',
   BACKEND: 'BACKEND',
@@ -21,7 +22,7 @@ const CONFIG = {
   templateUrl: './agent.policy.add.component.html',
   styleUrls: ['./agent.policy.add.component.scss'],
 })
-export class AgentPolicyAddComponent {
+export class AgentPolicyAddComponent implements OnInit {
   strings = { stepper: STRINGS.stepper };
 
   // #forms
@@ -49,6 +50,8 @@ export class AgentPolicyAddComponent {
 
   editorVisible = true;
 
+  errorConfigMessage: string;
+
   @ViewChild('editorComponentYaml')
   editorYaml;
 
@@ -56,6 +59,8 @@ export class AgentPolicyAddComponent {
   editorJson;
 
   isEdit: boolean;
+
+  backendName = '';
 
   editorOptions = {
     theme: 'vs-dark',
@@ -89,39 +94,12 @@ export class AgentPolicyAddComponent {
     lineNumbersMinChars: 0,
   };
 
-  codeyaml = `handlers:
-  modules:
-    default_dns:
-      type: dns
-    default_net:
-      type: net
-input:
-  input_type: pcap
-  tap: default_pcap
-kind: collection`;
+  codeyaml = ``;
 
-  codejson = 
-  `{
-  "handlers": {
-    "modules": {
-      "default_dns": {
-        "type": "dns"
-      },
-      "default_net": {
-        "type": "net"
-      }
-    }
-  },
-  "input": {
-    "input_type": "pcap",
-    "tap": "default_pcap"
-  },
-  "kind": "collection"
-}
-    `;
+  codejson = ``;
 
   // is config specified wizard mode or in YAML or JSON
-  isJsonMode = true;
+  isJsonMode = false;
 
   // format definition
   format = 'yaml';
@@ -135,9 +113,9 @@ kind: collection`;
 
   selectedTags: Tags;
 
-  uploadIconKey = 'upload-outline'
+  uploadIconKey = 'upload-outline';
 
-  isRequesting: boolean;  
+  isRequesting: boolean;
 
   constructor(
     private agentPoliciesService: AgentPoliciesService,
@@ -152,6 +130,7 @@ kind: collection`;
     this.agentPolicyID = this.route.snapshot.paramMap.get('id');
     this.agentPolicy = this.newAgent();
     this.isEdit = !!this.agentPolicyID;
+    this.errorConfigMessage = '';
 
     this.readyForms();
 
@@ -162,7 +141,7 @@ kind: collection`;
       .then(() => this.updateForms())
       .catch((reason) => console.warn(`Couldn't fetch ${this.agentPolicy?.backend} data. Reason: ${reason}`));
   }
-  ngOnInit(): void {
+  ngOnInit() {
     this.selectedTags = this.agentPolicy?.tags || {};
   }
   resizeComponents() {
@@ -282,7 +261,7 @@ kind: collection`;
   onFileSelected(event: any) {
     const file: File = event.target.files[0];
     const reader: FileReader = new FileReader();
-  
+
     reader.onload = (e: any) => {
     const fileContent = e.target.result;
       if (this.isJsonMode) {
@@ -291,7 +270,7 @@ kind: collection`;
         this.codeyaml = fileContent;
       }
     };
-  
+
     reader.readAsText(file);
   }
   onSubmit() {
@@ -306,9 +285,8 @@ kind: collection`;
         policy: policy,
         version: !!this.isEdit && !!this.agentPolicy.version && this.agentPolicy.version || 1,
         tags: this.selectedTags,
-      }
-    }
-    else {
+      };
+    } else {
       payload = {
         name: this.detailsFG.controls.name.value,
         description: this.detailsFG.controls.description.value,
@@ -335,17 +313,41 @@ kind: collection`;
         );
         this.isRequesting = false;
       },
-    );   
+    );
   }
   canCreate() {
     if (this.isJsonMode) {
-      return this.editor.isJson(this.codejson);
+      if (this.editor.isJson(this.codejson)) {
+        this.errorConfigMessage = '';
+        return true;
+      } else {
+        this.errorConfigMessage = 'Invalid JSON configuration, check syntax errors.';
+        return false;
+      }
     } else {
-      return this.editor.isYaml(this.codeyaml);
+      if (this.editor.isYaml(this.codeyaml) && !this.editor.isJson(this.codeyaml)) {
+        this.errorConfigMessage = '';
+        return true;
+      } else {
+        this.errorConfigMessage = 'Invalid YAML configuration, check syntax errors.';
+        return false;
+      }
     }
   }
   refreshEditor() {
-    this.editorVisible = false; setTimeout(() => { this.editorVisible = true; }, 0); 
+    this.editorVisible = false; setTimeout(() => { this.editorVisible = true; }, 0);
   }
-  
+  defineDefaultConfig() {
+    if (this.backendName === AgentPolicyBackend.otel) {
+      this.codeyaml = POLICY_OTEL_CONFIG_YAML;
+      this.codejson = POLICY_OTEL_CONFIG_JSON;
+    } else if (this.backendName === AgentPolicyBackend.pktvisor) {
+      this.codeyaml = POLICY_PKTVISOR_CONFIG_YAML;
+      this.codejson = POLICY_PKTVISOR_CONFIG_JSON;
+    }
+    else {
+      this.codeyaml = POLICY_DIODE_CONFIG_YAML;
+      this.codejson = POLICY_DIODE_CONFIG_JSON;
+    }
+  }
 }

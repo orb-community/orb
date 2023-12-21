@@ -66,6 +66,10 @@ import {EmptyInputDirective} from 'app/shared/directives/empty-input.directive';
 import { AgentBackendsComponent } from './components/orb/agent/agent-backends/agent-backends.component';
 import { SinkDetailsComponent } from './components/orb/sink/sink-details/sink-details.component';
 import { SinkConfigComponent } from './components/orb/sink/sink-config/sink-config.component';
+import { TableContextMenuComponent } from './components/tableContexMenu/table-context-menu-component';
+import { JsonListPipe } from './pipes/list-json.pipe';
+import { ParamFormatterPipe } from './pipes/param-format.pipe';
+import { DragDropModule } from '@angular/cdk/drag-drop';
 
 @NgModule({
   imports: [
@@ -99,6 +103,7 @@ import { SinkConfigComponent } from './components/orb/sink/sink-config/sink-conf
     MatToolbarModule,
     NbAutocompleteModule,
     NbTabsetModule,
+    DragDropModule,
   ],
   declarations: [
     ConfirmationComponent,
@@ -108,6 +113,8 @@ import { SinkConfigComponent } from './components/orb/sink/sink-config/sink-conf
     PaginationComponent,
     AdvancedOptionsPipe,
     TagColorPipe,
+    ParamFormatterPipe,
+    JsonListPipe,
     TagChipPipe,
     TaglistChipPipe,
     ValidTagInputDirective,
@@ -136,6 +143,7 @@ import { SinkConfigComponent } from './components/orb/sink/sink-config/sink-conf
     EmptyInputDirective,
     SinkDetailsComponent,
     SinkConfigComponent,
+    TableContextMenuComponent,
   ],
   exports: [
     ThemeModule,
@@ -146,6 +154,8 @@ import { SinkConfigComponent } from './components/orb/sink/sink-config/sink-conf
     PaginationComponent,
     AdvancedOptionsPipe,
     TagColorPipe,
+    ParamFormatterPipe,
+    JsonListPipe,
     TagChipPipe,
     TaglistChipPipe,
     ValidTagInputDirective,
@@ -161,6 +171,7 @@ import { SinkConfigComponent } from './components/orb/sink/sink-config/sink-conf
     PolicyDetailsComponent,
     PolicyInterfaceComponent,
     PolicyDatasetsComponent,
+    TableContextMenuComponent,
     GroupedAgentsComponent,
     PolicyGroupsComponent,
     PrettyYamlPipe,
@@ -180,6 +191,8 @@ import { SinkConfigComponent } from './components/orb/sink/sink-config/sink-conf
     ToMillisecsPipe,
     AdvancedOptionsPipe,
     TagColorPipe,
+    ParamFormatterPipe,
+    JsonListPipe,
     TagChipPipe,
     TaglistChipPipe,
     ValidTagInputDirective,
