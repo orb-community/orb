@@ -14,7 +14,7 @@ require (
 	github.com/go-kit/kit v0.13.0
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/go-zoo/bone v1.3.0
-	github.com/gofrs/uuid v4.2.0+incompatible
+	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/golang/protobuf v1.5.3
 	github.com/hashicorp/go-version v1.6.0
 	github.com/jmoiron/sqlx v1.3.4
