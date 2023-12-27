@@ -11,6 +11,7 @@ import json
 from datetime import datetime
 import ciso8601
 from metrics import expected_metrics_by_handlers_and_groups, wait_until_metrics_scraped
+from concurrent.futures import ThreadPoolExecutor
 from logger import Logger
 
 log = Logger().logger_instance()
@@ -197,10 +198,11 @@ def remove_orb_agent_container(context):
 def remove_all_orb_agent_test_containers(context):
     docker_client = docker.from_env()
     containers = docker_client.containers.list(all=True)
-    for container in containers:
-        test_container = container.name.startswith(LOCAL_AGENT_CONTAINER_NAME)
-        if test_container is True:
-            container.remove(force=True)
+    target_containers = [container for container in containers if container.name.startswith(LOCAL_AGENT_CONTAINER_NAME)]
+    log.debug(f"Removing {len(target_containers)} agent containers")
+    with ThreadPoolExecutor() as executor:
+        [executor.submit(remove_container, container.id, True) for container in target_containers]
+    log.debug(f"Finishing removing agent containers.")
 
 
 def create_agent_env_vars_set(agent_id, agent_channel_id, agent_mqtt_key, verify_ssl,
