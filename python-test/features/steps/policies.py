@@ -14,6 +14,7 @@ import json
 import ciso8601
 import yaml
 from logger import Logger
+from concurrent.futures import ThreadPoolExecutor
 
 log = Logger().logger_instance()
 policy_name_prefix = "test_policy_name_"
@@ -874,9 +875,12 @@ def delete_policies(token, list_of_policies):
     :param (str) token: used for API authentication
     :param (list) list_of_policies: that will be deleted
     """
-
-    for policy in list_of_policies:
-        delete_policy(token, policy['id'])
+    log.debug(f"Deleting {len(list_of_policies)} policies")
+    with ThreadPoolExecutor() as executor:
+        futures = [executor.submit(delete_policy, token, policy.get('id')) for policy in list_of_policies]
+        results = [future.result() for future in futures]
+    log.debug(f"Finishing deleting policies")
+    return results
 
 
 def delete_policy(token, policy_id):

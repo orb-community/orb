@@ -14,6 +14,8 @@ import psutil
 import os
 import signal
 from deepdiff import DeepDiff
+from concurrent.futures import ThreadPoolExecutor
+
 
 configs = TestConfig.configs()
 agent_name_prefix = "test_agent_name_"
@@ -699,9 +701,12 @@ def delete_agents(token, list_of_agents):
     :param (str) token: used for API authentication
     :param (list) list_of_agents: that will be deleted
     """
-
-    for agent in list_of_agents:
-        delete_agent(token, agent['id'])
+    log.debug(f"Deleting {len(list_of_agents)} agents")
+    with ThreadPoolExecutor() as executor:
+        futures = [executor.submit(delete_agent, token, agent.get('id')) for agent in list_of_agents]
+        results = [future.result() for future in futures]
+    log.debug(f"Finishing deleting agents")
+    return results
 
 
 def delete_agent(token, agent_id):

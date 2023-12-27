@@ -12,6 +12,8 @@ from random import sample
 import json
 import random
 from logger import Logger
+from concurrent.futures import ThreadPoolExecutor
+
 
 log = Logger().logger_instance()
 configs = TestConfig.configs()
@@ -402,8 +404,13 @@ def delete_agent_groups(token, list_of_agent_groups):
     :param (list) list_of_agent_groups: that will be deleted
     """
 
-    for agent_Groups in list_of_agent_groups:
-        delete_agent_group(token, agent_Groups['id'])
+    log.debug(f"Deleting {len(list_of_agent_groups)} agent groups")
+    with ThreadPoolExecutor() as executor:
+        futures = [executor.submit(delete_agent_group, token, agent_groups.get('id')) for agent_groups in
+                   list_of_agent_groups]
+        results = [future.result() for future in futures]
+    log.debug(f"Finishing deleting agent groups")
+    return results
 
 
 def delete_agent_group(token, agent_group_id):
