@@ -107,6 +107,7 @@ def cleanup_mocked_ifaces_and_switches(context):
 
 
 def remove_all_virtual_switches():
+    log.debug("Removing all virtual switches")
     command_1 = "ovs-vsctl list-br"
     all_switches = send_terminal_commands(command_1)
     log.debug(f"All switches: {all_switches}")
