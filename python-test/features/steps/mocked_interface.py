@@ -1,7 +1,7 @@
 from hamcrest import *
 from behave import given, then, step
 from configs import TestConfig
-from utils import random_string, send_terminal_commands, return_port_by_availability
+from utils import random_string, send_terminal_commands, return_port_by_availability, log
 import os
 import json
 
@@ -109,11 +109,14 @@ def cleanup_mocked_ifaces_and_switches(context):
 def remove_all_virtual_switches():
     command_1 = "ovs-vsctl list-br"
     all_switches = send_terminal_commands(command_1)
+    log.debug(f"All switches: {all_switches}")
     all_switches = all_switches[0].split("\n")
     for switch in all_switches:
         if "brqa" in switch:
+            log.debug(f"Deleting switch: {switch}")
             command_2 = f"ovs-vsctl del-br {switch}"
             send_terminal_commands(command_2)
+            log.debug(f"Switch: {switch} deleted")
     all_switches = send_terminal_commands(command_1)
     all_switches = all_switches[0].split("\n")
     switch_test_remain = any('brqa' in switch for switch in all_switches)
