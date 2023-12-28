@@ -292,9 +292,12 @@ def is_json(json_string):
 
 def send_terminal_commands(command, cwd_run=None):
     args = shlex.split(command)
+    log.debug(f"Running command: {args}")
     p = subprocess.Popen(args, stdin=subprocess.PIPE, stderr=subprocess.PIPE,
                          stdout=subprocess.PIPE, cwd=cwd_run, universal_newlines=True)
+    log.debug(f"Subprocess response: {p}")
     subprocess_return_terminal = p.communicate()
+    log.debug(f"Subprocess return: {subprocess_return_terminal}")
     return subprocess_return_terminal
 
 
