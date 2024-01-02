@@ -312,7 +312,6 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 			}
 		}
 
-
 		if sink.Format == "yaml" {
 			configDataByte, err := yaml.Marshal(sink.Config)
 			if err != nil {
