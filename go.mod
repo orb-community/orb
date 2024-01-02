@@ -12,7 +12,7 @@ require (
 	github.com/go-cmd/cmd v1.4.1
 	github.com/go-co-op/gocron v1.9.0
 	github.com/go-kit/kit v0.13.0
-	github.com/go-redis/redis/v8 v8.11.4
+	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-zoo/bone v1.3.0
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/golang/protobuf v1.5.3
