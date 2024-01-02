@@ -83,7 +83,6 @@ func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, up
 				return err
 			}
 
-			o.otelReceiverTaps = append(o.otelReceiverTaps, newPolicyData.ID)
 		} else {
 			o.logger.Info("current policy version is newer than the one being applied, skipping",
 				zap.String("policy_id", newPolicyData.ID),
