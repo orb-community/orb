@@ -82,7 +82,6 @@ func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, up
 			if err := o.policyRepo.Update(newPolicyData); err != nil {
 				return err
 			}
-
 		} else {
 			o.logger.Info("current policy version is newer than the one being applied, skipping",
 				zap.String("policy_id", newPolicyData.ID),
