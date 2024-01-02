@@ -6,7 +6,6 @@ package pktvisor
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -14,7 +13,6 @@ import (
 
 	"github.com/orb-community/orb/agent/otel"
 	"github.com/orb-community/orb/agent/otel/otlpmqttexporter"
-	"github.com/orb-community/orb/fleet"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/confighttp"
 	"go.opentelemetry.io/collector/exporter"
@@ -99,81 +97,6 @@ func (p *pktvisorBackend) startOtelMetric(exeCtx context.Context, execCancelF co
 		return false
 	}
 	return true
-}
-
-func (p *pktvisorBackend) scrapeDefault() error {
-	// scrape all policy json output with one call every minute.
-	// TODO support policies with custom bucket times
-	job, err := p.scraper.Every(1).Minute().WaitForSchedule().Do(func() {
-		metrics, err := p.scrapeMetrics(1)
-		if err != nil {
-			p.logger.Error("scrape failed", zap.Error(err))
-			return
-		}
-		if len(metrics) == 0 {
-			p.logger.Warn("scrape: no policies found, skipping")
-			return
-		}
-
-		var batchPayload []fleet.AgentMetricsRPCPayload
-		totalSize := 0
-		for pName, pMetrics := range metrics {
-			policyData, err := p.policyRepo.GetByName(pName)
-			if err != nil {
-				p.logger.Warn("skipping pktvisor policy not managed by orb", zap.String("policy", pName), zap.Error(err))
-				continue
-			}
-			payloadData, err := json.Marshal(pMetrics)
-			if err != nil {
-				p.logger.Error("error marshalling scraped metric json", zap.String("policy", pName), zap.Error(err))
-				continue
-			}
-			metricPayload := fleet.AgentMetricsRPCPayload{
-				PolicyID:   policyData.ID,
-				PolicyName: policyData.Name,
-				Datasets:   policyData.GetDatasetIDs(),
-				Format:     "json",
-				BEVersion:  p.pktvisorVersion,
-				Data:       payloadData,
-			}
-			batchPayload = append(batchPayload, metricPayload)
-			totalSize += len(payloadData)
-			policyData.LastScrapeBytes = int64(totalSize)
-			policyData.LastScrapeTS = time.Now()
-			err = p.policyRepo.Update(policyData)
-			if err != nil {
-				p.logger.Error("unable to update policy repo during scrape", zap.Error(err))
-			}
-			p.logger.Info("scraped metrics for policy", zap.String("policy", pName), zap.String("policy_id", policyData.ID), zap.Int("payload_size_b", len(payloadData)))
-		}
-
-		rpc := fleet.AgentMetricsRPC{
-			SchemaVersion: fleet.CurrentRPCSchemaVersion,
-			Func:          fleet.AgentMetricsRPCFunc,
-			Payload:       batchPayload,
-		}
-
-		body, err := json.Marshal(rpc)
-		if err != nil {
-			p.logger.Error("error marshalling metric rpc payload", zap.Error(err))
-			return
-		}
-		c := *p.mqttClient
-		if token := c.Publish(p.metricsTopic, 1, false, body); token.Wait() && token.Error() != nil {
-			p.logger.Error("error sending metrics RPC", zap.String("topic", p.metricsTopic), zap.Error(token.Error()))
-			return
-		}
-
-		p.logger.Info("scraped and published metrics", zap.String("topic", p.metricsTopic), zap.Int("payload_size_b", totalSize), zap.Int("batch_count", len(batchPayload)))
-
-	})
-
-	if err != nil {
-		return err
-	}
-
-	job.SingletonMode()
-	return nil
 }
 
 func (p *pktvisorBackend) receiveOtlp() {

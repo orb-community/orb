@@ -4,6 +4,7 @@
 build/*
 localconfig/
 .vscode/
+python-test/.idea
 
 **/.env
 

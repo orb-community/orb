@@ -78,7 +78,6 @@ type pktvisorBackend struct {
 	agentTags map[string]string
 
 	// OpenTelemetry management
-	scrapeOtel       bool
 	otelReceiverHost string
 	otelReceiverPort int
 	receiver         receiver.Metrics
@@ -164,18 +163,16 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 		pvOptions = append(pvOptions, "--config", p.configFile)
 	}
 
-	if p.scrapeOtel {
-		pvOptions = append(pvOptions, "--otel")
-		pvOptions = append(pvOptions, "--otel-host", p.otelReceiverHost)
-		if p.otelReceiverPort == 0 {
-			p.otelReceiverPort, err = p.getFreePort()
-			if err != nil {
-				p.logger.Error("pktvisor otlp startup error", zap.Error(err))
-				return err
-			}
+	pvOptions = append(pvOptions, "--otel")
+	pvOptions = append(pvOptions, "--otel-host", p.otelReceiverHost)
+	if p.otelReceiverPort == 0 {
+		p.otelReceiverPort, err = p.getFreePort()
+		if err != nil {
+			p.logger.Error("pktvisor otlp startup error", zap.Error(err))
+			return err
 		}
-		pvOptions = append(pvOptions, "--otel-port", strconv.Itoa(p.otelReceiverPort))
 	}
+	pvOptions = append(pvOptions, "--otel-port", strconv.Itoa(p.otelReceiverPort))
 
 	// the macros should be properly configured to enable crashpad
 	// pvOptions = append(pvOptions, "--cp-token", PKTVISOR_CP_TOKEN)
@@ -262,15 +259,7 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 		return readinessError
 	}
 
-	p.scraper = gocron.NewScheduler(time.UTC)
-	if !p.scrapeOtel {
-		p.scraper.StartAsync()
-		if err := p.scrapeDefault(); err != nil {
-			return err
-		}
-	} else {
-		p.receiveOtlp()
-	}
+	p.receiveOtlp()
 
 	return nil
 }
@@ -313,11 +302,6 @@ func (p *pktvisorBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo
 
 	for k, v := range otelConfig {
 		switch k {
-		case "Enable":
-			p.scrapeOtel = v.(bool)
-			if v.(bool) {
-				p.logger.Info("OpenTelemetry enabled")
-			}
 		case "Host":
 			p.otelReceiverHost = v.(string)
 		case "Port":
