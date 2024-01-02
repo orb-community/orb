@@ -219,7 +219,7 @@ func (s sinksRepository) RetrieveAllByOwnerID(ctx context.Context, owner string,
 		return sinks.Page{}, errors.Wrap(errors.ErrSelectEntity, err)
 	}
 
-	q := fmt.Sprintf(`SELECT id, name, mf_owner_id, description, tags, state, coalesce(error, '') as error, backend, metadata, ts_created
+	q := fmt.Sprintf(`SELECT id, name, mf_owner_id, description, tags, state, coalesce(error, '') as error, backend, metadata, config_data, format, ts_created
 								FROM sinks 
 								WHERE mf_owner_id = :mf_owner_id %s%s%s 
 								ORDER BY %s %s LIMIT :limit OFFSET :offset;`,
@@ -403,6 +403,14 @@ func toDBSink(sink sinks.Sink) (dbSink, error) {
 }
 
 func toSink(dba dbSink) (sinks.Sink, error) {
+	var configData string
+	var format string
+	if dba.ConfigData != nil {
+		configData = *dba.ConfigData
+	}
+	if dba.Format != nil {
+		format = *dba.Format
+	}
 	sink := sinks.Sink{
 		ID:          dba.ID,
 		Name:        dba.Name,
@@ -412,6 +420,8 @@ func toSink(dba dbSink) (sinks.Sink, error) {
 		State:       dba.State,
 		Error:       dba.Error,
 		Config:      types.Metadata(dba.Metadata),
+		ConfigData:  configData,
+		Format:      format,
 		Created:     dba.Created,
 		Tags:        types.Tags(dba.Tags),
 	}
