@@ -31,7 +31,7 @@ func (p *Plan1UpdateConfiguration) Version() string {
 }
 
 func (p *Plan1UpdateConfiguration) Up(ctx context.Context) (mainErr error) {
-	allSinks, mainErr := p.sinkRepo.SearchAllSinks(ctx, sinks.Filter{StateFilter: "", OpenTelemetry: "enabled"})
+	allSinks, mainErr := p.sinkRepo.SearchAllSinks(ctx, sinks.Filter{})
 	if mainErr != nil {
 		p.logger.Error("could not list sinks", zap.Error(mainErr))
 		return

@@ -106,23 +106,11 @@ func (s sinksRepository) SearchAllSinks(ctx context.Context, filter sinks.Filter
 		if err := rows.StructScan(&dbSink); err != nil {
 			return nil, errors.Wrap(errors.ErrSelectEntity, err)
 		}
-
 		sink, err := toSink(dbSink)
 		if err != nil {
 			return nil, errors.Wrap(errors.ErrSelectEntity, err)
 		}
-		// metadataFilters will apply only after Fetching in metadata, due to struct
-		filterFunc := func(key string, value interface{}) bool {
-			if key == sinks.MetadataLabelOtel {
-				if value.(string) == filter.OpenTelemetry {
-					return true
-				}
-			}
-			return false
-		}
-		if sink.Config.IsApplicable(filterFunc) {
-			items = append(items, sink)
-		}
+		items = append(items, sink)
 	}
 
 	return items, err

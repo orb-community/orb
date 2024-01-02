@@ -27,7 +27,7 @@ type metricsMiddleware struct {
 }
 
 // ListSinksInternal Will not count metrics since it is internal-service only rpc
-func (m metricsMiddleware) ListSinksInternal(ctx context.Context, filter sinks.Filter) (sinks []sinks.Sink, err error) {
+func (m metricsMiddleware) ListSinksInternal(ctx context.Context, filter sinks.Filter) (sinks sinks.Page, err error) {
 	return m.svc.ListSinksInternal(ctx, filter)
 }
 
