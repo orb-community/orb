@@ -17,7 +17,6 @@ import (
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/go-cmd/cmd"
-	"github.com/go-co-op/gocron"
 	"github.com/orb-community/orb/agent/backend"
 	"github.com/orb-community/orb/agent/config"
 	"github.com/orb-community/orb/agent/policies"
@@ -67,7 +66,6 @@ type pktvisorBackend struct {
 	mqttClient       *mqtt.Client
 	metricsTopic     string
 	otlpMetricsTopic string
-	scraper          *gocron.Scheduler
 	policyRepo       policies.PolicyRepo
 
 	adminAPIHost     string
@@ -272,7 +270,6 @@ func (p *pktvisorBackend) Stop(ctx context.Context) error {
 	if err != nil {
 		p.logger.Error("pktvisor shutdown error", zap.Error(err))
 	}
-	p.scraper.Stop()
 
 	p.logger.Info("pktvisor process stopped", zap.Int("pid", finalStatus.PID), zap.Int("exit_code", finalStatus.Exit))
 	return nil
