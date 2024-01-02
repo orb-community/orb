@@ -117,6 +117,7 @@ func (o *openTelemetryBackend) Version() (string, error) {
 	case finalStatus := <-status:
 		if finalStatus.Error != nil {
 			o.logger.Error("error during call of otelcol-contrib version", zap.Error(finalStatus.Error))
+			return "", finalStatus.Error
 		} else {
 			output := finalStatus.Stdout
 			o.otelCurrVersion = output[0]

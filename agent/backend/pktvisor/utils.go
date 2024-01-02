@@ -11,7 +11,6 @@ import (
 	"github.com/orb-community/orb/agent/backend"
 	"go.uber.org/zap"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"time"
 )
@@ -45,7 +44,7 @@ func (p *pktvisorBackend) request(url string, payload interface{}, method string
 	}
 
 	if (res.StatusCode < 200) || (res.StatusCode > 299) {
-		body, err := ioutil.ReadAll(res.Body)
+		body, err := io.ReadAll(res.Body)
 		if err != nil {
 			return errors.New(fmt.Sprintf("non 2xx HTTP error code from pktvisord, no or invalid body: %d", res.StatusCode))
 		}

@@ -2,22 +2,21 @@ from behave import given, when, then, step
 from configs import TestConfig
 from utils import (random_string, filter_list_by_parameter_start_with, threading_wait_until, validate_json, \
                    remove_empty_from_json, return_api_get_response, return_api_put_response, return_api_post_response,
-                   return_api_delete_response)
+                   return_api_delete_response, log)
 from hamcrest import *
-import requests
 import threading
 import yaml
+from concurrent.futures import ThreadPoolExecutor
 
 configs = TestConfig.configs()
 sink_name_prefix = "test_sink_label_name_"
 orb_url = configs.get('orb_url')
 verify_ssl_bool = eval(configs.get('verify_ssl').title())
-backend_type = configs.get('backend_type')
 
 
 @given("that the user has the prometheus/grafana credentials")
 def check_prometheus_grafana_credentials(context):
-    if backend_type == "otlphttp":
+    if configs.get("sink_backend_type") == "otlphttp":
         context.remote_prometheus_endpoint = configs.get('otlp_publisher_endpoint')
         assert_that(context.remote_prometheus_endpoint, not_none(), 'No remote write endpoint to send otlp '
                                                                     'metrics'
@@ -53,6 +52,7 @@ def check_prometheus_grafana_credentials(context):
 
 @step("a new sink is created")
 def create_sink(context, **kwargs):
+    backend_type = configs.get("sink_backend_type")
     sink_label_name = sink_name_prefix + random_string(10)
     token = context.token
     endpoint = context.remote_prometheus_endpoint
@@ -83,6 +83,7 @@ def create_yaml_sink(context, configuration_type):
 
 @step("a new sink is is requested to be created with the same name as an existent one")
 def create_sink_with_conflict_name(context):
+    backend_type = configs.get("sink_backend_type")
     token = context.token
     endpoint = context.remote_prometheus_endpoint
     username = context.prometheus_username
@@ -139,6 +140,7 @@ def remove_sink_from_orb(context, amount_of_sinks):
 
 @step("that a sink with invalid {credential} already exists")
 def create_invalid_sink(context, credential):
+    backend_type = configs.get("sink_backend_type")
     assert_that(credential, any_of(equal_to('endpoint'), equal_to('username'), equal_to('password')),
                 "Invalid prometheus field")
     check_prometheus_grafana_credentials(context)
@@ -382,8 +384,12 @@ def delete_sinks(token, list_of_sinks):
     :param (list) list_of_sinks: that will be deleted
     """
 
-    for sink in list_of_sinks:
-        delete_sink(token, sink['id'])
+    log.debug(f"Deleting {len(list_of_sinks)} sinks")
+    with ThreadPoolExecutor() as executor:
+        futures = [executor.submit(delete_sink, token, sink.get('id')) for sink in list_of_sinks]
+        results = [future.result() for future in futures]
+    log.debug(f"Finishing deleting sinks")
+    return results
 
 
 def delete_sink(token, sink_id):

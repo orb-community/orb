@@ -69,7 +69,7 @@ func (client grpcClient) RetrievePolicy(ctx context.Context, in *pb.PolicyByIDRe
 	return &pb.PolicyRes{Id: ir.id, Name: ir.name, Data: ir.data, Backend: ir.backend, Format: ir.format, Version: ir.version}, nil
 }
 
-func (client grpcClient) RetrievePoliciesByGroups(ctx context.Context, in *pb.PoliciesByGroupsReq, opts ...grpc.CallOption) (*pb.PolicyInDSListRes, error) {
+func (client grpcClient) RetrievePoliciesByGroups(ctx context.Context, in *pb.PoliciesByGroupsReq, _ ...grpc.CallOption) (*pb.PolicyInDSListRes, error) {
 	ctx, cancel := context.WithTimeout(ctx, client.timeout)
 	defer cancel()
 
@@ -86,7 +86,16 @@ func (client grpcClient) RetrievePoliciesByGroups(ctx context.Context, in *pb.Po
 
 	plist := make([]*pb.PolicyInDSRes, len(ir.policies))
 	for i, p := range ir.policies {
-		plist[i] = &pb.PolicyInDSRes{Id: p.id, Name: p.name, Data: p.data, Backend: p.backend, Version: p.version, DatasetId: p.datasetID, AgentGroupId: p.agentGroupID, Format: p.format}
+		plist[i] = &pb.PolicyInDSRes{
+			Id:           p.id,
+			Name:         p.name,
+			Data:         p.data,
+			Backend:      p.backend,
+			Version:      p.version,
+			DatasetId:    p.datasetID,
+			AgentGroupId: p.agentGroupID,
+			Format:       p.format,
+		}
 	}
 	return &pb.PolicyInDSListRes{Policies: plist}, nil
 }
@@ -164,7 +173,7 @@ func encodeRetrieveDatasetRequest(_ context.Context, grpcReq interface{}) (inter
 }
 func decodePolicyResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
 	res := grpcRes.(*pb.PolicyRes)
-	return policyRes{id: res.GetId(), name: res.GetName(), data: res.GetData(), version: res.GetVersion(), backend: res.GetBackend()}, nil
+	return policyRes{id: res.GetId(), name: res.GetName(), data: res.GetData(), version: res.GetVersion(), backend: res.GetBackend(), format: res.GetFormat()}, nil
 }
 
 func decodeDatasetResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
@@ -181,7 +190,15 @@ func decodePolicyListResponse(_ context.Context, grpcRes interface{}) (interface
 	res := grpcRes.(*pb.PolicyInDSListRes)
 	policies := make([]policyInDSRes, len(res.Policies))
 	for i, p := range res.Policies {
-		policies[i] = policyInDSRes{id: p.GetId(), name: p.GetName(), data: p.GetData(), version: p.GetVersion(), backend: p.GetBackend(), datasetID: p.GetDatasetId(), agentGroupID: p.GetAgentGroupId()}
+		policies[i] = policyInDSRes{id: p.GetId(),
+			name:         p.GetName(),
+			data:         p.GetData(),
+			version:      p.GetVersion(),
+			backend:      p.GetBackend(),
+			datasetID:    p.GetDatasetId(),
+			agentGroupID: p.GetAgentGroupId(),
+			format:       p.GetFormat(),
+		}
 	}
 	return policyInDSListRes{policies: policies}, nil
 }

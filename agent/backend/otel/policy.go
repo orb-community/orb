@@ -4,11 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+
 	"github.com/go-cmd/cmd"
 	"github.com/orb-community/orb/agent/policies"
 	"go.uber.org/zap"
+	"golang.org/x/exp/slices"
 	"gopkg.in/yaml.v3"
-	"os"
 )
 
 const tempFileNamePattern = "otel-%s-config.yml"
@@ -46,17 +48,15 @@ func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, up
 		return err
 	}
 	if !updatePolicy || !o.policyRepo.Exists(newPolicyData.ID) {
-		temporaryFile, err := os.CreateTemp(o.policyConfigDirectory, fmt.Sprintf(tempFileNamePattern, newPolicyData.ID))
-		if err != nil {
-			o.logger.Error("failed to create temporary file", zap.Error(err), zap.String("policy_id", newPolicyData.ID))
+		newPolicyPath := fmt.Sprintf("%s/%s", o.policyConfigDirectory, fmt.Sprintf(tempFileNamePattern, newPolicyData.ID))
+		o.logger.Info("received new policy",
+			zap.String("policy_id", newPolicyData.ID),
+			zap.Int32("version", newPolicyData.Version),
+			zap.String("policy_path", newPolicyPath))
+		if err := os.WriteFile(newPolicyPath, newPolicyYaml, os.ModeTemporary); err != nil {
 			return err
 		}
-		o.logger.Debug("writing policy to temporary file", zap.String("policy_id", newPolicyData.ID), zap.String("policyData", string(newPolicyYaml)))
-		if _, err = temporaryFile.Write(newPolicyYaml); err != nil {
-			o.logger.Error("failed to write temporary file", zap.Error(err), zap.String("policy_id", newPolicyData.ID))
-			return err
-		}
-		if err = o.addRunner(newPolicyData, temporaryFile.Name()); err != nil {
+		if err = o.addRunner(newPolicyData, newPolicyPath); err != nil {
 			return err
 		}
 	} else {
@@ -65,16 +65,24 @@ func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, up
 			return err
 		}
 		if currentPolicyData.Version <= newPolicyData.Version {
-			currentPolicyPath := o.policyConfigDirectory + fmt.Sprintf(tempFileNamePattern, currentPolicyData.ID)
-			o.logger.Info("new policy version received, updating",
+			currentPolicyPath := fmt.Sprintf("%s/%s", o.policyConfigDirectory, fmt.Sprintf(tempFileNamePattern, currentPolicyData.ID))
+			o.logger.Info("received new policy version",
 				zap.String("policy_id", newPolicyData.ID),
-				zap.Int32("version", newPolicyData.Version))
-			if err := os.WriteFile(currentPolicyPath, policyYaml, os.ModeTemporary); err != nil {
+				zap.Int32("version", newPolicyData.Version),
+				zap.String("policy_path", currentPolicyPath))
+
+			o.removePolicyControl(currentPolicyData.ID)
+
+			if err := os.WriteFile(currentPolicyPath, newPolicyYaml, os.ModeTemporary); err != nil {
 				return err
 			}
-			if err = o.policyRepo.Update(newPolicyData); err != nil {
+			if err := o.addRunner(newPolicyData, currentPolicyPath); err != nil {
 				return err
 			}
+			if err := o.policyRepo.Update(newPolicyData); err != nil {
+				return err
+			}
+
 			o.otelReceiverTaps = append(o.otelReceiverTaps, newPolicyData.ID)
 		} else {
 			o.logger.Info("current policy version is newer than the one being applied, skipping",
@@ -98,11 +106,11 @@ func (o *openTelemetryBackend) addRunner(policyData policies.PolicyData, policyF
 			select {
 			case v := <-ctx.Done():
 				err := command.Stop()
-				if err != nil && err.Error() != "command not running" {
+				if err != nil && !slices.Contains([]string{"command not running", "no such process"}, err.Error()) {
 					logger.Error("failed to stop otel", zap.String("policy_id", policyData.ID),
 						zap.Any("value", v), zap.Error(err))
-					return
 				}
+				return
 			case line := <-command.Stdout:
 				if line != "" {
 					logger.Info("otel stdout", zap.String("policy_id", policyData.ID), zap.String("line", line))
@@ -139,21 +147,14 @@ func (o *openTelemetryBackend) removePolicyControl(policyID string) {
 		o.logger.Error("did not find a running collector for policy id", zap.String("policy_id", policyID))
 		return
 	}
-	defer policy.cancel()
-	select {
-	case <-policy.ctx.Done():
-		o.logger.Info("policy context done", zap.String("policy_id", policyID))
-	}
-	delete(o.runningCollectors, policyID)
+	policy.cancel()
 }
 
 func (o *openTelemetryBackend) RemovePolicy(data policies.PolicyData) error {
 	if o.policyRepo.Exists(data.ID) {
-		if err := o.policyRepo.Remove(data.ID); err != nil {
-			return err
-		}
 		o.removePolicyControl(data.ID)
-		policyPath := o.policyConfigDirectory + fmt.Sprintf(tempFileNamePattern, data.ID)
+		policyPath := fmt.Sprintf("%s/%s", o.policyConfigDirectory, fmt.Sprintf(tempFileNamePattern, data.ID))
+		o.logger.Info("removing policy", zap.String("policy_id", data.ID), zap.String("policy_path", policyPath))
 		// This is a temp file, if it fails to remove, it will be erased once the container is restarted
 		if err := os.Remove(policyPath); err != nil {
 			o.logger.Warn("failed to remove policy file, this won't fail policy removal", zap.String("policy_id", data.ID), zap.Error(err))

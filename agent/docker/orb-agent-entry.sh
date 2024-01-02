@@ -21,10 +21,6 @@ if [ -f "asn.mmdb.gz" ]; then
   gzip -d asn.mmdb.gz
   gzip -d city.mmdb.gz
 fi
-#
-
-# orb agent binary location. by default, matches orb-agent container (see Dockerfile)
-orb_agent_bin="${ORB_AGENT_BIN:-/usr/local/bin/orb-agent}"
 
 ## Cloud API Configuration ##
 # support generating API and MQTT addresses with one host name in ORB_CLOUD_ADDRESS
@@ -53,13 +49,14 @@ END
 
 # Checking agent.yaml config file
 CONFIG_FILE_EXISTS=false
-if [ -f "/opt/orb/agent.yaml" ]
-then
-  echo "Contains agent.yaml config file"
+if [ -f "/opt/orb/agent.yaml" ]; then
+  echo "Contains default config file"
+  CONFIG_FILE_EXISTS=true
+elif [[ "$2" == '-c' || "$3" == '-c' ]]; then
+  echo "Contains configuration argument parameter"
   CONFIG_FILE_EXISTS=true
 else
-  echo "Not contains agent.yaml config file, setting default config file"
-  CONFIG_FILE_EXISTS=false
+  echo "Configuration file not provided, default configuration file location is /opt/orb/agent.yaml"
 fi
 
 # Check NetFlow TAP parameters
@@ -170,7 +167,7 @@ do
         nohup /run-agent.sh "$@" &
       else
         # if none config file is set, use the built-in pktvisor configuration file and agent_default.yaml
-        echo "Running with default config file and pktvisor built-in configuration"      
+        echo "Running with default config file and pktvisor built-in configuration"
         # checking if debug mode is enabled
         DEBUG=''
         if [[ "$2" == '-d' ]]; then

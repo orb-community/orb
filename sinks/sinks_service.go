@@ -10,6 +10,7 @@ package sinks
 
 import (
 	"context"
+	"encoding/hex"
 
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
@@ -262,27 +263,28 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 		return Sink{}, err
 	}
 
-	var currentSink Sink
-	currentSink, err = svc.sinkRepo.RetrieveById(ctx, sink.ID)
+	currentSink, err := svc.sinkRepo.RetrieveById(ctx, sink.ID)
 	if err != nil {
 		return Sink{}, err
 	}
-	var cfg Configuration
+
+	authType, _ := authentication_type.GetAuthType(currentSink.GetAuthenticationTypeName())
+	be := backend.GetBackend(currentSink.Backend)
+	cfg := Configuration{
+		Authentication: authType,
+		Exporter:       be,
+	}
+
+	// get the decrypted config, otherwise the password would be encrypted again
+	currentSink, err = svc.decryptMetadata(cfg, currentSink)
+	if err != nil {
+		return Sink{}, errors.Wrap(ErrUpdateEntity, err)
+	}
+
 	if sink.Config == nil && sink.ConfigData == "" {
 		// No config sent, keep the previous
 		sink.Config = currentSink.Config
-		authType, _ := authentication_type.GetAuthType(sink.GetAuthenticationTypeName())
-		be := backend.GetBackend(currentSink.Backend)
-		cfg = Configuration{
-			Authentication: authType,
-			Exporter:       be,
-		}
-
-		// get the decrypted config, otherwise the password would be encrypted again
-		sink, err = svc.decryptMetadata(cfg, sink)
-		if err != nil {
-			return Sink{}, errors.Wrap(ErrUpdateEntity, err)
-		}
+		sink.ConfigData = currentSink.ConfigData
 	} else {
 		sink.Backend = currentSink.Backend
 		be, err := svc.validateBackend(&sink)
@@ -297,6 +299,20 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 			Authentication: at,
 			Exporter:       be,
 		}
+
+		// check if the password is encrypted and decrypt it if it is
+		if existingAuth := sink.Config.GetSubMetadata(authentication_type.AuthenticationKey); existingAuth != nil {
+			if password, ok := existingAuth["password"]; ok {
+				// if the password is encrypted, it will be a hex string
+				if _, err := hex.DecodeString(password.(string)); err == nil {
+					if sink, err = svc.decryptMetadata(cfg, sink); err != nil {
+						return Sink{}, errors.Wrap(ErrUpdateEntity, err)
+					}
+				}
+			}
+		}
+
+
 		if sink.Format == "yaml" {
 			configDataByte, err := yaml.Marshal(sink.Config)
 			if err != nil {

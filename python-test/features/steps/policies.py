@@ -1,5 +1,4 @@
 from hamcrest import *
-import requests
 from behave import given, then, step
 from utils import (random_string, filter_list_by_parameter_start_with, safe_load_json, remove_empty_from_json, \
                    threading_wait_until, UtilsManager, create_tags_set, is_json, values_to_boolean,
@@ -14,7 +13,10 @@ from deepdiff import DeepDiff
 import json
 import ciso8601
 import yaml
+from logger import Logger
+from concurrent.futures import ThreadPoolExecutor
 
+log = Logger().logger_instance()
 policy_name_prefix = "test_policy_name_"
 configs = TestConfig.configs()
 orb_url = configs.get('orb_url')
@@ -263,6 +265,43 @@ def check_policy_attribute(context, attribute, value):
         raise Exception(f"Attribute {attribute} not found on policy")
 
 
+@step("otel policy version must be {policy_version}")
+def check_otel_policy_version(context, policy_version):
+    assert_that(policy_version.isdigit(), equal_to(True), "Policy version must be a number")
+    policy_version = int(policy_version)
+    policy_id = context.policy["id"]
+    assert_that(context.policy.get("version"), equal_to(policy_version), f"Unexpected policy version in policy "
+                                                                         f"{policy_id}")
+
+
+@step("update otel policy using endpoint(s)={target_endpoint} and collection_interval={seconds}")
+def update_otel_policy(context, target_endpoint, seconds):
+    target_endpoints = target_endpoint.split(",")
+    context.updated_policy_data = context.policy.get("policy")
+    context.updated_policy_data["receivers"]["httpcheck"]["collection_interval"] = seconds
+    targets = list()
+    for endpoint in target_endpoints:
+        targets.append(
+            {'endpoint': endpoint, 'method': 'GET'}
+        )
+    context.updated_policy_data["receivers"]["httpcheck"]["targets"] = targets
+    policy_yaml = yaml.dump(context.updated_policy_data)
+    policy_json = make_otel_policy_json(context.policy['name'], context.policy.get("description"), policy_yaml)
+    context.considered_timestamp = datetime.now().timestamp()
+    context.policy = edit_policy(context.token, context.policy['id'], policy_json)
+
+
+@step("updated fields were correctly present in updated otel policy")
+def check_otel_policy_updated(context):
+    context.policy = get_policy(context.token, context.policy['id'])
+    assert_that(context.updated_policy_data["receivers"]["httpcheck"]["collection_interval"],
+                equal_to(context.policy.get("policy")["receivers"]["httpcheck"]["collection_interval"]),
+                f"Collection interval not updated. {context.policy}")
+    assert_that(context.updated_policy_data["receivers"]["httpcheck"]["targets"],
+                equal_to(context.policy.get("policy")["receivers"]["httpcheck"]["targets"]),
+                f"Targets not updated. {context.policy}")
+
+
 @then("referred policy {condition} be listed on the orb policies list")
 def check_policies(context, **condition):
     if len(condition) > 0:
@@ -363,7 +402,7 @@ def check_agent_logs_for_policies_considering_timestamp(context, condition, text
         policies_without_message = set(context.list_agent_policies_id).difference(policies_have_expected_message)
         for policy in policies_without_message:
             policies_data.append(get_policy(context.token, policy))
-
+    log.debug(f"Agent logs: {logs}")
     assert_that(policies_have_expected_message, equal_to(set(context.list_agent_policies_id)),
                 f"Message '{text_to_match}' for policy "
                 f"'{policies_data}'"
@@ -836,9 +875,12 @@ def delete_policies(token, list_of_policies):
     :param (str) token: used for API authentication
     :param (list) list_of_policies: that will be deleted
     """
-
-    for policy in list_of_policies:
-        delete_policy(token, policy['id'])
+    log.debug(f"Deleting {len(list_of_policies)} policies")
+    with ThreadPoolExecutor() as executor:
+        futures = [executor.submit(delete_policy, token, policy.get('id')) for policy in list_of_policies]
+        results = [future.result() for future in futures]
+    log.debug(f"Finishing deleting policies")
+    return results
 
 
 def delete_policy(token, policy_id):

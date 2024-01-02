@@ -15,6 +15,7 @@ import (
 	"github.com/fatih/structs"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/orb-community/orb/agent/backend"
 	"github.com/orb-community/orb/agent/cloud_config"
 	"github.com/orb-community/orb/agent/config"
@@ -128,15 +129,20 @@ func (a *orbAgent) startBackends(agentCtx context.Context) error {
 			backendCtx = context.WithValue(backendCtx, "agent_id", "auto-provisioning-without-id")
 		}
 		a.backends[name] = be
+		initialState := be.GetInitialState()
 		a.backendState[name] = &backend.State{
-			Status:        be.GetInitialState(),
+			Status:        initialState,
 			LastRestartTS: time.Now(),
 		}
 		if err := be.Start(context.WithCancel(backendCtx)); err != nil {
 			a.logger.Info("failed to start backend", zap.String("backend", name), zap.Error(err))
+			var errMessage string
+			if initialState == backend.BackendError {
+				errMessage = err.Error()
+			}
 			a.backendState[name] = &backend.State{
-				Status:        be.GetInitialState(),
-				LastError:     err.Error(),
+				Status:        initialState,
+				LastError:     errMessage,
 				LastRestartTS: time.Now(),
 			}
 			return err

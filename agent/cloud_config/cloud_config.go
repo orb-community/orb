@@ -15,7 +15,7 @@ import (
 	"github.com/orb-community/orb/pkg/errors"
 	migrate "github.com/rubenv/sql-migrate"
 	"go.uber.org/zap"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"strings"
@@ -89,7 +89,7 @@ func (cc *cloudConfigManager) request(address string, token string, response int
 		return getErr
 	}
 	if (res.StatusCode < 200) || (res.StatusCode > 299) {
-		body, err := ioutil.ReadAll(res.Body)
+		body, err := io.ReadAll(res.Body)
 		if err != nil {
 			return errors.New(fmt.Sprintf("expected 2xx status code, no or invalid body: %d", res.StatusCode))
 		}
