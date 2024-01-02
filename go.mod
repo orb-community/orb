@@ -6,7 +6,7 @@ require (
 	github.com/andybalholm/brotli v1.0.5
 	github.com/aws/aws-sdk-go v1.49.10
 	github.com/benbjohnson/immutable v0.4.3
-	github.com/eclipse/paho.mqtt.golang v1.4.2
+	github.com/eclipse/paho.mqtt.golang v1.4.3
 	github.com/fatih/structs v1.1.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-cmd/cmd v1.4.1
