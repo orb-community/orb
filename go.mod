@@ -17,7 +17,7 @@ require (
 	github.com/golang/protobuf v1.5.3
 	github.com/hashicorp/go-version v1.6.0
 	github.com/jmoiron/sqlx v1.3.4
-	github.com/lib/pq v1.10.7
+	github.com/lib/pq v1.10.9
 	github.com/mainflux/mainflux v0.0.0-20220415135135-92d8fb99bf82
 	github.com/mattn/go-sqlite3 v1.14.19
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.91.0
