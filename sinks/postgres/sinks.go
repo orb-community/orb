@@ -397,7 +397,11 @@ func toSink(dba dbSink) (sinks.Sink, error) {
 		configData = *dba.ConfigData
 	}
 	if dba.Format != nil {
-		format = *dba.Format
+		if len(*dba.Format) == 0 {
+			format = "json"
+		} else {
+			format = *dba.Format
+		}
 	} else {
 		format = "json"
 	}
