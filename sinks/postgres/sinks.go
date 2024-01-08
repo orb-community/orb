@@ -398,6 +398,8 @@ func toSink(dba dbSink) (sinks.Sink, error) {
 	}
 	if dba.Format != nil {
 		format = *dba.Format
+	} else {
+		format = "json"
 	}
 	sink := sinks.Sink{
 		ID:          dba.ID,
