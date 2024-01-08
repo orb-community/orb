@@ -25,7 +25,7 @@ require (
 	github.com/ory/dockertest/v3 v3.10.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/profile v1.7.0
-	github.com/prometheus/client_golang v1.17.0
+	github.com/prometheus/client_golang v1.18.0
 	github.com/rubenv/sql-migrate v1.6.0
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.18.1
