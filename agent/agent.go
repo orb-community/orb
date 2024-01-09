@@ -237,7 +237,7 @@ func (a *orbAgent) Stop(ctx context.Context) {
 	}
 	a.logoffWithHeartbeat(ctx)
 	if a.client != nil && a.client.IsConnected() {
-		a.client.Disconnect(250)
+		a.client.Disconnect(0)
 	}
 	a.logger.Debug("stopping agent with number of go routines and go calls", zap.Int("goroutines", runtime.NumGoroutine()), zap.Int64("gocalls", runtime.NumCgoCall()))
 	if a.policyRequestSucceeded != nil {
@@ -285,7 +285,7 @@ func (a *orbAgent) RestartBackend(ctx context.Context, name string, reason strin
 func (a *orbAgent) restartComms(ctx context.Context) error {
 	if a.client != nil && a.client.IsConnected() {
 		a.unsubscribeGroupChannels()
-		a.client.Disconnect(250)
+		a.client.Disconnect(0)
 		a.client = nil
 	}
 	ccm, err := cloud_config.New(a.logger, a.config, a.db)
