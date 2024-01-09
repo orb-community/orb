@@ -18,7 +18,7 @@ require (
 	github.com/hashicorp/go-version v1.6.0
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/lib/pq v1.10.7
-	github.com/mainflux/mainflux v0.0.0-20220415135135-92d8fb99bf82
+	github.com/mainflux/mainflux v0.12.0
 	github.com/mattn/go-sqlite3 v1.14.19
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.91.0
 	github.com/opentracing/opentracing-go v1.2.0
@@ -64,7 +64,6 @@ require (
 	go.opentelemetry.io/collector/pdata v1.0.0
 	go.opentelemetry.io/otel/metric v1.21.0 // indirect
 	go.opentelemetry.io/otel/trace v1.21.0
-	google.golang.org/genproto v0.0.0-20231120223509-83a465c0220f // indirect
 	k8s.io/client-go v0.29.0
 )
 
@@ -92,7 +91,6 @@ require (
 	github.com/go-logr/logr v1.3.0 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
-	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
@@ -126,7 +124,6 @@ require (
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0-rc5 // indirect
 	github.com/opencontainers/runc v1.1.5 // indirect
-	github.com/ory/keto/proto/ory/keto/acl/v1alpha1 v0.0.0-20210616104402-80e043246cf9 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_model v0.5.0 // indirect
