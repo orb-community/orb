@@ -392,13 +392,15 @@ func toDBSink(sink sinks.Sink) (dbSink, error) {
 
 func toSink(dba dbSink) (sinks.Sink, error) {
 	var configData string
-	var format string
 	if dba.ConfigData != nil {
 		configData = *dba.ConfigData
 	}
-	if dba.Format != nil {
+
+	format := "json"
+	if dba.Format != nil && *dba.Format != "" {
 		format = *dba.Format
 	}
+
 	sink := sinks.Sink{
 		ID:          dba.ID,
 		Name:        dba.Name,

@@ -49,6 +49,10 @@ func (svc sinkService) CreateSink(ctx context.Context, token string, sink Sink) 
 		Exporter:       be,
 	}
 
+	if sink.Format == "" {
+		sink.Format = "json"
+	}
+
 	// encrypt data for the password
 	sink, err = svc.encryptMetadata(cfg, sink)
 	if err != nil {
@@ -299,6 +303,9 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 			Authentication: at,
 			Exporter:       be,
 		}
+		if sink.Format == "" {
+			sink.Format = "json"
+		}
 
 		// check if the password is encrypted and decrypt it if it is
 		if existingAuth := sink.Config.GetSubMetadata(authentication_type.AuthenticationKey); existingAuth != nil {
@@ -387,6 +394,9 @@ func (svc sinkService) ViewSink(ctx context.Context, token string, key string) (
 	if err != nil {
 		return Sink{}, errors.Wrap(errors.ErrNotFound, err)
 	}
+	if res.Format == "" {
+		res.Format = "json"
+	}
 	return res, nil
 }
 
@@ -400,6 +410,9 @@ func (svc sinkService) ViewSinkInternal(ctx context.Context, ownerID string, key
 	cfg := Configuration{
 		Authentication: authType,
 		Exporter:       be,
+	}
+	if res.Format == "" {
+		res.Format = "json"
 	}
 	res, err = svc.decryptMetadata(cfg, res)
 	if err != nil {
@@ -419,6 +432,9 @@ func (svc sinkService) ListSinksInternal(ctx context.Context, filter Filter) (si
 		cfg := Configuration{
 			Authentication: authType,
 			Exporter:       be,
+		}
+		if sink.Format == "" {
+			sink.Format = "json"
 		}
 		sink, err = svc.decryptMetadata(cfg, sink)
 		if err != nil {
