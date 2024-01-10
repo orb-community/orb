@@ -208,6 +208,8 @@ func (a *orbAgent) startComms(ctx context.Context, config config.MQTTConfig) err
 		a.config.OrbAgent.Cloud.MQTT.Key = config.Key
 		a.config.OrbAgent.Cloud.MQTT.Address = config.Address
 		a.config.OrbAgent.Cloud.MQTT.ChannelID = config.ChannelID
+	} else {
+		a.requestReconnection(ctx, a.client, config)
 	}
 
 	return nil
