@@ -76,9 +76,8 @@ func (a *orbAgent) handleAgentPolicies(ctx context.Context, rpc []fleet.AgentPol
 	}
 }
 
-func (a *orbAgent) handleGroupRPCFromCore(client mqtt.Client, message mqtt.Message) {
+func (a *orbAgent) handleGroupRPCFromCore(_ mqtt.Client, message mqtt.Message) {
 	handleMsgCtx, handleMsgCtxCancelFunc := a.extendContext("handleGroupRPCFromCore")
-	a.rpcFromCancelFunc = handleMsgCtxCancelFunc
 	go func(ctx context.Context, cancelFunc context.CancelFunc) {
 		defer cancelFunc()
 		a.logger.Debug("Group RPC message from core", zap.String("topic", message.Topic()), zap.ByteString("payload", message.Payload()))

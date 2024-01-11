@@ -202,12 +202,9 @@ func (a *orbAgent) logonWithHeartbeat() {
 }
 
 func (a *orbAgent) logoffWithHeartbeat(ctx context.Context) {
-	a.logger.Debug("stopping heartbeat, going offline status", zap.Any("routine", ctx.Value("#routine")))
+	a.logger.Debug("stopping heartbeat, going offline status", zap.Any("routine", ctx.Value("routine")))
 	if a.heartbeatCtx != nil {
 		a.heartbeatCancel()
-	}
-	if a.rpcFromCancelFunc != nil {
-		a.rpcFromCancelFunc()
 	}
 	if a.client != nil && a.client.IsConnected() {
 		a.unsubscribeGroupChannels()
