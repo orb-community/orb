@@ -94,58 +94,68 @@ func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, up
 }
 
 func (o *openTelemetryBackend) addRunner(policyData policies.PolicyData, policyFilePath string) error {
-	policyContext, policyCancel := context.WithCancel(context.WithValue(o.mainContext, "policy_id", policyData.ID))
-	command := cmd.NewCmdOptions(cmd.Options{Buffered: false, Streaming: true}, o.otelExecutablePath, "--config", policyFilePath)
-	go func(ctx context.Context, logger *zap.Logger) {
-		status := command.Start()
-		o.logger.Info("starting otel policy", zap.String("policy_id", policyData.ID),
-			zap.Any("status", command.Status()), zap.Int("process id", command.Status().PID))
-		for command.Status().Complete == false {
-			select {
-			case v := <-ctx.Done():
-				err := command.Stop()
-				if err != nil && !slices.Contains([]string{"command not running", "no such process"}, err.Error()) {
-					logger.Error("failed to stop otel", zap.String("policy_id", policyData.ID),
-						zap.Any("value", v), zap.Error(err))
+	if _, ok := o.runningCollectors.Load(policyData.ID); ok {
+		policyContext, policyCancel := context.WithCancel(context.WithValue(o.mainContext, "policy_id", policyData.ID))
+		command := cmd.NewCmdOptions(cmd.Options{Buffered: false, Streaming: true}, o.otelExecutablePath, "--config", policyFilePath)
+		loggerName := "otel-backend-pol-" + policyData.ID
+		logger := o.logger.Named(loggerName)
+		go func(ctx context.Context, logger *zap.Logger) {
+			status := command.Start()
+			o.logger.Info("starting otel policy", zap.String("policy_id", policyData.ID),
+				zap.Any("status", command.Status()), zap.Int("process id", command.Status().PID))
+			for command.Status().Complete == false {
+				select {
+				case v := <-ctx.Done():
+					err := command.Stop()
+					if err != nil && !slices.Contains([]string{"command not running", "no such process"}, err.Error()) {
+						logger.Error("failed to stop otel", zap.String("policy_id", policyData.ID),
+							zap.Any("value", v), zap.Error(err))
+					}
+					return
+				case line := <-command.Stdout:
+					if line != "" {
+						logger.Info("otel stdout", zap.String("policy_id", policyData.ID), zap.String("line", line))
+					}
+				case line := <-command.Stderr:
+					if line != "" {
+						logger.Warn("otel stderr", zap.String("policy_id", policyData.ID), zap.String("line", line))
+					}
+				case finalStatus := <-status:
+					logger.Info("otel finished", zap.String("policy_id", policyData.ID), zap.Any("status", finalStatus))
 				}
-				return
-			case line := <-command.Stdout:
-				if line != "" {
-					logger.Info("otel stdout", zap.String("policy_id", policyData.ID), zap.String("line", line))
-				}
-			case line := <-command.Stderr:
-				if line != "" {
-					logger.Warn("otel stderr", zap.String("policy_id", policyData.ID), zap.String("line", line))
-				}
-			case finalStatus := <-status:
-				logger.Info("otel finished", zap.String("policy_id", policyData.ID), zap.Any("status", finalStatus))
 			}
+		}(policyContext, logger)
+		status := command.Status()
+		policyEntry := runningPolicy{
+			ctx:        policyContext,
+			cancel:     policyCancel,
+			policyId:   policyData.ID,
+			policyData: policyData,
+			statusChan: &status,
 		}
-	}(policyContext, o.logger)
-	status := command.Status()
-	policyEntry := runningPolicy{
-		ctx:        policyContext,
-		cancel:     policyCancel,
-		policyId:   policyData.ID,
-		policyData: policyData,
-		statusChan: &status,
+		o.addPolicyControl(policyEntry, policyData.ID)
+	} else {
+		o.logger.Warn("policy is already running", zap.String("policy_id", policyData.ID))
 	}
-	o.addPolicyControl(policyEntry, policyData.ID)
 
 	return nil
 }
 
 func (o *openTelemetryBackend) addPolicyControl(policyEntry runningPolicy, policyID string) {
-	o.runningCollectors[policyID] = policyEntry
+	_, ok := o.runningCollectors.LoadOrStore(policyID, policyEntry)
+	if ok {
+		o.logger.Info("policy was already running", zap.String("policy_id", policyID))
+	}
 }
 
 func (o *openTelemetryBackend) removePolicyControl(policyID string) {
-	policy, ok := o.runningCollectors[policyID]
+	policy, ok := o.runningCollectors.LoadAndDelete(policyID)
 	if !ok {
 		o.logger.Error("did not find a running collector for policy id", zap.String("policy_id", policyID))
 		return
 	}
-	policy.cancel()
+	policy.(runningPolicy).cancel()
+
 }
 
 func (o *openTelemetryBackend) RemovePolicy(data policies.PolicyData) error {

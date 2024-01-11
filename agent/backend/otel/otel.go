@@ -17,6 +17,7 @@ import (
 	"go.uber.org/zap"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -37,7 +38,7 @@ type openTelemetryBackend struct {
 
 	// Context for controlling the context cancellation
 	mainContext        context.Context
-	runningCollectors  map[string]runningPolicy
+	runningCollectors  sync.Map
 	mainCancelFunction context.CancelFunc
 
 	// MQTT Config for OTEL MQTT Exporter
@@ -135,7 +136,7 @@ func (o *openTelemetryBackend) Version() (string, error) {
 }
 
 func (o *openTelemetryBackend) Start(ctx context.Context, cancelFunc context.CancelFunc) (err error) {
-	o.runningCollectors = make(map[string]runningPolicy)
+	o.runningCollectors = sync.Map{}
 	o.mainCancelFunction = cancelFunc
 	o.mainContext = ctx
 	o.startTime = time.Now()
@@ -172,23 +173,26 @@ func (o *openTelemetryBackend) Start(ctx context.Context, cancelFunc context.Can
 func (o *openTelemetryBackend) Stop(_ context.Context) error {
 	o.logger.Info("stopping all running policies")
 	o.mainCancelFunction()
-	for policyID, policyEntry := range o.runningCollectors {
-		o.logger.Debug("stopping policy context", zap.String("policy_id", policyID))
-		policyEntry.ctx.Done()
-	}
+	o.runningCollectors.Range(func(policyID, policyEntry interface{}) bool {
+		o.logger.Debug("stopping policy context", zap.Any("policy_id", policyID))
+		policyEntry.(runningPolicy).ctx.Done()
+		return true
+	})
+
 	return nil
 }
 
 func (o *openTelemetryBackend) FullReset(ctx context.Context) error {
-	o.logger.Info("resetting all policies and restarting, skipping if already killed", zap.Int("policies", len(o.runningCollectors)))
-	for policyID, policyEntry := range o.runningCollectors {
-		o.logger.Debug("stopping policy context", zap.String("policy_id", policyID))
-		policyEntry.ctx.Done()
-		if err := o.ApplyPolicy(policyEntry.policyData, true); err != nil {
-			o.logger.Error("failed to apply policy", zap.Error(err))
-			return err
+	o.logger.Info("resetting all policies and restarting, skipping if already killed")
+	o.runningCollectors.Range(func(policyID, policyEntry interface{}) bool {
+		o.logger.Debug("stopping policy context", zap.Any("policy_id", policyID))
+		rPol := policyEntry.(runningPolicy)
+		rPol.ctx.Done()
+		if err := o.ApplyPolicy(rPol.policyData, true); err != nil {
+			o.logger.Error("failed to apply policy", zap.Any("policy_id", policyID), zap.Error(err))
 		}
-	}
+		return true
+	})
 	backendCtx, cancelFunc := context.WithCancel(context.WithValue(ctx, "routine", "otel"))
 	if err := o.Start(backendCtx, cancelFunc); err != nil {
 		return err
@@ -214,7 +218,11 @@ func (o *openTelemetryBackend) GetCapabilities() (capabilities map[string]interf
 
 // GetRunningStatus returns cross-reference the Processes using the os, with the policies and contexts
 func (o *openTelemetryBackend) GetRunningStatus() (backend.RunningStatus, string, error) {
-	amountCollectors := len(o.runningCollectors)
+	amountCollectors := 0
+	o.runningCollectors.Range(func(key, value interface{}) bool {
+		amountCollectors++
+		return true
+	})
 	if amountCollectors > 0 {
 		return backend.Running, fmt.Sprintf("opentelemetry backend running with %d policies", amountCollectors), nil
 	}
