@@ -21,7 +21,6 @@ import (
 	"github.com/orb-community/orb/agent/config"
 	manager "github.com/orb-community/orb/agent/policyMgr"
 	"github.com/orb-community/orb/buildinfo"
-	"github.com/orb-community/orb/fleet"
 	"go.uber.org/zap"
 )
 
@@ -49,8 +48,9 @@ type orbAgent struct {
 
 	asyncContext context.Context
 
-	hbTicker *time.Ticker
-	hbDone   chan bool
+	hbTicker        *time.Ticker
+	heartbeatCtx    context.Context
+	heartbeatCancel context.CancelFunc
 
 	// Agent RPC channel, configured from command line
 	baseTopic         string
@@ -196,9 +196,9 @@ func (a *orbAgent) Start(ctx context.Context, cancelFunc context.CancelFunc) err
 
 func (a *orbAgent) logonWithHearbeat() {
 	a.hbTicker = time.NewTicker(HeartbeatFreq)
-	a.hbDone = make(chan bool)
-	heartbeatCtx, hbcancelFunc := a.extendContext("heartbeat")
-	go a.sendHeartbeats(heartbeatCtx, hbcancelFunc)
+	a.heartbeatCtx, a.heartbeatCancel = a.extendContext("heartbeat")
+	go a.sendHeartbeats(a.heartbeatCtx, a.heartbeatCancel)
+	a.logger.Info("heartbeat routine started")
 }
 
 func (a *orbAgent) logoffWithHeartbeat(ctx context.Context) {
@@ -206,21 +206,18 @@ func (a *orbAgent) logoffWithHeartbeat(ctx context.Context) {
 	if a.hbTicker != nil {
 		a.hbTicker.Stop()
 	}
+	if a.heartbeatCtx != nil {
+		a.heartbeatCancel()
+	}
 	if a.rpcFromCancelFunc != nil {
 		a.rpcFromCancelFunc()
 	}
 	if a.client != nil && a.client.IsConnected() {
 		a.unsubscribeGroupChannels()
-		a.sendSingleHeartbeat(ctx, time.Now(), fleet.Offline)
 		if token := a.client.Unsubscribe(a.rpcFromCoreTopic); token.Wait() && token.Error() != nil {
 			a.logger.Warn("failed to unsubscribe to RPC channel", zap.Error(token.Error()))
 		}
 	}
-	defer func() {
-		if a.hbDone != nil {
-			close(a.hbDone)
-		}
-	}()
 }
 func (a *orbAgent) Stop(ctx context.Context) {
 	a.logger.Info("routine call for stop agent", zap.Any("routine", ctx.Value("routine")))
@@ -319,7 +316,6 @@ func (a *orbAgent) RestartAll(ctx context.Context, reason string) error {
 			a.logger.Error("failed to restart backend", zap.Error(err))
 		}
 	}
-	a.logonWithHearbeat()
 	a.logger.Info("all backends and comms were restarted")
 
 	return nil

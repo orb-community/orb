@@ -28,7 +28,7 @@ func (a *orbAgent) sendSingleHeartbeat(ctx context.Context, t time.Time, agentsS
 		return
 	}
 
-	a.logger.Debug("heartbeat")
+	a.logger.Debug("heartbeat", zap.String("state", agentsState.String()))
 
 	bes := make(map[string]fleet.BackendStateInfo)
 	for name, be := range a.backends {
@@ -149,14 +149,13 @@ func (a *orbAgent) sendHeartbeats(ctx context.Context, cancelFunc context.Cancel
 	a.sendSingleHeartbeat(ctx, time.Now(), fleet.Online)
 	defer func() {
 		cancelFunc()
-		a.logger.Debug("stopping heartbeats routine")
 	}()
 	for {
 		select {
 		case <-ctx.Done():
-			return
-		case <-a.hbDone:
-			ctx.Done()
+			a.logger.Debug("context done, stopping heartbeats routine")
+			a.sendSingleHeartbeat(ctx, time.Now(), fleet.Offline)
+			a.heartbeatCtx = nil
 			return
 		case t := <-a.hbTicker.C:
 			a.sendSingleHeartbeat(ctx, t, fleet.Online)

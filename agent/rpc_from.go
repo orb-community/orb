@@ -11,7 +11,6 @@ import (
 	"github.com/eclipse/paho.mqtt.golang"
 	"github.com/orb-community/orb/fleet"
 	"go.uber.org/zap"
-	"time"
 )
 
 func (a *orbAgent) handleGroupMembership(rpc fleet.GroupMembershipRPCPayload) {
@@ -72,7 +71,9 @@ func (a *orbAgent) handleAgentPolicies(ctx context.Context, rpc []fleet.AgentPol
 	}
 
 	// heart beat with new policy status after application
-	a.sendSingleHeartbeat(ctx, time.Now(), fleet.Online)
+	if a.heartbeatCtx == nil {
+		a.logonWithHearbeat()
+	}
 }
 
 func (a *orbAgent) handleGroupRPCFromCore(client mqtt.Client, message mqtt.Message) {
