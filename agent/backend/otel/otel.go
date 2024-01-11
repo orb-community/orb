@@ -188,9 +188,6 @@ func (o *openTelemetryBackend) FullReset(ctx context.Context) error {
 		o.logger.Debug("stopping policy context", zap.Any("policy_id", policyID))
 		rPol := policyEntry.(runningPolicy)
 		rPol.ctx.Done()
-		if err := o.ApplyPolicy(rPol.policyData, true); err != nil {
-			o.logger.Error("failed to apply policy", zap.Any("policy_id", policyID), zap.Error(err))
-		}
 		return true
 	})
 	backendCtx, cancelFunc := context.WithCancel(context.WithValue(ctx, "routine", "otel"))

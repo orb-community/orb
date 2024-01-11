@@ -142,9 +142,10 @@ func (o *openTelemetryBackend) addRunner(policyData policies.PolicyData, policyF
 }
 
 func (o *openTelemetryBackend) addPolicyControl(policyEntry runningPolicy, policyID string) {
-	_, ok := o.runningCollectors.LoadOrStore(policyID, policyEntry)
+	oldPolicy, ok := o.runningCollectors.Swap(policyID, policyEntry)
 	if ok {
 		o.logger.Info("policy was already running", zap.String("policy_id", policyID))
+		oldPolicy.(runningPolicy).cancel()
 	}
 }
 
