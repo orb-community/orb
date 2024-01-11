@@ -72,7 +72,7 @@ func (a *orbAgent) handleAgentPolicies(ctx context.Context, rpc []fleet.AgentPol
 
 	// heart beat with new policy status after application
 	if a.heartbeatCtx == nil {
-		a.logonWithHearbeat()
+		a.logonWithHeartbeat()
 	}
 }
 

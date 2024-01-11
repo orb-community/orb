@@ -189,12 +189,12 @@ func (a *orbAgent) Start(ctx context.Context, cancelFunc context.CancelFunc) err
 		return err
 	}
 
-	a.logonWithHearbeat()
+	a.logonWithHeartbeat()
 
 	return nil
 }
 
-func (a *orbAgent) logonWithHearbeat() {
+func (a *orbAgent) logonWithHeartbeat() {
 	a.hbTicker = time.NewTicker(HeartbeatFreq)
 	a.heartbeatCtx, a.heartbeatCancel = a.extendContext("heartbeat")
 	go a.sendHeartbeats(a.heartbeatCtx, a.heartbeatCancel)
@@ -202,10 +202,7 @@ func (a *orbAgent) logonWithHearbeat() {
 }
 
 func (a *orbAgent) logoffWithHeartbeat(ctx context.Context) {
-	a.logger.Debug("stopping heartbeat, going offline status", zap.Any("routine", ctx.Value("routine")))
-	if a.hbTicker != nil {
-		a.hbTicker.Stop()
-	}
+	a.logger.Debug("stopping heartbeat, going offline status", zap.Any("routine", ctx.Value("#routine")))
 	if a.heartbeatCtx != nil {
 		a.heartbeatCancel()
 	}
