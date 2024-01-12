@@ -2,6 +2,7 @@ package otel
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -26,7 +27,14 @@ type runningPolicy struct {
 
 func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, updatePolicy bool) error {
 	o.logger.Debug("applying policy", zap.String("policy_id", newPolicyData.ID))
-	policyYaml, err := yaml.Marshal(newPolicyData.Data)
+
+	sanitizedPolicyData, err := SanitizePolicyData(newPolicyData)
+	if err != nil {
+		o.logger.Error("deleting tags from httpcheck targets failed", zap.String("policy_id", newPolicyData.ID), zap.Error(err))
+		return err
+	}
+
+	policyYaml, err := yaml.Marshal(sanitizedPolicyData.Data)
 	if err != nil {
 		o.logger.Warn("yaml policy marshal failure", zap.String("policy_id", newPolicyData.ID), zap.Any("policy", newPolicyData.Data))
 		return err
@@ -123,6 +131,7 @@ func (o *openTelemetryBackend) addRunner(policyData policies.PolicyData, policyF
 		}
 	}(policyContext, o.logger)
 	status := command.Status()
+
 	policyEntry := runningPolicy{
 		ctx:        policyContext,
 		cancel:     policyCancel,
@@ -172,4 +181,38 @@ func (o *openTelemetryBackend) ValidatePolicy(otelConfig openTelemetryConfig) er
 	}
 
 	return nil
+}
+
+func SanitizePolicyData(policyData policies.PolicyData) (*policies.PolicyData, error) {
+	originalJSON, err := json.Marshal(policyData)
+	if err != nil {
+		return nil, err
+	}
+	var policyDataClone policies.PolicyData
+	if err = json.Unmarshal(originalJSON, &policyDataClone); err != nil {
+		return nil, err
+	}
+
+	if policyDataClone.Backend == "otel" {
+		receivers, ok := policyDataClone.Data.(map[string]interface{})["receivers"]
+		if !ok {
+			return &policyData, nil
+		}
+		httpcheck, ok := receivers.(map[string]interface{})["httpcheck"]
+		if !ok {
+			return &policyData, nil
+		}
+		targets, ok := httpcheck.(map[string]interface{})["targets"]
+		if !ok {
+			return &policyData, nil
+		}
+		for _, target := range targets.([]interface{}) {
+			if _, ok := target.(map[string]interface{})["tags"]; !ok {
+				return &policyData, nil
+			}
+			delete(target.(map[string]interface{}), "tags")
+		}
+	}
+
+	return &policyDataClone, nil
 }

@@ -69,6 +69,7 @@ func (a *policyManager) ManagePolicy(payload fleet.AgentPolicyRPCPayload) {
 			Name:    payload.Name,
 			Backend: payload.Backend,
 			Version: payload.Version,
+			Format:  payload.Format,
 			Data:    payload.Data,
 			State:   policies.Unknown,
 		}
