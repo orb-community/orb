@@ -11,6 +11,7 @@ package sinks
 import (
 	"context"
 	"encoding/hex"
+	"encoding/json"
 
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
@@ -288,7 +289,15 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 	if sink.Config == nil && sink.ConfigData == "" {
 		// No config sent, keep the previous
 		sink.Config = currentSink.Config
+		sink.Format = currentSink.Format
+		sink.Config.RemoveKeys([]string{"opentelemetry"})
 		sink.ConfigData = currentSink.ConfigData
+		if sink.Format != "" {
+			sink.ConfigData, err = removeConfigDataKey(sink.ConfigData, sink.Format, []string{"opentelemetry"})
+			if err != nil {
+				svc.logger.Warn("error removing opentelemetry config key", zap.Error(err))
+			}
+		}
 	} else {
 		sink.Backend = currentSink.Backend
 		be, err := svc.validateBackend(&sink)
@@ -363,6 +372,36 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 	}
 
 	return sinkEdited, nil
+}
+
+func removeConfigDataKey(configData string, format string, keys []string) (string, error) {
+	if configData == "" {
+		return "", nil
+	}
+	var data types.Metadata
+	switch format {
+	case "json":
+		if err := json.Unmarshal([]byte(configData), &keys); err != nil {
+			return "", err
+		}
+		data.RemoveKeys(keys)
+		if newData, err := json.Marshal(data); err != nil {
+			return "", err
+		} else {
+			return string(newData), nil
+		}
+	case "yaml":
+		if err := yaml.Unmarshal([]byte(configData), &keys); err != nil {
+			return "", err
+		}
+		data.RemoveKeys(keys)
+		if newData, err := yaml.Marshal(data); err != nil {
+			return "", err
+		} else {
+			return string(newData), nil
+		}
+	}
+	return "", errors.New("unrecognized format")
 }
 
 func (svc sinkService) ListBackends(ctx context.Context, token string) ([]string, error) {
