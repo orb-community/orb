@@ -185,7 +185,7 @@ func (o *openTelemetryBackend) FullReset(ctx context.Context) error {
 		o.logger.Debug("stopping policy context", zap.String("policy_id", policyID))
 		policyEntry.ctx.Done()
 		if err := o.policyRepo.Remove(policyID); err != nil {
-			o.logger.Error("failed to remove policy from repo", zap.String("policy_id", policyID), zap.Error(err))
+			o.logger.Warn("failed to remove policy from repo", zap.String("policy_id", policyID), zap.Error(err))
 		}
 	}
 	backendCtx, cancelFunc := context.WithCancel(context.WithValue(ctx, "routine", "otel"))
