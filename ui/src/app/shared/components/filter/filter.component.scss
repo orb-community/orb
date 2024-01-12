@@ -3,7 +3,7 @@
   width: calc(100% - 270px) !important;
   min-height: 32px !important;
   max-height: 100% !important;
-  gap: 0px !important;
+  gap: 0 !important;
   margin-bottom: 8px !important;
   flex-direction: row !important;
   flex-wrap: wrap !important;
@@ -40,10 +40,10 @@
 }
 .list-div {
   display: flex;
-  width: 100%; 
-  gap: 5px; 
-  height: fit-content; 
-  align-items: center; 
+  width: 100%;
+  gap: 5px;
+  height: fit-content;
+  align-items: center;
   margin-top: 8px;
 }
 .filters-list {
@@ -80,7 +80,7 @@
   font-weight: 500;
   font-size: 12px;
   span {
-    padding: 8px 5px 5px 5px;
+    padding: 8px 5px 5px;
   }
 }
 .filter-name {
@@ -104,7 +104,7 @@
 }
 .clear-filters-button {
   background-color: transparent;
-  color: #969FB9;
+  color: #969fb9;
   outline: none;
   height: 22px;
   border-radius: 4px;
@@ -137,7 +137,7 @@ mat-chip-list {
   width: 280px !important;
   height: 32px !important;
   padding-left: 35px !important;
-  border-radius: 0px 2px 2px 0px !important;
+  border-radius: 0 2px 2px 0 !important;
 }
 .filter-search-container {
   display: flex;
@@ -191,9 +191,9 @@ mat-chip-list {
 }
 .filter-button {
   background-color: #232940;
-  border: solid 1px #969FB9 !important;
-  border-radius: 4px 0px 0px 4px !important;
-  color: #969FB9;
+  border: solid 1px #969fb9 !important;
+  border-radius: 4px 0 0 4px !important;
+  color: #969fb9;
   width: 100%;
   height: 100%;
   padding: 0;
@@ -245,7 +245,7 @@ mat-chip-list {
   color: #fff;
   outline: none;
   &:hover {
-    background-color: rgba(55,64,86, 0.96);
+    background-color: rgba(55, 64, 86, 0.96);
   }
   span {
     font-family: Montserrat;
@@ -271,7 +271,7 @@ mat-chip-list {
   outline: none;
   cursor: pointer;
   &:hover {
-    background-color: rgba(55,64,86, 0.96);
+    background-color: rgba(55, 64, 86, 0.96);
   }
   span {
     font-family: Montserrat;
@@ -288,7 +288,7 @@ mat-chip-list {
   cursor: pointer;
 }
 .multi-tags-button {
-  color: #969FB9;
+  color: #969fb9;
   background-color: transparent;
   border: none;
   outline: none;

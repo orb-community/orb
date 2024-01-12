@@ -83,9 +83,9 @@ export const POLICY_PKTVISOR_CONFIG_JSON =
 // yet to be defined
 export const POLICY_DIODE_CONFIG_YAML = ``;
 
-export const POLICY_DIODE_CONFIG_JSON = 
+export const POLICY_DIODE_CONFIG_JSON =
 `{
-  
+
 }`;
 
 export const SINK_OTLP_CONFIG_YAML =
