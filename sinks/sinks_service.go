@@ -404,7 +404,7 @@ func removeConfigDataKey(configData string, format string, keys []string) (strin
 	return "", errors.New("unrecognized format")
 }
 
-func (svc sinkService) ListBackends(ctx context.Context, token string) ([]string, error) {
+func (svc sinkService) ListBackends(_ context.Context, token string) ([]string, error) {
 	_, err := svc.identify(token)
 	if err != nil {
 		return []string{}, err
@@ -412,7 +412,7 @@ func (svc sinkService) ListBackends(ctx context.Context, token string) ([]string
 	return backend.GetList(), nil
 }
 
-func (svc sinkService) ViewBackend(ctx context.Context, token string, key string) (backend.Backend, error) {
+func (svc sinkService) ViewBackend(_ context.Context, token string, key string) (backend.Backend, error) {
 	_, err := svc.identify(token)
 	if err != nil {
 		return nil, err
