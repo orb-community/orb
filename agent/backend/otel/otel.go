@@ -180,14 +180,7 @@ func (o *openTelemetryBackend) Stop(_ context.Context) error {
 }
 
 func (o *openTelemetryBackend) FullReset(ctx context.Context) error {
-	o.logger.Info("resetting all policies and restarting, skipping if already killed", zap.Int("policies", len(o.runningCollectors)))
-	for policyID, policyEntry := range o.runningCollectors {
-		o.logger.Debug("stopping policy context", zap.String("policy_id", policyID))
-		policyEntry.ctx.Done()
-		if err := o.policyRepo.Remove(policyID); err != nil {
-			o.logger.Warn("failed to remove policy from repo", zap.String("policy_id", policyID), zap.Error(err))
-		}
-	}
+	o.logger.Info("restarting otel backend", zap.Int("running policies", len(o.runningCollectors)))
 	backendCtx, cancelFunc := context.WithCancel(context.WithValue(ctx, "routine", "otel"))
 	if err := o.Start(backendCtx, cancelFunc); err != nil {
 		return err

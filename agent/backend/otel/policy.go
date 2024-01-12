@@ -157,7 +157,9 @@ func (o *openTelemetryBackend) RemovePolicy(data policies.PolicyData) error {
 		if err := os.Remove(policyPath); err != nil {
 			o.logger.Warn("failed to remove policy file, this won't fail policy removal", zap.String("policy_id", data.ID), zap.Error(err))
 		}
+		return nil
 	}
+	o.logger.Warn("no policy was removed, policy not found", zap.String("policy_id", data.ID))
 	return nil
 }
 
