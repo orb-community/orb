@@ -1085,6 +1085,7 @@ func TestViewSink(t *testing.T) {
 		Backend:     sk.Backend,
 		Config:      omittedSink.Config,
 		ConfigData:  omittedSink.ConfigData,
+		Format:      "json",
 		Tags:        sk.Tags,
 		State:       sk.State.String(),
 		Error:       sk.Error,

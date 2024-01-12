@@ -11,6 +11,7 @@ package sinks
 import (
 	"context"
 	"encoding/hex"
+	"encoding/json"
 
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
@@ -47,6 +48,10 @@ func (svc sinkService) CreateSink(ctx context.Context, token string, sink Sink) 
 	cfg := Configuration{
 		Authentication: at,
 		Exporter:       be,
+	}
+
+	if sink.Format == "" {
+		sink.Format = "json"
 	}
 
 	// encrypt data for the password
@@ -284,7 +289,15 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 	if sink.Config == nil && sink.ConfigData == "" {
 		// No config sent, keep the previous
 		sink.Config = currentSink.Config
+		sink.Format = currentSink.Format
+		sink.Config.RemoveKeys([]string{"opentelemetry"})
 		sink.ConfigData = currentSink.ConfigData
+		if sink.Format != "" {
+			sink.ConfigData, err = removeConfigDataKey(sink.ConfigData, sink.Format, []string{"opentelemetry"})
+			if err != nil {
+				svc.logger.Warn("error removing opentelemetry config key", zap.Error(err))
+			}
+		}
 	} else {
 		sink.Backend = currentSink.Backend
 		be, err := svc.validateBackend(&sink)
@@ -298,6 +311,9 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 		cfg = Configuration{
 			Authentication: at,
 			Exporter:       be,
+		}
+		if sink.Format == "" {
+			sink.Format = "json"
 		}
 
 		// check if the password is encrypted and decrypt it if it is
@@ -358,7 +374,37 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 	return sinkEdited, nil
 }
 
-func (svc sinkService) ListBackends(ctx context.Context, token string) ([]string, error) {
+func removeConfigDataKey(configData string, format string, keys []string) (string, error) {
+	if configData == "" {
+		return "", nil
+	}
+	var data types.Metadata
+	switch format {
+	case "json":
+		if err := json.Unmarshal([]byte(configData), &keys); err != nil {
+			return "", err
+		}
+		data.RemoveKeys(keys)
+		if newData, err := json.Marshal(data); err != nil {
+			return "", err
+		} else {
+			return string(newData), nil
+		}
+	case "yaml":
+		if err := yaml.Unmarshal([]byte(configData), &keys); err != nil {
+			return "", err
+		}
+		data.RemoveKeys(keys)
+		if newData, err := yaml.Marshal(data); err != nil {
+			return "", err
+		} else {
+			return string(newData), nil
+		}
+	}
+	return "", errors.New("unrecognized format")
+}
+
+func (svc sinkService) ListBackends(_ context.Context, token string) ([]string, error) {
 	_, err := svc.identify(token)
 	if err != nil {
 		return []string{}, err
@@ -366,7 +412,7 @@ func (svc sinkService) ListBackends(ctx context.Context, token string) ([]string
 	return backend.GetList(), nil
 }
 
-func (svc sinkService) ViewBackend(ctx context.Context, token string, key string) (backend.Backend, error) {
+func (svc sinkService) ViewBackend(_ context.Context, token string, key string) (backend.Backend, error) {
 	_, err := svc.identify(token)
 	if err != nil {
 		return nil, err
@@ -387,6 +433,9 @@ func (svc sinkService) ViewSink(ctx context.Context, token string, key string) (
 	if err != nil {
 		return Sink{}, errors.Wrap(errors.ErrNotFound, err)
 	}
+	if res.Format == "" {
+		res.Format = "json"
+	}
 	return res, nil
 }
 
@@ -400,6 +449,9 @@ func (svc sinkService) ViewSinkInternal(ctx context.Context, ownerID string, key
 	cfg := Configuration{
 		Authentication: authType,
 		Exporter:       be,
+	}
+	if res.Format == "" {
+		res.Format = "json"
 	}
 	res, err = svc.decryptMetadata(cfg, res)
 	if err != nil {
@@ -419,6 +471,9 @@ func (svc sinkService) ListSinksInternal(ctx context.Context, filter Filter) (si
 		cfg := Configuration{
 			Authentication: authType,
 			Exporter:       be,
+		}
+		if sink.Format == "" {
+			sink.Format = "json"
 		}
 		sink, err = svc.decryptMetadata(cfg, sink)
 		if err != nil {
