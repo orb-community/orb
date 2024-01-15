@@ -98,6 +98,7 @@ func (d *diodeBackend) receiveOtlp() {
 					d.logger.Error("otel receiver startup error", zap.Error(err))
 					return
 				}
+				d.logger.Info("Started receiver for diode")
 				break
 			} else {
 				count++

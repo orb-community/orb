@@ -32,6 +32,7 @@ func (o *openTelemetryBackend) receiveOtlp() {
 				//if ok := o.startOtelLogs(exeCtx, execCancelF); !ok {
 				//	return
 				//}
+				o.logger.Info("started otel receiver for opentelemetry")
 				break
 			} else {
 				count++

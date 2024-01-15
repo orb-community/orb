@@ -110,6 +110,7 @@ func (p *pktvisorBackend) receiveOtlp() {
 					p.logger.Error("failed to start otel metric")
 					return
 				}
+				p.logger.Info("started otel receiver for pktvisor")
 				break
 			} else {
 				count++
