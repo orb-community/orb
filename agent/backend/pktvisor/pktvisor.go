@@ -257,8 +257,6 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 		return readinessError
 	}
 
-	p.receiveOtlp()
-
 	return nil
 }
 
@@ -316,6 +314,7 @@ func (p *pktvisorBackend) Configure(logger *zap.Logger, repo policies.PolicyRepo
 	}
 	p.logger.Info("configured otel receiver host", zap.String("host", p.otelReceiverHost), zap.Int("port", p.otelReceiverPort))
 
+	p.receiveOtlp()
 	return nil
 }
 
