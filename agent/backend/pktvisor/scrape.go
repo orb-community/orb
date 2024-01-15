@@ -49,9 +49,6 @@ func (p *pktvisorBackend) createOtlpMqttExporter(ctx context.Context, cancelFunc
 }
 
 func (p *pktvisorBackend) startOtelMetric(exeCtx context.Context, execCancelF context.CancelCauseFunc) bool {
-	if p.exporter != nil {
-		return true
-	}
 	var err error
 	p.exporter, err = p.createOtlpMqttExporter(exeCtx, execCancelF)
 	if err != nil {
