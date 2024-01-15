@@ -125,11 +125,11 @@ func (p *pktvisorBackend) receiveOtlp() {
 		for {
 			select {
 			case <-exeCtx.Done():
-				p.logger.Info("stopped context of opentelemetry pktvisor receiver")
-				return
+				p.ctx.Done()
+				p.cancelFunc()
 			case <-p.ctx.Done():
-				p.logger.Info("stopped context of pktvisor")
-				execCancelF()
+				p.logger.Info("stopped Orb OpenTelemetry agent collector")
+				p.cancelFunc()
 				return
 			}
 		}
