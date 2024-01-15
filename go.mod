@@ -35,7 +35,7 @@ require (
 	go.opentelemetry.io/collector/config/configgrpc v0.91.0
 	go.opentelemetry.io/collector/config/confighttp v0.91.0
 	go.opentelemetry.io/collector/config/confignet v0.91.0
-	go.opentelemetry.io/collector/config/configtelemetry v0.91.0
+	go.opentelemetry.io/collector/config/configtelemetry v0.92.0
 	go.opentelemetry.io/collector/config/configtls v0.91.0
 	go.opentelemetry.io/collector/confmap v0.91.0
 	go.opentelemetry.io/collector/consumer v0.91.0
