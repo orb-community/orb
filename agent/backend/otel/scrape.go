@@ -2,6 +2,7 @@ package otel
 
 import (
 	"context"
+	"errors"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configgrpc"
 	"go.opentelemetry.io/collector/config/confignet"
@@ -15,9 +16,8 @@ import (
 )
 
 func (o *openTelemetryBackend) receiveOtlp() {
-	exeCtx, execCancelF := context.WithCancel(o.mainContext)
+	exeCtx, execCancelF := context.WithCancelCause(o.mainContext)
 	go func() {
-		defer execCancelF()
 		count := 0
 		maxRetries := 20
 		for {
@@ -38,7 +38,7 @@ func (o *openTelemetryBackend) receiveOtlp() {
 				o.logger.Info("waiting until mqtt client is connected try " + strconv.Itoa(count) + " from " + strconv.Itoa(maxRetries))
 				time.Sleep(time.Second * time.Duration(count))
 				if count >= maxRetries {
-					execCancelF()
+					execCancelF(errors.New("mqtt client is not connected"))
 					o.mainCancelFunction()
 					break
 				}
@@ -47,6 +47,7 @@ func (o *openTelemetryBackend) receiveOtlp() {
 		for {
 			select {
 			case <-exeCtx.Done():
+				o.logger.Info("stopped receiver context, pktvisor will not scrape metrics", zap.Error(context.Cause(exeCtx)))
 				o.mainContext.Done()
 				o.mainCancelFunction()
 			case <-o.mainContext.Done():
@@ -58,7 +59,7 @@ func (o *openTelemetryBackend) receiveOtlp() {
 	}()
 }
 
-func (o *openTelemetryBackend) startOtelMetric(exeCtx context.Context, execCancelF context.CancelFunc) bool {
+func (o *openTelemetryBackend) startOtelMetric(exeCtx context.Context, execCancelF context.CancelCauseFunc) bool {
 	if o.metricsExporter != nil {
 		return true
 	}

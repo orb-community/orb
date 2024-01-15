@@ -6,6 +6,7 @@ package diode
 
 import (
 	"context"
+	"errors"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"strconv"
 	"time"
@@ -24,7 +25,7 @@ const (
 	otlpProtocol = "tcp"
 )
 
-func (d *diodeBackend) createOtlpMqttExporter(ctx context.Context, cancelFunc context.CancelFunc) (exporter.Logs, error) {
+func (d *diodeBackend) createOtlpMqttExporter(ctx context.Context, cancelFunc context.CancelCauseFunc) (exporter.Logs, error) {
 
 	bridgeService := otel.NewBridgeService(ctx, cancelFunc, &d.policyRepo, d.agentTags)
 	if d.mqttClient != nil {
@@ -51,9 +52,9 @@ func (d *diodeBackend) createOtlpMqttExporter(ctx context.Context, cancelFunc co
 }
 
 func (d *diodeBackend) receiveOtlp() {
-	exeCtx, execCancelF := context.WithCancel(d.ctx)
+	exeCtx, execCancelF := context.WithCancelCause(d.ctx)
 	go func() {
-		defer execCancelF()
+		defer execCancelF(errors.New("diode agent OpenTelemetry collector stopped"))
 		var err error
 		count := 0
 		for {
@@ -103,7 +104,7 @@ func (d *diodeBackend) receiveOtlp() {
 				d.logger.Info("waiting until mqtt client is connected try " + strconv.Itoa(count) + " from 10")
 				time.Sleep(time.Second * 3)
 				if count >= 10 {
-					execCancelF()
+					execCancelF(errors.New("mqtt client is not connected"))
 					_ = d.Stop(exeCtx)
 					break
 				}
@@ -112,6 +113,7 @@ func (d *diodeBackend) receiveOtlp() {
 		for {
 			select {
 			case <-exeCtx.Done():
+				d.logger.Info("stopped receiver context, pktvisor will not scrape metrics", zap.Error(context.Cause(exeCtx)))
 				d.ctx.Done()
 				d.cancelFunc()
 			case <-d.ctx.Done():

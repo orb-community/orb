@@ -213,7 +213,7 @@ func (o *openTelemetryBackend) GetRunningStatus() (backend.RunningStatus, string
 	return backend.Waiting, "opentelemetry backend is waiting for policy to come to start running", nil
 }
 
-func (o *openTelemetryBackend) createOtlpMetricMqttExporter(ctx context.Context, cancelFunc context.CancelFunc) (exporter.Metrics, error) {
+func (o *openTelemetryBackend) createOtlpMetricMqttExporter(ctx context.Context, cancelFunc context.CancelCauseFunc) (exporter.Metrics, error) {
 	bridgeService := otel.NewBridgeService(ctx, cancelFunc, &o.policyRepo, o.agentTags)
 	var cfg component.Config
 	if o.mqttClient != nil {
@@ -229,7 +229,7 @@ func (o *openTelemetryBackend) createOtlpMetricMqttExporter(ctx context.Context,
 
 }
 
-func (o *openTelemetryBackend) createOtlpTraceMqttExporter(ctx context.Context, cancelFunc context.CancelFunc) (exporter.Traces, error) {
+func (o *openTelemetryBackend) createOtlpTraceMqttExporter(ctx context.Context, cancelFunc context.CancelCauseFunc) (exporter.Traces, error) {
 	bridgeService := otel.NewBridgeService(ctx, cancelFunc, &o.policyRepo, o.agentTags)
 	if o.mqttClient != nil {
 		cfg := otlpmqttexporter.CreateConfigClient(o.mqttClient, o.otlpTracesTopic, "", bridgeService)
@@ -254,7 +254,7 @@ func (o *openTelemetryBackend) createOtlpTraceMqttExporter(ctx context.Context, 
 
 }
 
-func (o *openTelemetryBackend) createOtlpLogsMqttExporter(ctx context.Context, cancelFunc context.CancelFunc) (exporter.Logs, error) {
+func (o *openTelemetryBackend) createOtlpLogsMqttExporter(ctx context.Context, cancelFunc context.CancelCauseFunc) (exporter.Logs, error) {
 	bridgeService := otel.NewBridgeService(ctx, cancelFunc, &o.policyRepo, o.agentTags)
 	if o.mqttClient != nil {
 		cfg := otlpmqttexporter.CreateConfigClient(o.mqttClient, o.otlpLogsTopic, "", bridgeService)
