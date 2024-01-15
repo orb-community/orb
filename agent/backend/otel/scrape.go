@@ -61,9 +61,6 @@ func (o *openTelemetryBackend) receiveOtlp() {
 }
 
 func (o *openTelemetryBackend) startOtelMetric(exeCtx context.Context, execCancelF context.CancelCauseFunc) bool {
-	if o.metricsExporter != nil {
-		return true
-	}
 	var err error
 	o.metricsExporter, err = o.createOtlpMetricMqttExporter(exeCtx, execCancelF)
 	if err != nil {
