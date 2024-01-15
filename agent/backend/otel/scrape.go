@@ -9,7 +9,7 @@ import (
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.opentelemetry.io/otel/sdk/metric"
-	"go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/zap"
 	"strconv"
 	"time"
@@ -83,7 +83,7 @@ func (o *openTelemetryBackend) startOtelMetric(exeCtx context.Context, execCance
 	set := receiver.CreateSettings{
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         o.logger,
-			TracerProvider: trace.NewNoopTracerProvider(),
+			TracerProvider: noop.NewTracerProvider(),
 			MeterProvider:  metric.NewMeterProvider(),
 			ReportComponentStatus: func(*component.StatusEvent) error {
 				return nil

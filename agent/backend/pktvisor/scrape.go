@@ -128,9 +128,13 @@ func (p *pktvisorBackend) receiveOtlp() {
 			case <-exeCtx.Done():
 				p.logger.Info("stopped receiver context, pktvisor will not scrape metrics", zap.Error(context.Cause(exeCtx)))
 				p.cancelFunc()
+				_ = p.exporter.Shutdown(exeCtx)
+				_ = p.receiver.Shutdown(exeCtx)
 			case <-p.ctx.Done():
 				p.logger.Info("stopped pktvisor main context, stopping receiver")
 				execCancelF(errors.New("stopped pktvisor main context"))
+				_ = p.exporter.Shutdown(exeCtx)
+				_ = p.receiver.Shutdown(exeCtx)
 				return
 			}
 		}
