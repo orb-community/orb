@@ -28,7 +28,7 @@ require (
 	github.com/prometheus/client_golang v1.18.0
 	github.com/rubenv/sql-migrate v1.6.0
 	github.com/spf13/cobra v1.8.0
-	github.com/spf13/viper v1.18.1
+	github.com/spf13/viper v1.18.2
 	github.com/stretchr/testify v1.8.4
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
 	go.opentelemetry.io/collector/component v0.91.0
