@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/orb-community/orb/maestro/config/authentication"
 	"time"
 
 	"github.com/orb-community/orb/maestro/config"
@@ -85,8 +86,8 @@ func (d *deploymentService) CreateDeployment(ctx context.Context, deployment *De
 	return nil
 }
 
-func (d *deploymentService) getAuthBuilder(authType string) config.AuthBuilderService {
-	return config.GetAuthService(authType, d.encryptionService)
+func (d *deploymentService) getAuthBuilder(authType string) authentication.AuthBuilderService {
+	return authentication.GetAuthService(authType, d.encryptionService)
 }
 
 func (d *deploymentService) encodeConfig(deployment *Deployment) (types.Metadata, error) {

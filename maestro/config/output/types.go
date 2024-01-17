@@ -1,4 +1,4 @@
-package config
+package output
 
 import (
 	"database/sql/driver"
@@ -136,21 +136,17 @@ type LoggingExporterConfig struct {
 type OTLPExporterConfig struct {
 	Endpoint string                 `json:"endpoint" yaml:"endpoint"`
 	Headers  map[string]interface{} `json:"headers,omitempty" yaml:"headers,omitempty"`
-	Auth     struct {
-		Authenticator string `json:"authenticator" yaml:"authenticator"`
-	}
+	Auth     *Auth                  `json:"auth,omitempty" yaml:"auth,omitempty"`
 }
 
 type Auth struct {
-	Authenticator string `json:"authenticator" yaml:"authenticator"`
+	Authenticator string `json:"authenticator,omitempty" yaml:"authenticator"`
 }
 
 type PrometheusRemoteWriteExporterConfig struct {
 	Endpoint string                 `json:"endpoint" yaml:"endpoint"`
 	Headers  map[string]interface{} `json:"headers,omitempty" yaml:"headers,omitempty"`
-	Auth     struct {
-		Authenticator string `json:"authenticator" yaml:"authenticator"`
-	}
+	Auth     *Auth                  `json:"auth,omitempty" yaml:"auth,omitempty"`
 }
 
 type ServiceConfig struct {
