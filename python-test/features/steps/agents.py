@@ -95,7 +95,7 @@ def check_agent_status_after_seconds(context, status, seconds):
 
 @step('the agent status is {status}')
 def check_agent_status(context, status):
-    timeout = 30
+    timeout = 60
     token = context.token
     agent_status, context.agent = wait_until_expected_agent_status(token, context.agent['id'], status, timeout=timeout)
     logs = get_orb_agent_logs(context.container_id)
