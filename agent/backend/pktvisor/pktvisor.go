@@ -234,6 +234,7 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 	}
 
 	p.logger.Info("pktvisor process started", zap.Int("pid", status.PID))
+	p.receiveOtlp()
 
 	var readinessError error
 	for backoff := 0; backoff < ReadinessBackoff; backoff++ {
@@ -256,8 +257,6 @@ func (p *pktvisorBackend) Start(ctx context.Context, cancelFunc context.CancelFu
 		}
 		return readinessError
 	}
-
-	p.receiveOtlp()
 
 	return nil
 }

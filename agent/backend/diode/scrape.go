@@ -6,7 +6,9 @@ package diode
 
 import (
 	"context"
+	"errors"
 	"go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/trace/noop"
 	"strconv"
 	"time"
 
@@ -16,7 +18,6 @@ import (
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
-	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
@@ -24,7 +25,7 @@ const (
 	otlpProtocol = "tcp"
 )
 
-func (d *diodeBackend) createOtlpMqttExporter(ctx context.Context, cancelFunc context.CancelFunc) (exporter.Logs, error) {
+func (d *diodeBackend) createOtlpMqttExporter(ctx context.Context, cancelFunc context.CancelCauseFunc) (exporter.Logs, error) {
 
 	bridgeService := otel.NewBridgeService(ctx, cancelFunc, &d.policyRepo, d.agentTags)
 	if d.mqttClient != nil {
@@ -51,9 +52,9 @@ func (d *diodeBackend) createOtlpMqttExporter(ctx context.Context, cancelFunc co
 }
 
 func (d *diodeBackend) receiveOtlp() {
-	exeCtx, execCancelF := context.WithCancel(d.ctx)
+	exeCtx, execCancelF := context.WithCancelCause(d.ctx)
 	go func() {
-		defer execCancelF()
+		defer execCancelF(errors.New("diode agent OpenTelemetry collector stopped"))
 		var err error
 		count := 0
 		for {
@@ -72,7 +73,7 @@ func (d *diodeBackend) receiveOtlp() {
 				set := receiver.CreateSettings{
 					TelemetrySettings: component.TelemetrySettings{
 						Logger:         d.logger,
-						TracerProvider: trace.NewNoopTracerProvider(),
+						TracerProvider: noop.NewTracerProvider(),
 						MeterProvider:  metric.NewMeterProvider(),
 						ReportComponentStatus: func(*component.StatusEvent) error {
 							return nil
@@ -97,13 +98,14 @@ func (d *diodeBackend) receiveOtlp() {
 					d.logger.Error("otel receiver startup error", zap.Error(err))
 					return
 				}
+				d.logger.Info("Started receiver for diode")
 				break
 			} else {
 				count++
 				d.logger.Info("waiting until mqtt client is connected try " + strconv.Itoa(count) + " from 10")
 				time.Sleep(time.Second * 3)
 				if count >= 10 {
-					execCancelF()
+					execCancelF(errors.New("mqtt client is not connected"))
 					_ = d.Stop(exeCtx)
 					break
 				}
@@ -112,6 +114,7 @@ func (d *diodeBackend) receiveOtlp() {
 		for {
 			select {
 			case <-exeCtx.Done():
+				d.logger.Info("stopped receiver context, pktvisor will not scrape metrics", zap.Error(context.Cause(exeCtx)))
 				d.ctx.Done()
 				d.cancelFunc()
 			case <-d.ctx.Done():

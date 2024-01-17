@@ -180,15 +180,7 @@ func (o *openTelemetryBackend) Stop(_ context.Context) error {
 }
 
 func (o *openTelemetryBackend) FullReset(ctx context.Context) error {
-	o.logger.Info("resetting all policies and restarting, skipping if already killed", zap.Int("policies", len(o.runningCollectors)))
-	for policyID, policyEntry := range o.runningCollectors {
-		o.logger.Debug("stopping policy context", zap.String("policy_id", policyID))
-		policyEntry.ctx.Done()
-		if err := o.ApplyPolicy(policyEntry.policyData, true); err != nil {
-			o.logger.Error("failed to apply policy", zap.Error(err))
-			return err
-		}
-	}
+	o.logger.Info("restarting otel backend", zap.Int("running policies", len(o.runningCollectors)))
 	backendCtx, cancelFunc := context.WithCancel(context.WithValue(ctx, "routine", "otel"))
 	if err := o.Start(backendCtx, cancelFunc); err != nil {
 		return err
@@ -221,7 +213,7 @@ func (o *openTelemetryBackend) GetRunningStatus() (backend.RunningStatus, string
 	return backend.Waiting, "opentelemetry backend is waiting for policy to come to start running", nil
 }
 
-func (o *openTelemetryBackend) createOtlpMetricMqttExporter(ctx context.Context, cancelFunc context.CancelFunc) (exporter.Metrics, error) {
+func (o *openTelemetryBackend) createOtlpMetricMqttExporter(ctx context.Context, cancelFunc context.CancelCauseFunc) (exporter.Metrics, error) {
 	bridgeService := otel.NewBridgeService(ctx, cancelFunc, &o.policyRepo, o.agentTags)
 	var cfg component.Config
 	if o.mqttClient != nil {
@@ -237,7 +229,7 @@ func (o *openTelemetryBackend) createOtlpMetricMqttExporter(ctx context.Context,
 
 }
 
-func (o *openTelemetryBackend) createOtlpTraceMqttExporter(ctx context.Context, cancelFunc context.CancelFunc) (exporter.Traces, error) {
+func (o *openTelemetryBackend) createOtlpTraceMqttExporter(ctx context.Context, cancelFunc context.CancelCauseFunc) (exporter.Traces, error) {
 	bridgeService := otel.NewBridgeService(ctx, cancelFunc, &o.policyRepo, o.agentTags)
 	if o.mqttClient != nil {
 		cfg := otlpmqttexporter.CreateConfigClient(o.mqttClient, o.otlpTracesTopic, "", bridgeService)
@@ -262,7 +254,7 @@ func (o *openTelemetryBackend) createOtlpTraceMqttExporter(ctx context.Context, 
 
 }
 
-func (o *openTelemetryBackend) createOtlpLogsMqttExporter(ctx context.Context, cancelFunc context.CancelFunc) (exporter.Logs, error) {
+func (o *openTelemetryBackend) createOtlpLogsMqttExporter(ctx context.Context, cancelFunc context.CancelCauseFunc) (exporter.Logs, error) {
 	bridgeService := otel.NewBridgeService(ctx, cancelFunc, &o.policyRepo, o.agentTags)
 	if o.mqttClient != nil {
 		cfg := otlpmqttexporter.CreateConfigClient(o.mqttClient, o.otlpLogsTopic, "", bridgeService)

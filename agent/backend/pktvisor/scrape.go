@@ -6,7 +6,9 @@ package pktvisor
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"go.opentelemetry.io/otel/trace/noop"
 	"net/http"
 	"strconv"
 	"time"
@@ -19,7 +21,6 @@ import (
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.opentelemetry.io/otel/sdk/metric"
-	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
@@ -32,7 +33,7 @@ func (p *pktvisorBackend) scrapeMetrics(period uint) (map[string]interface{}, er
 	return metrics, nil
 }
 
-func (p *pktvisorBackend) createOtlpMqttExporter(ctx context.Context, cancelFunc context.CancelFunc) (exporter.Metrics, error) {
+func (p *pktvisorBackend) createOtlpMqttExporter(ctx context.Context, cancelFunc context.CancelCauseFunc) (exporter.Metrics, error) {
 	bridgeService := otel.NewBridgeService(ctx, cancelFunc, &p.policyRepo, p.agentTags)
 	var cfg component.Config
 	if p.mqttClient != nil {
@@ -47,10 +48,7 @@ func (p *pktvisorBackend) createOtlpMqttExporter(ctx context.Context, cancelFunc
 	return otlpmqttexporter.CreateMetricsExporter(ctx, set, cfg)
 }
 
-func (p *pktvisorBackend) startOtelMetric(exeCtx context.Context, execCancelF context.CancelFunc) bool {
-	if p.exporter != nil {
-		return true
-	}
+func (p *pktvisorBackend) startOtelMetric(exeCtx context.Context, execCancelF context.CancelCauseFunc) bool {
 	var err error
 	p.exporter, err = p.createOtlpMqttExporter(exeCtx, execCancelF)
 	if err != nil {
@@ -70,7 +68,7 @@ func (p *pktvisorBackend) startOtelMetric(exeCtx context.Context, execCancelF co
 	set := receiver.CreateSettings{
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         p.logger,
-			TracerProvider: trace.NewNoopTracerProvider(),
+			TracerProvider: noop.NewTracerProvider(),
 			MeterProvider:  metric.NewMeterProvider(),
 			ReportComponentStatus: func(*component.StatusEvent) error {
 				return nil
@@ -100,9 +98,8 @@ func (p *pktvisorBackend) startOtelMetric(exeCtx context.Context, execCancelF co
 }
 
 func (p *pktvisorBackend) receiveOtlp() {
-	exeCtx, execCancelF := context.WithCancel(p.ctx)
+	exeCtx, execCancelF := context.WithCancelCause(p.ctx)
 	go func() {
-		defer execCancelF()
 		count := 0
 		for {
 			if p.mqttClient != nil {
@@ -110,13 +107,14 @@ func (p *pktvisorBackend) receiveOtlp() {
 					p.logger.Error("failed to start otel metric")
 					return
 				}
+				p.logger.Info("started otel receiver for pktvisor")
 				break
 			} else {
 				count++
 				p.logger.Info("waiting until mqtt client is connected try " + strconv.Itoa(count) + " from 10")
 				time.Sleep(time.Second * time.Duration(count))
 				if count >= 10 {
-					execCancelF()
+					execCancelF(errors.New("mqtt client is not connected"))
 					_ = p.Stop(exeCtx)
 					break
 				}
@@ -125,11 +123,15 @@ func (p *pktvisorBackend) receiveOtlp() {
 		for {
 			select {
 			case <-exeCtx.Done():
-				p.ctx.Done()
+				p.logger.Info("stopped receiver context, pktvisor will not scrape metrics", zap.Error(context.Cause(exeCtx)))
 				p.cancelFunc()
+				_ = p.exporter.Shutdown(exeCtx)
+				_ = p.receiver.Shutdown(exeCtx)
 			case <-p.ctx.Done():
-				p.logger.Info("stopped Orb OpenTelemetry agent collector")
-				p.cancelFunc()
+				p.logger.Info("stopped pktvisor main context, stopping receiver")
+				execCancelF(errors.New("stopped pktvisor main context"))
+				_ = p.exporter.Shutdown(exeCtx)
+				_ = p.receiver.Shutdown(exeCtx)
 				return
 			}
 		}
