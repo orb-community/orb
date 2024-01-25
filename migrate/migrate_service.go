@@ -98,7 +98,6 @@ func (s *serviceMigrate) CurrentSchemaVersion() (int64, error) {
 	return schemaVersion, err
 }
 
-// TODO This will need to be manually updated up until refactored
 func (s *serviceMigrate) LatestSchemaVersion() int64 {
 	return 3
 }
