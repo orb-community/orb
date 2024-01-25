@@ -37,6 +37,11 @@ jobs:
               - 'cmd/sinks/**'
               - 'sinker/**'
               - 'cmd/sinker/**'
+              - 'maestro/**'
+              - 'cmd/maestro/**'
+            migrate:
+              - 'migrate/**'
+              - 'cmd/migrate/**'
             ui: 
               - 'ui/**'
       - name: Set branch name
@@ -384,6 +389,30 @@ jobs:
         run: |
           docker push -a orbcommunity/orb-ui
 
+  package-migrate:
+    needs:
+      - prebuild
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build orb migrate service image
+        if: ${{ needs.prebuild.outputs.migrate == 'true' }}
+        run: |
+          SERVICE=migrate make build_docker     
+
+      - name: Login to Docker Hub orbcommunity
+        if: ${{ needs.prebuild.outputs.migrate == 'true' }}
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.ORB_DOCKERHUB_USERNAME }}
+          password: ${{ secrets.ORB_DOCKERHUB_TOKEN }}
+
+      - name: Push orb migrate service image orbcommunity
+        if: ${{ needs.prebuild.outputs.migrate == 'true' }}
+        run: |
+          docker push -a orbcommunity/orb-migrate
+
   release:
     needs:
       - prebuild
@@ -392,6 +421,7 @@ jobs:
       - package-sinker
       - package-sinks
       - package-ui
+      - package-migrate
     runs-on: ubuntu-latest
     # if this is a push into one of our main branches (rather than just a pull request), we will also package
     if: github.event_name != 'pull_request'

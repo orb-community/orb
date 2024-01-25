@@ -612,8 +612,7 @@ jobs:
 
   package-migrate:
     needs:
-      - package-ui-dependencies
-      - package-ui
+        - prebuild
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
