@@ -100,7 +100,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Repository Dispatch
-      uses: peter-evans/repository-dispatch@v2
+      uses: peter-evans/repository-dispatch@v3
       if: ${{ needs.prebuild.outputs.docs == 'true' && github.event_name != 'pull_request' }}
       with:
         token: ${{ secrets.GH_ORB_ACCESS_TOKEN }}
