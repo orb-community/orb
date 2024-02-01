@@ -63,7 +63,7 @@ func (p *pktvisorBackend) RemovePolicy(data policies.PolicyData) error {
 	}
 	if err := p.request(fmt.Sprintf("policies/%s", name), &resp, http.MethodDelete, http.NoBody, "application/json", RemovePolicyTimeout); err != nil {
 		if strings.Contains(err.Error(), "404") {
-			p.logger.Warn("ignoring error from removing a policy which was not found", zap.String("policy_id", data.ID), zap.String("policy_name", name))
+			p.logger.Warn("ignoring error from removing a policy not found", zap.String("policy_id", data.ID), zap.String("policy_name", name))
 			return nil
 		}
 		return err
