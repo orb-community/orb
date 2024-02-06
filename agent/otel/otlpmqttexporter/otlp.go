@@ -197,7 +197,7 @@ func (e *baseExporter) injectScopeLogsAttribute(logsScope plog.ScopeLogs, attrib
 }
 
 func (e *baseExporter) shutdown(_ context.Context) error {
-	if e.config.Client == nil || !(*e.config.Client).IsConnected() {
+	if e.config.Client != nil && (*e.config.Client).IsConnected() {
 		(*e.config.Client).Disconnect(0)
 	}
 	return nil

@@ -31,6 +31,7 @@ func (a *orbAgent) connect(ctx context.Context, config config.MQTTConfig) (mqtt.
 		// If it is a bug on the mqttclient, stop the agent
 		if strings.Contains(err.Error(), "BUG") {
 			a.Stop(ctx)
+			return
 		}
 		a.logger.Info("reconnecting....")
 		a.requestReconnection(ctx, a.client, config)
