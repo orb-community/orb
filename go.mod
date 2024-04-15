@@ -29,7 +29,7 @@ require (
 	github.com/rubenv/sql-migrate v1.6.1
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.18.2
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
 	go.opentelemetry.io/collector/component v0.91.0
 	go.opentelemetry.io/collector/config/configgrpc v0.91.0
@@ -145,7 +145,7 @@ require (
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/collector/config/configauth v0.91.0 // indirect
-	go.opentelemetry.io/collector/config/configcompression v0.91.0 // indirect
+	go.opentelemetry.io/collector/config/configcompression v1.5.0 // indirect
 	go.opentelemetry.io/collector/config/configopaque v0.91.0 // indirect
 	go.opentelemetry.io/collector/config/internal v0.91.0 // indirect
 	go.opentelemetry.io/collector/extension v0.91.0 // indirect
