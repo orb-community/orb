@@ -3,12 +3,22 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { NotificationsService } from 'app/common/services/notifications/notifications.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { AgentPolicy, AgentPolicyBackend } from 'app/common/interfaces/orb/agent.policy.interface';
+import {
+  AgentPolicy,
+  AgentPolicyBackend,
+} from 'app/common/interfaces/orb/agent.policy.interface';
 import { AgentPoliciesService } from 'app/common/services/agents/agent.policies.service';
 import { STRINGS } from '../../../../../assets/text/strings';
 import { Tags } from 'app/common/interfaces/orb/tag';
 import { CodeEditorService } from 'app/common/services/code.editor.service';
-import { POLICY_DIODE_CONFIG_JSON, POLICY_DIODE_CONFIG_YAML, POLICY_OTEL_CONFIG_JSON, POLICY_OTEL_CONFIG_YAML, POLICY_PKTVISOR_CONFIG_JSON, POLICY_PKTVISOR_CONFIG_YAML } from 'app/shared/configurations/configurations_schemas';
+import {
+  POLICY_DIODE_CONFIG_JSON,
+  POLICY_DIODE_CONFIG_YAML,
+  POLICY_OTEL_CONFIG_JSON,
+  POLICY_OTEL_CONFIG_YAML,
+  POLICY_PKTVISOR_CONFIG_JSON,
+  POLICY_PKTVISOR_CONFIG_YAML,
+} from 'app/shared/configurations/configurations_schemas';
 const CONFIG = {
   TAPS: 'TAPS',
   BACKEND: 'BACKEND',
@@ -37,9 +47,9 @@ export class AgentPolicyAddComponent implements OnInit {
   // hold info retrieved
   availableBackends: {
     [propName: string]: {
-      backend: string,
-      description: string,
-    },
+      backend: string;
+      description: string;
+    };
   };
 
   agentPolicy: AgentPolicy;
@@ -105,11 +115,10 @@ export class AgentPolicyAddComponent implements OnInit {
   format = 'yaml';
 
   // #load controls
-  isLoading = Object.entries(CONFIG)
-    .reduce((acc, [value]) => {
-      acc[value] = false;
-      return acc;
-    }, {}) as { [propName: string]: boolean };
+  isLoading = Object.entries(CONFIG).reduce((acc, [value]) => {
+    acc[value] = false;
+    return acc;
+  }, {}) as { [propName: string]: boolean };
 
   selectedTags: Tags;
 
@@ -137,9 +146,14 @@ export class AgentPolicyAddComponent implements OnInit {
     Promise.all([
       this.isEdit ? this.retrieveAgentPolicy() : Promise.resolve(),
       this.getBackendsList(),
-    ]).catch(reason => console.warn(`Couldn't fetch data. Reason: ${reason}`))
+    ])
+      .catch((reason) => console.warn(`Couldn't fetch data. Reason: ${reason}`))
       .then(() => this.updateForms())
-      .catch((reason) => console.warn(`Couldn't fetch ${this.agentPolicy?.backend} data. Reason: ${reason}`));
+      .catch((reason) =>
+        console.warn(
+          `Couldn't fetch ${this.agentPolicy?.backend} data. Reason: ${reason}`,
+        ),
+      );
   }
   ngOnInit() {
     this.selectedTags = this.agentPolicy?.tags || {};
@@ -175,29 +189,35 @@ export class AgentPolicyAddComponent implements OnInit {
   }
 
   retrieveAgentPolicy() {
-    return new Promise(resolve => {
-      this.agentPoliciesService.getAgentPolicyById(this.agentPolicyID).subscribe(policy => {
-        this.agentPolicy = policy;
-        this.isLoading[CONFIG.AGENT_POLICY] = false;
-        resolve(policy);
-      });
+    return new Promise((resolve) => {
+      this.agentPoliciesService
+        .getAgentPolicyById(this.agentPolicyID)
+        .subscribe((policy) => {
+          this.agentPolicy = policy;
+          this.isLoading[CONFIG.AGENT_POLICY] = false;
+          resolve(policy);
+        });
     });
   }
 
   isLoadComplete() {
-    return !Object.values(this.isLoading).reduce((prev, curr) => prev || curr, false);
+    return !Object.values(this.isLoading).reduce(
+      (prev, curr) => prev || curr,
+      false,
+    );
   }
 
   readyForms() {
     this.detailsFG = this._formBuilder.group({
-      name: [name, [
+      name: [
+        name,
+        [
           Validators.required,
           Validators.pattern('^[a-zA-Z_][a-zA-Z0-9_-]*$'),
           Validators.maxLength(64),
-      ]],
-      description: [[
-        Validators.maxLength(64),
-      ]],
+        ],
+      ],
+      description: [[Validators.maxLength(64)]],
       backend: [[Validators.required]],
     });
   }
@@ -209,9 +229,7 @@ export class AgentPolicyAddComponent implements OnInit {
       backend,
       format,
       policy_data,
-      policy: {
-        handlers,
-      },
+      policy: { handlers },
     } = this.agentPolicy;
 
     const wizard = format !== this.format;
@@ -224,18 +242,22 @@ export class AgentPolicyAddComponent implements OnInit {
     this.detailsFG.patchValue({ name, description, backend });
 
     if (wizard) {
-      this.onBackendSelected(backend).catch(reason => console.warn(`${reason}`));
+      this.onBackendSelected(backend).catch((reason) =>
+        console.warn(`${reason}`),
+      );
     }
   }
 
   getBackendsList() {
     return new Promise((resolve) => {
       this.isLoading[CONFIG.BACKEND] = true;
-      this.agentPoliciesService.getAvailableBackends().subscribe(backends => {
-        this.availableBackends = !!backends && backends.reduce((acc, curr) => {
-          acc[curr.backend] = curr;
-          return acc;
-        }, {});
+      this.agentPoliciesService.getAvailableBackends().subscribe((backends) => {
+        this.availableBackends =
+          !!backends &&
+          backends.reduce((acc, curr) => {
+            acc[curr.backend] = curr;
+            return acc;
+          }, {});
 
         this.isLoading[CONFIG.BACKEND] = false;
 
@@ -263,7 +285,7 @@ export class AgentPolicyAddComponent implements OnInit {
     const reader: FileReader = new FileReader();
 
     reader.onload = (e: any) => {
-    const fileContent = e.target.result;
+      const fileContent = e.target.result;
       if (this.isJsonMode) {
         this.codejson = fileContent;
       } else {
@@ -283,7 +305,11 @@ export class AgentPolicyAddComponent implements OnInit {
         description: this.detailsFG.controls.description.value,
         backend: this.detailsFG.controls.backend.value,
         policy: policy,
-        version: !!this.isEdit && !!this.agentPolicy.version && this.agentPolicy.version || 1,
+        version:
+          (!!this.isEdit &&
+            !!this.agentPolicy.version &&
+            this.agentPolicy.version) ||
+          1,
         tags: this.selectedTags,
       };
     } else {
@@ -293,7 +319,11 @@ export class AgentPolicyAddComponent implements OnInit {
         backend: this.detailsFG.controls.backend.value,
         format: this.format,
         policy_data: this.codeyaml,
-        version: !!this.isEdit && !!this.agentPolicy.version && this.agentPolicy.version || 1,
+        version:
+          (!!this.isEdit &&
+            !!this.agentPolicy.version &&
+            this.agentPolicy.version) ||
+          1,
         tags: this.selectedTags,
       };
     }
@@ -303,7 +333,10 @@ export class AgentPolicyAddComponent implements OnInit {
   submit(payload) {
     this.agentPoliciesService.addAgentPolicy(payload).subscribe(
       (next) => {
-        this.notificationsService.success('Agent Policy successfully created', '');
+        this.notificationsService.success(
+          'Agent Policy successfully created',
+          '',
+        );
         this.viewPolicy(next.id);
       },
       (error) => {
@@ -321,21 +354,29 @@ export class AgentPolicyAddComponent implements OnInit {
         this.errorConfigMessage = '';
         return true;
       } else {
-        this.errorConfigMessage = 'Invalid JSON configuration, check syntax errors.';
+        this.errorConfigMessage =
+          'Invalid JSON configuration, check syntax errors.';
         return false;
       }
     } else {
-      if (this.editor.isYaml(this.codeyaml) && !this.editor.isJson(this.codeyaml)) {
+      if (
+        this.editor.isYaml(this.codeyaml) &&
+        !this.editor.isJson(this.codeyaml)
+      ) {
         this.errorConfigMessage = '';
         return true;
       } else {
-        this.errorConfigMessage = 'Invalid YAML configuration, check syntax errors.';
+        this.errorConfigMessage =
+          'Invalid YAML configuration, check syntax errors.';
         return false;
       }
     }
   }
   refreshEditor() {
-    this.editorVisible = false; setTimeout(() => { this.editorVisible = true; }, 0);
+    this.editorVisible = false;
+    setTimeout(() => {
+      this.editorVisible = true;
+    }, 0);
   }
   defineDefaultConfig() {
     if (this.backendName === AgentPolicyBackend.otel) {
@@ -344,8 +385,7 @@ export class AgentPolicyAddComponent implements OnInit {
     } else if (this.backendName === AgentPolicyBackend.pktvisor) {
       this.codeyaml = POLICY_PKTVISOR_CONFIG_YAML;
       this.codejson = POLICY_PKTVISOR_CONFIG_JSON;
-    }
-    else {
+    } else {
       this.codeyaml = POLICY_DIODE_CONFIG_YAML;
       this.codejson = POLICY_DIODE_CONFIG_JSON;
     }

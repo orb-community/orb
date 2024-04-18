@@ -34,9 +34,9 @@ export class FilterService {
     const storedFiltersList = JSON.parse(storedFilters);
     let found = false;
 
-    storedFiltersList.map((filter) => {
-      if (filter.name === 'Name' && filter.prop === 'name') {
-        this.searchName = filter.param;
+    storedFiltersList.map((f) => {
+      if (f.name === 'Name' && f.prop === 'name') {
+        this.searchName = f.param;
         found = true;
       }
     });
@@ -98,8 +98,8 @@ export class FilterService {
   }
 
   getMultiAppliedParams(filterName: string) {
-    const filter = this._filters.find((f) => f.name === filterName);
-    return filter?.param ? filter.param : [];
+    const _filter = this._filters.find((f) => f.name === filterName);
+    return _filter?.param ? _filter.param : [];
   }
 
   // make a decorator out of this?
