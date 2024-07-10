@@ -2,8 +2,9 @@ package config
 
 import (
 	"database/sql/driver"
-	"github.com/orb-community/orb/pkg/types"
 	"time"
+
+	"github.com/orb-community/orb/pkg/types"
 )
 
 type SinkData struct {
@@ -82,8 +83,8 @@ type Extensions struct {
 	PProf                *PProfExtension       `json:"pprof,omitempty" yaml:"pprof,omitempty" :"p_prof"`
 	ZPages               *ZPagesExtension      `json:"zpages,omitempty" yaml:"zpages,omitempty" :"z_pages"`
 	// Exporters Authentication
-	BasicAuth *BasicAuthenticationExtension `json:"basicauth/exporter,omitempty" yaml:"basicauth/exporter,omitempty" :"basic_auth"`
-	//BearerAuth *BearerAuthExtension          `json:"bearerauth/exporter,omitempty" yaml:"bearerauth/exporter,omitempty" :"bearer_auth"`
+	BasicAuth  *BasicAuthenticationExtension `json:"basicauth/exporter,omitempty" yaml:"basicauth/exporter,omitempty" :"basic_auth"`
+	BearerAuth *BearerTokenAuthExtension     `json:"bearertokenauth/withscheme,omitempty" yaml:"bearertokenauth/withscheme,omitempty"`
 }
 
 type HealthCheckExtension struct {
@@ -115,10 +116,9 @@ type BasicAuthenticationExtension struct {
 	ClientAuth *ClientAuth `json:"client_auth" yaml:"client_auth"`
 }
 
-type BearerAuthExtension struct {
-	BearerAuth *struct {
-		Token string `json:"token" yaml:"token"`
-	} `json:"client_auth" yaml:"client_auth"`
+type BearerTokenAuthExtension struct {
+	Scheme string `json:"scheme" yaml:"scheme"`
+	Token  string `json:"token" yaml:"token"`
 }
 
 type Exporters struct {
