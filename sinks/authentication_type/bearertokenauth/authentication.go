@@ -1,6 +1,8 @@
 package bearertokenauth
 
 import (
+	"strings"
+
 	"gopkg.in/yaml.v2"
 
 	"github.com/orb-community/orb/pkg/errors"
@@ -36,8 +38,8 @@ type (
 	AuthConfig struct {
 		encryptionService authentication_type.PasswordService
 
-		Scheme string `json:"scheme" ,yaml:"scheme"`
-		Token  string `json:"token" ,yaml:"token"`
+		Scheme *string `json:"scheme" ,yaml:"scheme"`
+		Token  *string `json:"token" ,yaml:"token"`
 	}
 )
 
@@ -48,28 +50,31 @@ func (a *AuthConfig) GetFeatureConfig() []authentication_type.ConfigFeature {
 func (a *AuthConfig) ValidateConfiguration(inputFormat string, input any) error {
 	switch inputFormat {
 	case "object":
+		if _, ok := input.(types.Metadata)[SchemeConfigFeature]; !ok {
+			return errors.Wrap(errors.ErrSchemeNotFound, errors.New("scheme field was not found"))
+		}
+
+		if _, ok := input.(types.Metadata)[TokenConfigFeature]; !ok {
+			return errors.Wrap(errors.ErrTokenNotFound, errors.New("token field was not found"))
+		}
+
 		for key, value := range input.(types.Metadata) {
-			if _, ok := value.(string); !ok {
-				if key == "scheme" {
+			if key == SchemeConfigFeature {
+				if _, ok := value.(string); !ok {
 					return errors.Wrap(errors.ErrInvalidSchemeType, errors.New("invalid auth type for field: "+key))
 				}
 
-				if key == "token" {
-					return errors.Wrap(errors.ErrInvalidTokenType, errors.New("invalid auth type for field: "+key))
-				}
-			}
-
-			vs := value.(string)
-
-			if key == SchemeConfigFeature {
-				if vs == "" {
-					return errors.New("scheme cannot be empty")
+				if len(strings.Fields(value.(string))) != 1 {
+					return errors.Wrap(errors.ErrInvalidSchemeType, errors.New("invalid authentication scheme"))
 				}
 			}
 
 			if key == TokenConfigFeature {
-				if vs == "" {
-					return errors.New("token cannot be empty")
+				if _, ok := value.(string); !ok {
+					return errors.Wrap(errors.ErrInvalidTokenType, errors.New("invalid auth type for field: "+key))
+				}
+				if len(strings.Fields(value.(string))) != 1 {
+					return errors.Wrap(errors.ErrInvalidTokenType, errors.New("invalid authentication token"))
 				}
 			}
 		}
@@ -79,12 +84,20 @@ func (a *AuthConfig) ValidateConfiguration(inputFormat string, input any) error 
 			return err
 		}
 
-		if a.Scheme == "" {
-			return errors.New("scheme cannot be empty")
+		if a.Scheme == nil {
+			return errors.Wrap(errors.ErrSchemeNotFound, errors.New("scheme field was not found"))
 		}
 
-		if a.Token == "" {
-			return errors.New("token cannot be empty")
+		if len(strings.Fields(*a.Scheme)) != 1 {
+			return errors.Wrap(errors.ErrInvalidSchemeType, errors.New("invalid authentication scheme"))
+		}
+
+		if a.Token == nil {
+			return errors.Wrap(errors.ErrTokenNotFound, errors.New("token field was not found"))
+		}
+
+		if len(strings.Fields(*a.Token)) != 1 {
+			return errors.Wrap(errors.ErrInvalidTokenType, errors.New("invalid authentication token"))
 		}
 	}
 

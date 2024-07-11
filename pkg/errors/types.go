@@ -45,10 +45,13 @@ var (
 	// ErrInvalidAuthType indicates invalid authentication type
 	ErrInvalidAuthType = New("malformed entity specification. type key on authentication field is invalid")
 
+	// ErrUsernameNotFound indicates that username key was not found
+	ErrUsernameNotFound = New("malformed entity specification. username key is expected on authentication field")
+
 	// ErrPasswordNotFound indicates that password key was not found
 	ErrPasswordNotFound = New("malformed entity specification. password key is expected on authentication field")
 
-	// ErrSchemeNotFound indicates that token key was not found
+	// ErrSchemeNotFound indicates that scheme key was not found
 	ErrSchemeNotFound = New("malformed entity specification. scheme key is expected on authentication field")
 
 	// ErrTokendNotFound indicates that token key was not found

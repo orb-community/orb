@@ -3,10 +3,12 @@ package bearertokenauth
 import (
 	"testing"
 
-	"github.com/orb-community/orb/pkg/types"
-	"github.com/orb-community/orb/sinks/authentication_type"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/orb-community/orb/pkg/errors"
+	"github.com/orb-community/orb/pkg/types"
+	"github.com/orb-community/orb/sinks/authentication_type"
 )
 
 func TestAuthConfig_ValidateConfiguration(t *testing.T) {
@@ -17,10 +19,20 @@ func TestAuthConfig_ValidateConfiguration(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		wantErr bool
+		wantErr error
 	}{
 		{
 			name: "missing_schema",
+			args: args{
+				inputFormat: "object",
+				input: types.Metadata{
+					"token": "test_api_key",
+				},
+			},
+			wantErr: errors.ErrSchemeNotFound,
+		},
+		{
+			name: "empty_schema",
 			args: args{
 				inputFormat: "object",
 				input: types.Metadata{
@@ -28,7 +40,29 @@ func TestAuthConfig_ValidateConfiguration(t *testing.T) {
 					"token":  "test_api_key",
 				},
 			},
-			wantErr: true,
+			wantErr: errors.ErrInvalidSchemeType,
+		},
+		{
+			name: "invalid_schema_type",
+			args: args{
+				inputFormat: "object",
+				input: types.Metadata{
+					"scheme": 1234,
+					"token":  "test_api_key",
+				},
+			},
+			wantErr: errors.ErrInvalidSchemeType,
+		},
+		{
+			name: "invalid_schema",
+			args: args{
+				inputFormat: "object",
+				input: types.Metadata{
+					"scheme": "fake schema",
+					"token":  "test_api_key",
+				},
+			},
+			wantErr: errors.ErrInvalidSchemeType,
 		},
 		{
 			name: "missing_token",
@@ -36,10 +70,42 @@ func TestAuthConfig_ValidateConfiguration(t *testing.T) {
 				inputFormat: "object",
 				input: types.Metadata{
 					"scheme": "Bearer",
+				},
+			},
+			wantErr: errors.ErrTokenNotFound,
+		},
+		{
+			name: "empty_token",
+			args: args{
+				inputFormat: "object",
+				input: types.Metadata{
+					"scheme": "Bearer",
 					"token":  "",
 				},
 			},
-			wantErr: true,
+			wantErr: errors.ErrInvalidTokenType,
+		},
+		{
+			name: "invalid_token_type",
+			args: args{
+				inputFormat: "object",
+				input: types.Metadata{
+					"scheme": "Bearer",
+					"token":  1234,
+				},
+			},
+			wantErr: errors.ErrInvalidTokenType,
+		},
+		{
+			name: "invalid_token_value",
+			args: args{
+				inputFormat: "object",
+				input: types.Metadata{
+					"scheme": "Bearer",
+					"token":  "invalid api key",
+				},
+			},
+			wantErr: errors.ErrInvalidTokenType,
 		},
 		{
 			name: "valid",
@@ -50,7 +116,7 @@ func TestAuthConfig_ValidateConfiguration(t *testing.T) {
 					"token":  "abcdefg",
 				},
 			},
-			wantErr: false,
+			wantErr: nil,
 		},
 	}
 
@@ -58,8 +124,8 @@ func TestAuthConfig_ValidateConfiguration(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var a AuthConfig
 			err := a.ValidateConfiguration(tt.args.inputFormat, tt.args.input)
-			if tt.wantErr {
-				assert.Error(t, err)
+			if tt.wantErr != nil {
+				assert.ErrorContains(t, err, tt.wantErr.Error())
 			} else {
 				assert.NoError(t, err)
 			}

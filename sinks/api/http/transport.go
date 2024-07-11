@@ -242,6 +242,8 @@ func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 			w.WriteHeader(http.StatusBadRequest)
 		case errors.Contains(errorVal, errors.ErrBackendNotFound):
 			w.WriteHeader(http.StatusBadRequest)
+		case errors.Contains(errorVal, errors.ErrUsernameNotFound):
+			w.WriteHeader(http.StatusBadRequest)
 		case errors.Contains(errorVal, errors.ErrPasswordNotFound):
 			w.WriteHeader(http.StatusBadRequest)
 		case errors.Contains(errorVal, errors.ErrAuthTypeNotFound):
