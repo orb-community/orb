@@ -59,13 +59,13 @@ func (a *AuthConfig) ValidateConfiguration(inputFormat string, input interface{}
 		for key, value := range input.(types.Metadata) {
 			if _, ok := value.(string); !ok {
 				if key == "password" {
-					return errors.Wrap(errors.ErrInvalidPasswordType, errors.New("invalid auth type for field: " + key))
+					return errors.Wrap(errors.ErrInvalidPasswordType, errors.New("invalid auth type for field: "+key))
 				}
 				if key == "type" {
-					return errors.Wrap(errors.ErrInvalidAuthType, errors.New("invalid auth type for field: " + key))
+					return errors.Wrap(errors.ErrInvalidAuthType, errors.New("invalid auth type for field: "+key))
 				}
 				if key == "username" {
-					return errors.Wrap(errors.ErrInvalidUsernameType, errors.New("invalid auth type for field: " + key))
+					return errors.Wrap(errors.ErrInvalidUsernameType, errors.New("invalid auth type for field: "+key))
 				}
 			}
 			vs := value.(string)

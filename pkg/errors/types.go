@@ -41,7 +41,7 @@ var (
 
 	// ErrAuthTypeNotFound indicates that authentication type field was not found on the authentication field
 	ErrAuthTypeNotFound = New("malformed entity specification: authentication type field is expected on configuration field")
-	
+
 	// ErrInvalidAuthType indicates invalid authentication type
 	ErrInvalidAuthType = New("malformed entity specification. type key on authentication field is invalid")
 
