@@ -24,7 +24,7 @@ type sinkerActivityListenerService struct {
 }
 
 const (
-	idleStream = "orb.sink_idle"
+	idleStream     = "orb.sink_idle"
 	activityStream = "orb.sink_activity"
 )
 

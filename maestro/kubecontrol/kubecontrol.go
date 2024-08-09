@@ -96,7 +96,7 @@ func (svc *deployService) collectorDeploy(ctx context.Context, operation, ownerI
 	}
 
 	// delete temporary file
-	os.Remove("/tmp/otel-collector-"+sinkId+".json")
+	os.Remove("/tmp/otel-collector-" + sinkId + ".json")
 
 	// TODO this will be retrieved once we move to K8s SDK
 	collectorName := fmt.Sprintf("otel-%s", sinkId)

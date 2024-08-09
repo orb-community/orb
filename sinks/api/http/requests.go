@@ -85,7 +85,7 @@ func GetConfigurationAndMetadataFromMeta(backendName string, config types.Metada
 }
 
 func GetConfigurationAndMetadataFromYaml(backendName string, config string) (configSvc *sinks.Configuration, exporter types.Metadata, authentication types.Metadata, err error) {
-	
+
 	if !backend.HaveBackend(backendName) {
 		return nil, nil, nil, errors.Wrap(errors.ErrInvalidBackend, errors.New("invalid backend"))
 	}

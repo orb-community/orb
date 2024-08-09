@@ -34,7 +34,7 @@ func (s *sinkerKeyExpirationListener) SubscribeToKeyExpiration(ctx context.Conte
 		pubsub := s.cacheRedisClient.PSubscribe(ctx, "__keyevent@"+redisDB+"__:expired")
 		defer func(pubsub *redis.PubSub) {
 			_ = pubsub.Close()
-		}(pubsub)		
+		}(pubsub)
 		for {
 			select {
 			case <-ctx.Done():
@@ -57,7 +57,7 @@ func (s *sinkerKeyExpirationListener) SubscribeToKeyExpiration(ctx context.Conte
 // ReceiveMessage to be used to receive the message from the sinker key expiration
 func (s *sinkerKeyExpirationListener) ReceiveMessage(ctx context.Context, message string) error {
 	// goroutine
-	go func(msg string) {		
+	go func(msg string) {
 		ownerID := message[15:51]
 		sinkID := message[52:]
 		event := producer.SinkIdleEvent{
