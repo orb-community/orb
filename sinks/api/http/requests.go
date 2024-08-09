@@ -76,7 +76,7 @@ func GetConfigurationAndMetadataFromMeta(backendName string, config types.Metada
 	}
 	authTypeSvc, ok := authentication_type.GetAuthType(authtype.(string))
 	if !ok {
-		err = errors.Wrap(errors.ErrInvalidAuthType, errors.New("invalid required field authentication type"))
+		err = errors.Wrap(errors.ErrAuthInvalidType, errors.New("invalid required field authentication type"))
 		return
 	}
 	configSvc.Authentication = authTypeSvc
@@ -119,12 +119,12 @@ func GetConfigurationAndMetadataFromYaml(backendName string, config string) (con
 	case string:
 		break
 	default:
-		err = errors.ErrInvalidAuthType
+		err = errors.ErrAuthInvalidType
 		return
 	}
 	authTypeSvc, ok := authentication_type.GetAuthType(authtype.(string))
 	if !ok {
-		err = errors.Wrap(errors.ErrInvalidAuthType, errors.New("invalid required field authentication type"))
+		err = errors.Wrap(errors.ErrAuthInvalidType, errors.New("invalid required field authentication type"))
 		return
 	}
 	configSvc.Authentication = authTypeSvc

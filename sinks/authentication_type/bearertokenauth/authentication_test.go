@@ -29,7 +29,7 @@ func TestAuthConfig_ValidateConfiguration(t *testing.T) {
 					"token": "test_api_key",
 				},
 			},
-			wantErr: errors.ErrSchemeNotFound,
+			wantErr: errors.ErrAuthSchemeNotFound,
 		},
 		{
 			name: "empty_schema",
@@ -40,7 +40,7 @@ func TestAuthConfig_ValidateConfiguration(t *testing.T) {
 					"token":  "test_api_key",
 				},
 			},
-			wantErr: errors.ErrInvalidSchemeType,
+			wantErr: errors.ErrAuthInvalidSchemeType,
 		},
 		{
 			name: "invalid_schema_type",
@@ -51,7 +51,7 @@ func TestAuthConfig_ValidateConfiguration(t *testing.T) {
 					"token":  "test_api_key",
 				},
 			},
-			wantErr: errors.ErrInvalidSchemeType,
+			wantErr: errors.ErrAuthInvalidSchemeType,
 		},
 		{
 			name: "invalid_schema",
@@ -62,7 +62,7 @@ func TestAuthConfig_ValidateConfiguration(t *testing.T) {
 					"token":  "test_api_key",
 				},
 			},
-			wantErr: errors.ErrInvalidSchemeType,
+			wantErr: errors.ErrAuthInvalidSchemeType,
 		},
 		{
 			name: "missing_token",
@@ -72,7 +72,7 @@ func TestAuthConfig_ValidateConfiguration(t *testing.T) {
 					"scheme": "Bearer",
 				},
 			},
-			wantErr: errors.ErrTokenNotFound,
+			wantErr: errors.ErrAuthTokenNotFound,
 		},
 		{
 			name: "empty_token",
@@ -83,7 +83,7 @@ func TestAuthConfig_ValidateConfiguration(t *testing.T) {
 					"token":  "",
 				},
 			},
-			wantErr: errors.ErrInvalidTokenType,
+			wantErr: errors.ErrAuthInvalidTokenType,
 		},
 		{
 			name: "invalid_token_type",
@@ -94,7 +94,7 @@ func TestAuthConfig_ValidateConfiguration(t *testing.T) {
 					"token":  1234,
 				},
 			},
-			wantErr: errors.ErrInvalidTokenType,
+			wantErr: errors.ErrAuthInvalidTokenType,
 		},
 		{
 			name: "invalid_token_value",
@@ -105,7 +105,7 @@ func TestAuthConfig_ValidateConfiguration(t *testing.T) {
 					"token":  "invalid api key",
 				},
 			},
-			wantErr: errors.ErrInvalidTokenType,
+			wantErr: errors.ErrAuthInvalidTokenType,
 		},
 		{
 			name: "valid",

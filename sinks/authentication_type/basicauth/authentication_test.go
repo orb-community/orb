@@ -27,7 +27,7 @@ func TestAuthConfig_ValidateConfiguration(t *testing.T) {
 					"password": "test-password",
 				},
 			},
-			wantErr: errors.ErrUsernameNotFound,
+			wantErr: errors.ErrAuthUsernameNotFound,
 		},
 		{
 			name: "empty_username",
@@ -38,7 +38,7 @@ func TestAuthConfig_ValidateConfiguration(t *testing.T) {
 					"password": "test-password",
 				},
 			},
-			wantErr: errors.ErrInvalidUsernameType,
+			wantErr: errors.ErrAuthInvalidUsernameType,
 		},
 		{
 			name: "invalid_username_type",
@@ -49,7 +49,7 @@ func TestAuthConfig_ValidateConfiguration(t *testing.T) {
 					"password": "test-password",
 				},
 			},
-			wantErr: errors.ErrInvalidUsernameType,
+			wantErr: errors.ErrAuthInvalidUsernameType,
 		},
 		{
 			name: "invalid_username",
@@ -60,7 +60,7 @@ func TestAuthConfig_ValidateConfiguration(t *testing.T) {
 					"password": "test-password",
 				},
 			},
-			wantErr: errors.ErrInvalidUsernameType,
+			wantErr: errors.ErrAuthInvalidUsernameType,
 		},
 		{
 			name: "missing_password",
@@ -70,7 +70,7 @@ func TestAuthConfig_ValidateConfiguration(t *testing.T) {
 					"username": "test-user",
 				},
 			},
-			wantErr: errors.ErrPasswordNotFound,
+			wantErr: errors.ErrAuthPasswordNotFound,
 		},
 		{
 			name: "empty_password",
@@ -81,7 +81,7 @@ func TestAuthConfig_ValidateConfiguration(t *testing.T) {
 					"password": "",
 				},
 			},
-			wantErr: errors.ErrInvalidPasswordType,
+			wantErr: errors.ErrAuthInvalidPasswordType,
 		},
 		{
 			name: "invalid_password_type",
@@ -92,7 +92,7 @@ func TestAuthConfig_ValidateConfiguration(t *testing.T) {
 					"password": 1234,
 				},
 			},
-			wantErr: errors.ErrInvalidPasswordType,
+			wantErr: errors.ErrAuthInvalidPasswordType,
 		},
 		{
 			name: "invalid_password",
@@ -103,7 +103,7 @@ func TestAuthConfig_ValidateConfiguration(t *testing.T) {
 					"password": " ",
 				},
 			},
-			wantErr: errors.ErrInvalidPasswordType,
+			wantErr: errors.ErrAuthInvalidPasswordType,
 		},
 		{
 			name: "valid",

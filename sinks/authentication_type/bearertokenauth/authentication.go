@@ -51,30 +51,30 @@ func (a *AuthConfig) ValidateConfiguration(inputFormat string, input any) error 
 	switch inputFormat {
 	case "object":
 		if _, ok := input.(types.Metadata)[SchemeConfigFeature]; !ok {
-			return errors.Wrap(errors.ErrSchemeNotFound, errors.New("scheme field was not found"))
+			return errors.Wrap(errors.ErrAuthSchemeNotFound, errors.New("scheme field was not found"))
 		}
 
 		if _, ok := input.(types.Metadata)[TokenConfigFeature]; !ok {
-			return errors.Wrap(errors.ErrTokenNotFound, errors.New("token field was not found"))
+			return errors.Wrap(errors.ErrAuthTokenNotFound, errors.New("token field was not found"))
 		}
 
 		for key, value := range input.(types.Metadata) {
 			if key == SchemeConfigFeature {
 				if _, ok := value.(string); !ok {
-					return errors.Wrap(errors.ErrInvalidSchemeType, errors.New("invalid auth type for field: "+key))
+					return errors.Wrap(errors.ErrAuthInvalidSchemeType, errors.New("invalid auth type for field: "+key))
 				}
 
 				if len(strings.Fields(value.(string))) != 1 {
-					return errors.Wrap(errors.ErrInvalidSchemeType, errors.New("invalid authentication scheme"))
+					return errors.Wrap(errors.ErrAuthInvalidSchemeType, errors.New("invalid authentication scheme"))
 				}
 			}
 
 			if key == TokenConfigFeature {
 				if _, ok := value.(string); !ok {
-					return errors.Wrap(errors.ErrInvalidTokenType, errors.New("invalid auth type for field: "+key))
+					return errors.Wrap(errors.ErrAuthInvalidTokenType, errors.New("invalid auth type for field: "+key))
 				}
 				if len(strings.Fields(value.(string))) != 1 {
-					return errors.Wrap(errors.ErrInvalidTokenType, errors.New("invalid authentication token"))
+					return errors.Wrap(errors.ErrAuthInvalidTokenType, errors.New("invalid authentication token"))
 				}
 			}
 		}
@@ -85,19 +85,19 @@ func (a *AuthConfig) ValidateConfiguration(inputFormat string, input any) error 
 		}
 
 		if a.Scheme == nil {
-			return errors.Wrap(errors.ErrSchemeNotFound, errors.New("scheme field was not found"))
+			return errors.Wrap(errors.ErrAuthSchemeNotFound, errors.New("scheme field was not found"))
 		}
 
 		if len(strings.Fields(*a.Scheme)) != 1 {
-			return errors.Wrap(errors.ErrInvalidSchemeType, errors.New("invalid authentication scheme"))
+			return errors.Wrap(errors.ErrAuthInvalidSchemeType, errors.New("invalid authentication scheme"))
 		}
 
 		if a.Token == nil {
-			return errors.Wrap(errors.ErrTokenNotFound, errors.New("token field was not found"))
+			return errors.Wrap(errors.ErrAuthTokenNotFound, errors.New("token field was not found"))
 		}
 
 		if len(strings.Fields(*a.Token)) != 1 {
-			return errors.Wrap(errors.ErrInvalidTokenType, errors.New("invalid authentication token"))
+			return errors.Wrap(errors.ErrAuthInvalidTokenType, errors.New("invalid authentication token"))
 		}
 	}
 
@@ -173,7 +173,7 @@ func (a *AuthConfig) EncodeInformation(outputFormat string, input interface{}) (
 		authMeta := inputMeta.GetSubMetadata(authentication_type.AuthenticationKey)
 
 		if _, ok := authMeta[TokenConfigFeature].(string); !ok {
-			return nil, errors.Wrap(errors.ErrTokenNotFound, errors.New("token field was not found"))
+			return nil, errors.Wrap(errors.ErrAuthTokenNotFound, errors.New("token field was not found"))
 		}
 
 		encoded, err := a.encryptionService.EncodePassword(authMeta[TokenConfigFeature].(string))

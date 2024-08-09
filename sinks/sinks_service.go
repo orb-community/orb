@@ -96,12 +96,12 @@ func validateAuthType(s *Sink) (authentication_type.AuthenticationType, error) {
 	}
 
 	if _, ok := authTypeStr.(string); !ok {
-		return nil, errors.Wrap(errors.ErrInvalidAuthType, errors.New("invalid authentication type"))
+		return nil, errors.Wrap(errors.ErrAuthInvalidType, errors.New("invalid authentication type"))
 	}
 
 	authType, ok := authentication_type.GetAuthType(authTypeStr.(string))
 	if !ok {
-		return nil, errors.Wrap(errors.ErrInvalidAuthType, errors.New("invalid authentication type"))
+		return nil, errors.Wrap(errors.ErrAuthInvalidType, errors.New("invalid authentication type"))
 	}
 
 	err := authType.ValidateConfiguration("object", authMetadata)

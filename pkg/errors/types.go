@@ -36,44 +36,44 @@ var (
 	// ErrExporterFieldNotFound indicates that exporter field was not found
 	ErrExporterFieldNotFound = New("malformed entity specification. exporter field is expected on configuration field")
 
-	// ErrAuthFieldNotFound indicates that authentication field was not found on configuration field
-	ErrAuthFieldNotFound = New("malformed entity specification. authentication fields are expected on configuration field")
-
-	// ErrAuthTypeNotFound indicates that authentication type field was not found on the authentication field
-	ErrAuthTypeNotFound = New("malformed entity specification: authentication type field is expected on configuration field")
-
-	// ErrInvalidAuthType indicates invalid authentication type
-	ErrInvalidAuthType = New("malformed entity specification. type key on authentication field is invalid")
-
-	// ErrUsernameNotFound indicates that username key was not found
-	ErrUsernameNotFound = New("malformed entity specification. username key is expected on authentication field")
-
-	// ErrPasswordNotFound indicates that password key was not found
-	ErrPasswordNotFound = New("malformed entity specification. password key is expected on authentication field")
-
-	// ErrSchemeNotFound indicates that scheme key was not found
-	ErrSchemeNotFound = New("malformed entity specification. scheme key is expected on authentication field")
-
-	// ErrTokendNotFound indicates that token key was not found
-	ErrTokenNotFound = New("malformed entity specification. token key is expected on authentication field")
-
 	// ErrEndPointNotFound indicates that endpoint field was not found on exporter field for otlp backend
 	ErrEndpointNotFound = New("malformed entity specification. endpoint field is expected on exporter field")
 
 	// ErrInvalidEndpoint indicates that endpoint field is not valid
 	ErrInvalidEndpoint = New("malformed entity specification. endpoint field is invalid")
 
-	// ErrInvalidPasswordType indicates invalid password key on authentication field
-	ErrInvalidPasswordType = New("malformed entity specification. password key on authentication field is invalid")
+	// ErrAuthFieldNotFound indicates that authentication field was not found on configuration field
+	ErrAuthFieldNotFound = New("malformed entity specification. authentication fields are expected on configuration field")
 
-	// ErrInvalidSchemeType indicates invalid scheme key on authentication field
-	ErrInvalidSchemeType = New("malformed entity specification. scheme key on authentication field is invalid")
+	// ErrAuthTypeNotFound indicates that authentication type field was not found on the authentication field
+	ErrAuthTypeNotFound = New("malformed entity specification: authentication type field is expected on configuration field")
 
-	// ErrInvalidTokenType indicates invalid token key on authentication field
-	ErrInvalidTokenType = New("malformed entity specification. token key on authentication field is invalid")
+	// ErrAuthInvalidType indicates invalid authentication type
+	ErrAuthInvalidType = New("malformed entity specification. type key on authentication field is invalid")
 
-	// ErrInvalidUsernameType indicates invalid username key on authentication field
-	ErrInvalidUsernameType = New("malformed entity specification. username key on authentication field is invalid")
+	// ErrAuthUsernameNotFound indicates that username key was not found
+	ErrAuthUsernameNotFound = New("malformed entity specification. username key is expected on authentication field")
+
+	// ErrAuthPasswordNotFound indicates that password key was not found
+	ErrAuthPasswordNotFound = New("malformed entity specification. password key is expected on authentication field")
+
+	// ErrAuthSchemeNotFound indicates that scheme key was not found
+	ErrAuthSchemeNotFound = New("malformed entity specification. scheme key is expected on authentication field")
+
+	// ErrAuthTokenNotFound indicates that token key was not found
+	ErrAuthTokenNotFound = New("malformed entity specification. token key is expected on authentication field")
+
+	// ErrAuthInvalidPasswordType indicates invalid password key on authentication field
+	ErrAuthInvalidPasswordType = New("malformed entity specification. password key on authentication field is invalid")
+
+	// ErrAuthInvalidSchemeType indicates invalid scheme key on authentication field
+	ErrAuthInvalidSchemeType = New("malformed entity specification. scheme key on authentication field is invalid")
+
+	// ErrAuthInvalidTokenType indicates invalid token key on authentication field
+	ErrAuthInvalidTokenType = New("malformed entity specification. token key on authentication field is invalid")
+
+	// ErrAuthInvalidUsernameType indicates invalid username key on authentication field
+	ErrAuthInvalidUsernameType = New("malformed entity specification. username key on authentication field is invalid")
 
 	// ErrRemoteHostNotFound indicates that remote host field was not found
 	ErrRemoteHostNotFound = New("malformed entity specification. remote host is expected on exporter field")

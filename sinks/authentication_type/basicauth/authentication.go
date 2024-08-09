@@ -60,31 +60,31 @@ func (a *AuthConfig) ValidateConfiguration(inputFormat string, input interface{}
 	switch inputFormat {
 	case "object":
 		if _, ok := input.(types.Metadata)[UsernameConfigFeature]; !ok {
-			return errors.Wrap(errors.ErrUsernameNotFound, errors.New("username field was not found"))
+			return errors.Wrap(errors.ErrAuthUsernameNotFound, errors.New("username field was not found"))
 		}
 
 		if _, ok := input.(types.Metadata)[PasswordConfigFeature]; !ok {
-			return errors.Wrap(errors.ErrPasswordNotFound, errors.New("password field was not found"))
+			return errors.Wrap(errors.ErrAuthPasswordNotFound, errors.New("password field was not found"))
 		}
 
 		for key, value := range input.(types.Metadata) {
 			if key == UsernameConfigFeature {
 				if _, ok := value.(string); !ok {
-					return errors.Wrap(errors.ErrInvalidUsernameType, errors.New("invalid auth type for field: "+key))
+					return errors.Wrap(errors.ErrAuthInvalidUsernameType, errors.New("invalid auth type for field: "+key))
 				}
 
 				if len(strings.Fields(value.(string))) == 0 {
-					return errors.Wrap(errors.ErrInvalidUsernameType, errors.New("invalid authentication username"))
+					return errors.Wrap(errors.ErrAuthInvalidUsernameType, errors.New("invalid authentication username"))
 				}
 			}
 
 			if key == PasswordConfigFeature {
 				if _, ok := value.(string); !ok {
-					return errors.Wrap(errors.ErrInvalidPasswordType, errors.New("invalid auth type for field: "+key))
+					return errors.Wrap(errors.ErrAuthInvalidPasswordType, errors.New("invalid auth type for field: "+key))
 				}
 
 				if len(strings.Fields(value.(string))) == 0 {
-					return errors.Wrap(errors.ErrInvalidPasswordType, errors.New("invalid authentication password"))
+					return errors.Wrap(errors.ErrAuthInvalidPasswordType, errors.New("invalid authentication password"))
 				}
 			}
 		}
@@ -95,19 +95,19 @@ func (a *AuthConfig) ValidateConfiguration(inputFormat string, input interface{}
 		}
 
 		if a.Username == nil {
-			return errors.Wrap(errors.ErrUsernameNotFound, errors.New("username field was not found"))
+			return errors.Wrap(errors.ErrAuthUsernameNotFound, errors.New("username field was not found"))
 		}
 
 		if len(strings.Fields(*a.Username)) == 0 {
-			return errors.Wrap(errors.ErrInvalidUsernameType, errors.New("invalid authentication username"))
+			return errors.Wrap(errors.ErrAuthInvalidUsernameType, errors.New("invalid authentication username"))
 		}
 
 		if a.Password == nil {
-			return errors.Wrap(errors.ErrPasswordNotFound, errors.New("password field was not found"))
+			return errors.Wrap(errors.ErrAuthPasswordNotFound, errors.New("password field was not found"))
 		}
 
 		if len(strings.Fields(*a.Password)) == 0 {
-			return errors.Wrap(errors.ErrInvalidPasswordType, errors.New("invalid authentication password"))
+			return errors.Wrap(errors.ErrAuthInvalidPasswordType, errors.New("invalid authentication password"))
 		}
 	}
 
@@ -176,7 +176,7 @@ func (a *AuthConfig) EncodeInformation(outputFormat string, input interface{}) (
 		inputMeta := input.(types.Metadata)
 		authMeta := inputMeta.GetSubMetadata(authentication_type.AuthenticationKey)
 		if _, ok := authMeta[PasswordConfigFeature].(string); !ok {
-			return nil, errors.Wrap(errors.ErrPasswordNotFound, errors.New("password field was not found"))
+			return nil, errors.Wrap(errors.ErrAuthPasswordNotFound, errors.New("password field was not found"))
 		}
 		encoded, err := a.encryptionService.EncodePassword(authMeta[PasswordConfigFeature].(string))
 		if err != nil {
