@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	maestroconfig "github.com/orb-community/orb/maestro/config/output"
 	"io"
 	"strings"
 	"time"
@@ -12,7 +13,6 @@ import (
 	"github.com/orb-community/orb/maestro/deployment"
 	"github.com/orb-community/orb/maestro/redis/producer"
 
-	maestroconfig "github.com/orb-community/orb/maestro/config"
 	"github.com/orb-community/orb/maestro/kubecontrol"
 	sinkspb "github.com/orb-community/orb/sinks/pb"
 	"go.uber.org/zap"

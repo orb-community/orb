@@ -83,8 +83,10 @@ export class SinkAddComponent {
         && !this.checkString(config);
     }
     checkString(config: any): boolean {
-        if (typeof config.authentication.password !== 'string' || typeof config.authentication.username !== 'string') {
-            return true;
+        if (config.authentication.type === 'basicauth') {
+            if (typeof config.authentication.password !== 'string' || typeof config.authentication.username !== 'string') {
+                    return true;
+            }
         }
         return false;
     }
