@@ -12,6 +12,7 @@ import (
 )
 
 const (
+	AuthType              = "basicauth"
 	UsernameConfigFeature = "username"
 	PasswordConfigFeature = "password"
 )
@@ -35,11 +36,9 @@ var (
 	}
 )
 
-const AuthType = "basicauth"
-
 type AuthConfig struct {
-	Username          *string `json:"username" ,yaml:"username"`
-	Password          *string `json:"password" ,yaml:"password"`
+	Username          *string `json:"username" yaml:"username"`
+	Password          *string `json:"password" yaml:"password"`
 	encryptionService authentication_type.PasswordService
 }
 

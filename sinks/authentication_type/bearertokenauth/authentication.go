@@ -34,14 +34,12 @@ var features = []authentication_type.ConfigFeature{
 	},
 }
 
-type (
-	AuthConfig struct {
-		encryptionService authentication_type.PasswordService
+type AuthConfig struct {
+	encryptionService authentication_type.PasswordService
 
-		Scheme *string `json:"scheme" ,yaml:"scheme"`
-		Token  *string `json:"token" ,yaml:"token"`
-	}
-)
+	Scheme *string `json:"scheme" yaml:"scheme"`
+	Token  *string `json:"token" yaml:"token"`
+}
 
 func (a *AuthConfig) GetFeatureConfig() []authentication_type.ConfigFeature {
 	return features
