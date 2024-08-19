@@ -20,7 +20,6 @@ export enum AgentPolicyUsage {
 
 export enum AgentPolicyBackend {
   pktvisor = 'pktvisor',
-  diode = 'diode',
   otel = 'otel',
 }
 

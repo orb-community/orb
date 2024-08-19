@@ -24,7 +24,6 @@ DOCKERS_DEV = $(addprefix docker_dev_,$(SERVICES))
 CGO_ENABLED ?= 0
 GOARCH ?= $(shell dpkg-architecture -q DEB_BUILD_ARCH)
 GOOS ?= $(shell dpkg-architecture -q DEB_TARGET_ARCH_OS)
-DIODE_TAG ?= develop
 ORB_VERSION = $(shell cat VERSION)
 COMMIT_HASH = $(shell git rev-parse --short HEAD)
 OTEL_COLLECTOR_CONTRIB_VERSION ?= 0.91.0
@@ -243,7 +242,6 @@ agent_full:
 	docker build --no-cache \
 	  --build-arg GOARCH=$(GOARCH) \
 	  --build-arg PKTVISOR_TAG=$(PKTVISOR_TAG) \
-	  --build-arg DIODE_TAG=$(DIODE_TAG) \
 	  --build-arg ORB_TAG=${REF_TAG} \
 	  --build-arg OTEL_TAG=${OTEL_COLLECTOR_CONTRIB_VERSION} \
 	  --tag=$(ORB_DOCKERHUB_REPO)/$(DOCKER_IMAGE_NAME_PREFIX)-agent-full:$(REF_TAG) \
