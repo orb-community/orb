@@ -30,7 +30,6 @@ import (
 	"github.com/orb-community/orb/fleet"
 	fleetgrpc "github.com/orb-community/orb/fleet/api/grpc"
 	fleethttp "github.com/orb-community/orb/fleet/api/http"
-	"github.com/orb-community/orb/fleet/backend/diode"
 	"github.com/orb-community/orb/fleet/backend/pktvisor"
 	"github.com/orb-community/orb/fleet/pb"
 	"github.com/orb-community/orb/fleet/postgres"
@@ -241,7 +240,6 @@ func newFleetService(auth mainflux.AuthServiceClient, db *sqlx.DB, logger *zap.L
 	mfsdk := mfsdk.NewSDK(config)
 
 	pktvisor.Register(auth, agentRepo)
-	diode.Register(auth, agentRepo)
 	otel.Register(auth, agentRepo)
 
 	svc := fleet.NewFleetService(logger, auth, agentRepo, agentGroupRepo, agentComms, mfsdk, aDone)

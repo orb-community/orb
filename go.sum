@@ -441,8 +441,6 @@ github.com/opencontainers/runc v1.1.12 h1:BOIssBaW1La0/qbNZHXOOa71dZfZEQOzW7dqQf
 github.com/opencontainers/runc v1.1.12/go.mod h1:S+lQwSfncpBha7XTy/5lBwWgm5+y5Ma/O44Ekby9FK8=
 github.com/opentracing/opentracing-go v1.2.0 h1:uEJPy/1a5RIPAJ0Ov+OIO8OxWu77jEv+1B0VhjKrZUs=
 github.com/opentracing/opentracing-go v1.2.0/go.mod h1:GxEUsuufX4nBwe+T+Wl9TAgYrxe9dPLANfrWvHYVTgc=
-github.com/orb-community/diode v0.0.0-20230419222319-4ec19ba89e9f h1:69y3FTEsmMS5EUUzkDIp/atM3AEZpQwRz4dUif/4Gbk=
-github.com/orb-community/diode v0.0.0-20230419222319-4ec19ba89e9f/go.mod h1:QrGOf+olmuV2fkA2zB8xU62b8xd7F+9lonHZo0B+Eak=
 github.com/ory/dockertest/v3 v3.10.0 h1:4K3z2VMe8Woe++invjaTB7VRyQXQy5UY+loujO4aNE4=
 github.com/ory/dockertest/v3 v3.10.0/go.mod h1:nr57ZbRWMqfsdGdFNLHz5jjNdDb7VVFnzAeW1n5N1Lg=
 github.com/ory/keto/proto/ory/keto/acl/v1alpha1 v0.0.0-20210616104402-80e043246cf9 h1:gP86NkMkUlqMOTjFQ8lt8T1HbHtCJGGeeeh/6c+nla0=
