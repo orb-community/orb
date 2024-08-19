@@ -36,7 +36,7 @@ var (
 	// ErrExporterFieldNotFound indicates that exporter field was not found
 	ErrExporterFieldNotFound = New("malformed entity specification. exporter field is expected on configuration field")
 
-	// ErrEndPointNotFound indicates that endpoint field was not found on exporter field for otlp backend
+	// ErrEndpointNotFound indicates that endpoint field was not found on exporter field for otlp backend
 	ErrEndpointNotFound = New("malformed entity specification. endpoint field is expected on exporter field")
 
 	// ErrInvalidEndpoint indicates that endpoint field is not valid
