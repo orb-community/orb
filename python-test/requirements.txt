@@ -1,7 +1,7 @@
 behave==1.2.6
 ciso8601==2.3.1
 colorlog==6.8.2
-docker==7.0.0
+docker==7.1.0
 PyHamcrest==2.1.0
 PyYAML==6.0.2
 retry==0.9.2
