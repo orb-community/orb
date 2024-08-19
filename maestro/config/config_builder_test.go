@@ -3,10 +3,12 @@ package config
 import (
 	"context"
 	"fmt"
+	"testing"
+
+	"go.uber.org/zap"
+
 	"github.com/orb-community/orb/maestro/password"
 	"github.com/orb-community/orb/pkg/types"
-	"go.uber.org/zap"
-	"testing"
 )
 
 func TestReturnConfigYamlFromSink(t *testing.T) {
@@ -95,6 +97,30 @@ func TestReturnConfigYamlFromSink(t *testing.T) {
 				},
 			},
 			want:    `---\nreceivers:\n  kafka:\n    brokers:\n    - kafka:9092\n    topic: otlp_metrics-sink-id-22\n    protocol_version: 2.0.0\nextensions:\n  pprof:\n    endpoint: 0.0.0.0:1888\n  basicauth/exporter:\n    client_auth:\n      username: otlp-user\n      password: dbpass\nexporters:\n  otlphttp:\n    endpoint: https://acme.com/otlphttp/push\n    auth:\n      authenticator: basicauth/exporter\nservice:\n  extensions:\n  - pprof\n  - basicauth/exporter\n  pipelines:\n    metrics:\n      receivers:\n      - kafka\n      exporters:\n      - otlphttp\n`,
+			wantErr: false,
+		},
+		{
+			name: "otlp, token auth",
+			args: args{
+				in0:            context.Background(),
+				kafkaUrlConfig: "kafka:9092",
+				sink: &DeploymentRequest{
+					SinkID:  "sink-id-22",
+					OwnerID: "22",
+					Backend: "otlphttp",
+					Config: types.Metadata{
+						"exporter": types.Metadata{
+							"endpoint": "https://acme.com/otlphttp/push",
+						},
+						"authentication": types.Metadata{
+							"type":   "bearertokenauth",
+							"scheme": "Api-Token",
+							"token":  "abcdefg",
+						},
+					},
+				},
+			},
+			want:    `---\nreceivers:\n  kafka:\n    brokers:\n    - kafka:9092\n    topic: otlp_metrics-sink-id-22\n    protocol_version: 2.0.0\nextensions:\n  pprof:\n    endpoint: 0.0.0.0:1888\n  bearertokenauth/withscheme:\n    scheme: Api-Token\n    token: abcdefg\nexporters:\n  otlphttp:\n    endpoint: https://acme.com/otlphttp/push\n    auth:\n      authenticator: bearertokenauth/withscheme\nservice:\n  extensions:\n  - pprof\n  - bearertokenauth/withscheme\n  pipelines:\n    metrics:\n      receivers:\n      - kafka\n      exporters:\n      - otlphttp\n`,
 			wantErr: false,
 		},
 	}
