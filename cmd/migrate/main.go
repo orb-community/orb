@@ -54,7 +54,7 @@ func main() {
 	usersDbCfg := config.LoadPostgresConfig(fmt.Sprintf("%s_%s", envPrefix, postgres.DbUsers), postgres.DbUsers)
 	thingsDbCfg := config.LoadPostgresConfig(fmt.Sprintf("%s_%s", envPrefix, postgres.DbThings), postgres.DbThings)
 	sinksDbCfg := config.LoadPostgresConfig(fmt.Sprintf("%s_%s", envPrefix, postgres.DBSinks), postgres.DBSinks)
-	//sinksEncryptionKey := config.LoadEncryptionKey(fmt.Sprintf("%s_%s", envPrefix, postgres.DBSinks))
+	sinksEncryptionKey := config.LoadEncryptionKey(fmt.Sprintf("%s_%s", envPrefix, postgres.DBSinks))
 
 	dbs := make(map[string]postgres.Database)
 
@@ -69,8 +69,8 @@ func main() {
 		dbs,
 		// When generating a new migration image
 		// Comment the previous and keep only the necessary steps to migrate up/down
-		//migration.NewM1KetoPolicies(log, dbs),
-		//migration.NewM2SinksCredentials(log, sinksDB, sinksEncryptionKey),
+		migration.NewM1KetoPolicies(log, dbs),
+		migration.NewM2SinksCredentials(log, sinksDB, sinksEncryptionKey),
 		migration.NewM3SinksOpenTelemetry(log, sinksDB),
 	)
 

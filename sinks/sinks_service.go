@@ -11,6 +11,7 @@ package sinks
 import (
 	"context"
 	"encoding/hex"
+	"encoding/json"
 
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
@@ -49,16 +50,15 @@ func (svc sinkService) CreateSink(ctx context.Context, token string, sink Sink) 
 		Exporter:       be,
 	}
 
+	if sink.Format == "" {
+		sink.Format = "json"
+	}
+
 	// encrypt data for the password
 	sink, err = svc.encryptMetadata(cfg, sink)
 	if err != nil {
 		return Sink{}, err
 	}
-
-	// add default values
-	defaultMetadata := make(types.Metadata, 1)
-	defaultMetadata["opentelemetry"] = "enabled"
-	sink.Config.Merge(defaultMetadata)
 
 	id, err := svc.sinkRepo.Save(ctx, sink)
 	if err != nil {
@@ -96,12 +96,12 @@ func validateAuthType(s *Sink) (authentication_type.AuthenticationType, error) {
 	}
 
 	if _, ok := authTypeStr.(string); !ok {
-		return nil, errors.Wrap(errors.ErrInvalidAuthType, errors.New("invalid authentication type"))
+		return nil, errors.Wrap(errors.ErrAuthInvalidType, errors.New("invalid authentication type"))
 	}
 
 	authType, ok := authentication_type.GetAuthType(authTypeStr.(string))
 	if !ok {
-		return nil, errors.Wrap(errors.ErrInvalidAuthType, errors.New("invalid authentication type"))
+		return nil, errors.Wrap(errors.ErrAuthInvalidType, errors.New("invalid authentication type"))
 	}
 
 	err := authType.ValidateConfiguration("object", authMetadata)
@@ -215,10 +215,6 @@ func (svc sinkService) UpdateSinkInternal(ctx context.Context, sink Sink) (Sink,
 			Authentication: at,
 			Exporter:       be,
 		}
-		//// add default values
-		defaultMetadata := make(types.Metadata, 1)
-		defaultMetadata["opentelemetry"] = "enabled"
-		sink.Config.Merge(defaultMetadata)
 		sink.State = Unknown
 		sink.Error = ""
 		if sink.Format == "yaml" {
@@ -293,7 +289,15 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 	if sink.Config == nil && sink.ConfigData == "" {
 		// No config sent, keep the previous
 		sink.Config = currentSink.Config
+		sink.Format = currentSink.Format
+		sink.Config.RemoveKeys([]string{"opentelemetry"})
 		sink.ConfigData = currentSink.ConfigData
+		if sink.Format != "" {
+			sink.ConfigData, err = removeConfigDataKey(sink.ConfigData, sink.Format, []string{"opentelemetry"})
+			if err != nil {
+				svc.logger.Warn("error removing opentelemetry config key", zap.Error(err))
+			}
+		}
 	} else {
 		sink.Backend = currentSink.Backend
 		be, err := svc.validateBackend(&sink)
@@ -308,6 +312,9 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 			Authentication: at,
 			Exporter:       be,
 		}
+		if sink.Format == "" {
+			sink.Format = "json"
+		}
 
 		// check if the password is encrypted and decrypt it if it is
 		if existingAuth := sink.Config.GetSubMetadata(authentication_type.AuthenticationKey); existingAuth != nil {
@@ -321,10 +328,6 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 			}
 		}
 
-		// add default values
-		defaultMetadata := make(types.Metadata, 1)
-		defaultMetadata["opentelemetry"] = "enabled"
-		sink.Config.Merge(defaultMetadata)
 		if sink.Format == "yaml" {
 			configDataByte, err := yaml.Marshal(sink.Config)
 			if err != nil {
@@ -371,7 +374,37 @@ func (svc sinkService) UpdateSink(ctx context.Context, token string, sink Sink) 
 	return sinkEdited, nil
 }
 
-func (svc sinkService) ListBackends(ctx context.Context, token string) ([]string, error) {
+func removeConfigDataKey(configData string, format string, keys []string) (string, error) {
+	if configData == "" {
+		return "", nil
+	}
+	var data types.Metadata
+	switch format {
+	case "json":
+		if err := json.Unmarshal([]byte(configData), &keys); err != nil {
+			return "", err
+		}
+		data.RemoveKeys(keys)
+		if newData, err := json.Marshal(data); err != nil {
+			return "", err
+		} else {
+			return string(newData), nil
+		}
+	case "yaml":
+		if err := yaml.Unmarshal([]byte(configData), &keys); err != nil {
+			return "", err
+		}
+		data.RemoveKeys(keys)
+		if newData, err := yaml.Marshal(data); err != nil {
+			return "", err
+		} else {
+			return string(newData), nil
+		}
+	}
+	return "", errors.New("unrecognized format")
+}
+
+func (svc sinkService) ListBackends(_ context.Context, token string) ([]string, error) {
 	_, err := svc.identify(token)
 	if err != nil {
 		return []string{}, err
@@ -379,7 +412,7 @@ func (svc sinkService) ListBackends(ctx context.Context, token string) ([]string
 	return backend.GetList(), nil
 }
 
-func (svc sinkService) ViewBackend(ctx context.Context, token string, key string) (backend.Backend, error) {
+func (svc sinkService) ViewBackend(_ context.Context, token string, key string) (backend.Backend, error) {
 	_, err := svc.identify(token)
 	if err != nil {
 		return nil, err
@@ -400,6 +433,9 @@ func (svc sinkService) ViewSink(ctx context.Context, token string, key string) (
 	if err != nil {
 		return Sink{}, errors.Wrap(errors.ErrNotFound, err)
 	}
+	if res.Format == "" {
+		res.Format = "json"
+	}
 	return res, nil
 }
 
@@ -414,6 +450,9 @@ func (svc sinkService) ViewSinkInternal(ctx context.Context, ownerID string, key
 		Authentication: authType,
 		Exporter:       be,
 	}
+	if res.Format == "" {
+		res.Format = "json"
+	}
 	res, err = svc.decryptMetadata(cfg, res)
 	if err != nil {
 		return Sink{}, errors.Wrap(errors.ErrViewEntity, err)
@@ -421,10 +460,10 @@ func (svc sinkService) ViewSinkInternal(ctx context.Context, ownerID string, key
 	return res, nil
 }
 
-func (svc sinkService) ListSinksInternal(ctx context.Context, filter Filter) (sinks []Sink, err error) {
-	sinks, err = svc.sinkRepo.SearchAllSinks(ctx, filter)
+func (svc sinkService) ListSinksInternal(ctx context.Context, filter Filter) (sinksResp Page, err error) {
+	sinks, err := svc.sinkRepo.SearchAllSinks(ctx, filter)
 	if err != nil {
-		return nil, errors.Wrap(errors.ErrNotFound, err)
+		return Page{}, errors.Wrap(errors.ErrNotFound, err)
 	}
 	for _, sink := range sinks {
 		authType, _ := authentication_type.GetAuthType(sink.GetAuthenticationTypeName())
@@ -433,10 +472,14 @@ func (svc sinkService) ListSinksInternal(ctx context.Context, filter Filter) (si
 			Authentication: authType,
 			Exporter:       be,
 		}
+		if sink.Format == "" {
+			sink.Format = "json"
+		}
 		sink, err = svc.decryptMetadata(cfg, sink)
 		if err != nil {
-			return nil, errors.Wrap(errors.ErrViewEntity, err)
+			return Page{}, errors.Wrap(errors.ErrViewEntity, err)
 		}
+		sinksResp.Sinks = append(sinksResp.Sinks, sink)
 	}
 
 	return

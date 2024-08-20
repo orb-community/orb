@@ -10,16 +10,19 @@ package sinks
 
 import (
 	"context"
+	"time"
+
 	"github.com/mainflux/mainflux"
 	mfsdk "github.com/mainflux/mainflux/pkg/sdk/go"
+	"go.uber.org/zap"
+
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks/authentication_type"
 	"github.com/orb-community/orb/sinks/authentication_type/basicauth"
+	"github.com/orb-community/orb/sinks/authentication_type/bearertokenauth"
 	"github.com/orb-community/orb/sinks/backend/otlphttpexporter"
 	"github.com/orb-community/orb/sinks/backend/prometheus"
-	"go.uber.org/zap"
-	"time"
 )
 
 // PageMetadata contains page metadata that helps navigation
@@ -67,7 +70,7 @@ func NewSinkService(logger *zap.Logger, auth mainflux.AuthServiceClient, sinkRep
 	otlphttpexporter.Register()
 	prometheus.Register()
 	basicauth.Register(passwordService)
-	// bearerauth.Register(passwordService)
+	bearertokenauth.Register(passwordService)
 	return &sinkService{
 		logger:          logger,
 		auth:            auth,

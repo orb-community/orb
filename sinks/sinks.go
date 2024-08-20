@@ -72,8 +72,7 @@ var stateMap = [...]string{
 const MetadataLabelOtel = "opentelemetry"
 
 type Filter struct {
-	StateFilter   string
-	OpenTelemetry string
+	StateFilter string
 }
 
 var stateRevMap = map[string]State{
@@ -162,7 +161,7 @@ type SinkService interface {
 	// ListSinks retrieves data about sinks
 	ListSinks(ctx context.Context, token string, pm PageMetadata) (Page, error)
 	// ListSinksInternal retrieves data from sinks filtered by SinksFilter for Services like Maestro, to build DeploymentEntries
-	ListSinksInternal(ctx context.Context, filter Filter) ([]Sink, error)
+	ListSinksInternal(ctx context.Context, filter Filter) (Page, error)
 	// ListBackends retrieves a list of available backends
 	ListBackends(ctx context.Context, token string) ([]string, error)
 	// ViewBackend retrieves a backend by the name

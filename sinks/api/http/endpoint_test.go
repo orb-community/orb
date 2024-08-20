@@ -857,7 +857,7 @@ func TestAuthenticationTypesEndpoints(t *testing.T) {
 				err = json.Unmarshal(body, &authResponse)
 				require.NoError(t, err, "must not error")
 				require.NotNil(t, authResponse, "response must not be nil")
-				require.Equal(t, 1, len(authResponse.AuthenticationTypes), "must contain basicauth for now")
+				require.Equal(t, 2, len(authResponse.AuthenticationTypes), "must contain basicauth and bearertokenauth")
 			},
 		},
 		"view authentication type basicauth": {
@@ -1085,6 +1085,7 @@ func TestViewSink(t *testing.T) {
 		Backend:     sk.Backend,
 		Config:      omittedSink.Config,
 		ConfigData:  omittedSink.ConfigData,
+		Format:      "json",
 		Tags:        sk.Tags,
 		State:       sk.State.String(),
 		Error:       sk.Error,

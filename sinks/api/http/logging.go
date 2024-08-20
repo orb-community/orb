@@ -21,7 +21,7 @@ type loggingMiddleware struct {
 	svc    sinks.SinkService
 }
 
-func (l loggingMiddleware) ListSinksInternal(ctx context.Context, filter sinks.Filter) (sinks []sinks.Sink, err error) {
+func (l loggingMiddleware) ListSinksInternal(ctx context.Context, filter sinks.Filter) (sinks sinks.Page, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			l.logger.Warn("method call: list_sinks_internal",

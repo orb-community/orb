@@ -6,22 +6,21 @@ package pktvisor
 
 import (
 	"context"
-	"encoding/json"
+	"errors"
 	"fmt"
+	"go.opentelemetry.io/otel/trace/noop"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/orb-community/orb/agent/otel"
 	"github.com/orb-community/orb/agent/otel/otlpmqttexporter"
-	"github.com/orb-community/orb/fleet"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/confighttp"
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.opentelemetry.io/otel/sdk/metric"
-	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
@@ -34,7 +33,7 @@ func (p *pktvisorBackend) scrapeMetrics(period uint) (map[string]interface{}, er
 	return metrics, nil
 }
 
-func (p *pktvisorBackend) createOtlpMqttExporter(ctx context.Context, cancelFunc context.CancelFunc) (exporter.Metrics, error) {
+func (p *pktvisorBackend) createOtlpMqttExporter(ctx context.Context, cancelFunc context.CancelCauseFunc) (exporter.Metrics, error) {
 	bridgeService := otel.NewBridgeService(ctx, cancelFunc, &p.policyRepo, p.agentTags)
 	var cfg component.Config
 	if p.mqttClient != nil {
@@ -49,10 +48,7 @@ func (p *pktvisorBackend) createOtlpMqttExporter(ctx context.Context, cancelFunc
 	return otlpmqttexporter.CreateMetricsExporter(ctx, set, cfg)
 }
 
-func (p *pktvisorBackend) startOtelMetric(exeCtx context.Context, execCancelF context.CancelFunc) bool {
-	if p.exporter != nil {
-		return true
-	}
+func (p *pktvisorBackend) startOtelMetric(exeCtx context.Context, execCancelF context.CancelCauseFunc) bool {
 	var err error
 	p.exporter, err = p.createOtlpMqttExporter(exeCtx, execCancelF)
 	if err != nil {
@@ -72,7 +68,7 @@ func (p *pktvisorBackend) startOtelMetric(exeCtx context.Context, execCancelF co
 	set := receiver.CreateSettings{
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         p.logger,
-			TracerProvider: trace.NewNoopTracerProvider(),
+			TracerProvider: noop.NewTracerProvider(),
 			MeterProvider:  metric.NewMeterProvider(),
 			ReportComponentStatus: func(*component.StatusEvent) error {
 				return nil
@@ -101,85 +97,9 @@ func (p *pktvisorBackend) startOtelMetric(exeCtx context.Context, execCancelF co
 	return true
 }
 
-func (p *pktvisorBackend) scrapeDefault() error {
-	// scrape all policy json output with one call every minute.
-	// TODO support policies with custom bucket times
-	job, err := p.scraper.Every(1).Minute().WaitForSchedule().Do(func() {
-		metrics, err := p.scrapeMetrics(1)
-		if err != nil {
-			p.logger.Error("scrape failed", zap.Error(err))
-			return
-		}
-		if len(metrics) == 0 {
-			p.logger.Warn("scrape: no policies found, skipping")
-			return
-		}
-
-		var batchPayload []fleet.AgentMetricsRPCPayload
-		totalSize := 0
-		for pName, pMetrics := range metrics {
-			policyData, err := p.policyRepo.GetByName(pName)
-			if err != nil {
-				p.logger.Warn("skipping pktvisor policy not managed by orb", zap.String("policy", pName), zap.Error(err))
-				continue
-			}
-			payloadData, err := json.Marshal(pMetrics)
-			if err != nil {
-				p.logger.Error("error marshalling scraped metric json", zap.String("policy", pName), zap.Error(err))
-				continue
-			}
-			metricPayload := fleet.AgentMetricsRPCPayload{
-				PolicyID:   policyData.ID,
-				PolicyName: policyData.Name,
-				Datasets:   policyData.GetDatasetIDs(),
-				Format:     "json",
-				BEVersion:  p.pktvisorVersion,
-				Data:       payloadData,
-			}
-			batchPayload = append(batchPayload, metricPayload)
-			totalSize += len(payloadData)
-			policyData.LastScrapeBytes = int64(totalSize)
-			policyData.LastScrapeTS = time.Now()
-			err = p.policyRepo.Update(policyData)
-			if err != nil {
-				p.logger.Error("unable to update policy repo during scrape", zap.Error(err))
-			}
-			p.logger.Info("scraped metrics for policy", zap.String("policy", pName), zap.String("policy_id", policyData.ID), zap.Int("payload_size_b", len(payloadData)))
-		}
-
-		rpc := fleet.AgentMetricsRPC{
-			SchemaVersion: fleet.CurrentRPCSchemaVersion,
-			Func:          fleet.AgentMetricsRPCFunc,
-			Payload:       batchPayload,
-		}
-
-		body, err := json.Marshal(rpc)
-		if err != nil {
-			p.logger.Error("error marshalling metric rpc payload", zap.Error(err))
-			return
-		}
-		c := *p.mqttClient
-		if token := c.Publish(p.metricsTopic, 1, false, body); token.Wait() && token.Error() != nil {
-			p.logger.Error("error sending metrics RPC", zap.String("topic", p.metricsTopic), zap.Error(token.Error()))
-			return
-		}
-
-		p.logger.Info("scraped and published metrics", zap.String("topic", p.metricsTopic), zap.Int("payload_size_b", totalSize), zap.Int("batch_count", len(batchPayload)))
-
-	})
-
-	if err != nil {
-		return err
-	}
-
-	job.SingletonMode()
-	return nil
-}
-
 func (p *pktvisorBackend) receiveOtlp() {
-	exeCtx, execCancelF := context.WithCancel(p.ctx)
+	exeCtx, execCancelF := context.WithCancelCause(p.ctx)
 	go func() {
-		defer execCancelF()
 		count := 0
 		for {
 			if p.mqttClient != nil {
@@ -187,13 +107,14 @@ func (p *pktvisorBackend) receiveOtlp() {
 					p.logger.Error("failed to start otel metric")
 					return
 				}
+				p.logger.Info("started otel receiver for pktvisor")
 				break
 			} else {
 				count++
 				p.logger.Info("waiting until mqtt client is connected try " + strconv.Itoa(count) + " from 10")
 				time.Sleep(time.Second * time.Duration(count))
 				if count >= 10 {
-					execCancelF()
+					execCancelF(errors.New("mqtt client is not connected"))
 					_ = p.Stop(exeCtx)
 					break
 				}
@@ -202,11 +123,15 @@ func (p *pktvisorBackend) receiveOtlp() {
 		for {
 			select {
 			case <-exeCtx.Done():
-				p.ctx.Done()
+				p.logger.Info("stopped receiver context, pktvisor will not scrape metrics", zap.Error(context.Cause(exeCtx)))
 				p.cancelFunc()
+				_ = p.exporter.Shutdown(exeCtx)
+				_ = p.receiver.Shutdown(exeCtx)
 			case <-p.ctx.Done():
-				p.logger.Info("stopped Orb OpenTelemetry agent collector")
-				p.cancelFunc()
+				p.logger.Info("stopped pktvisor main context, stopping receiver")
+				execCancelF(errors.New("stopped pktvisor main context"))
+				_ = p.exporter.Shutdown(exeCtx)
+				_ = p.receiver.Shutdown(exeCtx)
 				return
 			}
 		}

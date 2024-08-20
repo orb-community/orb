@@ -2,10 +2,11 @@ from behave import given, when, then, step
 from configs import TestConfig
 from utils import (random_string, filter_list_by_parameter_start_with, threading_wait_until, validate_json, \
                    remove_empty_from_json, return_api_get_response, return_api_put_response, return_api_post_response,
-                   return_api_delete_response)
+                   return_api_delete_response, log)
 from hamcrest import *
 import threading
 import yaml
+from concurrent.futures import ThreadPoolExecutor
 
 configs = TestConfig.configs()
 sink_name_prefix = "test_sink_label_name_"
@@ -383,8 +384,12 @@ def delete_sinks(token, list_of_sinks):
     :param (list) list_of_sinks: that will be deleted
     """
 
-    for sink in list_of_sinks:
-        delete_sink(token, sink['id'])
+    log.debug(f"Deleting {len(list_of_sinks)} sinks")
+    with ThreadPoolExecutor() as executor:
+        futures = [executor.submit(delete_sink, token, sink.get('id')) for sink in list_of_sinks]
+        results = [future.result() for future in futures]
+    log.debug(f"Finishing deleting sinks")
+    return results
 
 
 def delete_sink(token, sink_id):

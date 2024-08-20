@@ -1,14 +1,18 @@
 package basicauth
 
 import (
+	"strings"
+
+	"gopkg.in/yaml.v3"
+
 	"github.com/orb-community/orb/pkg/errors"
 	"github.com/orb-community/orb/pkg/types"
 	"github.com/orb-community/orb/sinks/authentication_type"
 	"github.com/orb-community/orb/sinks/backend"
-	"gopkg.in/yaml.v3"
 )
 
 const (
+	AuthType              = "basicauth"
 	UsernameConfigFeature = "username"
 	PasswordConfigFeature = "password"
 )
@@ -32,11 +36,9 @@ var (
 	}
 )
 
-const AuthType = "basicauth"
-
 type AuthConfig struct {
-	Username          string `json:"username" ,yaml:"username"`
-	Password          string `json:"password" ,yaml:"password"`
+	Username          *string `json:"username" yaml:"username"`
+	Password          *string `json:"password" yaml:"password"`
 	encryptionService authentication_type.PasswordService
 }
 
@@ -56,27 +58,32 @@ func (a *AuthConfig) GetFeatureConfig() []authentication_type.ConfigFeature {
 func (a *AuthConfig) ValidateConfiguration(inputFormat string, input interface{}) error {
 	switch inputFormat {
 	case "object":
+		if _, ok := input.(types.Metadata)[UsernameConfigFeature]; !ok {
+			return errors.Wrap(errors.ErrAuthUsernameNotFound, errors.New("username field was not found"))
+		}
+
+		if _, ok := input.(types.Metadata)[PasswordConfigFeature]; !ok {
+			return errors.Wrap(errors.ErrAuthPasswordNotFound, errors.New("password field was not found"))
+		}
+
 		for key, value := range input.(types.Metadata) {
-			if _, ok := value.(string); !ok {
-				if key == "password" {
-					return errors.Wrap(errors.ErrInvalidPasswordType, errors.New("invalid auth type for field: " + key))
-				}
-				if key == "type" {
-					return errors.Wrap(errors.ErrInvalidAuthType, errors.New("invalid auth type for field: " + key))
-				}
-				if key == "username" {
-					return errors.Wrap(errors.ErrInvalidUsernameType, errors.New("invalid auth type for field: " + key))
-				}
-			}
-			vs := value.(string)
 			if key == UsernameConfigFeature {
-				if len(vs) == 0 {
-					return errors.New("username cannot be empty")
+				if _, ok := value.(string); !ok {
+					return errors.Wrap(errors.ErrAuthInvalidUsernameType, errors.New("invalid auth type for field: "+key))
+				}
+
+				if len(strings.Fields(value.(string))) == 0 {
+					return errors.Wrap(errors.ErrAuthInvalidUsernameType, errors.New("invalid authentication username"))
 				}
 			}
+
 			if key == PasswordConfigFeature {
-				if len(vs) == 0 {
-					return errors.New("password cannot be empty")
+				if _, ok := value.(string); !ok {
+					return errors.Wrap(errors.ErrAuthInvalidPasswordType, errors.New("invalid auth type for field: "+key))
+				}
+
+				if len(strings.Fields(value.(string))) == 0 {
+					return errors.Wrap(errors.ErrAuthInvalidPasswordType, errors.New("invalid authentication password"))
 				}
 			}
 		}
@@ -85,12 +92,24 @@ func (a *AuthConfig) ValidateConfiguration(inputFormat string, input interface{}
 		if err != nil {
 			return err
 		}
-		if len(a.Username) == 0 {
-			return errors.New("username cannot be empty")
-		} else if len(a.Password) == 0 {
-			return errors.New("password cannot be empty")
+
+		if a.Username == nil {
+			return errors.Wrap(errors.ErrAuthUsernameNotFound, errors.New("username field was not found"))
+		}
+
+		if len(strings.Fields(*a.Username)) == 0 {
+			return errors.Wrap(errors.ErrAuthInvalidUsernameType, errors.New("invalid authentication username"))
+		}
+
+		if a.Password == nil {
+			return errors.Wrap(errors.ErrAuthPasswordNotFound, errors.New("password field was not found"))
+		}
+
+		if len(strings.Fields(*a.Password)) == 0 {
+			return errors.Wrap(errors.ErrAuthInvalidPasswordType, errors.New("invalid authentication password"))
 		}
 	}
+
 	return nil
 }
 
@@ -156,7 +175,7 @@ func (a *AuthConfig) EncodeInformation(outputFormat string, input interface{}) (
 		inputMeta := input.(types.Metadata)
 		authMeta := inputMeta.GetSubMetadata(authentication_type.AuthenticationKey)
 		if _, ok := authMeta[PasswordConfigFeature].(string); !ok {
-			return nil, errors.Wrap(errors.ErrPasswordNotFound, errors.New("password field was not found"))
+			return nil, errors.Wrap(errors.ErrAuthPasswordNotFound, errors.New("password field was not found"))
 		}
 		encoded, err := a.encryptionService.EncodePassword(authMeta[PasswordConfigFeature].(string))
 		if err != nil {

@@ -236,23 +236,32 @@ func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 		case errors.Contains(errorVal, errors.ErrUnsupportedContentType):
 			w.WriteHeader(http.StatusUnsupportedMediaType)
 
-			
 		case errors.Contains(errorVal, errors.ErrInvalidEndpoint):
 			w.WriteHeader(http.StatusBadRequest)
 		case errors.Contains(errorVal, errors.ErrEndpointNotFound):
 			w.WriteHeader(http.StatusBadRequest)
 		case errors.Contains(errorVal, errors.ErrBackendNotFound):
 			w.WriteHeader(http.StatusBadRequest)
-		case errors.Contains(errorVal, errors.ErrPasswordNotFound):
+		case errors.Contains(errorVal, errors.ErrAuthUsernameNotFound):
+			w.WriteHeader(http.StatusBadRequest)
+		case errors.Contains(errorVal, errors.ErrAuthPasswordNotFound):
 			w.WriteHeader(http.StatusBadRequest)
 		case errors.Contains(errorVal, errors.ErrAuthTypeNotFound):
 			w.WriteHeader(http.StatusBadRequest)
-		case errors.Contains(errorVal, errors.ErrInvalidUsernameType):
+		case errors.Contains(errorVal, errors.ErrAuthInvalidUsernameType):
 			w.WriteHeader(http.StatusBadRequest)
-		case errors.Contains(errorVal, errors.ErrInvalidPasswordType):
+		case errors.Contains(errorVal, errors.ErrAuthInvalidPasswordType):
 			w.WriteHeader(http.StatusBadRequest)
-		case errors.Contains(errorVal, errors.ErrInvalidAuthType):
-			w.WriteHeader(http.StatusBadRequest)	
+		case errors.Contains(errorVal, errors.ErrAuthInvalidTokenType):
+			w.WriteHeader(http.StatusBadRequest)
+		case errors.Contains(errorVal, errors.ErrAuthTokenNotFound):
+			w.WriteHeader(http.StatusBadRequest)
+		case errors.Contains(errorVal, errors.ErrAuthInvalidSchemeType):
+			w.WriteHeader(http.StatusBadRequest)
+		case errors.Contains(errorVal, errors.ErrAuthSchemeNotFound):
+			w.WriteHeader(http.StatusBadRequest)
+		case errors.Contains(errorVal, errors.ErrAuthInvalidType):
+			w.WriteHeader(http.StatusBadRequest)
 		case errors.Contains(errorVal, errors.ErrRemoteHostNotFound):
 			w.WriteHeader(http.StatusBadRequest)
 		case errors.Contains(errorVal, errors.ErrAuthFieldNotFound):
@@ -262,7 +271,7 @@ func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 		case errors.Contains(errorVal, errors.ErrExporterFieldNotFound):
 			w.WriteHeader(http.StatusBadRequest)
 		case errors.Contains(errorVal, errors.ErrInvalidBackend):
-			w.WriteHeader(http.StatusBadRequest)	
+			w.WriteHeader(http.StatusBadRequest)
 		case errors.Contains(errorVal, errors.ErrEntityNameNotFound):
 			w.WriteHeader(http.StatusBadRequest)
 		case errors.Contains(errorVal, errors.ErrMalformedEntity):

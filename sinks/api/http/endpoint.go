@@ -10,6 +10,8 @@ package http
 
 import (
 	"context"
+	"encoding/json"
+	"gopkg.in/yaml.v3"
 	"time"
 
 	"github.com/go-kit/kit/endpoint"
@@ -26,6 +28,8 @@ func omitSecretInformation(configSvc *sinks.Configuration, inputSink sinks.Sink)
 	if err != nil {
 		return sinks.Sink{}, err
 	}
+	// Remove opentelemetry flag from config
+	inputSink.Config.RemoveKeys([]string{"opentelemetry"})
 	returnSink = inputSink
 	authMeta := a.(types.Metadata)
 	returnSink.Config = authMeta
@@ -37,7 +41,38 @@ func omitSecretInformation(configSvc *sinks.Configuration, inputSink sinks.Sink)
 		}
 		returnSink.ConfigData = configData.(string)
 	}
+
 	return
+}
+
+func removeConfigDataKey(configData string, format string, keys []string) (string, error) {
+	if configData == "" {
+		return "", nil
+	}
+	var data types.Metadata
+	switch format {
+	case "json":
+		if err := json.Unmarshal([]byte(configData), &keys); err != nil {
+			return "", err
+		}
+		data.RemoveKeys(keys)
+		if newData, err := json.Marshal(data); err != nil {
+			return "", err
+		} else {
+			return string(newData), nil
+		}
+	case "yaml":
+		if err := yaml.Unmarshal([]byte(configData), &keys); err != nil {
+			return "", err
+		}
+		data.RemoveKeys(keys)
+		if newData, err := yaml.Marshal(data); err != nil {
+			return "", err
+		} else {
+			return string(newData), nil
+		}
+	}
+	return "", errors.New("unrecognized format")
 }
 
 func addEndpoint(svc sinks.SinkService) endpoint.Endpoint {

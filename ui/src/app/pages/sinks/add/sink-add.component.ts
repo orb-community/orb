@@ -79,14 +79,7 @@ export class SinkAddComponent {
 
         return !this.editor.checkEmpty(config.authentication)
         && !this.editor.checkEmpty(config.exporter)
-        && detailsValid
-        && !this.checkString(config);
-    }
-    checkString(config: any): boolean {
-        if (typeof config.authentication.password !== 'string' || typeof config.authentication.username !== 'string') {
-            return true;
-        }
-        return false;
+        && detailsValid;
     }
 
     createSink() {

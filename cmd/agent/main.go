@@ -14,7 +14,6 @@ import (
 	"syscall"
 
 	"github.com/orb-community/orb/agent"
-	"github.com/orb-community/orb/agent/backend/diode"
 	"github.com/orb-community/orb/agent/backend/pktvisor"
 	"github.com/orb-community/orb/agent/config"
 	"github.com/orb-community/orb/buildinfo"
@@ -36,7 +35,6 @@ var (
 func init() {
 	pktvisor.Register()
 	otel.Register()
-	diode.Register()
 }
 
 func Version(_ *cobra.Command, _ []string) {
@@ -152,7 +150,6 @@ func mergeOrError(path string) {
 	v.SetDefault("orb.cloud.mqtt.channel_id", "")
 	v.SetDefault("orb.db.file", "./orb-agent.db")
 	v.SetDefault("orb.tls.verify", true)
-	v.SetDefault("orb.otel.enable", true)
 	v.SetDefault("orb.otel.host", "localhost")
 	v.SetDefault("orb.otel.port", 0)
 	v.SetDefault("orb.debug.enable", Debug)

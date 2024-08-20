@@ -537,8 +537,22 @@ components:
               remote_host: my.prometheus-host.com
             authentication:
               username: dbuser
-            opentelemetry: enabled
           description: Object representing backend specific configuration information
+        config_data:
+          type: string
+          example:
+            exporter:
+              remote_host: my.prometheus-host.com
+            authentication:
+              username: dbuser
+            opentelemetry: enabled
+          description: YAML representing backend specific configuration information
+        format:
+          type: string
+          enum:
+            - yaml
+            - json
+          description: Format that the config will be passed on
         ts_created:
           type: string
           format: date-time

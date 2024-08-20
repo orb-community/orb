@@ -82,8 +82,6 @@ func (o *openTelemetryBackend) ApplyPolicy(newPolicyData policies.PolicyData, up
 			if err := o.policyRepo.Update(newPolicyData); err != nil {
 				return err
 			}
-
-			o.otelReceiverTaps = append(o.otelReceiverTaps, newPolicyData.ID)
 		} else {
 			o.logger.Info("current policy version is newer than the one being applied, skipping",
 				zap.String("policy_id", newPolicyData.ID),
@@ -159,7 +157,9 @@ func (o *openTelemetryBackend) RemovePolicy(data policies.PolicyData) error {
 		if err := os.Remove(policyPath); err != nil {
 			o.logger.Warn("failed to remove policy file, this won't fail policy removal", zap.String("policy_id", data.ID), zap.Error(err))
 		}
+		return nil
 	}
+	o.logger.Warn("no policy was removed, policy not found", zap.String("policy_id", data.ID))
 	return nil
 }
 
