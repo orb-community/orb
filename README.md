@@ -1,3 +1,15 @@
+⚠️ **This project is archived and no longer maintained.**
+
+Orb is no longer under active development, and NetBox Labs has archived this repository. It will not receive updates, bug fixes or security patches, and issues, pull requests and discussions are closed. We don't recommend running it in production.
+
+The code stays available under its existing open source license (MPL-2.0) for reference, and you're welcome to fork it.
+
+Thanks to everyone who contributed to Orb and used it over the years.
+
+To see what NetBox Labs is building now, visit [netboxlabs.com](https://netboxlabs.com) or [github.com/netboxlabs](https://github.com/netboxlabs).
+
+---
+
 <img src="docs/images/ORB-logo-black@3x.png" alt="Orb" width="500"/>
 <img src="https://user-images.githubusercontent.com/97463920/218170067-16a95078-6709-4828-b137-9791376b972e.png" alt="Orb UI Preview" width="500"/>
 
